@@ -78,11 +78,31 @@
 ### 4.1 Stack
 
 - **Framework**: Laravel (PHP)
+- **Frontend**: Blade + Livewire
+- **Styling**: Vanilla CSS (nested CSS, no preprocessor)
 - **Database**: MySQL / PostgreSQL (TBD)
 - **Queue**: Redis / Horizon (for async analytics writes)
 - **Cache**: Redis (for hot slug lookups)
+- **Web Server**: Caddy (automatic HTTPS, multi-domain routing)
 
-### 4.2 Key Models
+### 4.2 URL vs Slug Detection (`href.nz/{input}`)
+
+When a request hits `href.nz/{input}`, the resolver must distinguish between a bare URL and a stored slug:
+
+```
+resolve(input):
+  1. If input contains a dot (.) or colon (:)     → treat as URL → direct redirect
+     e.g. "google.com", "https://example.org"
+  2. If input contains a slash (/) after the host → treat as URL → direct redirect
+     e.g. "example.com/path"
+  3. Otherwise                                     → treat as slug → lookup in DB
+     e.g. "myslug", "abc123"
+  4. If slug not found                             → 404
+```
+
+> Slugs are restricted to `[a-zA-Z0-9_-]` — no dots, colons, or slashes — making disambiguation deterministic.
+
+### 4.3 Key Models
 
 ```
 User
@@ -117,7 +137,7 @@ Plan
 ├── rate_limit
 ```
 
-### 4.3 Domain Routing Strategy
+### 4.4 Domain Routing Strategy
 
 Laravel middleware to resolve the incoming domain and apply access rules:
 
@@ -156,6 +176,7 @@ Request → DomainResolver middleware
 - [ ] Root redirect to latest version
 - [ ] CRUD endpoints for links
 - [ ] Rate limiting per plan
+- [ ] **Versioning strategy**: retired API versions keep full functionality (no breaking removals). Controllers and file structure are named per version (e.g. `App\Http\Controllers\Api\V1\LinkController`, `routes/api/v1.php`)
 
 ### Phase 4 — Dashboard 📊
 
@@ -181,8 +202,8 @@ Request → DomainResolver middleware
 ## 6. Open Questions
 
 1. **Database choice** — MySQL or PostgreSQL?
-2. **Frontend stack** — Blade + Livewire, Inertia + Vue/React, or separate SPA?
+2. ~~**Frontend stack**~~ — ✅ Blade + Livewire with Vanilla CSS (nested)
 3. **Auth system** — Laravel Sanctum (API tokens) + session auth, or Passport (OAuth)?
-4. **Hosting / deployment** — Where will this be deployed? (relates to domain routing setup)
+4. ~~**Hosting / deployment**~~ — ✅ Caddy web server
 5. **Click privacy** — IP hashing algorithm & retention policy?
-6. **`href.nz/{url}` bare redirect** — How to distinguish a bare URL from a slug? (e.g., `href.nz/google.com` vs `href.nz/myslug`)
+6. ~~**`href.nz/{url}` bare redirect**~~ — ✅ Resolved: slug charset `[a-zA-Z0-9_-]` makes detection deterministic (dots/colons/slashes → URL, otherwise → slug lookup)
