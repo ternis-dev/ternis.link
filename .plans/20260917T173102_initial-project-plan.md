@@ -80,6 +80,7 @@
 - **Framework**: Laravel (PHP)
 - **Frontend**: Blade + Livewire
 - **Styling**: Vanilla CSS (nested CSS, no preprocessor)
+- **Auth**: Ternis Auth SSO (OAuth 2.0 + OpenID Connect 1.0, Authorization Code Flow with PKCE)
 - **Database**: MySQL / PostgreSQL (TBD)
 - **Queue**: Redis / Horizon (for async analytics writes)
 - **Cache**: Redis (for hot slug lookups)
@@ -151,6 +152,52 @@ Request → DomainResolver middleware
   └── partner domains               → lookup in domains table
 ```
 
+### 4.5 Authentication — Ternis Auth SSO Integration
+
+ternis.link **does not manage passwords or user registration** — all authentication is delegated to the Ternis Auth platform via OAuth 2.0 / OpenID Connect 1.0.
+
+**SSO Provider Domains:**
+- `auth.ternis.net` — Primary global SSO authority
+- `auth.ternis.org` — Foundation & community auth
+- `auth.ternis.dev` — Developer sandbox
+- `auth.t-api.de` — API & German infrastructure gateway
+- `auth.thosted.de` — ternis-hosted auth
+- `account.ternis.org` / `account.ternis.net` — User self-service portals
+
+**Integration flow:**
+```
+User → dash.ternis.link/login
+  → Redirect to auth.ternis.net/oauth/authorize (Authorization Code + PKCE)
+  → User authenticates at Ternis Auth
+  → Callback to dash.ternis.link/auth/callback with ?code=...
+  → Exchange code for access_token + refresh_token
+  → Fetch /oauth/userinfo → get sub, name, email, user_type, role
+  → Find-or-create local User record by SSO `sub` (UUID)
+  → Establish Laravel session
+```
+
+**User type mapping from SSO claims:**
+
+| SSO `user_type` | SSO Scopes | Local role | Notes |
+|---|---|---|---|
+| `ternis_member` | `ternis:member` | `admin` or `family` | Based on member badge / orgs |
+| (general user) | `openid profile email ternis:sso` | `user` | Standard user |
+| (paying customer) | `ternis:customer` | `user` (with paid plan) | Plan derived from entitlements |
+| (verified partner) | `ternis:partner` | `partner` | Partner domain access |
+
+**Required `.env` config:**
+```env
+TERNIS_AUTH_BASE_URL=https://auth.ternis.net
+TERNIS_AUTH_CLIENT_ID=<uuid>
+TERNIS_AUTH_CLIENT_SECRET=<secret>
+TERNIS_AUTH_REDIRECT_URI=https://dash.ternis.link/auth/callback
+```
+
+**Links API authentication** (`links.t-api.de`):
+- Authenticated users get a local API key (stored in `api_keys` table)
+- API requests use `Authorization: Bearer <api_key>` — validated locally, no SSO round-trip per request
+- Alternatively, users can pass their Ternis Auth access token; the API validates it against the SSO userinfo endpoint (cached)
+
 ---
 
 ## 5. Implementation Phases
@@ -159,6 +206,7 @@ Request → DomainResolver middleware
 
 - [ ] Initialize Laravel project
 - [ ] Set up database migrations (users, links, clicks, domains, plans)
+- [ ] Ternis Auth SSO integration (OAuth 2.0 + PKCE login flow, user provisioning from SSO claims)
 - [ ] Domain routing middleware
 - [ ] Basic redirect engine (`/{slug}` → destination)
 - [ ] Click tracking (synchronous first, then queue)
@@ -203,7 +251,7 @@ Request → DomainResolver middleware
 
 1. **Database choice** — MySQL or PostgreSQL?
 2. ~~**Frontend stack**~~ — ✅ Blade + Livewire with Vanilla CSS (nested)
-3. **Auth system** — Laravel Sanctum (API tokens) + session auth, or Passport (OAuth)?
+3. ~~**Auth system**~~ — ✅ Ternis Auth SSO (OAuth 2.0 + OpenID Connect 1.0, Authorization Code + PKCE). No local passwords.
 4. ~~**Hosting / deployment**~~ — ✅ Caddy web server
 5. **Click privacy** — IP hashing algorithm & retention policy?
 6. ~~**`href.nz/{url}` bare redirect**~~ — ✅ Resolved: slug charset `[a-zA-Z0-9_-]` makes detection deterministic (dots/colons/slashes → URL, otherwise → slug lookup)

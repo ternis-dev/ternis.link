@@ -12,6 +12,7 @@ erDiagram
     User ||--o{ Link : "creates"
     User ||--o{ Domain : "owns"
     User ||--o{ ApiKey : "has"
+    User ||--|| OAuthIdentity : "authenticated via"
     User }o--|| Plan : "subscribes to"
     Domain ||--o{ Link : "hosts"
     Link ||--o{ Click : "tracks"
@@ -19,12 +20,24 @@ erDiagram
 
     User {
         bigint id PK
-        string name
-        string email UK
-        string password
+        uuid sso_sub UK "Ternis Auth subject identifier"
+        string name "synced from SSO"
+        string email UK "synced from SSO"
+        string sso_user_type "ternis_member, general, customer, partner"
         enum role "admin, partner, family, user"
         bigint plan_id FK
-        timestamp email_verified_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    OAuthIdentity {
+        bigint id PK
+        bigint user_id FK_UK "one-to-one with User"
+        text access_token "encrypted"
+        text refresh_token "encrypted"
+        timestamp token_expires_at
+        json sso_claims "cached userinfo response"
+        timestamp claims_synced_at
         timestamp created_at
         timestamp updated_at
     }
@@ -105,16 +118,38 @@ erDiagram
 
 ### `users`
 
+> [!IMPORTANT]
+> **No passwords stored locally.** All authentication is handled by Ternis Auth SSO. Users are provisioned on first login via the OAuth callback.
+
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | `id` | `bigint` | PK, auto-increment | |
-| `name` | `varchar(255)` | not null | |
-| `email` | `varchar(255)` | not null, unique | |
-| `password` | `varchar(255)` | not null | bcrypt/argon2 |
-| `role` | `enum` | not null, default `user` | `admin`, `partner`, `family`, `user` |
+| `sso_sub` | `uuid` | not null, unique | Ternis Auth subject identifier (stable across name/email changes) |
+| `name` | `varchar(255)` | not null | Synced from SSO `name` claim |
+| `email` | `varchar(255)` | not null, unique | Synced from SSO `email` claim |
+| `sso_user_type` | `varchar(50)` | nullable | Raw SSO user type: `ternis_member`, `general`, `customer`, `partner` |
+| `role` | `enum` | not null, default `user` | `admin`, `partner`, `family`, `user` — derived from SSO claims |
 | `plan_id` | `bigint` | FK → `plans.id`, default free plan | |
-| `email_verified_at` | `timestamp` | nullable | |
-| `remember_token` | `varchar(100)` | nullable | Laravel default |
+| `created_at` | `timestamp` | | |
+| `updated_at` | `timestamp` | | |
+
+**Indexes:**
+- `UNIQUE (sso_sub)` — primary lookup key for SSO callback
+- `UNIQUE (email)` — secondary lookup
+
+### `oauth_identities`
+
+Stores OAuth tokens and cached SSO claims per user (one-to-one).
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | `bigint` | PK, auto-increment | |
+| `user_id` | `bigint` | FK → `users.id`, not null, unique | One-to-one |
+| `access_token` | `text` | not null | Encrypted (Laravel `encrypted` cast) |
+| `refresh_token` | `text` | nullable | Encrypted |
+| `token_expires_at` | `timestamp` | not null | When the access token expires |
+| `sso_claims` | `json` | nullable | Cached `/oauth/userinfo` response |
+| `claims_synced_at` | `timestamp` | nullable | Last time claims were refreshed |
 | `created_at` | `timestamp` | | |
 | `updated_at` | `timestamp` | | |
 
