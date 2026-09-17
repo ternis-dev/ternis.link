@@ -163,6 +163,8 @@ ternis.link **does not manage passwords or user registration** — all authentic
 - `auth.t-api.de` — API & German infrastructure gateway
 - `auth.thosted.de` — ternis-hosted auth
 - `account.ternis.org` / `account.ternis.net` — User self-service portals
+- `user.t-api.de` — Profile picture & CDN (fast edge avatar delivery)
+- `tauth.de` / `ternisauth.de` — German regional low-latency edge mirrors
 
 **Integration flow:**
 ```
@@ -185,6 +187,12 @@ User → dash.ternis.link/login
 | (paying customer) | `ternis:customer` | `user` (with paid plan) | Plan derived from entitlements |
 | (verified partner) | `ternis:partner` | `partner` | Partner domain access |
 
+**Profile Pictures** (`user.t-api.de`):
+- Avatars are served via `https://user.t-api.de/{sso_sub}.png` (or `.svg`) — no auth needed
+- Supports query params: `?size=128`, `?fallback=initials`, `?bg=4F46E5`
+- Never returns broken images — falls back to neutral silhouette (HTTP 200 + `X-Ternis-Fallback` header)
+- Username-based URLs also work: `https://user.t-api.de/{username}.png`
+
 **Required `.env` config:**
 ```env
 TERNIS_AUTH_BASE_URL=https://auth.ternis.net
@@ -192,6 +200,12 @@ TERNIS_AUTH_CLIENT_ID=<uuid>
 TERNIS_AUTH_CLIENT_SECRET=<secret>
 TERNIS_AUTH_REDIRECT_URI=https://dash.ternis.link/auth/callback
 ```
+
+**Silent SSO** (`prompt=none`):
+- To check if a user has an active Ternis Auth session without showing a login screen, redirect with `prompt=none`
+- If authenticated → authorization code issued immediately (zero friction)
+- If not → callback returns `?error=login_required` → show login button
+- Useful for auto-login on `dash.ternis.link` page load
 
 **Links API authentication** (`links.t-api.de`):
 - Authenticated users get a local API key (stored in `api_keys` table)

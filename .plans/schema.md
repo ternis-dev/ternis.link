@@ -23,6 +23,7 @@ erDiagram
         uuid sso_sub UK "Ternis Auth subject identifier"
         string name "synced from SSO"
         string email UK "synced from SSO"
+        string avatar_url "from user.t-api.de/{sub}.png"
         string sso_user_type "ternis_member, general, customer, partner"
         enum role "admin, partner, family, user"
         bigint plan_id FK
@@ -127,6 +128,7 @@ erDiagram
 | `sso_sub` | `uuid` | not null, unique | Ternis Auth subject identifier (stable across name/email changes) |
 | `name` | `varchar(255)` | not null | Synced from SSO `name` claim |
 | `email` | `varchar(255)` | not null, unique | Synced from SSO `email` claim |
+| `avatar_url` | `varchar(512)` | nullable | Synced from SSO picture claim, e.g. https://user.t-api.de/{sub}.png |
 | `sso_user_type` | `varchar(50)` | nullable | Raw SSO user type: `ternis_member`, `general`, `customer`, `partner` |
 | `role` | `enum` | not null, default `user` | `admin`, `partner`, `family`, `user` — derived from SSO claims |
 | `plan_id` | `bigint` | FK → `plans.id`, default free plan | |
@@ -148,7 +150,7 @@ Stores OAuth tokens and cached SSO claims per user (one-to-one).
 | `access_token` | `text` | not null | Encrypted (Laravel `encrypted` cast) |
 | `refresh_token` | `text` | nullable | Encrypted |
 | `token_expires_at` | `timestamp` | not null | When the access token expires |
-| `sso_claims` | `json` | nullable | Cached `/oauth/userinfo` response |
+| `sso_claims` | `json` | nullable | Cached full `/oauth/userinfo` response including `picture`, `user_type`, `ternis_member`, `ternis_customer`, `ternis_partner` objects |
 | `claims_synced_at` | `timestamp` | nullable | Last time claims were refreshed |
 | `created_at` | `timestamp` | | |
 | `updated_at` | `timestamp` | | |
