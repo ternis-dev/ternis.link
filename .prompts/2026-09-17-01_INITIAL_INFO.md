@@ -14,8 +14,11 @@
 - short.thosted.de
 - go.thosted.de
 - go.ternis.net
+- go.ternis.dev
 - go.ternis.org
 - go.ternis.eu
+- links.t-api.de (API ONLY)
+- dash.ternis.link (Dashboard only)
 
 ## Application
 LaravelPHP-powered link-shortening and insights api focused on Analytics and "tracking"(referers)
@@ -27,3 +30,6 @@ LaravelPHP-powered link-shortening and insights api focused on Analytics and "tr
 - links.thosted.de and short.thosted.de (and go.thosted.de) are also used for ternis-hosted related things only
 - every "redirect" gets stored in db but href.nz/url/* redirects are only visible to admins ...
 - "pertners" can also add their own domains/subdomains 
+- api-url: links.t-api.de/v{version_id} ("/" redirects to teh latest version)
+- alternatives to href.nz/url/ are href.nz/go/ and href.nz/{url} but /url/ is prefered
+- dashboard is at dash.ternis.link (and maybe admin-dashboard at admin.ternis.link)
