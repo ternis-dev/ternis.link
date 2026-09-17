@@ -19,6 +19,7 @@
 - go.ternis.eu
 - links.t-api.de (API ONLY)
 - dash.ternis.link (Dashboard only)
+- api.ternis.link (Redirects to links.t-api.de)
 
 ## Application
 LaravelPHP-powered link-shortening and insights api focused on Analytics and "tracking"(referers)
@@ -33,3 +34,15 @@ LaravelPHP-powered link-shortening and insights api focused on Analytics and "tr
 - api-url: links.t-api.de/v{version_id} ("/" redirects to teh latest version)
 - alternatives to href.nz/url/ are href.nz/go/ and href.nz/{url} but /url/ is prefered
 - dashboard is at dash.ternis.link (and maybe admin-dashboard at admin.ternis.link)
+
+
+
+
+## Stack
+- Blade + Livewire
+- VanillaCSS (nested CSS)
+- Deployment on a Caddy Webserver
+- Algorithm which detects if $url href.nz/{url} is a slug or a url
+
+## Api Versioning
+- Retired api keeps "functionality" (Controllers or Filestructure is named according to api-version ...)
