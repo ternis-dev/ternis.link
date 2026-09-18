@@ -1,0 +1,67 @@
+# ==========================================================
+# ternis.link Caddyfile
+# ==========================================================
+# All domains point to the same Laravel app.
+# Laravel's ResolveDomain middleware handles host-based routing.
+# ==========================================================
+
+# Public link shortener
+href.nz, *.href.nz {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
+# Business link shortener
+href.re, *.href.re {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
+# Ternis family domains
+ternis.link, *.ternis.link {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
+# thosted redirect domains
+links.thosted.de, short.thosted.de, go.thosted.de {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
+# Go redirect domains
+go.ternis.net, go.ternis.dev, go.ternis.org, go.ternis.eu {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
+# API domain
+links.t-api.de {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
+# API redirect domain
+api.ternis.link {
+    redir https://links.t-api.de{uri} permanent
+}
+
+# Dashboard & Admin domains
+dash.ternis.link, admin.ternis.link {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
