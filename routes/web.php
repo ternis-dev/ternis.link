@@ -25,6 +25,10 @@ Route::middleware(ResolveDomain::class)->group(function () {
     Route::get('/auth/callback', [TernisAuthController::class, 'callback'])->name('auth.callback');
     Route::post('/logout', [TernisAuthController::class, 'logout'])->name('logout');
 
+    if (app()->environment('local', 'testing')) {
+        Route::get('/auth/demo', [TernisAuthController::class, 'demoLogin'])->name('auth.demo');
+    }
+
     /*
     |----------------------------------------------------------------------
     | Dashboard routes (dash.ternis.link) — require SSO login

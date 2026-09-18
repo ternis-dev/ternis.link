@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\Plan;
+use App\Models\User;
 use App\Services\TernisAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -85,6 +88,73 @@ class TernisAuthController extends Controller
         auth()->login($user);
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    /**
+     * Temporary local developer demo login (only available in local/testing environments).
+     */
+    public function demoLogin(Request $request)
+    {
+        if (! app()->environment('local', 'testing')) {
+            abort(404);
+        }
+
+        $roleParam = $request->query('role', 'admin');
+
+        $roleMap = [
+            'admin' => [
+                'sub' => '00000000-0000-0000-0000-000000000001',
+                'name' => 'Demo Admin',
+                'email' => 'admin@demo.local',
+                'role' => UserRole::Admin,
+                'type' => 'ternis_member',
+                'plan' => 'business',
+            ],
+            'family' => [
+                'sub' => '00000000-0000-0000-0000-000000000002',
+                'name' => 'Demo Family',
+                'email' => 'family@demo.local',
+                'role' => UserRole::Family,
+                'type' => 'ternis_member',
+                'plan' => 'family',
+            ],
+            'partner' => [
+                'sub' => '00000000-0000-0000-0000-000000000003',
+                'name' => 'Demo Partner',
+                'email' => 'partner@demo.local',
+                'role' => UserRole::Partner,
+                'type' => 'partner',
+                'plan' => 'partner',
+            ],
+            'user' => [
+                'sub' => '00000000-0000-0000-0000-000000000004',
+                'name' => 'Demo User',
+                'email' => 'user@demo.local',
+                'role' => UserRole::User,
+                'type' => 'general',
+                'plan' => 'free',
+            ],
+        ];
+
+        $profile = $roleMap[$roleParam] ?? $roleMap['admin'];
+        $plan = Plan::where('name', $profile['plan'])->first()
+            ?? Plan::first();
+
+        $user = User::updateOrCreate(
+            ['sso_sub' => $profile['sub']],
+            [
+                'name' => $profile['name'],
+                'email' => $profile['email'],
+                'avatar_url' => null,
+                'sso_user_type' => $profile['type'],
+                'role' => $profile['role'],
+                'plan_id' => $plan?->id,
+            ]
+        );
+
+        auth()->login($user);
+
+        return redirect()->route('dashboard');
     }
 
     /**

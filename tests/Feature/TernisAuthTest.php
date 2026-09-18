@@ -99,4 +99,27 @@ class TernisAuthTest extends TestCase
         $response->assertRedirect('/');
         $this->assertGuest();
     }
+
+    public function test_demo_login_authenticates_user(): void
+    {
+        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])
+            ->get('/auth/demo?role=admin');
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+
+        $user = auth()->user();
+        $this->assertEquals(UserRole::Admin, $user->role);
+        $this->assertEquals('admin@demo.local', $user->email);
+    }
+
+    public function test_demo_login_fails_in_production(): void
+    {
+        $this->app['env'] = 'production';
+
+        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])
+            ->get('/auth/demo?role=admin');
+
+        $response->assertStatus(404);
+    }
 }
