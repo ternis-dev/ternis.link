@@ -46,7 +46,7 @@
         </section>
 
         <footer class="nz-footer">
-            made with ♥ by ternis.link · <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">dashboard</a>
+            made with ♥ by ternis.link from <a href="https://ternis.dev">ternis.dev</a> · hosted on <a href="https://ternis.net">ternis.net</a> · <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">dashboard</a>
         </footer>
     </main>
 
