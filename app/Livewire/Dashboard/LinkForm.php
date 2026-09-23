@@ -4,6 +4,8 @@ namespace App\Livewire\Dashboard;
 
 use App\Models\Domain;
 use App\Services\LinkService;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class LinkForm extends Component
@@ -22,11 +24,31 @@ class LinkForm extends Component
 
     protected function rules(): array
     {
+        $minLength = auth()->user()?->plan?->min_slug_length ?? 8;
+
         return [
             'destination_url' => ['required', 'url', 'max:2048'],
             'domain_id' => ['required', 'exists:domains,id'],
-            'slug' => ['nullable', 'string', 'regex:/^[a-zA-Z0-9_-]+$/', 'max:255'],
+            'slug' => [
+                'nullable',
+                'string',
+                'regex:/^[a-zA-Z0-9_-]+$/',
+                'max:255',
+                "min:{$minLength}",
+                Rule::unique('links', 'slug')->where(fn ($query) => $query->where('domain_id', $this->domain_id)),
+            ],
             'expires_at' => ['nullable', 'date', 'after:now'],
+        ];
+    }
+
+    protected function messages(): array
+    {
+        $minLength = auth()->user()?->plan?->min_slug_length ?? 8;
+        $planName = auth()->user()?->plan?->name ?? 'current';
+
+        return [
+            'slug.min' => "The slug must be at least {$minLength} characters for your plan ({$planName}).",
+            'slug.unique' => 'This slug is already taken on the selected domain.',
         ];
     }
 
@@ -42,15 +64,35 @@ class LinkForm extends Component
     {
         $this->validate();
 
+        $user = auth()->user();
+        $max = $user?->plan?->max_links_per_day;
+
+        if ($user && $max !== null
+            && $user->links()->where('created_at', '>=', now()->startOfDay())->count() >= $max) {
+            $planName = $user->plan?->name ?? 'current';
+            $this->addError(
+                'destination_url',
+                "Daily link limit reached ({$max} per day on the {$planName} plan). Try again tomorrow."
+            );
+
+            return;
+        }
+
         $domain = Domain::findOrFail($this->domain_id);
 
-        $link = $linkService->create(
-            destinationUrl: $this->destination_url,
-            domain: $domain,
-            user: auth()->user(),
-            customSlug: $this->slug ?: null,
-            expiresAt: $this->expires_at ? new \DateTime($this->expires_at) : null,
-        );
+        try {
+            $link = $linkService->create(
+                destinationUrl: $this->destination_url,
+                domain: $domain,
+                user: $user,
+                customSlug: $this->slug ?: null,
+                expiresAt: $this->expires_at ? new \DateTime($this->expires_at) : null,
+            );
+        } catch (ThrottleRequestsException) {
+            $this->addError('destination_url', 'Too many links created. Please wait a moment and try again.');
+
+            return;
+        }
 
         $this->createdSlug = $link->slug;
         $this->createdDomain = $domain->hostname;

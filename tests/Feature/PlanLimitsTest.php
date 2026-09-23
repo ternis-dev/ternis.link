@@ -1,0 +1,227 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Livewire\Dashboard\LinkForm;
+use App\Models\ApiKey;
+use App\Models\Domain;
+use App\Models\Link;
+use App\Models\Plan;
+use App\Models\User;
+use Database\Seeders\ApiVersionSeeder;
+use Database\Seeders\DomainSeeder;
+use Database\Seeders\PlanSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class PlanLimitsTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private Domain $domain;
+
+    private Domain $secondDomain;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
+
+        $this->domain = Domain::where('hostname', 'href.nz')->first();
+        $this->secondDomain = Domain::where('hostname', 'ternis.link')->first();
+    }
+
+    private function headersFor(User $user): array
+    {
+        $raw = 'tl_'.Str::random(48);
+        ApiKey::create([
+            'user_id' => $user->id,
+            'key_hash' => hash('sha256', $raw),
+            'key_prefix' => substr($raw, 0, 8),
+            'api_version' => 1,
+            'name' => 'Test Key',
+        ]);
+
+        return [
+            'Host' => 'links.t-api.de',
+            'Authorization' => "Bearer {$raw}",
+        ];
+    }
+
+    private function userOnPlan(string $planName): User
+    {
+        $plan = Plan::where('name', $planName)->firstOrFail();
+
+        return User::factory()->create(['plan_id' => $plan->id]);
+    }
+
+    private function createLinkPayload(Domain $domain, ?string $slug = null, ?string $url = null): array
+    {
+        return array_filter([
+            'destination_url' => $url ?? 'https://example.com/'.Str::random(8),
+            'domain_id' => $domain->id,
+            'slug' => $slug,
+        ], fn ($value) => $value !== null);
+    }
+
+    public function test_custom_slug_shorter_than_plan_minimum_is_rejected(): void
+    {
+        $user = $this->userOnPlan('free'); // min_slug_length = 8
+
+        $response = $this->withHeaders($this->headersFor($user))
+            ->postJson('/v1/links', $this->createLinkPayload($this->domain, 'abc'));
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('slug');
+        $this->assertDatabaseMissing('links', ['slug' => 'abc']);
+    }
+
+    public function test_premium_plan_allows_shorter_slug(): void
+    {
+        $user = $this->userOnPlan('business'); // min_slug_length = 3
+
+        $response = $this->withHeaders($this->headersFor($user))
+            ->postJson('/v1/links', $this->createLinkPayload($this->domain, 'abc'));
+
+        $response->assertStatus(201);
+        $response->assertJsonFragment(['slug' => 'abc']);
+    }
+
+    public function test_duplicate_slug_on_same_domain_is_rejected(): void
+    {
+        $user = $this->userOnPlan('free');
+
+        Link::create([
+            'slug' => 'taken-slug-1',
+            'destination_url' => 'https://example.com/original',
+            'domain_id' => $this->domain->id,
+            'user_id' => $user->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->withHeaders($this->headersFor($user))
+            ->postJson('/v1/links', $this->createLinkPayload($this->domain, 'taken-slug-1'));
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('slug');
+        $this->assertEquals(1, Link::where('domain_id', $this->domain->id)->where('slug', 'taken-slug-1')->count());
+    }
+
+    public function test_same_slug_on_different_domain_is_allowed(): void
+    {
+        $user = $this->userOnPlan('free');
+
+        Link::create([
+            'slug' => 'shared-slug-1',
+            'destination_url' => 'https://example.com/original',
+            'domain_id' => $this->domain->id,
+            'user_id' => $user->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->withHeaders($this->headersFor($user))
+            ->postJson('/v1/links', $this->createLinkPayload($this->secondDomain, 'shared-slug-1'));
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('links', [
+            'slug' => 'shared-slug-1',
+            'domain_id' => $this->secondDomain->id,
+        ]);
+    }
+
+    public function test_daily_quota_is_enforced(): void
+    {
+        $plan = Plan::create([
+            'name' => 'test-quota',
+            'min_slug_length' => 8,
+            'custom_subdomain' => false,
+            'rate_limit_per_minute' => 300,
+            'max_links_per_day' => 2,
+        ]);
+        $user = User::factory()->create(['plan_id' => $plan->id]);
+        $headers = $this->headersFor($user);
+
+        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+            ->assertStatus(201);
+        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+            ->assertStatus(201);
+
+        $response = $this->withHeaders($headers)
+            ->postJson('/v1/links', $this->createLinkPayload($this->domain));
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('destination_url');
+        $this->assertEquals(2, $user->links()->count());
+    }
+
+    public function test_unlimited_plan_has_no_daily_quota(): void
+    {
+        $user = $this->userOnPlan('business'); // max_links_per_day = null
+        $headers = $this->headersFor($user);
+
+        for ($i = 0; $i < 3; $i++) {
+            $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+                ->assertStatus(201);
+        }
+
+        $this->assertEquals(3, $user->links()->count());
+    }
+
+    public function test_per_minute_rate_limit_returns_429(): void
+    {
+        $plan = Plan::create([
+            'name' => 'test-rate',
+            'min_slug_length' => 8,
+            'custom_subdomain' => false,
+            'rate_limit_per_minute' => 2,
+            'max_links_per_day' => null,
+        ]);
+        $user = User::factory()->create(['plan_id' => $plan->id]);
+        $headers = $this->headersFor($user);
+
+        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+            ->assertStatus(201);
+        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+            ->assertStatus(201);
+
+        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+            ->assertStatus(429);
+        $this->assertEquals(2, $user->links()->count());
+    }
+
+    public function test_generated_slug_respects_plan_minimum(): void
+    {
+        $user = $this->userOnPlan('free');
+
+        $response = $this->withHeaders($this->headersFor($user))
+            ->postJson('/v1/links', $this->createLinkPayload($this->domain));
+
+        $response->assertStatus(201);
+        $this->assertGreaterThanOrEqual(8, strlen($response->json('slug')));
+    }
+
+    public function test_livewire_form_rejects_duplicate_slug(): void
+    {
+        $user = $this->userOnPlan('free');
+
+        Link::create([
+            'slug' => 'livewire-taken',
+            'destination_url' => 'https://example.com/original',
+            'domain_id' => $this->domain->id,
+            'user_id' => $user->id,
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(LinkForm::class)
+            ->set('destination_url', 'https://example.com/duplicate')
+            ->set('domain_id', $this->domain->id)
+            ->set('slug', 'livewire-taken')
+            ->call('create')
+            ->assertHasErrors('slug');
+
+        $this->assertEquals(1, Link::where('domain_id', $this->domain->id)->where('slug', 'livewire-taken')->count());
+    }
+}
