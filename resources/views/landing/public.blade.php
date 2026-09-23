@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>href.nz — Fast public link shortener</title>
+    <title>href.nz — tiny links, zero fuss</title>
     <meta name="description" content="href.nz — shorten links instantly, no account needed. Guests get auto-generated 8-character links.">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
@@ -17,43 +17,36 @@
             @auth
                 <a href="{{ \App\Support\DomainUrls::dashboard('/dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
             @else
-                <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="btn btn-primary btn-sm nz-btn-guest">Log in</a>
+                <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="btn btn-secondary btn-sm">Log in</a>
             @endauth
         </div>
     </header>
 
     <main>
         <section class="nz-hero">
-            <h1>Short links, <span>zero friction.</span></h1>
-            <p>Paste a URL, get an <strong>href.nz</strong> link instantly. No account needed — guests receive an auto-generated 8-character link.</p>
-            <div class="nz-cta-row">
-                @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/dashboard') }}" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">Go to Dashboard</a>
-                @else
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="btn btn-primary nz-btn-guest" style="padding: 0.75rem 1.5rem;">Log in for custom slugs</a>
-                @endauth
-            </div>
+            <h1>tiny links, <span>zero fuss!</span></h1>
+            <p>Paste a URL, grab your short <strong>href.nz</strong> link. No account, no fuss — just an 8-character link, ready to share.</p>
         </section>
 
         <livewire:public.shorten-form />
 
         <section class="nz-features">
             <div class="nz-feature">
-                <h3>⚡ Instant</h3>
-                <p>No signup, no waiting. One field, one click, one short link.</p>
+                <h3>✂️ snip snip!</h3>
+                <p>One field, one click. Your long URL becomes a tiny link.</p>
             </div>
             <div class="nz-feature">
-                <h3>🔒 Private by design</h3>
-                <p>Guest links carry no account — only a hashed IP for abuse limits, never raw IPs.</p>
+                <h3>🙈 no snooping</h3>
+                <p>Guest links carry no account — just a hashed IP for abuse limits.</p>
             </div>
             <div class="nz-feature">
-                <h3>📊 Insights for members</h3>
-                <p>Log in for custom slugs, 6-character links, click analytics and API keys.</p>
+                <h3>✨ want more?</h3>
+                <p><a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">Log in</a> for custom slugs, shorter links &amp; click stats.</p>
             </div>
         </section>
 
         <footer class="nz-footer">
-            href.nz — public shortener by ternis.link · <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">ternis.link dashboard</a>
+            made with ♥ by ternis.link · <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">dashboard</a>
         </footer>
     </main>
 
