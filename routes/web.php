@@ -107,8 +107,12 @@ Route::middleware(['ensure.domain:public,business,ternis,partner', EnforceDomain
         ->where('url', '.*')
         ->name('redirect.go');
 
-    // Slug or URL detection — MUST be last (catch-all)
+    // Slug or URL detection — MUST be last (catch-all).
+    // Version prefixes (v1, v2, …) are reserved so single-segment API
+    // roots (/v1, /v1/) fall through to routes/api/v*.php instead of
+    // being treated as slugs. Web routes load before API routes, so
+    // without this the API version root would 404 via ensure.domain.
     Route::get('/{input}', [RedirectController::class, 'resolve'])
-        ->where('input', '[^/]+')
+        ->where('input', '^(?!v\d+$)[^/]+$')
         ->name('redirect.resolve');
 });

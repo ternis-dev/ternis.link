@@ -61,9 +61,19 @@ OAuth entry points, plus per-plan per-minute/daily quotas enforced in
 then 404s cross-host misuse before auth runs — authenticated `/v1/*` is
 `links.t-api.de`-only, `/login` + `/auth/*` + `/dashboard/*` are
 `dash/admin.ternis.link`-only, and `/url/*` + `/go/*` + `/{slug}` are
-short-link hosts only (`public,business,ternis,partner`). `/healthz`
+short-link hosts only (`public,business,ternis,partner`). Slugs matching
+`v{number}` (e.g. `v1`) are reserved on redirect hosts so the public
+`GET /v1/` version root falls through to the API. `/healthz`
 bypasses resolution so LB/IP probes always answer. API contract:
 `docs/api-v1-openapi.yaml`.
+
+**API versioning**: `EnsureApiVersion` runs before auth on all `/v1/*`
+routes. Every response carries `API-Version` + `API-Latest-Version`;
+deprecated versions add `Deprecation: true` + `Sunset`, retired versions
+return `410 { message, version, latest_version }`. `GET /v1/` is public
+(no auth) and is the landing target of `links.t-api.de/`. Errors are
+`{ message }` (`{ message, errors }` for validation); plan per-minute
+overages are `429` with `Retry-After`.
 
 ---
 
@@ -86,12 +96,13 @@ Run the test suite:
 php artisan test
 ```
 
-All 103 feature and unit tests cover:
+All 112 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain
 - Anonymous link creation (public API, guest web form, quotas, throttling)
 - Multi-domain resolution middleware & wildcard subdomains
 - Host pinning (`EnsureDomainType` 404s on wrong hosts, healthz bypass)
+- API polish (`GET /v1/` metadata, `API-Version` headers, `Deprecation`/`Sunset`, `410` retired, `{ message }` errors, `429` + `Retry-After`)
 - Ternis Auth OAuth PKCE authorization redirect & user provisioning callback
 - Direct URL redirects (`/url/{url}`, `/go/{url}`) & bare path redirects
 - API v1 CRUD endpoints, Bearer API key authentication, and click analytics

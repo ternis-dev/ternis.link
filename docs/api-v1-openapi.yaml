@@ -14,6 +14,23 @@ info:
     - Dashboard + auth web routes: `dash.ternis.link` / `admin.ternis.link` only.
     - Redirects (`/url/{url}`, `/go/{url}`, `/{slug}`): public, business,
       ternis, and partner hosts only. API/dashboard hosts 404 there.
+      Slugs matching `v{number}` (e.g. `v1`) are reserved on redirect
+      hosts so single-segment API roots (`/v1`) fall through to the API.
+
+    Versioning (enforced by EnsureApiVersion):
+    - Every v1 response carries `API-Version` + `API-Latest-Version`.
+    - Deprecated versions add `Deprecation: true` + `Sunset` (RFC 7231).
+    - Retired versions return `410` with `{ message, version, latest_version }`
+      before auth runs.
+    - `GET /v1/` is public (no auth) and is the landing target of
+      `links.t-api.de/`.
+
+    Errors (JSON, `{ message }` shape):
+    - 401/403/410 all return `{ message }` (never `{ error }`).
+    - Validation failures return Laravel `{ message, errors }`.
+    - Plan per-minute overages return `429` with a `Retry-After` header;
+      `throttle:api` / `throttle:10,1` add the standard
+      `X-RateLimit-*` + `Retry-After` headers.
   contact:
     name: ternis-edv
     url: https://ternis.dev
@@ -23,6 +40,36 @@ servers:
 security:
   - bearerAuth: []
 paths:
+  /:
+    get:
+      summary: Version metadata (public, no auth)
+      description: |
+        Landing target of `links.t-api.de/` (`/v1/`). Always carries
+        `API-Version` + `API-Latest-Version`; deprecated versions also
+        send `Deprecation` + `Sunset`, retired versions return 410.
+        Hosts: `links.t-api.de` only. Others 404.
+      security: []
+      responses:
+        '200':
+          description: Version metadata
+          headers:
+            API-Version: { schema: { type: string }, description: Requested version }
+            API-Latest-Version: { schema: { type: string }, description: Latest active version }
+            Deprecation: { schema: { type: string }, description: Present (true) when deprecated }
+            Sunset: { schema: { type: string }, description: RFC 7231 retirement date when deprecated }
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version: { type: integer }
+                  status: { type: string, enum: [active, deprecated, retired] }
+                  latest_version: { type: integer }
+                  deprecated_at: { type: string, format: date, nullable: true }
+                  endpoints: { type: object }
+                  docs: { type: string }
+        '404': { description: Non-API host }
+        '410': { description: Version retired — migrate to latest_version }
   /links/public:
     post:
       summary: Create an anonymous short link (no auth)
@@ -65,21 +112,28 @@ paths:
                   destination_url: { type: string }
                   short_url: { type: string }
         '422': { description: Validation error (short slug, non-public domain, quota) }
-        '429': { description: Per-minute throttle exceeded }
+        '429': { description: Per-minute throttle exceeded (Retry-After + X-RateLimit-*) }
         '404': { description: Wrong host for this endpoint }
+        '410': { description: Version retired — see GET / for latest_version }
   /links:
     get:
       summary: List own links
       responses:
-        '200': { description: Paginated links }
-        '401': { description: Missing/invalid Bearer key or SSO token }
+        '200':
+          description: Paginated links
+          headers:
+            API-Version: { schema: { type: string } }
+            API-Latest-Version: { schema: { type: string } }
+        '401': { description: "{ message } — missing/invalid Bearer key or SSO token" }
         '404': { description: Non-API host }
+        '410': { description: Version retired }
     post:
       summary: Create a short link (plan limits enforced)
       description: |
         Custom slugs must match `[a-zA-Z0-9_-]` and the plan minimum
         length; per-domain uniqueness, daily quota, and per-minute rate
         limit apply (see LinkService). Custom domains must be verified.
+        Over-quota per-minute responses are `429` with `Retry-After`.
       requestBody:
         required: true
         content:
@@ -93,10 +147,15 @@ paths:
                 slug: { type: string, pattern: "^[a-zA-Z0-9_-]+$", maxLength: 255 }
                 expires_at: { type: string, format: date-time }
       responses:
-        '201': { description: Created }
-        '422': { description: Slug/quota/domain validation error }
-        '429': { description: Plan per-minute rate limit }
+        '201':
+          description: Created
+          headers:
+            API-Version: { schema: { type: string } }
+            API-Latest-Version: { schema: { type: string } }
+        '422': { description: Slug/quota/domain validation error (`{ message, errors }`) }
+        '429': { description: Plan per-minute rate limit (`{ message }` + Retry-After) }
         '404': { description: Non-API host }
+        '410': { description: Version retired }
   /links/{link}:
     parameters:
       - { name: link, in: path, required: true, schema: { type: integer } }
@@ -104,8 +163,9 @@ paths:
       summary: Get a link (owner or admin)
       responses:
         '200': { description: Link with domain }
-        '403': { description: Not the owner }
+        '403': { description: "{ message: 'You do not own this link.' }" }
         '404': { description: Unknown link or wrong host }
+        '410': { description: Version retired }
     put:
       summary: Update destination, activity, or expiry
       requestBody:
@@ -120,12 +180,14 @@ paths:
                 expires_at: { type: string, format: date-time, nullable: true }
       responses:
         '200': { description: Updated }
-        '403': { description: Not the owner }
+        '403': { description: "{ message: 'You do not own this link.' }" }
+        '410': { description: Version retired }
     delete:
       summary: Deactivate a link (analytics preserved)
       responses:
         '204': { description: Deactivated }
-        '403': { description: Not the owner }
+        '403': { description: "{ message: 'You do not own this link.' }" }
+        '410': { description: Version retired }
   /links/{link}/clicks:
     parameters:
       - { name: link, in: path, required: true, schema: { type: integer } }
