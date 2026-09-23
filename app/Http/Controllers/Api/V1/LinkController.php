@@ -55,7 +55,7 @@ class LinkController extends Controller
     public function show(Request $request, Link $link): JsonResponse
     {
         if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
-            abort(403);
+            abort(403, 'You do not own this link.');
         }
 
         return response()->json($link->load('domain'));
@@ -67,7 +67,7 @@ class LinkController extends Controller
     public function update(UpdateLinkRequest $request, Link $link): JsonResponse
     {
         if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
-            abort(403);
+            abort(403, 'You do not own this link.');
         }
 
         $link = $this->linkService->update($link, $request->validated());
@@ -81,7 +81,7 @@ class LinkController extends Controller
     public function destroy(Request $request, Link $link): JsonResponse
     {
         if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
-            abort(403);
+            abort(403, 'You do not own this link.');
         }
 
         $this->linkService->deactivate($link);

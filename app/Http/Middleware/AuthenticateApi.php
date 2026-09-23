@@ -21,7 +21,7 @@ class AuthenticateApi
         $token = $request->bearerToken();
 
         if (! $token) {
-            return response()->json(['error' => 'Authentication required.'], 401);
+            return response()->json(['message' => 'Authentication required.'], 401);
         }
 
         // Strategy 1: Local API key (starts with "tl_" prefix)
@@ -30,7 +30,7 @@ class AuthenticateApi
             $apiKey = ApiKey::where('key_hash', $keyHash)->first();
 
             if (! $apiKey || ! $apiKey->isValid()) {
-                return response()->json(['error' => 'Invalid or expired API key.'], 401);
+                return response()->json(['message' => 'Invalid or expired API key.'], 401);
             }
 
             $apiKey->touchLastUsed();
@@ -54,13 +54,13 @@ class AuthenticateApi
         if (! $userInfo) {
             Cache::forget($cacheKey);
 
-            return response()->json(['error' => 'Invalid access token.'], 401);
+            return response()->json(['message' => 'Invalid access token.'], 401);
         }
 
         $user = User::where('sso_sub', $userInfo['sub'])->first();
 
         if (! $user) {
-            return response()->json(['error' => 'User not found. Please log in via the dashboard first.'], 401);
+            return response()->json(['message' => 'User not found. Please log in via the dashboard first.'], 401);
         }
 
         $request->setUserResolver(fn () => $user);

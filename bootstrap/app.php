@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuthenticateApi;
 use App\Http\Middleware\EnforceDomainAccess;
+use App\Http\Middleware\EnsureApiVersion;
 use App\Http\Middleware\EnsureDomainType;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
@@ -36,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'resolve.domain' => ResolveDomain::class,
             'enforce.domain' => EnforceDomainAccess::class,
             'ensure.domain' => EnsureDomainType::class,
+            'ensure.api-version' => EnsureApiVersion::class,
             'refresh.sso' => RefreshSsoToken::class,
             'auth.api' => AuthenticateApi::class,
         ]);
