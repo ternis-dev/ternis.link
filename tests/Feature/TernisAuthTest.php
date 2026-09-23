@@ -87,6 +87,26 @@ class TernisAuthTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_auth_callback_with_rejected_code_redirects_to_login(): void
+    {
+        Http::fake([
+            'https://auth.ternis.net/oauth/token' => Http::response(['error' => 'invalid_grant'], 400),
+        ]);
+
+        $state = 'test_random_state_string';
+        $verifier = 'test_code_verifier_1234567890123456789012345678901234567890';
+
+        // A stale/reused/pasted code must not 500 — back to login instead.
+        $response = $this->withSession([
+            'oauth_state' => $state,
+            'oauth_code_verifier' => $verifier,
+        ])->get("http://dash.ternis.link/auth/callback?code=stale_code&state={$state}");
+
+        $response->assertRedirect('http://dash.ternis.link/login');
+        $response->assertSessionHas('error');
+        $this->assertGuest();
+    }
+
     public function test_logout(): void
     {
         $user = User::factory()->create();
