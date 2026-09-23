@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Domain;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -67,6 +68,17 @@ class StoreLinkRequest extends FormRequest
                 $validator->errors()->add(
                     'destination_url',
                     "Daily link limit reached ({$max} per day on the {$planName} plan). Try again tomorrow."
+                );
+            }
+
+            $domain = Domain::find($this->input('domain_id'));
+
+            if ($domain && ! $domain->isUsableForLinks()) {
+                $validator->errors()->add(
+                    'domain_id',
+                    $domain->is_active
+                        ? 'The selected domain has not been verified yet. Publish the DNS TXT record, then verify it.'
+                        : 'The selected domain is not active.'
                 );
             }
         });

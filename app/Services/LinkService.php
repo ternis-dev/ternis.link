@@ -35,6 +35,18 @@ class LinkService
         $customSlug = $customSlug !== null && trim($customSlug) === '' ? null : $customSlug;
         $minLength = $user?->plan?->min_slug_length ?? 8;
 
+        if (! $domain->is_active) {
+            throw ValidationException::withMessages([
+                'domain_id' => 'The selected domain is not active.',
+            ]);
+        }
+
+        if ($domain->user_id !== null && $domain->verified_at === null) {
+            throw ValidationException::withMessages([
+                'domain_id' => 'The selected domain has not been verified yet. Publish the DNS TXT record, then verify it.',
+            ]);
+        }
+
         if ($user) {
             $this->ensureWithinDailyQuota($user);
             $this->ensureWithinRateLimit($user);

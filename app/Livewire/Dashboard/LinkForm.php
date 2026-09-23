@@ -111,13 +111,26 @@ class LinkForm extends Component
     }
 
     /**
-     * Get domains the current user is allowed to create links on.
+     * Get domains the current user is allowed to create links on:
+     * active system domains plus the user's own verified domains.
      */
     private function getAvailableDomains()
     {
         $user = auth()->user();
 
         return Domain::where('is_active', true)
+            ->where(function ($query) use ($user) {
+                $query->whereNull('domains.user_id');
+
+                if ($user->isAdmin()) {
+                    $query->orWhereNotNull('domains.verified_at');
+                } else {
+                    $query->orWhere(function ($q) use ($user) {
+                        $q->where('domains.user_id', $user->id)
+                            ->whereNotNull('domains.verified_at');
+                    });
+                }
+            })
             ->when(! $user->isAdmin(), function ($query) use ($user) {
                 $query->where(function ($q) use ($user) {
                     $q->where('type', 'public');
