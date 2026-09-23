@@ -12,7 +12,14 @@
                     {{ $newlyCreatedKey }}
                 </div>
                 <small style="display: block; margin-bottom: 0.75rem;">Make sure to copy your API key now. You won't be able to see it again!</small>
-                <button wire:click="dismissNewKey" class="btn btn-secondary btn-sm">I have saved my key</button>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-sm"
+                        onclick="navigator.clipboard.writeText(@js($newlyCreatedKey)).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy key', 2000); })"
+                    >Copy key</button>
+                    <button wire:click="dismissNewKey" class="btn btn-secondary btn-sm">I have saved my key</button>
+                </div>
             </div>
         @endif
 

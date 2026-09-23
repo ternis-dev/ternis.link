@@ -30,6 +30,44 @@ class ApiKey extends Model
 
     protected $hidden = ['key_hash'];
 
+    /**
+     * Token hashing scheme (single source of truth).
+     *
+     * Only the SHA-256 hex digest is ever persisted. The raw `tl_…`
+     * token is shown to the owner ONCE at creation time and is never
+     * stored anywhere — a stored value can therefore never be
+     * displayed as a usable key, and a bcrypt-style hash can never
+     * validate (see the saving guard below).
+     */
+    public static function hashToken(string $token): string
+    {
+        return hash('sha256', $token);
+    }
+
+    /**
+     * Constant-time check of a presented bearer token against this key.
+     */
+    public function verifyToken(string $token): bool
+    {
+        return hash_equals($this->key_hash, self::hashToken($token));
+    }
+
+    protected static function booted(): void
+    {
+        // Never persist anything but a SHA-256 hex digest. This turns
+        // a programming error (e.g. storing Hash::make($raw), which
+        // would surface a `$2y$…` string in the UI and silently break
+        // authentication) into a loud failure instead of corrupt data.
+        static::saving(function (ApiKey $key): void {
+            if (! preg_match('/^[0-9a-f]{64}$/', (string) $key->key_hash)) {
+                throw new \RuntimeException(
+                    'ApiKey key_hash must be a SHA-256 hex digest (see ApiKey::hashToken). '.
+                    'Refusing to persist a non-conforming hash.'
+                );
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

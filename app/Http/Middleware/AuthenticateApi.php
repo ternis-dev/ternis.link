@@ -24,12 +24,13 @@ class AuthenticateApi
             return response()->json(['message' => 'Authentication required.'], 401);
         }
 
-        // Strategy 1: Local API key (starts with "tl_" prefix)
+        // Strategy 1: Local API key (starts with "tl_" prefix).
+        // Only SHA-256 digests are stored (ApiKey::hashToken, enforced
+        // by a saving guard), so a bcrypt-style value can never match.
         if (str_starts_with($token, 'tl_')) {
-            $keyHash = hash('sha256', $token);
-            $apiKey = ApiKey::where('key_hash', $keyHash)->first();
+            $apiKey = ApiKey::where('key_hash', ApiKey::hashToken($token))->first();
 
-            if (! $apiKey || ! $apiKey->isValid()) {
+            if (! $apiKey || ! $apiKey->verifyToken($token) || ! $apiKey->isValid()) {
                 return response()->json(['message' => 'Invalid or expired API key.'], 401);
             }
 

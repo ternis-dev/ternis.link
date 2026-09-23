@@ -24,12 +24,14 @@ class ApiKeyManager extends Component
     {
         $this->validate();
 
-        // Generate a raw key with tl_ prefix
+        // Generate a raw key with tl_ prefix. Only the SHA-256 digest
+        // is persisted (ApiKey::hashToken); the raw token lives only in
+        // $newlyCreatedKey and is rendered ONCE in the success alert.
         $rawKey = 'tl_'.Str::random(48);
 
         ApiKey::create([
             'user_id' => auth()->id(),
-            'key_hash' => hash('sha256', $rawKey),
+            'key_hash' => ApiKey::hashToken($rawKey),
             'key_prefix' => substr($rawKey, 0, 8),
             'api_version' => ApiVersion::latestVersion(),
             'name' => $this->keyName,

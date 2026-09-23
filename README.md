@@ -114,7 +114,7 @@ Run the test suite:
 php artisan test
 ```
 
-All 145 feature and unit tests cover:
+All 149 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain (guests always 8-char auto, authed 6-char default via plan minimum)
 - Anonymous link creation (public API rejects custom slugs, guest web form has no slug field, quotas, throttling)
