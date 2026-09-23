@@ -17,6 +17,7 @@ class Link extends Model
         'destination_url',
         'domain_id',
         'user_id',
+        'creator_ip_hash',
         'click_count',
         'is_active',
         'expires_at',

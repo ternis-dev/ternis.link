@@ -11,6 +11,18 @@ use Illuminate\Validation\ValidationException;
 
 class LinkService
 {
+    /**
+     * Daily creation quota for anonymous (guest) links, enforced per
+     * hashed creator IP. Mirrors the free plan quota.
+     */
+    public const ANONYMOUS_DAILY_LIMIT = 50;
+
+    /**
+     * Minimum slug length for anonymous links. API keys / paid plans
+     * unlock shorter slugs via the owner's plan.
+     */
+    public const ANONYMOUS_MIN_SLUG_LENGTH = 8;
+
     public function __construct(
         private SlugGeneratorService $slugGenerator,
     ) {}
@@ -22,6 +34,10 @@ class LinkService
      * per-domain slug uniqueness, daily creation quota, and
      * per-minute rate limit.
      *
+     * Anonymous links ($user === null) are restricted to the anonymous
+     * minimum slug length and a per-IP daily quota; pass the SHA-256
+     * of the creator IP via $creatorIpHash to attribute them.
+     *
      * @throws ValidationException On slug or daily-quota violations (HTTP 422).
      * @throws ThrottleRequestsException On per-minute rate-limit violations (HTTP 429).
      */
@@ -31,9 +47,10 @@ class LinkService
         ?User $user = null,
         ?string $customSlug = null,
         ?\DateTimeInterface $expiresAt = null,
+        ?string $creatorIpHash = null,
     ): Link {
         $customSlug = $customSlug !== null && trim($customSlug) === '' ? null : $customSlug;
-        $minLength = $user?->plan?->min_slug_length ?? 8;
+        $minLength = $user?->plan?->min_slug_length ?? self::ANONYMOUS_MIN_SLUG_LENGTH;
 
         if (! $domain->is_active) {
             throw ValidationException::withMessages([
@@ -50,6 +67,8 @@ class LinkService
         if ($user) {
             $this->ensureWithinDailyQuota($user);
             $this->ensureWithinRateLimit($user);
+        } elseif ($creatorIpHash !== null) {
+            $this->ensureAnonymousWithinDailyQuota($creatorIpHash);
         }
 
         if ($customSlug !== null) {
@@ -64,6 +83,7 @@ class LinkService
             'destination_url' => $destinationUrl,
             'domain_id' => $domain->id,
             'user_id' => $user?->id,
+            'creator_ip_hash' => $creatorIpHash,
             'is_active' => true,
             'expires_at' => $expiresAt,
         ]);
@@ -127,6 +147,28 @@ class LinkService
                 null,
                 ['Retry-After' => RateLimiter::availableIn($key)]
             );
+        }
+    }
+
+    /**
+     * Enforce the anonymous daily link-creation quota per hashed creator IP.
+     *
+     * Only counts guest-created links (user_id null) carrying this IP hash,
+     * so internal direct-URL tracking rows (no hash) never count against it.
+     *
+     * @throws ValidationException
+     */
+    public function ensureAnonymousWithinDailyQuota(string $creatorIpHash): void
+    {
+        $todayCount = Link::whereNull('user_id')
+            ->where('creator_ip_hash', $creatorIpHash)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->count();
+
+        if ($todayCount >= self::ANONYMOUS_DAILY_LIMIT) {
+            throw ValidationException::withMessages([
+                'destination_url' => 'Daily link limit reached ('.self::ANONYMOUS_DAILY_LIMIT.' per day for guests). Log in with Ternis Auth for a higher quota.',
+            ]);
         }
     }
 

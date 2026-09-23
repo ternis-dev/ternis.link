@@ -23,6 +23,9 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
 - **Deterministic Slug vs. URL Classifier**:
   - Slugs restricted to `[a-zA-Z0-9_-]`.
   - Inputs with dots, colons, or slashes are automatically treated as direct URLs; otherwise, looked up as short slugs.
+- **Anonymous Link Creation**:
+  - Guests can shorten links without an account via the `href.nz` landing-page form or `POST /v1/links/public` (public system domains only, 8+ char slugs).
+  - Abuse-contained via `throttle:10,1` per IP plus a 50/day per-IP quota (tracked by SHA-256 IP hash, never raw IPs). API keys and plans unlock shorter slugs.
 - **Analytics & Tracking**:
   - Every redirect logs referrers, user agents, IP hashes (SHA-256 for privacy), and timestamp asynchronously.
   - Direct URL redirects (`/url/*`) are tracked with `is_direct_url = true` (visible only to admins).
@@ -75,9 +78,10 @@ Run the test suite:
 php artisan test
 ```
 
-All 82 feature and unit tests cover:
+All 94 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain
+- Anonymous link creation (public API, guest web form, quotas, throttling)
 - Multi-domain resolution middleware & wildcard subdomains
 - Ternis Auth OAuth PKCE authorization redirect & user provisioning callback
 - Direct URL redirects (`/url/{url}`, `/go/{url}`) & bare path redirects

@@ -10,4 +10,7 @@
             @endauth
         </div>
     </div>
+    @if (request()->attributes->get('domain_type') === 'public')
+        <livewire:public.shorten-form />
+    @endif
 </x-layouts.app>

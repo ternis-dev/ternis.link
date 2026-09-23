@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\ClickController;
 use App\Http\Controllers\Api\V1\DomainController;
 use App\Http\Controllers\Api\V1\LinkController;
+use App\Http\Controllers\Api\V1\PublicLinkController;
 use App\Http\Middleware\AuthenticateApi;
 use Illuminate\Support\Facades\Route;
 
@@ -10,8 +11,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | API V1 Routes — links.t-api.de/v1/*
 |--------------------------------------------------------------------------
-| All routes require API key or SSO token authentication.
 */
+
+// Public: anonymous link creation on public domains (IP-throttled, no auth).
+Route::middleware('throttle:10,1')->post('links/public', [PublicLinkController::class, 'store']);
 
 Route::middleware([AuthenticateApi::class, 'throttle:api'])->group(function () {
     // Links CRUD
