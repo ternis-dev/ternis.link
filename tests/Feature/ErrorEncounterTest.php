@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ErrorEncounter;
+use App\Models\User;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -40,7 +41,7 @@ class ErrorEncounterTest extends TestCase
 
     public function test_403_is_logged_with_actor_and_host(): void
     {
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
 
         $this->actingAs($user)
             ->get('http://admin.ternis.link/admin')
