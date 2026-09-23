@@ -61,6 +61,41 @@ class DashboardController extends Controller
     }
 
     /**
+     * Export a link's clicks as CSV (owner only, same visibility rules
+     * as the dashboard analytics: non-admins exclude direct-URL rows).
+     */
+    public function exportClicks(int $linkId)
+    {
+        $link = auth()->user()->links()->with('domain')->findOrFail($linkId);
+        $user = auth()->user();
+
+        $clicks = $link->clicks()
+            ->when(! $user->isAdmin(), fn ($query) => $query->where('is_direct_url', false))
+            ->orderBy('created_at')
+            ->cursor();
+
+        $filename = 'link-'.$link->slug.'-clicks-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($clicks) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['timestamp', 'referrer', 'user_agent', 'country_code', 'city', 'ip_hash']);
+
+            foreach ($clicks as $click) {
+                fputcsv($out, [
+                    $click->created_at?->toIso8601String(),
+                    $click->referrer,
+                    $click->user_agent,
+                    $click->country_code,
+                    $click->city,
+                    $click->ip_hash,
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    /**
      * API keys management page (Livewire: ApiKeyManager).
      */
     public function apiKeys()

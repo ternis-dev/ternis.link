@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Domain;
+use App\Services\LinkService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +16,7 @@ class StoreLinkRequest extends FormRequest
 
     public function rules(): array
     {
-        $minLength = $this->user()?->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
+        $minLength = $this->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         $domainId = $this->input('domain_id');
 
         return [
@@ -35,7 +36,7 @@ class StoreLinkRequest extends FormRequest
 
     public function messages(): array
     {
-        $minLength = $this->user()?->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
+        $minLength = $this->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         $planName = $this->user()?->plan?->name ?? 'current';
 
         return [
