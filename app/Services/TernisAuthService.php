@@ -165,6 +165,87 @@ class TernisAuthService
     }
 
     /**
+     * Refresh an expired access token using the stored refresh token.
+     * Re-syncs the user profile and role from fresh claims.
+     *
+     * Returns false when there is nothing to refresh with or the
+     * provider rejects the request — callers should re-authenticate.
+     */
+    public function refreshAccessToken(User $user): bool
+    {
+        $identity = $user->oauthIdentity;
+
+        if (! $identity || ! $identity->refresh_token) {
+            return false;
+        }
+
+        try {
+            $response = Http::asForm()->post("{$this->baseUrl}/oauth/token", [
+                'grant_type' => 'refresh_token',
+                'client_id' => $this->clientId,
+                'client_secret' => $this->clientSecret,
+                'refresh_token' => $identity->refresh_token,
+            ]);
+
+            if ($response->failed()) {
+                return false;
+            }
+
+            $tokens = $response->json();
+
+            if (empty($tokens['access_token'])) {
+                return false;
+            }
+
+            $userInfo = $this->getUserInfo($tokens['access_token']);
+
+            $identity->update([
+                'access_token' => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'] ?? $identity->refresh_token,
+                'token_expires_at' => now()->addSeconds((int) ($tokens['expires_in'] ?? 3600)),
+                'sso_claims' => $userInfo,
+                'claims_synced_at' => now(),
+            ]);
+
+            $this->syncUserFromClaims($user, $userInfo);
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * RP-initiated logout URL, or null when SSO logout is disabled.
+     */
+    public function getEndSessionUrl(): ?string
+    {
+        if (! config('services.ternis_auth.end_session', false)) {
+            return null;
+        }
+
+        $path = config('services.ternis_auth.end_session_path', '/oauth/logout');
+        $redirect = config('services.ternis_auth.post_logout_redirect_uri') ?: url('/');
+        $params = http_build_query(['post_logout_redirect_uri' => $redirect]);
+
+        return "{$this->baseUrl}{$path}?{$params}";
+    }
+
+    /**
+     * Update profile fields and role from fresh SSO claims.
+     */
+    private function syncUserFromClaims(User $user, array $userInfo): void
+    {
+        $user->update([
+            'name' => $userInfo['name'] ?? $user->name,
+            'email' => $userInfo['email'] ?? $user->email,
+            'avatar_url' => $userInfo['picture'] ?? $user->avatar_url,
+            'sso_user_type' => $userInfo['user_type'] ?? $user->sso_user_type,
+            'role' => $this->mapRole($userInfo),
+        ]);
+    }
+
+    /**
      * Map SSO user_type + claims to a local UserRole.
      */
     public function mapRole(array $userInfo): UserRole

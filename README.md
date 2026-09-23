@@ -53,7 +53,7 @@ Run the test suite:
 php artisan test
 ```
 
-All 65 feature and unit tests cover:
+All 75 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain
 - Multi-domain resolution middleware & wildcard subdomains

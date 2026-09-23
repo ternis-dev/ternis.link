@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Middleware\EnforceDomainAccess;
+use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,7 @@ Route::middleware(ResolveDomain::class)->group(function () {
     */
     Route::get('/login', [TernisAuthController::class, 'showLogin'])->name('login');
     Route::get('/auth/redirect', [TernisAuthController::class, 'redirect'])->name('auth.redirect');
+    Route::get('/auth/silent', [TernisAuthController::class, 'silent'])->name('auth.silent');
     Route::get('/auth/callback', [TernisAuthController::class, 'callback'])->name('auth.callback');
     Route::post('/logout', [TernisAuthController::class, 'logout'])->name('logout');
 
@@ -34,7 +36,7 @@ Route::middleware(ResolveDomain::class)->group(function () {
     | Dashboard routes (dash.ternis.link) — require SSO login
     |----------------------------------------------------------------------
     */
-    Route::middleware(['auth', EnforceDomainAccess::class])->prefix('dashboard')->group(function () {
+    Route::middleware(['auth', RefreshSsoToken::class, EnforceDomainAccess::class])->prefix('dashboard')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
         Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');

@@ -42,6 +42,9 @@ return [
         'redirect_uri' => env('TERNIS_AUTH_REDIRECT_URI'),
         'scopes' => env('TERNIS_AUTH_SCOPES', 'openid profile email ternis:sso'),
         'avatar_base' => env('TERNIS_AVATAR_BASE_URL', 'https://user.t-api.de'),
+        'end_session' => env('TERNIS_AUTH_END_SESSION', false),
+        'end_session_path' => env('TERNIS_AUTH_END_SESSION_PATH', '/oauth/logout'),
+        'post_logout_redirect_uri' => env('TERNIS_AUTH_POST_LOGOUT_REDIRECT_URI'),
     ],
 
 ];

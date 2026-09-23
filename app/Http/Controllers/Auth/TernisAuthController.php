@@ -47,6 +47,27 @@ class TernisAuthController extends Controller
     }
 
     /**
+     * Silent SSO check: redirects with prompt=none so an existing
+     * Ternis Auth session yields a code immediately, otherwise the
+     * callback receives ?error=login_required.
+     */
+    public function silent(Request $request)
+    {
+        if (auth()->check()) {
+            return redirect()->route('dashboard');
+        }
+
+        $state = Str::random(40);
+        $codeVerifier = $this->authService->generateCodeVerifier();
+        $codeChallenge = $this->authService->generateCodeChallenge($codeVerifier);
+
+        $request->session()->put('oauth_state', $state);
+        $request->session()->put('oauth_code_verifier', $codeVerifier);
+
+        return redirect()->away($this->authService->getSilentAuthUrl($state, $codeChallenge));
+    }
+
+    /**
      * Handle the OAuth callback from Ternis Auth.
      */
     public function callback(Request $request)
@@ -158,13 +179,20 @@ class TernisAuthController extends Controller
     }
 
     /**
-     * Log out the user (local session only).
+     * Log out locally, then continue to Ternis Auth RP-initiated
+     * logout when enabled (TERNIS_AUTH_END_SESSION=true).
      */
     public function logout(Request $request)
     {
         auth()->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        $endSessionUrl = $this->authService->getEndSessionUrl();
+
+        if ($endSessionUrl) {
+            return redirect()->away($endSessionUrl);
+        }
 
         return redirect('/');
     }
