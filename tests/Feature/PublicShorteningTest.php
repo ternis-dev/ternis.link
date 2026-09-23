@@ -35,8 +35,8 @@ class PublicShorteningTest extends TestCase
     public function test_guest_can_create_link_via_public_api_without_token(): void
     {
         $response = $this->postJson('http://links.t-api.de/v1/links/public', [
-                'destination_url' => 'https://example.com/guest-link',
-            ]);
+            'destination_url' => 'https://example.com/guest-link',
+        ]);
 
         $response->assertStatus(201);
         $response->assertJsonStructure(['slug', 'destination_url', 'short_url']);
@@ -57,9 +57,9 @@ class PublicShorteningTest extends TestCase
     public function test_guest_can_choose_custom_slug_at_guest_minimum(): void
     {
         $response = $this->postJson('http://href.nz/v1/links/public', [
-                'destination_url' => 'https://example.com/custom',
-                'slug' => 'guest-slug-1',
-            ]);
+            'destination_url' => 'https://example.com/custom',
+            'slug' => 'guest-slug-1',
+        ]);
 
         $response->assertStatus(201);
         $response->assertJsonFragment(['slug' => 'guest-slug-1']);
@@ -68,9 +68,9 @@ class PublicShorteningTest extends TestCase
     public function test_guest_custom_slug_below_minimum_is_rejected(): void
     {
         $response = $this->postJson('http://href.nz/v1/links/public', [
-                'destination_url' => 'https://example.com/short',
-                'slug' => 'abc',
-            ]);
+            'destination_url' => 'https://example.com/short',
+            'slug' => 'abc',
+        ]);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('slug');
@@ -80,9 +80,9 @@ class PublicShorteningTest extends TestCase
     public function test_guest_cannot_create_on_non_public_domain(): void
     {
         $response = $this->postJson('http://links.t-api.de/v1/links/public', [
-                'destination_url' => 'https://example.com/nope',
-                'domain_id' => $this->ternisDomain->id,
-            ]);
+            'destination_url' => 'https://example.com/nope',
+            'domain_id' => $this->ternisDomain->id,
+        ]);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('domain_id');
@@ -93,14 +93,14 @@ class PublicShorteningTest extends TestCase
     {
         for ($i = 0; $i < 10; $i++) {
             $this->postJson('http://links.t-api.de/v1/links/public', [
-                    'destination_url' => 'https://example.com/throttle-'.$i,
-                ])
+                'destination_url' => 'https://example.com/throttle-'.$i,
+            ])
                 ->assertStatus(201);
         }
 
         $this->postJson('http://links.t-api.de/v1/links/public', [
-                'destination_url' => 'https://example.com/throttle-over',
-            ])
+            'destination_url' => 'https://example.com/throttle-over',
+        ])
             ->assertStatus(429);
     }
 
