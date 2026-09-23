@@ -43,31 +43,28 @@ class ApiV1Test extends TestCase
 
     public function test_api_requires_authentication(): void
     {
-        $response = $this->withHeaders(['Host' => 'links.t-api.de'])
-            ->getJson('/v1/links');
+        $response = $this->getJson('http://links.t-api.de/v1/links');
 
         $response->assertStatus(401);
     }
 
     public function test_api_authenticates_with_bearer_api_key(): void
     {
-        $response = $this->withHeaders([
-            'Host' => 'links.t-api.de',
+        $response = $this->getJson('http://links.t-api.de/v1/links', [
             'Authorization' => "Bearer {$this->rawApiKey}",
-        ])->getJson('/v1/links');
+        ]);
 
         $response->assertStatus(200);
     }
 
     public function test_create_link_via_api(): void
     {
-        $response = $this->withHeaders([
-            'Host' => 'links.t-api.de',
-            'Authorization' => "Bearer {$this->rawApiKey}",
-        ])->postJson('/v1/links', [
+        $response = $this->postJson('http://links.t-api.de/v1/links', [
             'destination_url' => 'https://example.com/api-test',
             'domain_id' => $this->domain->id,
             'slug' => 'api_slug_test',
+        ], [
+            'Authorization' => "Bearer {$this->rawApiKey}",
         ]);
 
         $response->assertStatus(201);
@@ -92,10 +89,9 @@ class ApiV1Test extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->withHeaders([
-            'Host' => 'links.t-api.de',
+        $response = $this->getJson("http://links.t-api.de/v1/links/{$link->id}", [
             'Authorization' => "Bearer {$this->rawApiKey}",
-        ])->getJson("/v1/links/{$link->id}");
+        ]);
 
         $response->assertStatus(200);
         $response->assertJsonFragment(['slug' => 'showme123']);
@@ -111,11 +107,10 @@ class ApiV1Test extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->withHeaders([
-            'Host' => 'links.t-api.de',
-            'Authorization' => "Bearer {$this->rawApiKey}",
-        ])->putJson("/v1/links/{$link->id}", [
+        $response = $this->putJson("http://links.t-api.de/v1/links/{$link->id}", [
             'destination_url' => 'https://example.org/updated',
+        ], [
+            'Authorization' => "Bearer {$this->rawApiKey}",
         ]);
 
         $response->assertStatus(200);
@@ -132,10 +127,9 @@ class ApiV1Test extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->withHeaders([
-            'Host' => 'links.t-api.de',
+        $response = $this->deleteJson("http://links.t-api.de/v1/links/{$link->id}", [], [
             'Authorization' => "Bearer {$this->rawApiKey}",
-        ])->deleteJson("/v1/links/{$link->id}");
+        ]);
 
         $response->assertStatus(204);
         $this->assertFalse((bool) $link->fresh()->is_active);
@@ -151,10 +145,9 @@ class ApiV1Test extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->withHeaders([
-            'Host' => 'links.t-api.de',
+        $response = $this->getJson("http://links.t-api.de/v1/links/{$link->id}/clicks/summary", [
             'Authorization' => "Bearer {$this->rawApiKey}",
-        ])->getJson("/v1/links/{$link->id}/clicks/summary");
+        ]);
 
         $response->assertStatus(200);
         $response->assertJsonStructure([

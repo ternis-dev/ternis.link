@@ -22,14 +22,14 @@ class TernisAuthTest extends TestCase
 
     public function test_login_page_renders(): void
     {
-        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])->get('/login');
+        $response = $this->get('http://dash.ternis.link/login');
         $response->assertStatus(200);
         $response->assertSee('Login with Ternis Auth SSO');
     }
 
     public function test_auth_redirect_redirects_to_ternis_auth(): void
     {
-        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])->get('/auth/redirect');
+        $response = $this->get('http://dash.ternis.link/auth/redirect');
 
         $response->assertStatus(302);
         $targetUrl = $response->headers->get('Location');
@@ -67,7 +67,7 @@ class TernisAuthTest extends TestCase
         $response = $this->withSession([
             'oauth_state' => $state,
             'oauth_code_verifier' => $verifier,
-        ])->withHeaders(['Host' => 'dash.ternis.link'])->get("/auth/callback?code=mock_code&state={$state}");
+        ])->get("http://dash.ternis.link/auth/callback?code=mock_code&state={$state}");
 
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
@@ -81,8 +81,7 @@ class TernisAuthTest extends TestCase
 
     public function test_auth_callback_handles_login_required_error(): void
     {
-        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/auth/callback?error=login_required');
+        $response = $this->get('http://dash.ternis.link/auth/callback?error=login_required');
 
         $response->assertRedirect(route('login'));
         $this->assertGuest();
@@ -93,8 +92,7 @@ class TernisAuthTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->post('/logout');
+            ->post('http://dash.ternis.link/logout');
 
         $response->assertRedirect('/');
         $this->assertGuest();
@@ -102,8 +100,7 @@ class TernisAuthTest extends TestCase
 
     public function test_demo_login_authenticates_user(): void
     {
-        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/auth/demo?role=admin');
+        $response = $this->get('http://dash.ternis.link/auth/demo?role=admin');
 
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
@@ -117,8 +114,7 @@ class TernisAuthTest extends TestCase
     {
         $this->app['env'] = 'production';
 
-        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/auth/demo?role=admin');
+        $response = $this->get('http://dash.ternis.link/auth/demo?role=admin');
 
         $response->assertStatus(404);
     }

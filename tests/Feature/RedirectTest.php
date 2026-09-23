@@ -22,8 +22,7 @@ class RedirectTest extends TestCase
 
     public function test_direct_url_redirect(): void
     {
-        $response = $this->withHeaders(['Host' => 'href.nz'])
-            ->get('/url/https://example.com/some/path');
+        $response = $this->get('http://href.nz/url/https://example.com/some/path');
 
         $response->assertStatus(302);
         $response->assertRedirect('https://example.com/some/path');
@@ -35,8 +34,7 @@ class RedirectTest extends TestCase
 
     public function test_go_url_redirect(): void
     {
-        $response = $this->withHeaders(['Host' => 'href.nz'])
-            ->get('/go/https://laravel.com');
+        $response = $this->get('http://href.nz/go/https://laravel.com');
 
         $response->assertStatus(302);
         $response->assertRedirect('https://laravel.com');
@@ -44,8 +42,7 @@ class RedirectTest extends TestCase
 
     public function test_bare_path_url_detected_and_redirected(): void
     {
-        $response = $this->withHeaders(['Host' => 'href.nz'])
-            ->get('/google.com');
+        $response = $this->get('http://href.nz/google.com');
 
         $response->assertStatus(302);
         $response->assertRedirect('https://google.com');
@@ -62,8 +59,7 @@ class RedirectTest extends TestCase
             'click_count' => 0,
         ]);
 
-        $response = $this->withHeaders(['Host' => 'href.nz'])
-            ->get('/mylink123');
+        $response = $this->get('http://href.nz/mylink123');
 
         $response->assertStatus(302);
         $response->assertRedirect('https://ternis.dev');
@@ -77,8 +73,7 @@ class RedirectTest extends TestCase
 
     public function test_unknown_slug_returns_404(): void
     {
-        $response = $this->withHeaders(['Host' => 'href.nz'])
-            ->get('/notfoundslug');
+        $response = $this->get('http://href.nz/notfoundslug');
 
         $response->assertStatus(404);
         $response->assertSee('404');

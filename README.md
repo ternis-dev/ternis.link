@@ -57,6 +57,14 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
 OAuth entry points, plus per-plan per-minute/daily quotas enforced in
 `LinkService`. Public redirects are intentionally unthrottled for speed.
 
+**Host pinning**: `ResolveDomain` runs once globally; `EnsureDomainType`
+then 404s cross-host misuse before auth runs — authenticated `/v1/*` is
+`links.t-api.de`-only, `/login` + `/auth/*` + `/dashboard/*` are
+`dash/admin.ternis.link`-only, and `/url/*` + `/go/*` + `/{slug}` are
+short-link hosts only (`public,business,ternis,partner`). `/healthz`
+bypasses resolution so LB/IP probes always answer. API contract:
+`docs/api-v1-openapi.yaml`.
+
 ---
 
 ## 🛠 Tech Stack
@@ -78,12 +86,18 @@ Run the test suite:
 php artisan test
 ```
 
-All 94 feature and unit tests cover:
+All 103 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain
 - Anonymous link creation (public API, guest web form, quotas, throttling)
 - Multi-domain resolution middleware & wildcard subdomains
+- Host pinning (`EnsureDomainType` 404s on wrong hosts, healthz bypass)
 - Ternis Auth OAuth PKCE authorization redirect & user provisioning callback
 - Direct URL redirects (`/url/{url}`, `/go/{url}`) & bare path redirects
 - API v1 CRUD endpoints, Bearer API key authentication, and click analytics
 - Livewire dashboard link table, link creation form, and API key manager
+
+> Multi-domain tests must put the host in the URL
+> (e.g. `$this->get('http://links.t-api.de/v1/links')`):
+> `withHeaders(['Host' => ...])` is ignored for relative URIs because
+> Laravel prepends `APP_URL` instead.

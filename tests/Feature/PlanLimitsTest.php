@@ -45,7 +45,6 @@ class PlanLimitsTest extends TestCase
         ]);
 
         return [
-            'Host' => 'links.t-api.de',
             'Authorization' => "Bearer {$raw}",
         ];
     }
@@ -70,8 +69,7 @@ class PlanLimitsTest extends TestCase
     {
         $user = $this->userOnPlan('free'); // min_slug_length = 8
 
-        $response = $this->withHeaders($this->headersFor($user))
-            ->postJson('/v1/links', $this->createLinkPayload($this->domain, 'abc'));
+        $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain, 'abc'), $this->headersFor($user));
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('slug');
@@ -82,8 +80,7 @@ class PlanLimitsTest extends TestCase
     {
         $user = $this->userOnPlan('business'); // min_slug_length = 3
 
-        $response = $this->withHeaders($this->headersFor($user))
-            ->postJson('/v1/links', $this->createLinkPayload($this->domain, 'abc'));
+        $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain, 'abc'), $this->headersFor($user));
 
         $response->assertStatus(201);
         $response->assertJsonFragment(['slug' => 'abc']);
@@ -101,8 +98,7 @@ class PlanLimitsTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->withHeaders($this->headersFor($user))
-            ->postJson('/v1/links', $this->createLinkPayload($this->domain, 'taken-slug-1'));
+        $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain, 'taken-slug-1'), $this->headersFor($user));
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('slug');
@@ -121,8 +117,7 @@ class PlanLimitsTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->withHeaders($this->headersFor($user))
-            ->postJson('/v1/links', $this->createLinkPayload($this->secondDomain, 'shared-slug-1'));
+        $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->secondDomain, 'shared-slug-1'), $this->headersFor($user));
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('links', [
@@ -143,13 +138,12 @@ class PlanLimitsTest extends TestCase
         $user = User::factory()->create(['plan_id' => $plan->id]);
         $headers = $this->headersFor($user);
 
-        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+        $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $headers)
             ->assertStatus(201);
-        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+        $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $headers)
             ->assertStatus(201);
 
-        $response = $this->withHeaders($headers)
-            ->postJson('/v1/links', $this->createLinkPayload($this->domain));
+        $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $headers);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('destination_url');
@@ -162,7 +156,7 @@ class PlanLimitsTest extends TestCase
         $headers = $this->headersFor($user);
 
         for ($i = 0; $i < 3; $i++) {
-            $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+            $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $headers)
                 ->assertStatus(201);
         }
 
@@ -181,12 +175,12 @@ class PlanLimitsTest extends TestCase
         $user = User::factory()->create(['plan_id' => $plan->id]);
         $headers = $this->headersFor($user);
 
-        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+        $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $headers)
             ->assertStatus(201);
-        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+        $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $headers)
             ->assertStatus(201);
 
-        $this->withHeaders($headers)->postJson('/v1/links', $this->createLinkPayload($this->domain))
+        $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $headers)
             ->assertStatus(429);
         $this->assertEquals(2, $user->links()->count());
     }
@@ -195,8 +189,7 @@ class PlanLimitsTest extends TestCase
     {
         $user = $this->userOnPlan('free');
 
-        $response = $this->withHeaders($this->headersFor($user))
-            ->postJson('/v1/links', $this->createLinkPayload($this->domain));
+        $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $this->headersFor($user));
 
         $response->assertStatus(201);
         $this->assertGreaterThanOrEqual(8, strlen($response->json('slug')));

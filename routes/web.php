@@ -23,16 +23,21 @@ Route::get('/healthz', HealthController::class)
 
 /*
 |--------------------------------------------------------------------------
-| All routes go through ResolveDomain middleware to detect host context.
+| Domain context is resolved globally (see bootstrap/app.php prepend of
+| ResolveDomain). Do NOT wrap these routes in another ResolveDomain
+| group — that would resolve twice (double DB lookups). Host-pinning
+| below relies on the `domain_type` attribute already being set.
 |--------------------------------------------------------------------------
 */
-Route::middleware(ResolveDomain::class)->group(function () {
 
-    /*
-    |----------------------------------------------------------------------
-    | Auth routes (dash.ternis.link)
-    |----------------------------------------------------------------------
-    */
+/*
+|----------------------------------------------------------------------
+| Auth routes — dashboard hosts only (dash/admin.ternis.link).
+| Pinned via ensure.domain so /login and /auth/* 404 on redirect
+| and API domains instead of leaking session flows there.
+|----------------------------------------------------------------------
+*/
+Route::middleware('ensure.domain:dashboard,admin')->group(function () {
     Route::get('/login', [TernisAuthController::class, 'showLogin'])->name('login');
     // Throttled: these initiate/complete the OAuth round-trip against
     // Ternis Auth — don't let attackers loop them for free.
@@ -46,54 +51,64 @@ Route::middleware(ResolveDomain::class)->group(function () {
     if (app()->environment('local', 'testing')) {
         Route::get('/auth/demo', [TernisAuthController::class, 'demoLogin'])->name('auth.demo');
     }
+});
 
-    /*
-    |----------------------------------------------------------------------
-    | Dashboard routes (dash.ternis.link) — require SSO login
-    |----------------------------------------------------------------------
-    */
-    Route::middleware(['auth', RefreshSsoToken::class, EnforceDomainAccess::class])->prefix('dashboard')->group(function () {
-        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
-        Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
-        Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
-        Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
-    });
+/*
+|----------------------------------------------------------------------
+| Dashboard routes (dash.ternis.link) — require SSO login.
+| ensure.domain runs before auth so the wrong host 404s instead of
+| redirecting to login (fail fast, don't leak route existence).
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->prefix('dashboard')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
+    Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
+    Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
+    Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
+});
 
-    /*
-    |----------------------------------------------------------------------
-    | Redirect routes (href.nz, href.re, ternis.link, etc.)
-    |----------------------------------------------------------------------
-    */
-    Route::middleware(EnforceDomainAccess::class)->group(function () {
-        // Landing page
-        Route::get('/', function () {
-            $type = request()->attributes->get('domain_type');
-            if ($type === 'dashboard') {
-                return redirect()->route('dashboard');
-            }
-            if ($type === 'api') {
-                $latest = ApiVersion::latestVersion();
+/*
+|----------------------------------------------------------------------
+| Landing page — open on all hosts (branches by domain_type).
+| Kept under EnforceDomainAccess so dash.ternis.link/ still
+| redirects guests to login instead of showing the public landing.
+|----------------------------------------------------------------------
+*/
+Route::middleware(EnforceDomainAccess::class)->get('/', function () {
+    $type = request()->attributes->get('domain_type');
+    if ($type === 'dashboard') {
+        return redirect()->route('dashboard');
+    }
+    if ($type === 'api') {
+        $latest = ApiVersion::latestVersion();
 
-                return redirect("/v{$latest}/", 302);
-            }
+        return redirect("/v{$latest}/", 302);
+    }
 
-            return view('landing.index');
-        })->name('home');
+    return view('landing.index');
+})->name('home');
 
-        // Direct URL redirects (preferred)
-        Route::get('/url/{url}', [RedirectController::class, 'directUrl'])
-            ->where('url', '.*')
-            ->name('redirect.url');
+/*
+|----------------------------------------------------------------------
+| Redirect routes — short-link hosts only
+| (public, business, ternis, partner). API/dashboard/admin hosts 404
+| here so /{slug} probing can't run on the wrong domain.
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:public,business,ternis,partner', EnforceDomainAccess::class])->group(function () {
+    // Direct URL redirects (preferred)
+    Route::get('/url/{url}', [RedirectController::class, 'directUrl'])
+        ->where('url', '.*')
+        ->name('redirect.url');
 
-        // Alternative direct URL redirect
-        Route::get('/go/{url}', [RedirectController::class, 'goUrl'])
-            ->where('url', '.*')
-            ->name('redirect.go');
+    // Alternative direct URL redirect
+    Route::get('/go/{url}', [RedirectController::class, 'goUrl'])
+        ->where('url', '.*')
+        ->name('redirect.go');
 
-        // Slug or URL detection — MUST be last (catch-all)
-        Route::get('/{input}', [RedirectController::class, 'resolve'])
-            ->where('input', '[^/]+')
-            ->name('redirect.resolve');
-    });
+    // Slug or URL detection — MUST be last (catch-all)
+    Route::get('/{input}', [RedirectController::class, 'resolve'])
+        ->where('input', '[^/]+')
+        ->name('redirect.resolve');
 });

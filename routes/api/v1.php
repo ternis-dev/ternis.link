@@ -11,12 +11,16 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | API V1 Routes — links.t-api.de/v1/*
 |--------------------------------------------------------------------------
+| Host-pinned via ensure.domain (ResolveDomain runs globally first).
+| Authenticated CRUD stays API-only; the anonymous endpoint also
+| accepts public short-link hosts (href.nz landing + API share the
+| same quota/throttle), but 404s on dashboard/admin/redirect hosts.
 */
 
-// Public: anonymous link creation on public domains (IP-throttled, no auth).
-Route::middleware('throttle:10,1')->post('links/public', [PublicLinkController::class, 'store']);
+// Public: anonymous link creation (IP-throttled, no auth).
+Route::middleware(['ensure.domain:api,public', 'throttle:10,1'])->post('links/public', [PublicLinkController::class, 'store']);
 
-Route::middleware([AuthenticateApi::class, 'throttle:api'])->group(function () {
+Route::middleware(['ensure.domain:api', AuthenticateApi::class, 'throttle:api'])->group(function () {
     // Links CRUD
     Route::apiResource('links', LinkController::class);
 

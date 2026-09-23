@@ -34,8 +34,7 @@ class PublicShorteningTest extends TestCase
 
     public function test_guest_can_create_link_via_public_api_without_token(): void
     {
-        $response = $this->withHeaders(['Host' => 'links.t-api.de'])
-            ->postJson('/v1/links/public', [
+        $response = $this->postJson('http://links.t-api.de/v1/links/public', [
                 'destination_url' => 'https://example.com/guest-link',
             ]);
 
@@ -57,8 +56,7 @@ class PublicShorteningTest extends TestCase
 
     public function test_guest_can_choose_custom_slug_at_guest_minimum(): void
     {
-        $response = $this->withHeaders(['Host' => 'href.nz'])
-            ->postJson('/v1/links/public', [
+        $response = $this->postJson('http://href.nz/v1/links/public', [
                 'destination_url' => 'https://example.com/custom',
                 'slug' => 'guest-slug-1',
             ]);
@@ -69,8 +67,7 @@ class PublicShorteningTest extends TestCase
 
     public function test_guest_custom_slug_below_minimum_is_rejected(): void
     {
-        $response = $this->withHeaders(['Host' => 'href.nz'])
-            ->postJson('/v1/links/public', [
+        $response = $this->postJson('http://href.nz/v1/links/public', [
                 'destination_url' => 'https://example.com/short',
                 'slug' => 'abc',
             ]);
@@ -82,8 +79,7 @@ class PublicShorteningTest extends TestCase
 
     public function test_guest_cannot_create_on_non_public_domain(): void
     {
-        $response = $this->withHeaders(['Host' => 'links.t-api.de'])
-            ->postJson('/v1/links/public', [
+        $response = $this->postJson('http://links.t-api.de/v1/links/public', [
                 'destination_url' => 'https://example.com/nope',
                 'domain_id' => $this->ternisDomain->id,
             ]);
@@ -96,15 +92,13 @@ class PublicShorteningTest extends TestCase
     public function test_public_api_is_throttled_per_minute(): void
     {
         for ($i = 0; $i < 10; $i++) {
-            $this->withHeaders(['Host' => 'links.t-api.de'])
-                ->postJson('/v1/links/public', [
+            $this->postJson('http://links.t-api.de/v1/links/public', [
                     'destination_url' => 'https://example.com/throttle-'.$i,
                 ])
                 ->assertStatus(201);
         }
 
-        $this->withHeaders(['Host' => 'links.t-api.de'])
-            ->postJson('/v1/links/public', [
+        $this->postJson('http://links.t-api.de/v1/links/public', [
                 'destination_url' => 'https://example.com/throttle-over',
             ])
             ->assertStatus(429);
@@ -160,7 +154,7 @@ class PublicShorteningTest extends TestCase
 
     public function test_landing_page_shows_guest_form_on_public_domain(): void
     {
-        $response = $this->withHeaders(['Host' => 'href.nz'])->get('/');
+        $response = $this->get('http://href.nz/');
 
         $response->assertStatus(200);
         $response->assertSee('Shorten a link', escape: false);
@@ -178,7 +172,7 @@ class PublicShorteningTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->withHeaders(['Host' => 'href.nz'])->get('/'.$slug);
+        $response = $this->get('http://href.nz/'.$slug);
 
         $response->assertRedirect('https://example.com/target');
     }

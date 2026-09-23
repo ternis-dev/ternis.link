@@ -46,7 +46,7 @@ class AnalyticsCleanupTest extends TestCase
             fn () => ['country_code' => 'de', 'city' => 'Berlin']
         ));
 
-        $this->withHeaders(['Host' => 'href.nz'])->get('/geo-link-1')->assertStatus(302);
+        $this->get('http://href.nz/geo-link-1')->assertStatus(302);
 
         $click = Click::where('link_id', $link->id)->first();
         $this->assertNotNull($click);
@@ -58,8 +58,7 @@ class AnalyticsCleanupTest extends TestCase
     {
         $link = $this->trackableLink();
 
-        $this->withHeaders(['Host' => 'href.nz', 'CF-IPCountry' => 'nz'])
-            ->get('/geo-link-1')
+        $this->get('http://href.nz/geo-link-1', ['CF-IPCountry' => 'nz'])
             ->assertStatus(302);
 
         $click = Click::where('link_id', $link->id)->first();
@@ -71,7 +70,7 @@ class AnalyticsCleanupTest extends TestCase
     {
         $link = $this->trackableLink();
 
-        $this->withHeaders(['Host' => 'href.nz'])->get('/geo-link-1')->assertStatus(302);
+        $this->get('http://href.nz/geo-link-1')->assertStatus(302);
 
         $click = Click::where('link_id', $link->id)->first();
         $this->assertNull($click->country_code);
@@ -125,8 +124,7 @@ class AnalyticsCleanupTest extends TestCase
         Click::create(['link_id' => $link->id, 'is_direct_url' => true]);
 
         $this->actingAs($user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard')
+            ->get('http://dash.ternis.link/dashboard')
             ->assertStatus(200)
             ->assertViewHas('stats', fn ($stats) => $stats['total_clicks'] === 2 && $stats['clicks_today'] === 2);
     }
@@ -140,8 +138,7 @@ class AnalyticsCleanupTest extends TestCase
         Click::create(['link_id' => $link->id, 'is_direct_url' => true]);
 
         $this->actingAs($admin)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard')
+            ->get('http://dash.ternis.link/dashboard')
             ->assertStatus(200)
             ->assertViewHas('stats', fn ($stats) => $stats['total_clicks'] === 2 && $stats['clicks_today'] === 2);
     }

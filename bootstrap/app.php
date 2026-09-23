@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuthenticateApi;
 use App\Http\Middleware\EnforceDomainAccess;
+use App\Http\Middleware\EnsureDomainType;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use Illuminate\Foundation\Application;
@@ -34,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'resolve.domain' => ResolveDomain::class,
             'enforce.domain' => EnforceDomainAccess::class,
+            'ensure.domain' => EnsureDomainType::class,
             'refresh.sso' => RefreshSsoToken::class,
             'auth.api' => AuthenticateApi::class,
         ]);
