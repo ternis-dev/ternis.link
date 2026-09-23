@@ -1,9 +1,6 @@
 /* ==========================================================
- * href.nz landing — "field memo" theme, from scratch (local only)
+ * href.nz landing — "field memo" theme, optimized layout
  * Font: Caveat everywhere, self-hosted in /fonts/caveat-var.woff2.
- * Strict grayscale. Loaded AFTER css/app.css so these rules win
- * for the public landing only. No separate header bar — the
- * letterhead lives inside the memo sheet.
  * ========================================================== */
 
 @font-face {
@@ -21,6 +18,7 @@
     --mm-soft: #717171;
     --mm-faint: #cfcfcf;
     --mm-wash: #ececea;
+    --mm-rule: #f0f0ee; /* Added for subtle ruled lines */
     --font-hand: 'Caveat', cursive;
 }
 
@@ -30,295 +28,262 @@ body.nz-root {
     line-height: 1.35;
     color: var(--mm-ink);
     background: var(--mm-paper);
+    margin: 0;
+    padding: 2rem 1rem;
+    overflow-x: hidden; /* Prevents rotation overflow */
 }
 
-/* --- memo sheet (header integrated as letterhead) ------------ */
+/* --- memo sheet --------------------------------------------- */
+.mm-wrapper {
+    max-width: 680px;
+    margin: 0 auto;
+}
+
 .mm-sheet {
     position: relative;
-    max-width: 640px;
-    margin: 2.5rem auto 0;
-    padding: 1.5rem 2rem 2rem;
-    background: var(--mm-sheet);
-    border: 1.5px solid var(--mm-faint);
-    border-radius: 3px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.09);
-    transform: rotate(-0.3deg);
+    padding: 2.5rem 3rem 3rem;
+    background-color: var(--mm-sheet);
+    /* Lined paper effect */
+    background-image: repeating-linear-gradient(transparent, transparent 31px, var(--mm-rule) 31px, var(--mm-rule) 32px);
+    background-position: 0 1.2rem;
+    border: 1px solid var(--mm-faint);
+    border-radius: 2px;
+    box-shadow: 2px 14px 32px rgba(0, 0, 0, 0.08), -2px -2px 10px rgba(0, 0, 0, 0.02);
+    transform: rotate(-0.5deg);
 }
 
 .mm-letterhead {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    border-bottom: 2px solid var(--mm-ink);
-    padding-bottom: 0.4rem;
-    margin-bottom: 1.25rem;
+    border-bottom: 3px solid var(--mm-ink);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    background: var(--mm-sheet); /* Mask ruled lines behind header */
 }
 
 .mm-brand {
     font-weight: 700;
-    font-size: 2rem;
+    font-size: 2.2rem;
     line-height: 1;
     color: var(--mm-ink);
-}
-
-.mm-brand span {
-    color: var(--mm-ink);
+    text-decoration: none;
 }
 
 .mm-login {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
     font-weight: 700;
     color: var(--mm-soft);
+    text-decoration: none;
     white-space: nowrap;
+    transition: color 0.15s ease;
 }
 
-.mm-login svg {
-    vertical-align: baseline;
-    margin-bottom: -1px;
+.mm-login:hover {
+    color: var(--mm-ink);
 }
 
-.mm-memo-line {
-    font-size: 1.25rem;
+/* --- memo metadata grid ------------------------------------- */
+.mm-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1rem;
+    margin-bottom: 2rem;
+    font-size: 1.35rem;
     color: var(--mm-soft);
-    margin: 0 0 0.15rem;
 }
 
-.mm-memo-line strong {
+.mm-meta span.lbl {
     color: var(--mm-ink);
     font-weight: 700;
-    display: inline-block;
-    min-width: 3.2em;
+    text-align: right;
 }
 
+/* --- typography & stamp ------------------------------------- */
 .mm-title {
-    font-size: clamp(2.8rem, 9vw, 4.2rem);
-    line-height: 0.98;
+    font-size: clamp(3rem, 8vw, 4.5rem);
+    line-height: 0.95;
     font-weight: 700;
-    margin: 1rem 0 0.6rem;
+    margin: 1.5rem 0 1rem;
+    color: var(--mm-ink);
 }
 
 .mm-stamp {
     display: inline-block;
     border: 3px double var(--mm-ink);
-    border-radius: 6px;
-    padding: 0 0.3em 0.08em;
-    transform: rotate(-1.2deg);
+    border-radius: 4px;
+    padding: 0.1em 0.3em;
+    transform: rotate(-2deg);
+    margin-top: 0.2em;
 }
 
 .mm-sub {
     color: var(--mm-soft);
-    font-size: 1.45rem;
-    max-width: 30ch;
-    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    max-width: 32ch;
+    margin-bottom: 1.5rem;
 }
 
-/* --- guest form takeover (shared app.css components) -------- */
-body.nz-root .card {
+/* --- guest form takeover (scoped) --------------------------- */
+.mm-form-area .card {
     background: transparent;
     border: 0;
     border-top: 2px dashed var(--mm-faint);
     border-radius: 0;
     box-shadow: none;
-    padding: 1.25rem 0 0;
-    margin: 1rem 0 0;
-    max-width: none !important;
+    padding: 1.5rem 0 0;
+    margin: 1.5rem 0 0;
     font-size: 1.4rem;
 }
 
-body.nz-root .card-title {
+.mm-form-area .card-title {
     display: none;
 }
 
-body.nz-root .form-group label {
+.mm-form-area .form-group label {
     font-family: var(--font-hand);
-    font-size: 1.4rem;
+    font-size: 1.45rem;
     font-weight: 700;
     color: var(--mm-ink);
+    display: block;
+    margin-bottom: 0.5rem;
 }
 
-body.nz-root .form-group input {
+.mm-form-area .form-group input {
     font-family: var(--font-hand);
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+    width: 100%;
+    box-sizing: border-box;
     background: var(--mm-paper);
-    border: 1.5px solid var(--mm-faint);
-    border-radius: 10px;
+    border: 2px solid var(--mm-faint);
+    border-radius: 6px;
     color: var(--mm-ink);
-    padding: 0.55rem 0.9rem;
+    padding: 0.6rem 1rem;
+    transition: all 0.15s ease;
 }
 
-body.nz-root .form-group input:focus {
+.mm-form-area .form-group input:focus {
     outline: none;
     border-color: var(--mm-ink);
-    border-width: 2px;
     background: #fff;
     box-shadow: 4px 4px 0 var(--mm-wash);
 }
 
-body.nz-root .form-group input::placeholder {
-    color: var(--mm-faint);
-}
-
-body.nz-root .btn {
+.mm-form-area .btn-primary {
     font-family: var(--font-hand);
     font-weight: 700;
-}
-
-body.nz-root .btn-primary {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     background: var(--mm-ink);
     border: 2px solid var(--mm-ink);
-    border-radius: 8px;
-    color: #fff;
-    padding: 0.3rem 1.5rem;
-    box-shadow: 4px 4px 0 var(--mm-faint);
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-
-body.nz-root .btn-primary:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 var(--mm-faint);
-    background: #000;
-    color: #fff;
-}
-
-body.nz-root .btn-secondary {
-    font-size: 1.3rem;
-    background: transparent;
-    border: 2px solid var(--mm-ink);
-    border-radius: 8px;
-    color: var(--mm-ink);
-    font-weight: 700;
-}
-
-body.nz-root a {
-    color: var(--mm-ink);
-    font-weight: 700;
-}
-
-body.nz-root code {
-    font-family: var(--font-hand);
-    font-size: 1.25rem;
-    background: var(--mm-wash);
-    border: 0;
-    color: var(--mm-ink);
-    padding: 0.05rem 0.4rem;
     border-radius: 6px;
+    color: #fff;
+    padding: 0.4rem 1.75rem;
+    box-shadow: 4px 4px 0 var(--mm-faint);
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-body.nz-root .alert {
-    font-size: 1.35rem;
-    border-radius: 8px;
-}
-
-body.nz-root .alert-success {
-    background: var(--mm-wash);
-    border: 2px solid var(--mm-ink);
-    color: var(--mm-ink);
-}
-
-body.nz-root .form-error {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--mm-ink);
-}
-
-body.nz-root .card > p {
-    color: var(--mm-soft) !important;
-    font-size: 1.25rem !important;
+.mm-form-area .btn-primary:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--mm-faint);
 }
 
 /* --- sign-off ------------------------------------------------ */
 .mm-signoff {
-    margin-top: 1.5rem;
-    padding-top: 0.75rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
     border-top: 2px dashed var(--mm-faint);
     font-size: 1.4rem;
     color: var(--mm-soft);
-    transform: rotate(-0.5deg);
+    text-align: right;
 }
 
 .mm-signoff strong {
     color: var(--mm-ink);
 }
 
-/* --- nudge arrow ------------------------------------------------ */
+/* --- nudge arrow --------------------------------------------- */
 .mm-nudge {
     display: flex;
-    align-items: center;
-    gap: 0.4rem;
+    align-items: flex-end;
+    gap: 0.5rem;
     color: var(--mm-soft);
     font-size: 1.35rem;
-    margin: 0.25rem 0 0;
-}
-
-.mm-nudge svg {
-    flex: none;
-    transform: rotate(4deg);
+    margin: 0;
+    transform: translateY(10px);
 }
 
 /* --- divider -------------------------------------------------- */
 .mm-div {
     text-align: center;
-    margin: 2rem 0 0;
+    margin: 3rem 0 2rem;
+    opacity: 0.6;
 }
 
 /* --- margin notes --------------------------------------------- */
 .mm-notes {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    max-width: 640px;
-    margin: 1.5rem auto 0;
-    padding: 0 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
 }
 
 .mm-note {
     background: var(--mm-sheet);
-    border: 1.5px solid var(--mm-faint);
-    border-radius: 3px;
-    padding: 1rem 1.1rem 1.1rem;
-    font-size: 1.3rem;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--mm-faint);
+    border-radius: 2px;
+    padding: 1.25rem;
+    font-size: 1.35rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
-.mm-note:first-child { transform: rotate(-1.1deg); }
-.mm-note:last-child { transform: rotate(0.9deg); }
+.mm-note:nth-child(1) { transform: rotate(-1.5deg); }
+.mm-note:nth-child(2) { transform: rotate(1deg); }
 
 .mm-note h2 {
     font-size: 1.6rem;
     font-weight: 700;
-    margin-bottom: 0.25rem;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-thickness: 2px;
+    margin: 0 0 0.5rem 0;
+    border-bottom: 2px solid var(--mm-ink);
+    display: inline-block;
 }
 
 .mm-note p {
-    margin: 0;
+    margin: 0 0 0.5rem;
     color: var(--mm-soft);
 }
 
-.mm-note p + p {
-    margin-top: 0.4rem;
+.mm-note a {
+    color: var(--mm-ink);
+    font-weight: 700;
 }
 
 /* --- footer --------------------------------------------------- */
 .mm-foot {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 2.25rem 1.25rem 3rem;
+    margin-top: 4rem;
+    padding-bottom: 2rem;
     font-size: 1.25rem;
     color: var(--mm-soft);
     text-align: center;
 }
 
-@media (max-width: 560px) {
-    .mm-notes {
-        grid-template-columns: 1fr;
-    }
+.mm-foot a {
+    color: var(--mm-ink);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--mm-faint);
+}
 
+@media (max-width: 600px) {
     .mm-sheet {
-        margin-left: 1rem;
-        margin-right: 1rem;
+        padding: 1.5rem 1.5rem 2rem;
+    }
+    .mm-meta {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    .mm-meta span.lbl {
+        text-align: left;
+        display: inline-block;
+        min-width: 3em;
     }
 }
