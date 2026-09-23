@@ -72,6 +72,11 @@ body.nz-root {
     white-space: nowrap;
 }
 
+.mm-login svg {
+    vertical-align: baseline;
+    margin-bottom: -1px;
+}
+
 .mm-memo-line {
     font-size: 1.25rem;
     color: var(--mm-soft);
@@ -268,22 +273,12 @@ body.nz-root .card > p {
 }
 
 .mm-note {
-    position: relative;
     background: var(--mm-sheet);
     border: 1.5px solid var(--mm-faint);
     border-radius: 3px;
     padding: 1rem 1.1rem 1.1rem;
     font-size: 1.3rem;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-}
-
-.mm-doodle {
-    position: absolute;
-    top: -14px;
-    right: 12px;
-    transform: rotate(8deg);
-    background: var(--mm-sheet);
-    padding: 0 2px;
 }
 
 .mm-note:first-child { transform: rotate(-1.1deg); }

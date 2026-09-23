@@ -16,9 +16,9 @@
             <div class="mm-letterhead">
                 <a href="/" class="mm-brand nz-brand">href<span>.nz</span></a>
                 @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/dashboard') }}" class="mm-login">open dashboard →</a>
+                    <a href="{{ \App\Support\DomainUrls::dashboard('/dashboard') }}" class="mm-login">open dashboard <svg width="36" height="14" viewBox="0 0 36 14" fill="none" aria-hidden="true"><path d="M2 9 C 12 7, 22 6, 29 7 M 29 7 l -8 -4 M 29 7 l -8 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
                 @else
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="mm-login">members log in →</a>
+                    <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="mm-login">members log in <svg width="36" height="14" viewBox="0 0 36 14" fill="none" aria-hidden="true"><path d="M2 9 C 12 7, 22 6, 29 7 M 29 7 l -8 -4 M 29 7 l -8 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
                 @endauth
             </div>
 
@@ -47,17 +47,11 @@
 
         <section class="mm-notes">
             <div class="mm-note">
-                <svg class="mm-doodle" width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
-                    <path d="M15 3v24M3 15h24M6.5 6.5l17 17M23.5 6.5l-17 17" stroke="#717171" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
                 <h2>margin note ①</h2>
                 <p>Guests get auto-made codes — picking your own is a members' perk.</p>
                 <p><a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">Log in</a> for custom slugs, shorter links &amp; click stats.</p>
             </div>
             <div class="mm-note">
-                <svg class="mm-doodle" width="24" height="42" viewBox="0 0 24 42" fill="none" aria-hidden="true">
-                    <path d="M17 38 V15 a6 6 0 0 0 -12 0 V29 a9 9 0 0 0 18 0 V10" stroke="#717171" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
                 <h2>margin note ②</h2>
                 <p>Fair use: 50 links a day per guest. Nothing of yours is kept but a hashed IP for counting.</p>
                 <p>Official business? That's next door on href.re.</p>
