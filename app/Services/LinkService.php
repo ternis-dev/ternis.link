@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -22,6 +23,13 @@ class LinkService
      * unlock shorter slugs via the owner's plan.
      */
     public const ANONYMOUS_MIN_SLUG_LENGTH = 8;
+
+    /**
+     * Hot slug cache TTL in seconds. Cache hits skip the DB lookup on
+     * the redirect path; writes invalidate via Link model events plus
+     * explicit forgets below and in DeactivateExpiredLinks.
+     */
+    public const RESOLVE_CACHE_TTL = 300;
 
     public function __construct(
         private SlugGeneratorService $slugGenerator,
@@ -214,13 +222,35 @@ class LinkService
 
     /**
      * Resolve a slug to a link on the given domain.
+     *
+     * Hot slugs are cached for RESOLVE_CACHE_TTL seconds. Misses are
+     * never cached so a freshly created slug is visible immediately.
+     * A stale hit (deactivated/expired while cached) falls through to
+     * the database instead of serving the wrong redirect.
      */
     public function resolveSlug(string $slug, Domain $domain): ?Link
     {
-        return Link::accessible()
+        $key = Link::cacheKey($domain->id, $slug);
+        $cached = Cache::get($key);
+
+        if ($cached instanceof Link && $cached->domain_id === $domain->id && $cached->slug === $slug) {
+            if ($cached->isAccessible()) {
+                return $cached;
+            }
+
+            Cache::forget($key);
+        }
+
+        $link = Link::accessible()
             ->where('domain_id', $domain->id)
             ->where('slug', $slug)
             ->first();
+
+        if ($link) {
+            Cache::put($key, $link, self::RESOLVE_CACHE_TTL);
+        }
+
+        return $link;
     }
 
     /**
@@ -248,6 +278,7 @@ class LinkService
     public function update(Link $link, array $data): Link
     {
         $link->update($data);
+        Link::forgetCachedSlug($link->domain_id, $link->slug);
 
         return $link->fresh();
     }
@@ -258,5 +289,6 @@ class LinkService
     public function deactivate(Link $link): void
     {
         $link->update(['is_active' => false]);
+        Link::forgetCachedSlug($link->domain_id, $link->slug);
     }
 }
