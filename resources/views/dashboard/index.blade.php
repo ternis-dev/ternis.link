@@ -4,6 +4,9 @@
             <h1 style="font-size: 1.75rem; font-weight: 700;">Dashboard</h1>
             <p style="color: var(--text-secondary); margin-top: 0.25rem;">
                 Welcome back, {{ auth()->user()->name }} (Plan: <strong>{{ auth()->user()->plan?->name ?? 'free' }}</strong>)
+                @if (auth()->user()?->isAdmin())
+                    · <strong>Admin view: stats across ALL links</strong>
+                @endif
             </p>
         </div>
         <a href="{{ route('dashboard.links.create') }}" class="btn btn-primary">+ Create Link</a>

@@ -62,7 +62,7 @@
                 <tbody>
                     @forelse ($topLinks as $link)
                         <tr>
-                            <td style="font-weight: 600;">{{ $link->slug }}</td>
+                            <td style="font-weight: 600;"><a href="{{ route('dashboard.links.show', $link->id) }}">{{ $link->slug }}</a></td>
                             <td><code>{{ $link->domain->hostname ?? '—' }}</code></td>
                             <td style="color: var(--text-muted); font-size: 0.85rem;">{{ $link->user?->email ?? 'Guest' }}</td>
                             <td><strong style="color: var(--primary);">{{ number_format($link->click_count) }}</strong></td>
@@ -91,7 +91,7 @@
                 <tbody>
                     @forelse ($recentLinks as $link)
                         <tr>
-                            <td style="font-weight: 600;">{{ $link->slug }}</td>
+                            <td style="font-weight: 600;"><a href="{{ route('dashboard.links.show', $link->id) }}">{{ $link->slug }}</a></td>
                             <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary);">{{ $link->destination_url }}</td>
                             <td>
                                 @if ($link->is_active && !$link->isExpired())

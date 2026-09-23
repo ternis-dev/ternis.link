@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Click;
+use App\Models\Link;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -10,15 +11,34 @@ class DashboardController extends Controller
     /**
      * Dashboard home — overview stats.
      *
-     * Direct-URL redirect clicks stay admin-only here too, matching
-     * the API and Livewire analytics visibility rules.
+     * Admins see system-wide stats across ALL links; regular users see
+     * their own links only. Direct-URL redirect clicks stay admin-only
+     * here too, matching the API and Livewire analytics visibility rules.
      */
     public function index(Request $request)
     {
         $user = $request->user();
 
+        if ($user->isAdmin()) {
+            $clicks = Click::query();
+            $links = Link::query();
+
+            $stats = [
+                'total_links' => (clone $links)->count(),
+                'total_clicks' => (clone $clicks)->count(),
+                'links_this_month' => (clone $links)
+                    ->where('created_at', '>=', now()->startOfMonth())
+                    ->count(),
+                'clicks_today' => (clone $clicks)
+                    ->where('created_at', '>=', now()->startOfDay())
+                    ->count(),
+            ];
+
+            return view('dashboard.index', compact('stats'));
+        }
+
         $clicks = Click::whereIn('link_id', $user->links()->select('links.id'))
-            ->when(! $user->isAdmin(), fn ($query) => $query->where('is_direct_url', false));
+            ->where('is_direct_url', false);
 
         $stats = [
             'total_links' => $user->links()->count(),
@@ -52,22 +72,30 @@ class DashboardController extends Controller
 
     /**
      * Link detail + analytics page (Livewire: LinkAnalytics).
+     *
+     * Admins may open stats for ANY link; regular users only their own.
      */
     public function showLink(int $linkId)
     {
-        $link = auth()->user()->links()->with('domain')->findOrFail($linkId);
+        $link = auth()->user()->isAdmin()
+            ? Link::with(['domain', 'user'])->findOrFail($linkId)
+            : auth()->user()->links()->with('domain')->findOrFail($linkId);
 
         return view('dashboard.links.show', compact('link'));
     }
 
     /**
-     * Export a link's clicks as CSV (owner only, same visibility rules
-     * as the dashboard analytics: non-admins exclude direct-URL rows).
+     * Export a link's clicks as CSV.
+     *
+     * Admins may export ANY link (including direct-URL rows); regular
+     * users only their own links (direct-URL rows excluded).
      */
     public function exportClicks(int $linkId)
     {
-        $link = auth()->user()->links()->with('domain')->findOrFail($linkId);
         $user = auth()->user();
+        $link = $user->isAdmin()
+            ? Link::with('domain')->findOrFail($linkId)
+            : $user->links()->with('domain')->findOrFail($linkId);
 
         $clicks = $link->clicks()
             ->when(! $user->isAdmin(), fn ($query) => $query->where('is_direct_url', false))

@@ -18,13 +18,18 @@ class LinkController extends Controller
     ) {}
 
     /**
-     * GET /v1/links — List the authenticated user's links.
+     * GET /v1/links — List links.
+     *
+     * Admins list ALL links by default (`?scope=mine` restricts to their
+     * own); regular users list their own links only.
      */
     public function index(Request $request): JsonResponse
     {
-        $links = $request->user()
-            ->links()
-            ->with('domain')
+        $user = $request->user();
+        $adminAll = $user->isAdmin() && $request->query('scope', 'all') === 'all';
+
+        $links = ($adminAll ? Link::query() : $user->links())
+            ->with($adminAll ? ['domain', 'user'] : 'domain')
             ->orderByDesc('created_at')
             ->paginate(25);
 

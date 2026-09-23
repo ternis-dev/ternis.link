@@ -7,6 +7,14 @@
                 <p style="color: var(--text-secondary); margin-top: 0.25rem;">
                     Target: <a href="{{ $link->destination_url }}" target="_blank" rel="noopener noreferrer">{{ $link->destination_url }}</a>
                 </p>
+                @if (auth()->user()?->isAdmin() && $link->relationLoaded('user'))
+                    <p style="color: var(--text-muted); margin-top: 0.25rem; font-size: 0.85rem;">
+                        Owner: {{ $link->user?->email ?? 'Guest' }}
+                        @if ($link->user_id !== auth()->id())
+                            (another user's link — admin view)
+                        @endif
+                    </p>
+                @endif
             </div>
             <a href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" target="_blank" class="btn btn-secondary btn-sm">Visit Link ↗</a>
         </div>

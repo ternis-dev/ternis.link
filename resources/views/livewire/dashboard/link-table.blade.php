@@ -3,7 +3,7 @@
         <input
             type="text"
             wire:model.live.debounce.300ms="search"
-            placeholder="Search by slug or destination URL..."
+            placeholder="{{ auth()->user()?->isAdmin() ? 'Search by slug, URL or owner...' : 'Search by slug or destination URL...' }}"
             style="max-width: 400px; padding: 0.625rem 0.875rem; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);"
         >
         <a href="{{ route('dashboard.links.create') }}" class="btn btn-primary">+ Create Link</a>
@@ -19,6 +19,9 @@
                     </th>
                     <th>Destination URL</th>
                     <th>Domain</th>
+                    @if (auth()->user()?->isAdmin())
+                        <th>Owner</th>
+                    @endif
                     <th wire:click="sort('click_count')" style="cursor: pointer;">
                         Clicks
                         @if ($sortBy === 'click_count') {{ $sortDir === 'asc' ? '↑' : '↓' }} @endif
@@ -47,6 +50,11 @@
                         <td>
                             <code>{{ $link->domain->hostname ?? 'href.nz' }}</code>
                         </td>
+                        @if (auth()->user()?->isAdmin())
+                            <td style="color: var(--text-muted); font-size: 0.85rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $link->user?->email ?? 'Guest' }}">
+                                {{ $link->user?->email ?? 'Guest' }}
+                            </td>
+                        @endif
                         <td>
                             <strong style="color: var(--primary);">{{ number_format($link->click_count) }}</strong>
                         </td>
@@ -73,7 +81,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                        <td colspan="{{ auth()->user()?->isAdmin() ? 8 : 7 }}" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
                             No short links found. <a href="{{ route('dashboard.links.create') }}">Create your first short link!</a>
                         </td>
                     </tr>

@@ -115,7 +115,13 @@ paths:
         '410': { description: Version retired — see GET / for latest_version }
   /links:
     get:
-      summary: List own links
+      summary: List links (admins see all, users see own)
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema: { type: string, enum: [all, mine], default: all }
+          description: Admins only — `mine` restricts to own links. Regular users always see own links.
       responses:
         '200':
           description: Paginated links
