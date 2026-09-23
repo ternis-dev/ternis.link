@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HealthController;
@@ -70,6 +71,19 @@ Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::cla
 
 /*
 |----------------------------------------------------------------------
+| Admin routes (admin.ternis.link only) — require admin role.
+| ensure.domain 404s on any other host; EnforceDomainAccess then
+| 403s authenticated non-admins and redirects guests to login.
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+    Route::get('/links', [AdminController::class, 'links'])->name('links');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+});
+
+/*
+|----------------------------------------------------------------------
 | Landing page — open on all hosts (branches by domain_type).
 | Kept under EnforceDomainAccess so dash.ternis.link/ still
 | redirects guests to login instead of showing the public landing.
@@ -79,6 +93,9 @@ Route::middleware(EnforceDomainAccess::class)->get('/', function () {
     $type = request()->attributes->get('domain_type');
     if ($type === 'dashboard') {
         return redirect()->route('dashboard');
+    }
+    if ($type === 'admin') {
+        return redirect()->route('admin.dashboard');
     }
     if ($type === 'api') {
         $latest = ApiVersion::latestVersion();

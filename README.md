@@ -13,6 +13,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - `links.thosted.de`, `short.thosted.de`, `go.thosted.de`: Internal infrastructure redirects.
   - `go.ternis.net`, `go.ternis.dev`, `go.ternis.org`, `go.ternis.eu`: Go-style vanity redirects.
   - `dash.ternis.link`: User dashboard with live management & insights.
+  - `admin.ternis.link`: Admin dashboard with system overview, link moderation, and user/plan management.
   - `links.t-api.de`: Dedicated API domain (`/v1`, `/` → latest version).
   - `api.ternis.link`: Permanent redirect to `links.t-api.de`.
 - **Authentication — Ternis Auth SSO Only**:
@@ -60,7 +61,8 @@ OAuth entry points, plus per-plan per-minute/daily quotas enforced in
 **Host pinning**: `ResolveDomain` runs once globally; `EnsureDomainType`
 then 404s cross-host misuse before auth runs — authenticated `/v1/*` is
 `links.t-api.de`-only, `/login` + `/auth/*` + `/dashboard/*` are
-`dash/admin.ternis.link`-only, and `/url/*` + `/go/*` + `/{slug}` are
+`dash/admin.ternis.link`-only, `/admin/*` is `admin.ternis.link`-only
+(`/` there redirects to the admin overview), and `/url/*` + `/go/*` + `/{slug}` are
 short-link hosts only (`public,business,ternis,partner`). Slugs matching
 `v{number}` (e.g. `v1`) are reserved on redirect hosts so the public
 `GET /v1/` version root falls through to the API. `/healthz`
@@ -96,7 +98,7 @@ Run the test suite:
 php artisan test
 ```
 
-All 112 feature and unit tests cover:
+All 123 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain
 - Anonymous link creation (public API, guest web form, quotas, throttling)
@@ -107,6 +109,7 @@ All 112 feature and unit tests cover:
 - Direct URL redirects (`/url/{url}`, `/go/{url}`) & bare path redirects
 - API v1 CRUD endpoints, Bearer API key authentication, and click analytics
 - Livewire dashboard link table, link creation form, and API key manager
+- Admin dashboard (`admin.ternis.link` overview, link moderation, user role/plan management, host pinning, self-demotion guard)
 
 > Multi-domain tests must put the host in the URL
 > (e.g. `$this->get('http://links.t-api.de/v1/links')`):

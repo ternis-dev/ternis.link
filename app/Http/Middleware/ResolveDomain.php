@@ -78,6 +78,14 @@ class ResolveDomain
 
         // 4. Localhost / testserver dev fallback
         if (in_array($hostname, ['localhost', '127.0.0.1', '::1', 'testserver'])) {
+            if ($request->is('admin*')) {
+                $request->attributes->set('domain_type', 'admin');
+                $request->attributes->set('domain_hostname', 'admin.ternis.link');
+                $request->attributes->set('domain_model', Domain::where('hostname', 'ternis.link')->first());
+
+                return $next($request);
+            }
+
             if ($request->is('dashboard*') || $request->is('login*') || $request->is('auth*')) {
                 $request->attributes->set('domain_type', 'dashboard');
                 $request->attributes->set('domain_hostname', 'dash.ternis.link');
