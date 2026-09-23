@@ -34,6 +34,28 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
 
 ---
 
+## 🚢 Production Deployment
+
+1. **Environment**: copy `.env.example` → `.env` and apply the `Production overrides`
+   block (`APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`,
+   `TRUSTED_PROXIES=*`, PostgreSQL + Redis, Ternis Auth credentials).
+2. **Install & migrate**: `composer install --no-dev`, `php artisan key:generate`,
+   `php artisan migrate --force`, `npm install && npm run build`.
+3. **Queue worker** (async `RecordClick` analytics — do not stay on `sync`):
+   run `php artisan queue:work --tries=3` under systemd/supervisor with restarts.
+4. **Scheduler** (daily `links:deactivate-expired` cleanup):
+   `* * * * * php /var/www/ternis-link/artisan schedule:run >> /dev/null 2>&1`.
+5. **Web server**: use the shipped `Caddyfile` (automatic TLS for all domains).
+   The app trusts the proxy via `TRUSTED_PROXIES` so client IPs stay correct.
+6. **Health check**: point monitoring at `GET /healthz` — `200 {"status":"ok"}`
+   when the database is reachable, `503` otherwise. Answers on any Host/IP.
+
+**Rate-limit layers**: HTTP `throttle:api` (60/min) on API v1, `throttle:10,1` on
+OAuth entry points, plus per-plan per-minute/daily quotas enforced in
+`LinkService`. Public redirects are intentionally unthrottled for speed.
+
+---
+
 ## 🛠 Tech Stack
 
 - **Framework**: Laravel 13 (PHP 8.3+)

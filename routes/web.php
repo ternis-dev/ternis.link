@@ -2,12 +2,24 @@
 
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Health check — intentionally OUTSIDE ResolveDomain.
+| Load balancers / container probes may hit this via IP or an unknown
+| Host header, so it must answer regardless of domain resolution.
+|--------------------------------------------------------------------------
+*/
+Route::get('/healthz', HealthController::class)
+    ->withoutMiddleware(ResolveDomain::class)
+    ->name('healthz');
 
 /*
 |--------------------------------------------------------------------------
@@ -22,9 +34,13 @@ Route::middleware(ResolveDomain::class)->group(function () {
     |----------------------------------------------------------------------
     */
     Route::get('/login', [TernisAuthController::class, 'showLogin'])->name('login');
-    Route::get('/auth/redirect', [TernisAuthController::class, 'redirect'])->name('auth.redirect');
-    Route::get('/auth/silent', [TernisAuthController::class, 'silent'])->name('auth.silent');
-    Route::get('/auth/callback', [TernisAuthController::class, 'callback'])->name('auth.callback');
+    // Throttled: these initiate/complete the OAuth round-trip against
+    // Ternis Auth — don't let attackers loop them for free.
+    Route::middleware('throttle:10,1')->group(function () {
+        Route::get('/auth/redirect', [TernisAuthController::class, 'redirect'])->name('auth.redirect');
+        Route::get('/auth/silent', [TernisAuthController::class, 'silent'])->name('auth.silent');
+        Route::get('/auth/callback', [TernisAuthController::class, 'callback'])->name('auth.callback');
+    });
     Route::post('/logout', [TernisAuthController::class, 'logout'])->name('logout');
 
     if (app()->environment('local', 'testing')) {

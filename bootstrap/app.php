@@ -22,6 +22,13 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Caddy terminates TLS and proxies to PHP-FPM. Trust it so
+        // $request->ip() / isSecure() reflect the real client — critical
+        // for IP-hash analytics and IP-based rate limiting.
+        // Override with TRUSTED_PROXIES="10.0.0.1,10.0.0.2" if needed.
+        $trusted = env('TRUSTED_PROXIES', '*');
+        $middleware->trustProxies(at: $trusted === '*' ? '*' : array_map('trim', explode(',', (string) $trusted)));
+
         $middleware->prepend(ResolveDomain::class);
 
         $middleware->alias([

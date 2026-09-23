@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 | All routes require API key or SSO token authentication.
 */
 
-Route::middleware(AuthenticateApi::class)->group(function () {
+Route::middleware([AuthenticateApi::class, 'throttle:api'])->group(function () {
     // Links CRUD
     Route::apiResource('links', LinkController::class);
 
