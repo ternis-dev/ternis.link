@@ -44,7 +44,6 @@ class DomainApiTest extends TestCase
         ]);
 
         return [
-            'Host' => 'links.t-api.de',
             'Authorization' => "Bearer {$raw}",
         ];
     }
@@ -70,8 +69,7 @@ class DomainApiTest extends TestCase
 
     public function test_api_requires_authentication(): void
     {
-        $this->withHeaders(['Host' => 'links.t-api.de'])
-            ->getJson('/v1/domains')
+        $this->getJson('http://links.t-api.de/v1/domains')
             ->assertStatus(401);
     }
 
@@ -82,7 +80,7 @@ class DomainApiTest extends TestCase
         $mine = $this->ownDomain($user, 'links.example.com', verified: true);
         $theirs = $this->ownDomain($other, 'other.example.com', verified: true);
 
-        $response = $this->withHeaders($this->headersFor($user))->getJson('/v1/domains');
+        $response = $this->getJson('http://links.t-api.de/v1/domains', $this->headersFor($user));
 
         $response->assertStatus(200);
         $response->assertJsonFragment(['hostname' => 'href.nz']);
@@ -94,8 +92,7 @@ class DomainApiTest extends TestCase
     {
         $user = $this->userOnPlan('free');
 
-        $this->withHeaders($this->headersFor($user))
-            ->postJson('/v1/domains', ['hostname' => 'links.example.com'])
+        $this->postJson('http://links.t-api.de/v1/domains', ['hostname' => 'links.example.com'], $this->headersFor($user))
             ->assertStatus(403);
 
         $this->assertDatabaseMissing('domains', ['hostname' => 'links.example.com']);
@@ -105,8 +102,7 @@ class DomainApiTest extends TestCase
     {
         $user = $this->userOnPlan('family');
 
-        $response = $this->withHeaders($this->headersFor($user))
-            ->postJson('/v1/domains', ['hostname' => 'Links.Example.COM ']);
+        $response = $this->postJson('http://links.t-api.de/v1/domains', ['hostname' => 'Links.Example.COM '], $this->headersFor($user));
 
         $response->assertStatus(201);
         $response->assertJsonPath('hostname', 'links.example.com');
@@ -127,8 +123,7 @@ class DomainApiTest extends TestCase
         $headers = $this->headersFor($user);
 
         foreach (['https://example.com/x', 'not a domain', 'no-tld-here', str_repeat('a', 64).'.com'] as $bad) {
-            $this->withHeaders($headers)
-                ->postJson('/v1/domains', ['hostname' => $bad])
+            $this->postJson('http://links.t-api.de/v1/domains', ['hostname' => $bad], $headers)
                 ->assertStatus(422);
         }
     }
@@ -139,8 +134,7 @@ class DomainApiTest extends TestCase
         $headers = $this->headersFor($user);
 
         foreach (['href.nz', 'api.ternis.link', 'evil.dash.ternis.link', 'intranet.local'] as $reserved) {
-            $this->withHeaders($headers)
-                ->postJson('/v1/domains', ['hostname' => $reserved])
+            $this->postJson('http://links.t-api.de/v1/domains', ['hostname' => $reserved], $headers)
                 ->assertStatus(422);
         }
     }
@@ -150,8 +144,7 @@ class DomainApiTest extends TestCase
         $user = $this->userOnPlan('family');
         $this->ownDomain($user);
 
-        $this->withHeaders($this->headersFor($user))
-            ->postJson('/v1/domains', ['hostname' => 'links.example.com'])
+        $this->postJson('http://links.t-api.de/v1/domains', ['hostname' => 'links.example.com'], $this->headersFor($user))
             ->assertStatus(422)
             ->assertJsonValidationErrors('hostname');
     }
@@ -162,13 +155,13 @@ class DomainApiTest extends TestCase
         $headers = $this->headersFor($user);
         $domain = $this->ownDomain($user);
 
-        $this->withHeaders($headers)->getJson("/v1/domains/{$domain->id}")
+        $this->getJson("http://links.t-api.de/v1/domains/{$domain->id}", $headers)
             ->assertStatus(200)
             ->assertJsonStructure(['verification' => ['type', 'host', 'value']]);
 
         $domain->markVerified();
 
-        $this->withHeaders($headers)->getJson("/v1/domains/{$domain->id}")
+        $this->getJson("http://links.t-api.de/v1/domains/{$domain->id}", $headers)
             ->assertStatus(200)
             ->assertJsonMissing(['verification' => []]);
     }
@@ -179,9 +172,9 @@ class DomainApiTest extends TestCase
         $stranger = $this->userOnPlan('family');
         $domain = $this->ownDomain($owner);
 
-        $this->withHeaders($this->headersFor($stranger))->getJson("/v1/domains/{$domain->id}")
+        $this->getJson("http://links.t-api.de/v1/domains/{$domain->id}", $this->headersFor($stranger))
             ->assertStatus(403);
-        $this->withHeaders($this->headersFor($stranger))->deleteJson("/v1/domains/{$domain->id}")
+        $this->deleteJson("http://links.t-api.de/v1/domains/{$domain->id}", [], $this->headersFor($stranger))
             ->assertStatus(403);
     }
 
@@ -193,7 +186,7 @@ class DomainApiTest extends TestCase
         ]);
         $domain = $this->ownDomain($owner);
 
-        $this->withHeaders($this->headersFor($admin))->getJson("/v1/domains/{$domain->id}")
+        $this->getJson("http://links.t-api.de/v1/domains/{$domain->id}", $this->headersFor($admin))
             ->assertStatus(200);
     }
 
@@ -203,8 +196,7 @@ class DomainApiTest extends TestCase
         $domain = $this->ownDomain($user, 'nonexistent-invalid-domain-12345.com');
 
         // Real DNS lookup finds nothing for this name.
-        $this->withHeaders($this->headersFor($user))
-            ->postJson("/v1/domains/{$domain->id}/verify")
+        $this->postJson("http://links.t-api.de/v1/domains/{$domain->id}/verify", [], $this->headersFor($user))
             ->assertStatus(422)
             ->assertJsonPath('verified', false)
             ->assertJsonStructure(['verification' => ['type', 'host', 'value']]);
@@ -221,8 +213,7 @@ class DomainApiTest extends TestCase
             fn () => [$domain->verification_token]
         ));
 
-        $this->withHeaders($this->headersFor($user))
-            ->postJson("/v1/domains/{$domain->id}/verify")
+        $this->postJson("http://links.t-api.de/v1/domains/{$domain->id}/verify", [], $this->headersFor($user))
             ->assertStatus(200)
             ->assertJsonPath('verified', true);
 
@@ -241,13 +232,13 @@ class DomainApiTest extends TestCase
             'slug' => 'verified-slug-1',
         ];
 
-        $this->withHeaders($headers)->postJson('/v1/links', $payload)
+        $this->postJson('http://links.t-api.de/v1/links', $payload, $headers)
             ->assertStatus(422)
             ->assertJsonValidationErrors('domain_id');
 
         $domain->markVerified();
 
-        $this->withHeaders($headers)->postJson('/v1/links', $payload)
+        $this->postJson('http://links.t-api.de/v1/links', $payload, $headers)
             ->assertStatus(201);
     }
 
@@ -257,11 +248,11 @@ class DomainApiTest extends TestCase
         $domain = $this->ownDomain($user, verified: true);
         $domain->update(['is_active' => false]);
 
-        $this->withHeaders($this->headersFor($user))->postJson('/v1/links', [
+        $this->postJson('http://links.t-api.de/v1/links', [
             'destination_url' => 'https://example.com/inactive',
             'domain_id' => $domain->id,
             'slug' => 'inactive-domain-1',
-        ])->assertStatus(422)->assertJsonValidationErrors('domain_id');
+        ], $this->headersFor($user))->assertStatus(422)->assertJsonValidationErrors('domain_id');
     }
 
     public function test_delete_deactivates_own_domain_but_not_system_domain(): void
@@ -278,14 +269,14 @@ class DomainApiTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->withHeaders($headers)->deleteJson("/v1/domains/{$domain->id}")
+        $this->deleteJson("http://links.t-api.de/v1/domains/{$domain->id}", [], $headers)
             ->assertStatus(204);
 
         $this->assertFalse($domain->fresh()->is_active);
         // Links and analytics are preserved.
         $this->assertDatabaseHas('links', ['id' => $link->id, 'slug' => 'keepme12345']);
 
-        $this->withHeaders($headers)->deleteJson("/v1/domains/{$this->systemDomain->id}")
+        $this->deleteJson("http://links.t-api.de/v1/domains/{$this->systemDomain->id}", [], $headers)
             ->assertStatus(403);
     }
 

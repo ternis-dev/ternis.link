@@ -33,15 +33,14 @@ class DashboardTest extends TestCase
 
     public function test_guest_cannot_access_dashboard(): void
     {
-        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])->get('/dashboard');
+        $response = $this->get('http://dash.ternis.link/dashboard');
         $response->assertRedirect(route('login'));
     }
 
     public function test_authenticated_user_can_view_dashboard(): void
     {
         $response = $this->actingAs($this->user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard');
+            ->get('http://dash.ternis.link/dashboard');
 
         $response->assertStatus(200);
         $response->assertSee('Dashboard');
@@ -51,8 +50,7 @@ class DashboardTest extends TestCase
     public function test_authenticated_user_can_view_links_page(): void
     {
         $response = $this->actingAs($this->user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard/links');
+            ->get('http://dash.ternis.link/dashboard/links');
 
         $response->assertStatus(200);
         $response->assertSee('Your Links');
@@ -61,8 +59,7 @@ class DashboardTest extends TestCase
     public function test_authenticated_user_can_view_create_link_page(): void
     {
         $response = $this->actingAs($this->user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard/links/create');
+            ->get('http://dash.ternis.link/dashboard/links/create');
 
         $response->assertStatus(200);
         $response->assertSee('Create Short Link');
@@ -79,8 +76,7 @@ class DashboardTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get("/dashboard/links/{$link->id}");
+            ->get("http://dash.ternis.link/dashboard/links/{$link->id}");
 
         $response->assertStatus(200);
         $response->assertSee('myshowslug');
@@ -89,8 +85,7 @@ class DashboardTest extends TestCase
     public function test_authenticated_user_can_view_api_keys_page(): void
     {
         $response = $this->actingAs($this->user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard/api-keys');
+            ->get('http://dash.ternis.link/dashboard/api-keys');
 
         $response->assertStatus(200);
         $response->assertSee('API Keys');

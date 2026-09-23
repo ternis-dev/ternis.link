@@ -100,8 +100,7 @@ class AuthHardeningTest extends TestCase
         $this->fakeRefresh($user->sso_sub);
 
         $response = $this->actingAs($user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard');
+            ->get('http://dash.ternis.link/dashboard');
 
         $response->assertStatus(200);
         $this->assertAuthenticatedAs($user);
@@ -117,8 +116,7 @@ class AuthHardeningTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard');
+            ->get('http://dash.ternis.link/dashboard');
 
         $response->assertRedirect(route('login'));
         $this->assertGuest();
@@ -131,8 +129,7 @@ class AuthHardeningTest extends TestCase
         $user = User::factory()->create(); // Demo-style login, no OAuthIdentity.
 
         $response = $this->actingAs($user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/dashboard');
+            ->get('http://dash.ternis.link/dashboard');
 
         $response->assertStatus(200);
         Http::assertNothingSent();
@@ -140,7 +137,7 @@ class AuthHardeningTest extends TestCase
 
     public function test_silent_route_uses_prompt_none(): void
     {
-        $response = $this->withHeaders(['Host' => 'dash.ternis.link'])->get('/auth/silent');
+        $response = $this->get('http://dash.ternis.link/auth/silent');
 
         $response->assertStatus(302);
         $targetUrl = $response->headers->get('Location');
@@ -156,8 +153,7 @@ class AuthHardeningTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->get('/auth/silent')
+            ->get('http://dash.ternis.link/auth/silent')
             ->assertRedirect(route('dashboard'));
     }
 
@@ -168,8 +164,7 @@ class AuthHardeningTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->post('/logout');
+            ->post('http://dash.ternis.link/logout');
 
         $response->assertRedirect('/');
         $this->assertGuest();
@@ -182,8 +177,7 @@ class AuthHardeningTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->withHeaders(['Host' => 'dash.ternis.link'])
-            ->post('/logout');
+            ->post('http://dash.ternis.link/logout');
 
         $this->assertGuest();
         $targetUrl = $response->headers->get('Location');

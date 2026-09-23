@@ -18,7 +18,7 @@ class ExampleTest extends TestCase
     {
         $this->seed([PlanSeeder::class, DomainSeeder::class]);
 
-        $response = $this->withHeaders(['Host' => 'href.nz'])->get('/');
+        $response = $this->get('http://href.nz/');
 
         $response->assertStatus(200);
     }

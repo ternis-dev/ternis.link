@@ -15,6 +15,13 @@ class ResolveDomain
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Health probes must answer on any Host/IP (load balancers hit
+        // pod IPs directly). Bypass domain resolution entirely — this
+        // is defense in depth alongside withoutMiddleware() on the route.
+        if (in_array($request->path(), ['healthz', 'up'], true)) {
+            return $next($request);
+        }
+
         $rawHost = $request->header('Host') ?? $request->header('X-Forwarded-Host') ?? $request->getHost();
         $hostname = explode(':', $rawHost)[0];
 

@@ -1,0 +1,207 @@
+openapi: 3.1.0
+info:
+  title: ternis.link API
+  version: 1.0.0
+  description: |
+    Short-link CRUD, custom domains, click analytics, and anonymous
+    link creation for ternis.link.
+
+    Host pinning (enforced by EnsureDomainType + ResolveDomain):
+    - Authenticated v1 endpoints: `links.t-api.de` only (`domain_type: api`).
+      Requests on redirect/dashboard hosts return 404 before auth runs.
+    - `POST /v1/links/public`: `links.t-api.de` and public short-link
+      hosts (e.g. `href.nz`) only. Dashboard/admin/redirect-only hosts 404.
+    - Dashboard + auth web routes: `dash.ternis.link` / `admin.ternis.link` only.
+    - Redirects (`/url/{url}`, `/go/{url}`, `/{slug}`): public, business,
+      ternis, and partner hosts only. API/dashboard hosts 404 there.
+  contact:
+    name: ternis-edv
+    url: https://ternis.dev
+servers:
+  - url: https://links.t-api.de/v1
+    description: Production API (host-pinned, see above)
+security:
+  - bearerAuth: []
+paths:
+  /links/public:
+    post:
+      summary: Create an anonymous short link (no auth)
+      description: |
+        Guests only. Restricted to active public system domains, slugs of
+        8+ chars (`[a-zA-Z0-9_-]`), `throttle:10,1` per IP plus a 50/day
+        per-IP quota (SHA-256 IP hash, never raw IPs).
+        Hosts: `links.t-api.de`, public hosts. Others 404.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destination_url]
+              properties:
+                destination_url:
+                  type: string
+                  format: uri
+                  maxLength: 2048
+                domain_id:
+                  type: integer
+                  description: Must be an active public system domain. Defaults to href.nz.
+                slug:
+                  type: string
+                  pattern: "^[a-zA-Z0-9_-]+$"
+                expires_at:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  slug: { type: string }
+                  destination_url: { type: string }
+                  short_url: { type: string }
+        '422': { description: Validation error (short slug, non-public domain, quota) }
+        '429': { description: Per-minute throttle exceeded }
+        '404': { description: Wrong host for this endpoint }
+  /links:
+    get:
+      summary: List own links
+      responses:
+        '200': { description: Paginated links }
+        '401': { description: Missing/invalid Bearer key or SSO token }
+        '404': { description: Non-API host }
+    post:
+      summary: Create a short link (plan limits enforced)
+      description: |
+        Custom slugs must match `[a-zA-Z0-9_-]` and the plan minimum
+        length; per-domain uniqueness, daily quota, and per-minute rate
+        limit apply (see LinkService). Custom domains must be verified.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destination_url, domain_id]
+              properties:
+                destination_url: { type: string, format: uri, maxLength: 2048 }
+                domain_id: { type: integer }
+                slug: { type: string, pattern: "^[a-zA-Z0-9_-]+$", maxLength: 255 }
+                expires_at: { type: string, format: date-time }
+      responses:
+        '201': { description: Created }
+        '422': { description: Slug/quota/domain validation error }
+        '429': { description: Plan per-minute rate limit }
+        '404': { description: Non-API host }
+  /links/{link}:
+    parameters:
+      - { name: link, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get a link (owner or admin)
+      responses:
+        '200': { description: Link with domain }
+        '403': { description: Not the owner }
+        '404': { description: Unknown link or wrong host }
+    put:
+      summary: Update destination, activity, or expiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                destination_url: { type: string, format: uri, maxLength: 2048 }
+                is_active: { type: boolean }
+                expires_at: { type: string, format: date-time, nullable: true }
+      responses:
+        '200': { description: Updated }
+        '403': { description: Not the owner }
+    delete:
+      summary: Deactivate a link (analytics preserved)
+      responses:
+        '204': { description: Deactivated }
+        '403': { description: Not the owner }
+  /links/{link}/clicks:
+    parameters:
+      - { name: link, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Paginated clicks (direct-URL clicks admin-only)
+      responses:
+        '200': { description: Paginated clicks }
+        '403': { description: Not the owner }
+  /links/{link}/clicks/summary:
+    parameters:
+      - { name: link, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Aggregated click stats
+      responses:
+        '200':
+          description: Totals, unique visitors, top referrers/countries, by-day
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_clicks: { type: integer }
+                  unique_visitors: { type: integer }
+                  top_referrers: { type: array, items: { type: object } }
+                  top_countries: { type: array, items: { type: object } }
+                  clicks_by_day: { type: array, items: { type: object } }
+  /domains:
+    get:
+      summary: List system + own domains
+      responses:
+        '200': { description: Domain list }
+    post:
+      summary: Register a custom domain (eligible plans only)
+      description: |
+        Hostname is lowercased/trimmed, must be a valid FQDN, and must not
+        collide with reserved system/wildcard hosts. Returns DNS TXT
+        verification instructions until verified.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hostname]
+              properties:
+                hostname: { type: string, maxLength: 253 }
+      responses:
+        '201': { description: Registered (unverified) }
+        '403': { description: Plan does not allow custom domains }
+        '422': { description: Invalid/reserved/duplicate hostname }
+  /domains/{domain}:
+    parameters:
+      - { name: domain, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Show a domain (+ verification instructions until verified)
+      responses:
+        '200': { description: Domain }
+        '403': { description: Not the owner (non-admin) }
+    delete:
+      summary: Deactivate own domain (links preserved, system domains protected)
+      responses:
+        '204': { description: Deactivated }
+        '403': { description: Foreign or system domain }
+  /domains/{domain}/verify:
+    parameters:
+      - { name: domain, in: path, required: true, schema: { type: integer } }
+    post:
+      summary: Verify DNS TXT record and activate
+      responses:
+        '200': { description: "{ verified: true } on success" }
+        '422': { description: "{ verified: false, verification: {...} } — record missing" }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Either a `tl_…` API key (SHA-256 stored, prefix shown) or a
+        Ternis Auth SSO access token (validated against userinfo, cached 5 min).
