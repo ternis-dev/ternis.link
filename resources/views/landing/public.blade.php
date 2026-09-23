@@ -32,15 +32,15 @@
 
         <section class="nz-features">
             <div class="nz-feature">
-                <h3>✂️ snip snip!</h3>
+                <h3>✄ snip snip!</h3>
                 <p>One field, one click. Your long URL becomes a tiny link.</p>
             </div>
             <div class="nz-feature">
-                <h3>🙈 no snooping</h3>
+                <h3>☁ no snooping</h3>
                 <p>Guest links carry no account — just a hashed IP for abuse limits.</p>
             </div>
             <div class="nz-feature">
-                <h3>✨ want more?</h3>
+                <h3>✎ want more?</h3>
                 <p><a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">Log in</a> for custom slugs, shorter links &amp; click stats.</p>
             </div>
         </section>

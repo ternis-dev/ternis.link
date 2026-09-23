@@ -1,8 +1,9 @@
 /* ==========================================================
- * href.nz landing — playful minimalist light mode (local only)
- * Fonts: Caveat (handwritten display) + Inter (body), self-hosted
- * in /fonts/*.woff2 — no CDN. Loaded AFTER css/app.css so these
- * light-mode rules win for the public landing only.
+ * href.nz landing — grayscale handwritten theme (local only)
+ * Font: Caveat everywhere (display + body), self-hosted in
+ * /fonts/caveat-var.woff2 — no CDN. Loaded AFTER css/app.css so
+ * these rules win for the public landing only.
+ * Palette: strict grayscale — paper, ink, grays. No color.
  * ========================================================== */
 
 @font-face {
@@ -13,32 +14,25 @@
     src: url('/fonts/caveat-var.woff2') format('woff2');
 }
 
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url('/fonts/inter-var.woff2') format('woff2');
-}
-
 .nz-root {
-    --nz-paper: #fffdf6;
-    --nz-ink: #26221c;
-    --nz-muted: #7a7365;
-    --nz-accent: #ff6b6b;
-    --nz-teal: #0e9f8a;
-    --nz-highlight: #ffe66d;
+    --nz-paper: #fafafa;
+    --nz-ink: #1c1c1c;
+    --nz-muted: #6e6e6e;
+    --nz-faint: #b5b5b5;
     --nz-card: #ffffff;
+    --nz-wash: #efefef;
+    --nz-mark: #e0e0e0;
     --font-hand: 'Caveat', cursive;
-    --font-body: 'Inter', system-ui, sans-serif;
 }
 
 body.nz-root {
-    font-family: var(--font-body);
+    font-family: var(--font-hand);
+    font-size: 1.3rem;
+    line-height: 1.35;
     color: var(--nz-ink);
     background-color: var(--nz-paper);
-    background-image: radial-gradient(#e9e2d3 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-image: radial-gradient(#dcdcdc 1px, transparent 1px);
+    background-size: 24px 24px;
 }
 
 /* --- nav --------------------------------------------------- */
@@ -56,20 +50,22 @@ body.nz-root {
 .nz-brand {
     font-family: var(--font-hand);
     font-weight: 700;
-    font-size: 2rem;
+    font-size: 2.2rem;
     line-height: 1;
     color: var(--nz-ink);
     transform: rotate(-2deg);
 }
 
 .nz-brand span {
-    color: var(--nz-accent);
+    color: var(--nz-ink);
+    text-decoration: underline wavy var(--nz-faint) 2px;
+    text-underline-offset: 4px;
 }
 
 /* --- hero -------------------------------------------------- */
 .nz-hero {
     text-align: center;
-    padding: 3.5rem 1.5rem 0.5rem;
+    padding: 3rem 1.5rem 0.5rem;
     max-width: 640px;
     margin: 0 auto;
 }
@@ -77,7 +73,7 @@ body.nz-root {
 .nz-hero h1 {
     font-family: var(--font-hand);
     font-weight: 700;
-    font-size: clamp(3rem, 9vw, 4.6rem);
+    font-size: clamp(3.2rem, 10vw, 5rem);
     line-height: 0.95;
     letter-spacing: 0;
     margin-bottom: 0.75rem;
@@ -85,15 +81,14 @@ body.nz-root {
 }
 
 .nz-hero h1 span {
-    color: var(--nz-accent);
-    background: linear-gradient(transparent 62%, var(--nz-highlight) 62%, var(--nz-highlight) 94%, transparent 94%);
+    background: linear-gradient(transparent 60%, var(--nz-mark) 60%, var(--nz-mark) 95%, transparent 95%);
     padding: 0 0.1em;
 }
 
 .nz-hero p {
     color: var(--nz-muted);
-    font-size: 1.05rem;
-    max-width: 480px;
+    font-size: 1.45rem;
+    max-width: 500px;
     margin: 0 auto 1.5rem;
 }
 
@@ -108,7 +103,7 @@ body.nz-root {
     flex-wrap: wrap;
 }
 
-/* --- light-mode takeover of shared app.css components ------ */
+/* --- grayscale takeover of shared app.css components ------- */
 body.nz-root .card {
     background: var(--nz-card);
     border: 2px solid var(--nz-ink);
@@ -116,35 +111,47 @@ body.nz-root .card {
     box-shadow: 5px 5px 0 var(--nz-ink);
     color: var(--nz-ink);
     padding: 1.75rem;
+    font-size: 1.3rem;
 }
 
 body.nz-root .card-title {
     font-family: var(--font-hand);
-    font-size: 1.9rem;
+    font-size: 2.1rem;
     font-weight: 700;
     color: var(--nz-ink);
 }
 
 body.nz-root .form-group label {
+    font-family: var(--font-hand);
+    font-size: 1.4rem;
+    font-weight: 700;
     color: var(--nz-ink);
-    font-weight: 600;
 }
 
 body.nz-root .form-group input {
+    font-family: var(--font-hand);
+    font-size: 1.35rem;
     background: var(--nz-paper);
     border: 2px solid var(--nz-ink);
     border-radius: 12px;
     color: var(--nz-ink);
-    padding: 0.7rem 1rem;
+    padding: 0.55rem 1rem;
 }
 
 body.nz-root .form-group input:focus {
-    border-color: var(--nz-accent);
-    box-shadow: 3px 3px 0 var(--nz-highlight);
+    border-color: var(--nz-ink);
+    box-shadow: 3px 3px 0 var(--nz-faint);
+    outline: none;
 }
 
 body.nz-root .form-group input::placeholder {
-    color: #b3ab99;
+    color: var(--nz-faint);
+}
+
+body.nz-root .btn {
+    font-family: var(--font-hand);
+    font-size: 1.35rem;
+    font-weight: 700;
 }
 
 body.nz-root .btn-primary {
@@ -152,15 +159,15 @@ body.nz-root .btn-primary {
     border: 2px solid var(--nz-ink);
     border-radius: 9999px;
     color: #fff;
-    font-weight: 600;
-    box-shadow: 3px 3px 0 var(--nz-accent);
+    box-shadow: 3px 3px 0 var(--nz-faint);
     transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 body.nz-root .btn-primary:hover {
     transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--nz-accent);
-    background: var(--nz-ink);
+    box-shadow: 4px 4px 0 var(--nz-faint);
+    background: #000;
+    color: #fff;
 }
 
 body.nz-root .btn-secondary {
@@ -168,38 +175,57 @@ body.nz-root .btn-secondary {
     border: 2px solid var(--nz-ink);
     border-radius: 9999px;
     color: var(--nz-ink);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 body.nz-root .btn-sm {
+    font-size: 1.15rem;
     border-radius: 9999px;
 }
 
 body.nz-root a {
-    color: var(--nz-teal);
+    color: var(--nz-ink);
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-decoration-color: var(--nz-faint);
+    text-underline-offset: 3px;
+}
+
+body.nz-root a:hover {
+    text-decoration-color: var(--nz-ink);
 }
 
 body.nz-root code {
-    background: #f4efe0;
-    border: 1px dashed #cfc5ac;
+    font-family: var(--font-hand);
+    font-size: 1.2rem;
+    background: var(--nz-wash);
+    border: 1px dashed var(--nz-faint);
     color: var(--nz-ink);
 }
 
 body.nz-root .alert-success {
-    background: #edfbf3;
-    border: 2px dashed var(--nz-teal);
-    color: #14665b;
+    background: var(--nz-wash);
+    border: 2px dashed var(--nz-ink);
+    color: var(--nz-ink);
     border-radius: 14px;
+    font-size: 1.3rem;
 }
 
 body.nz-root .alert-error {
-    background: #fff0f0;
-    border: 2px dashed var(--nz-accent);
-    color: #b33535;
+    background: #fff;
+    border: 2px dashed var(--nz-ink);
+    color: var(--nz-ink);
     border-radius: 14px;
+    font-size: 1.3rem;
 }
 
-/* --- feature stickers -------------------------------------- */
+body.nz-root .form-error {
+    font-size: 1.2rem;
+    color: var(--nz-ink);
+    font-weight: 700;
+}
+
+/* --- feature notes ----------------------------------------- */
 .nz-features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -215,7 +241,7 @@ body.nz-root .alert-error {
     border-radius: 16px 20px 16px 22px;
     padding: 1.1rem 1.2rem;
     text-align: left;
-    box-shadow: 4px 4px 0 rgba(38, 34, 28, 0.12);
+    box-shadow: 4px 4px 0 rgba(28, 28, 28, 0.12);
 }
 
 .nz-feature:nth-child(1) { transform: rotate(-1deg); }
@@ -224,23 +250,23 @@ body.nz-root .alert-error {
 
 .nz-feature h3 {
     font-family: var(--font-hand);
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     font-weight: 700;
     margin-bottom: 0.15rem;
 }
 
 .nz-feature p {
     color: var(--nz-muted);
-    font-size: 0.88rem;
+    font-size: 1.25rem;
 }
 
 .nz-footer {
+    font-size: 1.2rem;
     text-align: center;
     color: var(--nz-muted);
-    font-size: 0.85rem;
     padding: 3rem 1rem 2.5rem;
 }
 
 .nz-footer a {
-    font-weight: 600;
+    font-weight: 700;
 }
