@@ -38,6 +38,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - Custom Vanilla nested CSS (`public/css/app.css`) with dark mode interface, plus per-domain landing CSS (`landing-public.css`, `landing-business.css`) and shared error CSS (`error.css`).
   - Self-hosted fonts (`public/fonts/inter-var.woff2`, `space-grotesk-var.woff2`) — no external CDN.
   - Custom branded error pages (`resources/views/errors/404,403,419,429,500,503.blade.php`) for web requests; API/`expectsJson` requests still receive JSON.
+  - Error encounters (`error_encounters` table): every rendered error response is logged with `http_code`, `error_message`, `exception_class`, `method`/`host`/`path`, `user_id`, SHA-256 `ip_hash`, and `user_agent`. Validation noise and health probes are skipped; logging never throws. SSO callback failures (stale/reused codes) redirect to login with a friendly message instead of 500ing.
 - **Deployment**:
   - Production-ready `Caddyfile` for automatic HTTPS and multi-domain proxying.
 
@@ -113,13 +114,15 @@ Run the test suite:
 php artisan test
 ```
 
-All 132 feature and unit tests cover:
+All 137 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain (guests always 8-char auto, authed 6-char default via plan minimum)
 - Anonymous link creation (public API rejects custom slugs, guest web form has no slug field, quotas, throttling)
 - Per-domain landing pages (`href.nz` public + form vs `href.re` business, local fonts/CSS)
 - Auth redirect shims (`href.nz/login`, `ternis.link/login`, `href.re/login` 302 to dashboard host)
 - Custom error pages (web HTML `errors/*` views, JSON for API/`expectsJson`)
+- Error encounters (404/403 logging with code/message/host/actor, validation + healthz excluded)
+- Ternis Auth OAuth PKCE authorization redirect & user provisioning callback (stale-code callback → login, not 500)
 - Multi-domain resolution middleware & wildcard subdomains
 - Host pinning (`EnsureDomainType` 404s on wrong hosts, healthz bypass)
 - API polish (`GET /v1/` metadata, `API-Version` headers, `Deprecation`/`Sunset`, `410` retired, `{ message }` errors, `429` + `Retry-After`)

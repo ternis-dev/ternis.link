@@ -6,11 +6,13 @@ use App\Http\Middleware\EnsureApiVersion;
 use App\Http\Middleware\EnsureDomainType;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
+use App\Models\ErrorEncounter;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -46,4 +48,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->is('v1/*') || $request->expectsJson(),
         );
+
+        // Persist one error_encounters row per rendered error response so
+        // production failures stay inspectable (http_code, message,
+        // host/path, user, IP hash). A `report` hook can't do this:
+        // HttpExceptions live in Laravel's internal dont-report list.
+        // Skips validation noise + health probes; record() never throws.
+        $exceptions->respond(function ($response, Throwable $e) {
+            if (! $e instanceof ValidationException
+                && ! in_array(request()->path(), ['healthz', 'up'], true)) {
+                ErrorEncounter::record($e);
+            }
+
+            return $response;
+        });
     })->create();

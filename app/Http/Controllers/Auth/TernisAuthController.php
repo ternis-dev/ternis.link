@@ -94,17 +94,27 @@ class TernisAuthController extends Controller
             abort(403, 'Missing OAuth code verifier in session.');
         }
 
-        // Exchange code for tokens
-        $tokenData = $this->authService->exchangeCode(
-            $request->query('code'),
-            $codeVerifier,
-        );
+        // A stale, reused, or hand-pasted code (e.g. reloading a callback
+        // URL) makes the provider reject the exchange — send the user back
+        // to login with a friendly message instead of a 500.
+        try {
+            // Exchange code for tokens
+            $tokenData = $this->authService->exchangeCode(
+                $request->query('code'),
+                $codeVerifier,
+            );
 
-        // Fetch user info
-        $userInfo = $this->authService->getUserInfo($tokenData['access_token']);
+            // Fetch user info
+            $userInfo = $this->authService->getUserInfo($tokenData['access_token']);
 
-        // Find or create local user
-        $user = $this->authService->findOrCreateUser($tokenData, $userInfo);
+            // Find or create local user
+            $user = $this->authService->findOrCreateUser($tokenData, $userInfo);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->away($request->getSchemeAndHttpHost().'/login')
+                ->with('error', 'Sign-in failed (expired or invalid request). Please try again.');
+        }
 
         // Log in via Laravel session
         auth()->login($user);

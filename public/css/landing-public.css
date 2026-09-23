@@ -1,8 +1,9 @@
 /* ==========================================================
- * href.nz landing — playful minimalist light mode (local only)
- * Fonts: Caveat (handwritten display) + Inter (body), self-hosted
- * in /fonts/*.woff2 — no CDN. Loaded AFTER css/app.css so these
- * light-mode rules win for the public landing only.
+ * href.nz landing — "field memo" theme, from scratch (local only)
+ * Font: Caveat everywhere, self-hosted in /fonts/caveat-var.woff2.
+ * Strict grayscale. Loaded AFTER css/app.css so these rules win
+ * for the public landing only. No separate header bar — the
+ * letterhead lives inside the memo sheet.
  * ========================================================== */
 
 @font-face {
@@ -13,234 +14,295 @@
     src: url('/fonts/caveat-var.woff2') format('woff2');
 }
 
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url('/fonts/inter-var.woff2') format('woff2');
-}
-
 .nz-root {
-    --nz-paper: #fffdf6;
-    --nz-ink: #26221c;
-    --nz-muted: #7a7365;
-    --nz-accent: #ff6b6b;
-    --nz-teal: #0e9f8a;
-    --nz-highlight: #ffe66d;
-    --nz-card: #ffffff;
+    --mm-paper: #f4f4f2;
+    --mm-sheet: #fdfdfb;
+    --mm-ink: #232323;
+    --mm-soft: #717171;
+    --mm-faint: #cfcfcf;
+    --mm-wash: #ececea;
     --font-hand: 'Caveat', cursive;
-    --font-body: 'Inter', system-ui, sans-serif;
 }
 
 body.nz-root {
-    font-family: var(--font-body);
-    color: var(--nz-ink);
-    background-color: var(--nz-paper);
-    background-image: radial-gradient(#e9e2d3 1px, transparent 1px);
-    background-size: 22px 22px;
+    font-family: var(--font-hand);
+    font-size: 1.4rem;
+    line-height: 1.35;
+    color: var(--mm-ink);
+    background: var(--mm-paper);
 }
 
-/* --- nav --------------------------------------------------- */
-.nz-nav {
+/* --- memo sheet (header integrated as letterhead) ------------ */
+.mm-sheet {
+    position: relative;
+    max-width: 640px;
+    margin: 2.5rem auto 0;
+    padding: 1.5rem 2rem 2rem;
+    background: var(--mm-sheet);
+    border: 1.5px solid var(--mm-faint);
+    border-radius: 3px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.09);
+    transform: rotate(-0.3deg);
+}
+
+.mm-letterhead {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    max-width: 960px;
-    margin: 0 auto;
-    background: transparent;
-    border-bottom: 0;
+    align-items: baseline;
+    border-bottom: 2px solid var(--mm-ink);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.25rem;
 }
 
-.nz-brand {
-    font-family: var(--font-hand);
+.mm-brand {
     font-weight: 700;
     font-size: 2rem;
     line-height: 1;
-    color: var(--nz-ink);
-    transform: rotate(-2deg);
+    color: var(--mm-ink);
 }
 
-.nz-brand span {
-    color: var(--nz-accent);
+.mm-brand span {
+    color: var(--mm-ink);
 }
 
-/* --- hero -------------------------------------------------- */
-.nz-hero {
-    text-align: center;
-    padding: 3.5rem 1.5rem 0.5rem;
-    max-width: 640px;
-    margin: 0 auto;
-}
-
-.nz-hero h1 {
-    font-family: var(--font-hand);
+.mm-login {
+    font-size: 1.3rem;
     font-weight: 700;
-    font-size: clamp(3rem, 9vw, 4.6rem);
-    line-height: 0.95;
-    letter-spacing: 0;
-    margin-bottom: 0.75rem;
-    transform: rotate(-1deg);
+    color: var(--mm-soft);
+    white-space: nowrap;
 }
 
-.nz-hero h1 span {
-    color: var(--nz-accent);
-    background: linear-gradient(transparent 62%, var(--nz-highlight) 62%, var(--nz-highlight) 94%, transparent 94%);
-    padding: 0 0.1em;
+.mm-memo-line {
+    font-size: 1.25rem;
+    color: var(--mm-soft);
+    margin: 0 0 0.15rem;
 }
 
-.nz-hero p {
-    color: var(--nz-muted);
-    font-size: 1.05rem;
-    max-width: 480px;
-    margin: 0 auto 1.5rem;
+.mm-memo-line strong {
+    color: var(--mm-ink);
+    font-weight: 700;
+    display: inline-block;
+    min-width: 3.2em;
 }
 
-.nz-hero p strong {
-    color: var(--nz-ink);
+.mm-title {
+    font-size: clamp(2.8rem, 9vw, 4.2rem);
+    line-height: 0.98;
+    font-weight: 700;
+    margin: 1rem 0 0.6rem;
 }
 
-.nz-cta-row {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: center;
-    flex-wrap: wrap;
+.mm-stamp {
+    display: inline-block;
+    border: 3px double var(--mm-ink);
+    border-radius: 6px;
+    padding: 0 0.3em 0.08em;
+    transform: rotate(-1.2deg);
 }
 
-/* --- light-mode takeover of shared app.css components ------ */
+.mm-sub {
+    color: var(--mm-soft);
+    font-size: 1.45rem;
+    max-width: 30ch;
+    margin-bottom: 0.5rem;
+}
+
+/* --- guest form takeover (shared app.css components) -------- */
 body.nz-root .card {
-    background: var(--nz-card);
-    border: 2px solid var(--nz-ink);
-    border-radius: 18px 22px 18px 24px;
-    box-shadow: 5px 5px 0 var(--nz-ink);
-    color: var(--nz-ink);
-    padding: 1.75rem;
+    background: transparent;
+    border: 0;
+    border-top: 2px dashed var(--mm-faint);
+    border-radius: 0;
+    box-shadow: none;
+    padding: 1.25rem 0 0;
+    margin: 1rem 0 0;
+    max-width: none !important;
+    font-size: 1.4rem;
 }
 
 body.nz-root .card-title {
-    font-family: var(--font-hand);
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: var(--nz-ink);
+    display: none;
 }
 
 body.nz-root .form-group label {
-    color: var(--nz-ink);
-    font-weight: 600;
+    font-family: var(--font-hand);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--mm-ink);
 }
 
 body.nz-root .form-group input {
-    background: var(--nz-paper);
-    border: 2px solid var(--nz-ink);
-    border-radius: 12px;
-    color: var(--nz-ink);
-    padding: 0.7rem 1rem;
+    font-family: var(--font-hand);
+    font-size: 1.5rem;
+    background: var(--mm-paper);
+    border: 1.5px solid var(--mm-faint);
+    border-radius: 10px;
+    color: var(--mm-ink);
+    padding: 0.55rem 0.9rem;
 }
 
 body.nz-root .form-group input:focus {
-    border-color: var(--nz-accent);
-    box-shadow: 3px 3px 0 var(--nz-highlight);
+    outline: none;
+    border-color: var(--mm-ink);
+    border-width: 2px;
+    background: #fff;
+    box-shadow: 4px 4px 0 var(--mm-wash);
 }
 
 body.nz-root .form-group input::placeholder {
-    color: #b3ab99;
+    color: var(--mm-faint);
+}
+
+body.nz-root .btn {
+    font-family: var(--font-hand);
+    font-weight: 700;
 }
 
 body.nz-root .btn-primary {
-    background: var(--nz-ink);
-    border: 2px solid var(--nz-ink);
-    border-radius: 9999px;
+    font-size: 1.5rem;
+    background: var(--mm-ink);
+    border: 2px solid var(--mm-ink);
+    border-radius: 8px;
     color: #fff;
-    font-weight: 600;
-    box-shadow: 3px 3px 0 var(--nz-accent);
+    padding: 0.3rem 1.5rem;
+    box-shadow: 4px 4px 0 var(--mm-faint);
     transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 body.nz-root .btn-primary:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--nz-accent);
-    background: var(--nz-ink);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--mm-faint);
+    background: #000;
+    color: #fff;
 }
 
 body.nz-root .btn-secondary {
-    background: #fff;
-    border: 2px solid var(--nz-ink);
-    border-radius: 9999px;
-    color: var(--nz-ink);
-    font-weight: 600;
-}
-
-body.nz-root .btn-sm {
-    border-radius: 9999px;
+    font-size: 1.3rem;
+    background: transparent;
+    border: 2px solid var(--mm-ink);
+    border-radius: 8px;
+    color: var(--mm-ink);
+    font-weight: 700;
 }
 
 body.nz-root a {
-    color: var(--nz-teal);
+    color: var(--mm-ink);
+    font-weight: 700;
 }
 
 body.nz-root code {
-    background: #f4efe0;
-    border: 1px dashed #cfc5ac;
-    color: var(--nz-ink);
+    font-family: var(--font-hand);
+    font-size: 1.25rem;
+    background: var(--mm-wash);
+    border: 0;
+    color: var(--mm-ink);
+    padding: 0.05rem 0.4rem;
+    border-radius: 6px;
+}
+
+body.nz-root .alert {
+    font-size: 1.35rem;
+    border-radius: 8px;
 }
 
 body.nz-root .alert-success {
-    background: #edfbf3;
-    border: 2px dashed var(--nz-teal);
-    color: #14665b;
-    border-radius: 14px;
+    background: var(--mm-wash);
+    border: 2px solid var(--mm-ink);
+    color: var(--mm-ink);
 }
 
-body.nz-root .alert-error {
-    background: #fff0f0;
-    border: 2px dashed var(--nz-accent);
-    color: #b33535;
-    border-radius: 14px;
-}
-
-/* --- feature stickers -------------------------------------- */
-.nz-features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    max-width: 860px;
-    margin: 2.5rem auto 0;
-    padding: 0 1.5rem;
-}
-
-.nz-feature {
-    background: var(--nz-card);
-    border: 2px solid var(--nz-ink);
-    border-radius: 16px 20px 16px 22px;
-    padding: 1.1rem 1.2rem;
-    text-align: left;
-    box-shadow: 4px 4px 0 rgba(38, 34, 28, 0.12);
-}
-
-.nz-feature:nth-child(1) { transform: rotate(-1deg); }
-.nz-feature:nth-child(2) { transform: rotate(0.8deg); }
-.nz-feature:nth-child(3) { transform: rotate(-0.6deg); }
-
-.nz-feature h3 {
-    font-family: var(--font-hand);
-    font-size: 1.5rem;
+body.nz-root .form-error {
+    font-size: 1.25rem;
     font-weight: 700;
-    margin-bottom: 0.15rem;
+    color: var(--mm-ink);
 }
 
-.nz-feature p {
-    color: var(--nz-muted);
-    font-size: 0.88rem;
+body.nz-root .card > p {
+    color: var(--mm-soft) !important;
+    font-size: 1.25rem !important;
 }
 
-.nz-footer {
+/* --- sign-off ------------------------------------------------ */
+.mm-signoff {
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    border-top: 2px dashed var(--mm-faint);
+    font-size: 1.4rem;
+    color: var(--mm-soft);
+    transform: rotate(-0.5deg);
+}
+
+.mm-signoff strong {
+    color: var(--mm-ink);
+}
+
+/* --- divider -------------------------------------------------- */
+.mm-div {
     text-align: center;
-    color: var(--nz-muted);
-    font-size: 0.85rem;
-    padding: 3rem 1rem 2.5rem;
+    color: var(--mm-faint);
+    font-size: 1.6rem;
+    letter-spacing: 0.6em;
+    margin: 2rem 0 0;
+    padding-left: 0.6em;
 }
 
-.nz-footer a {
-    font-weight: 600;
+/* --- margin notes --------------------------------------------- */
+.mm-notes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    max-width: 640px;
+    margin: 1.5rem auto 0;
+    padding: 0 1.25rem;
+}
+
+.mm-note {
+    background: var(--mm-sheet);
+    border: 1.5px solid var(--mm-faint);
+    border-radius: 3px;
+    padding: 1rem 1.1rem 1.1rem;
+    font-size: 1.3rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.mm-note:first-child { transform: rotate(-1.1deg); }
+.mm-note:last-child { transform: rotate(0.9deg); }
+
+.mm-note h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 2px;
+}
+
+.mm-note p {
+    margin: 0;
+    color: var(--mm-soft);
+}
+
+.mm-note p + p {
+    margin-top: 0.4rem;
+}
+
+/* --- footer --------------------------------------------------- */
+.mm-foot {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2.25rem 1.25rem 3rem;
+    font-size: 1.25rem;
+    color: var(--mm-soft);
+    text-align: center;
+}
+
+@media (max-width: 560px) {
+    .mm-notes {
+        grid-template-columns: 1fr;
+    }
+
+    .mm-sheet {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
 }

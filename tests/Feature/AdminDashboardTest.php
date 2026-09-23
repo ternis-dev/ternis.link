@@ -46,7 +46,9 @@ class AdminDashboardTest extends TestCase
     {
         $this->actingAs($this->user)
             ->get('http://admin.ternis.link/admin')
-            ->assertForbidden();
+            ->assertForbidden()
+            ->assertSee('err-wrap', escape: false)
+            ->assertSee('have access', escape: false);
     }
 
     public function test_admin_can_view_overview_with_system_stats(): void
