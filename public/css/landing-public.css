@@ -236,14 +236,25 @@ body.nz-root .card > p {
     color: var(--mm-ink);
 }
 
+/* --- nudge arrow ------------------------------------------------ */
+.mm-nudge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--mm-soft);
+    font-size: 1.35rem;
+    margin: 0.25rem 0 0;
+}
+
+.mm-nudge svg {
+    flex: none;
+    transform: rotate(4deg);
+}
+
 /* --- divider -------------------------------------------------- */
 .mm-div {
     text-align: center;
-    color: var(--mm-faint);
-    font-size: 1.6rem;
-    letter-spacing: 0.6em;
     margin: 2rem 0 0;
-    padding-left: 0.6em;
 }
 
 /* --- margin notes --------------------------------------------- */
@@ -257,12 +268,22 @@ body.nz-root .card > p {
 }
 
 .mm-note {
+    position: relative;
     background: var(--mm-sheet);
     border: 1.5px solid var(--mm-faint);
     border-radius: 3px;
     padding: 1rem 1.1rem 1.1rem;
     font-size: 1.3rem;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.mm-doodle {
+    position: absolute;
+    top: -14px;
+    right: 12px;
+    transform: rotate(8deg);
+    background: var(--mm-sheet);
+    padding: 0 2px;
 }
 
 .mm-note:first-child { transform: rotate(-1.1deg); }

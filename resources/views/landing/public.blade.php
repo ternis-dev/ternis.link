@@ -27,21 +27,37 @@
 
             <h1 class="mm-title">long links go in.<br><span class="mm-stamp">short links come out.</span></h1>
             <p class="mm-sub">Drop yours in the box below and walk away with an 8-character href.nz link.</p>
+            <p class="mm-nudge" aria-hidden="true">
+                <svg width="72" height="56" viewBox="0 0 72 56" fill="none">
+                    <path d="M6 6 C 28 10, 52 18, 56 44 M 56 44 l -11 -4 M 56 44 l 2 -11" stroke="#717171" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>psst — right here!</span>
+            </p>
 
             <livewire:public.shorten-form />
 
             <p class="mm-signoff">— by the makers of <strong>href.re</strong> &amp; <strong>static.re</strong></p>
         </section>
 
-        <div class="mm-div" aria-hidden="true">⁂</div>
+        <div class="mm-div" aria-hidden="true">
+            <svg width="132" height="12" viewBox="0 0 132 12" fill="none">
+                <path d="M2 8 Q 13 2, 24 8 T 46 8 T 68 8 T 90 8 T 112 8 T 134 8" stroke="#cfcfcf" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </div>
 
         <section class="mm-notes">
             <div class="mm-note">
+                <svg class="mm-doodle" width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+                    <path d="M15 3v24M3 15h24M6.5 6.5l17 17M23.5 6.5l-17 17" stroke="#717171" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
                 <h2>margin note ①</h2>
                 <p>Guests get auto-made codes — picking your own is a members' perk.</p>
                 <p><a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">Log in</a> for custom slugs, shorter links &amp; click stats.</p>
             </div>
             <div class="mm-note">
+                <svg class="mm-doodle" width="24" height="42" viewBox="0 0 24 42" fill="none" aria-hidden="true">
+                    <path d="M17 38 V15 a6 6 0 0 0 -12 0 V29 a9 9 0 0 0 18 0 V10" stroke="#717171" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
                 <h2>margin note ②</h2>
                 <p>Fair use: 50 links a day per guest. Nothing of yours is kept but a hashed IP for counting.</p>
                 <p>Official business? That's next door on href.re.</p>
