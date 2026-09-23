@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Models\User;
 use App\Services\TernisAuthService;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class TernisAuthController extends Controller
@@ -96,30 +98,59 @@ class TernisAuthController extends Controller
 
         // A stale, reused, or hand-pasted code (e.g. reloading a callback
         // URL) makes the provider reject the exchange — send the user back
-        // to login with a friendly message instead of a 500.
+        // to login with a friendly message instead of a 500. Each step is
+        // caught separately so logs (and error_encounters) show exactly
+        // where SSO broke: token exchange, userinfo, or local provisioning.
         try {
             // Exchange code for tokens
             $tokenData = $this->authService->exchangeCode(
                 $request->query('code'),
                 $codeVerifier,
             );
+        } catch (\Throwable $e) {
+            $this->logSsoFailure('token-exchange', $e);
 
+            return redirect()->away($request->getSchemeAndHttpHost().'/login')
+                ->with('error', 'Sign-in failed at Ternis Auth (token step). Please try again.');
+        }
+
+        try {
             // Fetch user info
             $userInfo = $this->authService->getUserInfo($tokenData['access_token']);
 
             // Find or create local user
             $user = $this->authService->findOrCreateUser($tokenData, $userInfo);
         } catch (\Throwable $e) {
-            report($e);
+            $this->logSsoFailure('userinfo-provisioning', $e);
 
             return redirect()->away($request->getSchemeAndHttpHost().'/login')
-                ->with('error', 'Sign-in failed (expired or invalid request). Please try again.');
+                ->with('error', 'Sign-in failed while fetching your profile. Please try again.');
         }
 
         // Log in via Laravel session
         auth()->login($user);
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    /**
+     * Log an SSO step failure with provider status/body context (never
+     * secrets — failure bodies carry error codes, not tokens) and record
+     * it for the error_encounters table via report().
+     */
+    private function logSsoFailure(string $step, \Throwable $e): void
+    {
+        $status = $e instanceof RequestException
+            ? $e->response?->status()
+            : null;
+
+        Log::warning('SSO callback failure', [
+            'step' => $step,
+            'provider_status' => $status,
+            'error' => $e->getMessage(),
+        ]);
+
+        report($e);
     }
 
     /**

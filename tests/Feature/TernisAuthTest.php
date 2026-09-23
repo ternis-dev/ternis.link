@@ -103,7 +103,31 @@ class TernisAuthTest extends TestCase
         ])->get("http://dash.ternis.link/auth/callback?code=stale_code&state={$state}");
 
         $response->assertRedirect('http://dash.ternis.link/login');
-        $response->assertSessionHas('error');
+        $response->assertSessionHas('error', 'Sign-in failed at Ternis Auth (token step). Please try again.');
+        $this->assertGuest();
+    }
+
+    public function test_auth_callback_with_failing_userinfo_redirects_to_login(): void
+    {
+        Http::fake([
+            'https://auth.ternis.net/oauth/token' => Http::response([
+                'access_token' => 'mock-access-token',
+                'refresh_token' => 'mock-refresh-token',
+                'expires_in' => 3600,
+            ]),
+            'https://auth.ternis.net/oauth/userinfo' => Http::response(['error' => 'invalid_token'], 401),
+        ]);
+
+        $state = 'test_random_state_string';
+        $verifier = 'test_code_verifier_1234567890123456789012345678901234567890';
+
+        $response = $this->withSession([
+            'oauth_state' => $state,
+            'oauth_code_verifier' => $verifier,
+        ])->get("http://dash.ternis.link/auth/callback?code=mock_code&state={$state}");
+
+        $response->assertRedirect('http://dash.ternis.link/login');
+        $response->assertSessionHas('error', 'Sign-in failed while fetching your profile. Please try again.');
         $this->assertGuest();
     }
 
