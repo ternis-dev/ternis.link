@@ -1,9 +1,8 @@
 /* ==========================================================
- * href.nz landing — grayscale handwritten theme (local only)
- * Font: Caveat everywhere (display + body), self-hosted in
- * /fonts/caveat-var.woff2 — no CDN. Loaded AFTER css/app.css so
- * these rules win for the public landing only.
- * Palette: strict grayscale — paper, ink, grays. No color.
+ * href.nz landing — "napkin note" theme, from scratch (local only)
+ * Font: Caveat everywhere, self-hosted in /fonts/caveat-var.woff2.
+ * Strict grayscale. Loaded AFTER css/app.css so these rules win
+ * for the public landing only.
  * ========================================================== */
 
 @font-face {
@@ -15,258 +14,348 @@
 }
 
 .nz-root {
-    --nz-paper: #fafafa;
-    --nz-ink: #1c1c1c;
-    --nz-muted: #6e6e6e;
-    --nz-faint: #b5b5b5;
-    --nz-card: #ffffff;
-    --nz-wash: #efefef;
-    --nz-mark: #e0e0e0;
+    --nb-paper: #f7f7f5;
+    --nb-sheet: #ffffff;
+    --nb-ink: #202020;
+    --nb-soft: #6f6f6f;
+    --nb-faint: #c9c9c9;
+    --nb-line: #e4e4e4;
     --font-hand: 'Caveat', cursive;
 }
 
 body.nz-root {
     font-family: var(--font-hand);
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     line-height: 1.35;
-    color: var(--nz-ink);
-    background-color: var(--nz-paper);
-    background-image: radial-gradient(#dcdcdc 1px, transparent 1px);
-    background-size: 24px 24px;
+    color: var(--nb-ink);
+    background: var(--nb-paper);
 }
 
-/* --- nav --------------------------------------------------- */
-.nz-nav {
+/* --- top bar ------------------------------------------------ */
+.nb-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    max-width: 960px;
+    align-items: baseline;
+    max-width: 660px;
     margin: 0 auto;
-    background: transparent;
-    border-bottom: 0;
+    padding: 1.25rem 1.5rem 0;
 }
 
-.nz-brand {
-    font-family: var(--font-hand);
+.nb-brand {
     font-weight: 700;
-    font-size: 2.2rem;
+    font-size: 2.1rem;
     line-height: 1;
-    color: var(--nz-ink);
+    color: var(--nb-ink);
     transform: rotate(-2deg);
 }
 
-.nz-brand span {
-    color: var(--nz-ink);
-    text-decoration: underline wavy var(--nz-faint) 2px;
-    text-underline-offset: 4px;
+.nb-brand span {
+    color: var(--nb-ink);
 }
 
-/* --- hero -------------------------------------------------- */
-.nz-hero {
-    text-align: center;
-    padding: 3rem 1.5rem 0.5rem;
-    max-width: 640px;
-    margin: 0 auto;
-}
-
-.nz-hero h1 {
-    font-family: var(--font-hand);
-    font-weight: 700;
-    font-size: clamp(3.2rem, 10vw, 5rem);
-    line-height: 0.95;
-    letter-spacing: 0;
-    margin-bottom: 0.75rem;
-    transform: rotate(-1deg);
-}
-
-.nz-hero h1 span {
-    background: linear-gradient(transparent 60%, var(--nz-mark) 60%, var(--nz-mark) 95%, transparent 95%);
-    padding: 0 0.1em;
-}
-
-.nz-hero p {
-    color: var(--nz-muted);
-    font-size: 1.45rem;
-    max-width: 500px;
-    margin: 0 auto 1.5rem;
-}
-
-.nz-hero p strong {
-    color: var(--nz-ink);
-}
-
-.nz-cta-row {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-/* --- grayscale takeover of shared app.css components ------- */
-body.nz-root .card {
-    background: var(--nz-card);
-    border: 2px solid var(--nz-ink);
-    border-radius: 18px 22px 18px 24px;
-    box-shadow: 5px 5px 0 var(--nz-ink);
-    color: var(--nz-ink);
-    padding: 1.75rem;
+.nb-top a.nb-login {
     font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--nb-soft);
+}
+
+/* --- sheet -------------------------------------------------- */
+.nb-sheet {
+    position: relative;
+    max-width: 660px;
+    margin: 1rem auto 0;
+    padding: 2.5rem 2rem 2rem 3.25rem;
+    background:
+        linear-gradient(var(--nb-sheet), var(--nb-sheet)),
+        repeating-linear-gradient(transparent 0, transparent 35px, var(--nb-line) 35px, var(--nb-line) 36px);
+    background-color: var(--nb-sheet);
+    border: 1px solid var(--nb-faint);
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.nb-sheet::before {
+    /* notebook margin line */
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 2rem;
+    width: 2px;
+    background: var(--nb-faint);
+}
+
+.nb-kicker {
+    font-size: 1.2rem;
+    color: var(--nb-soft);
+    margin-bottom: 0.25rem;
+}
+
+.nb-title {
+    font-size: clamp(3rem, 10vw, 4.6rem);
+    line-height: 0.95;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+}
+
+.nb-circled {
+    display: inline-block;
+    border: 3px solid var(--nb-ink);
+    border-radius: 48% 52% 55% 45% / 55% 46% 54% 45%;
+    padding: 0 0.25em 0.05em;
+    transform: rotate(-1.5deg);
+}
+
+.nb-sub {
+    color: var(--nb-soft);
+    font-size: 1.45rem;
+    max-width: 26ch;
+    margin-bottom: 0.25rem;
+}
+
+.nb-arrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--nb-soft);
+    font-size: 1.35rem;
+    margin: 0.5rem 0 0;
+}
+
+.nb-arrow svg {
+    flex: none;
+}
+
+/* --- guest form takeover (shared app.css components) -------- */
+body.nz-root .card {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0.5rem 0 0;
+    margin: 0;
+    max-width: none !important;
+    font-size: 1.4rem;
 }
 
 body.nz-root .card-title {
-    font-family: var(--font-hand);
-    font-size: 2.1rem;
-    font-weight: 700;
-    color: var(--nz-ink);
+    display: none;
 }
 
 body.nz-root .form-group label {
     font-family: var(--font-hand);
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--nz-ink);
+    color: var(--nb-ink);
 }
 
 body.nz-root .form-group input {
     font-family: var(--font-hand);
-    font-size: 1.35rem;
-    background: var(--nz-paper);
-    border: 2px solid var(--nz-ink);
-    border-radius: 12px;
-    color: var(--nz-ink);
-    padding: 0.55rem 1rem;
+    font-size: 1.5rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 2.5px solid var(--nb-ink);
+    border-radius: 0;
+    color: var(--nb-ink);
+    padding: 0.2rem 0.1rem;
 }
 
 body.nz-root .form-group input:focus {
-    border-color: var(--nz-ink);
-    box-shadow: 3px 3px 0 var(--nz-faint);
     outline: none;
+    border-bottom-color: var(--nb-ink);
+    box-shadow: none;
+    background: linear-gradient(transparent 70%, var(--nb-line) 70%);
 }
 
 body.nz-root .form-group input::placeholder {
-    color: var(--nz-faint);
+    color: var(--nb-faint);
 }
 
 body.nz-root .btn {
     font-family: var(--font-hand);
-    font-size: 1.35rem;
     font-weight: 700;
 }
 
 body.nz-root .btn-primary {
-    background: var(--nz-ink);
-    border: 2px solid var(--nz-ink);
-    border-radius: 9999px;
+    font-size: 1.5rem;
+    background: var(--nb-ink);
+    border: 2.5px solid var(--nb-ink);
+    border-radius: 52% 48% 55% 45% / 48% 55% 45% 52%;
     color: #fff;
-    box-shadow: 3px 3px 0 var(--nz-faint);
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    padding: 0.35rem 1.6rem;
+    box-shadow: none;
 }
 
 body.nz-root .btn-primary:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--nz-faint);
     background: #000;
+    transform: rotate(-1deg) scale(1.03);
+    box-shadow: none;
     color: #fff;
 }
 
 body.nz-root .btn-secondary {
-    background: #fff;
-    border: 2px solid var(--nz-ink);
-    border-radius: 9999px;
-    color: var(--nz-ink);
+    font-size: 1.3rem;
+    background: transparent;
+    border: 2px solid var(--nb-ink);
+    border-radius: 48% 52% 50% 50% / 55% 48% 52% 45%;
+    color: var(--nb-ink);
     font-weight: 700;
 }
 
-body.nz-root .btn-sm {
-    font-size: 1.15rem;
-    border-radius: 9999px;
-}
-
 body.nz-root a {
-    color: var(--nz-ink);
-    text-decoration: underline;
-    text-decoration-style: wavy;
-    text-decoration-color: var(--nz-faint);
-    text-underline-offset: 3px;
-}
-
-body.nz-root a:hover {
-    text-decoration-color: var(--nz-ink);
+    color: var(--nb-ink);
+    font-weight: 700;
 }
 
 body.nz-root code {
     font-family: var(--font-hand);
-    font-size: 1.2rem;
-    background: var(--nz-wash);
-    border: 1px dashed var(--nz-faint);
-    color: var(--nz-ink);
+    font-size: 1.25rem;
+    background: var(--nb-line);
+    border: 0;
+    color: var(--nb-ink);
+    padding: 0.05rem 0.4rem;
+    border-radius: 6px;
+}
+
+body.nz-root .alert {
+    font-size: 1.35rem;
+    border-radius: 10px;
 }
 
 body.nz-root .alert-success {
-    background: var(--nz-wash);
-    border: 2px dashed var(--nz-ink);
-    color: var(--nz-ink);
-    border-radius: 14px;
-    font-size: 1.3rem;
-}
-
-body.nz-root .alert-error {
-    background: #fff;
-    border: 2px dashed var(--nz-ink);
-    color: var(--nz-ink);
-    border-radius: 14px;
-    font-size: 1.3rem;
+    background: var(--nb-line);
+    border: 2px dashed var(--nb-ink);
+    color: var(--nb-ink);
 }
 
 body.nz-root .form-error {
-    font-size: 1.2rem;
-    color: var(--nz-ink);
+    font-size: 1.25rem;
     font-weight: 700;
+    color: var(--nb-ink);
 }
 
-/* --- feature notes ----------------------------------------- */
-.nz-features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    max-width: 860px;
+body.nz-root .card > p {
+    color: var(--nb-soft) !important;
+    font-size: 1.25rem !important;
+}
+
+/* --- how it works ------------------------------------------- */
+.nb-how {
+    max-width: 660px;
     margin: 2.5rem auto 0;
     padding: 0 1.5rem;
 }
 
-.nz-feature {
-    background: var(--nz-card);
-    border: 2px solid var(--nz-ink);
-    border-radius: 16px 20px 16px 22px;
-    padding: 1.1rem 1.2rem;
-    text-align: left;
-    box-shadow: 4px 4px 0 rgba(28, 28, 28, 0.12);
-}
-
-.nz-feature:nth-child(1) { transform: rotate(-1deg); }
-.nz-feature:nth-child(2) { transform: rotate(0.8deg); }
-.nz-feature:nth-child(3) { transform: rotate(-0.6deg); }
-
-.nz-feature h3 {
-    font-family: var(--font-hand);
-    font-size: 1.7rem;
+.nb-how h2,
+.nb-rules h2 {
+    font-size: 2rem;
     font-weight: 700;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.5rem;
 }
 
-.nz-feature p {
-    color: var(--nz-muted);
-    font-size: 1.25rem;
+.nb-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-.nz-footer {
-    font-size: 1.2rem;
+.nb-steps li {
+    display: flex;
+    gap: 0.9rem;
+    align-items: baseline;
+    padding: 0.35rem 0;
+    border-bottom: 2px dotted var(--nb-faint);
+}
+
+.nb-steps li:last-child {
+    border-bottom: 0;
+}
+
+.nb-num {
+    flex: none;
+    font-size: 2rem;
+    font-weight: 700;
+    width: 1.6em;
+    height: 1.6em;
+    line-height: 1.5em;
     text-align: center;
-    color: var(--nz-muted);
-    padding: 3rem 1rem 2.5rem;
+    border: 2.5px solid var(--nb-ink);
+    border-radius: 50%;
+    transform: rotate(-4deg);
 }
 
-.nz-footer a {
+.nb-steps li:nth-child(2) .nb-num { transform: rotate(3deg); }
+.nb-steps li:nth-child(3) .nb-num { transform: rotate(-2deg); }
+
+.nb-steps p {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.nb-steps p small {
+    display: block;
+    font-size: 1.2rem;
+    color: var(--nb-soft);
+}
+
+/* --- house rules -------------------------------------------- */
+.nb-rules {
+    max-width: 660px;
+    margin: 1.5rem auto 0;
+    padding: 1.25rem 1.5rem 1.5rem 3rem;
+    position: relative;
+    background: var(--nb-sheet);
+    border: 1px solid var(--nb-faint);
+    border-radius: 4px;
+    transform: rotate(0.4deg);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.nb-rules ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nb-rules li {
+    font-size: 1.35rem;
+    padding-left: 1.6em;
+    position: relative;
+    margin-bottom: 0.3rem;
+}
+
+.nb-rules li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
     font-weight: 700;
+}
+
+.nb-rules li small {
+    color: var(--nb-soft);
+}
+
+/* --- footer -------------------------------------------------- */
+.nb-foot {
+    max-width: 660px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 3rem;
+    font-size: 1.25rem;
+    color: var(--nb-soft);
+    text-align: center;
+}
+
+.nb-foot .ps {
+    display: block;
+    margin-top: 0.4rem;
+    transform: rotate(-0.6deg);
+}
+
+@media (max-width: 560px) {
+    .nb-sheet {
+        padding-left: 2.5rem;
+    }
+
+    .nb-sheet::before {
+        left: 1.4rem;
+    }
 }
