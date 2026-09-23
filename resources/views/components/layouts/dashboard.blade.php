@@ -11,6 +11,11 @@
                 <a href="{{ route('dashboard.api-keys') }}" @class(['active' => request()->routeIs('dashboard.api-keys*')])>
                     API Keys
                 </a>
+                @if (auth()->check() && auth()->user()->isAdmin())
+                    <a href="{{ route('admin.dashboard') }}" @class(['active' => request()->routeIs('admin.*')])>
+                        Admin
+                    </a>
+                @endif
             </nav>
         </aside>
         <section class="dashboard-content">
