@@ -13,10 +13,22 @@ class DeactivateExpiredLinks extends Command
 
     public function handle(): int
     {
+        // Bulk query-builder updates skip model events, so collect the
+        // affected slug keys first and forget them after deactivation.
+        // Otherwise the redirect cache could serve expired links until TTL.
+        $affected = Link::where('is_active', true)
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<=', now())
+            ->get(['domain_id', 'slug']);
+
         $count = Link::where('is_active', true)
             ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now())
             ->update(['is_active' => false]);
+
+        foreach ($affected as $link) {
+            Link::forgetCachedSlug($link->domain_id, $link->slug);
+        }
 
         $this->info("Deactivated {$count} expired link(s).");
 

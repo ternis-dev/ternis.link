@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class Link extends Model
 {
@@ -42,6 +43,42 @@ class Link extends Model
     public function clicks(): HasMany
     {
         return $this->hasMany(Click::class);
+    }
+
+    /**
+     * Cache key for a hot slug lookup (scoped per domain).
+     */
+    public static function cacheKey(int $domainId, string $slug): string
+    {
+        return "link:{$domainId}:{$slug}";
+    }
+
+    public static function forgetCachedSlug(int $domainId, string $slug): void
+    {
+        Cache::forget(self::cacheKey($domainId, $slug));
+    }
+
+    /**
+     * Keep the redirect cache coherent for every model-based write.
+     * Query-builder writes (bulk cleanup) invalidate explicitly in
+     * their own command/service — see DeactivateExpiredLinks.
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (Link $link) {
+            $originalSlug = $link->getOriginal('slug');
+            $originalDomainId = $link->getOriginal('domain_id');
+
+            if (is_string($originalSlug) && $originalDomainId !== null) {
+                self::forgetCachedSlug((int) $originalDomainId, $originalSlug);
+            }
+
+            self::forgetCachedSlug($link->domain_id, $link->slug);
+        });
+
+        static::deleted(function (Link $link) {
+            self::forgetCachedSlug($link->domain_id, $link->slug);
+        });
     }
 
     public function isExpired(): bool

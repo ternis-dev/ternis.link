@@ -30,6 +30,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
 - **Analytics & Tracking**:
   - Every redirect logs referrers, user agents, IP hashes (SHA-256 for privacy), and timestamp asynchronously.
   - Direct URL redirects (`/url/*`) are tracked with `is_direct_url = true` (visible only to admins).
+  - Hot slugs are cached for 5 minutes (`link:{domain_id}:{slug}`) — misses are never cached, writes invalidate via model events, and the expiry cleanup invalidates explicitly.
 - **Frontend**:
   - Built with Blade + Livewire 4.
   - Custom Vanilla nested CSS (`public/css/app.css`) with dark mode interface.
@@ -98,7 +99,7 @@ Run the test suite:
 php artisan test
 ```
 
-All 123 feature and unit tests cover:
+All 130 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain
 - Anonymous link creation (public API, guest web form, quotas, throttling)
@@ -110,6 +111,7 @@ All 123 feature and unit tests cover:
 - API v1 CRUD endpoints, Bearer API key authentication, and click analytics
 - Livewire dashboard link table, link creation form, and API key manager
 - Admin dashboard (`admin.ternis.link` overview, link moderation, user role/plan management, host pinning, self-demotion guard)
+- Redirect cache (hot-slug hits skip DB, per-domain keys, update/deactivate/expiry invalidation, no negative caching)
 
 > Multi-domain tests must put the host in the URL
 > (e.g. `$this->get('http://links.t-api.de/v1/links')`):
