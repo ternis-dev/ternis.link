@@ -74,11 +74,12 @@ class TernisAuthController extends Controller
     {
         // Check for SSO errors (e.g. prompt=none → login_required)
         if ($request->has('error')) {
+            $loginUrl = $request->getSchemeAndHttpHost().'/login';
             if ($request->query('error') === 'login_required') {
-                return redirect()->route('login');
+                return redirect()->away($loginUrl);
             }
 
-            return redirect()->route('login')
+            return redirect()->away($loginUrl)
                 ->with('error', 'Authentication failed: '.$request->query('error_description', 'Unknown error'));
         }
 

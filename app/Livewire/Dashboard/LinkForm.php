@@ -24,7 +24,7 @@ class LinkForm extends Component
 
     protected function rules(): array
     {
-        $minLength = auth()->user()?->plan?->min_slug_length ?? 8;
+        $minLength = auth()->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
 
         return [
             'destination_url' => ['required', 'url', 'max:2048'],
@@ -43,7 +43,7 @@ class LinkForm extends Component
 
     protected function messages(): array
     {
-        $minLength = auth()->user()?->plan?->min_slug_length ?? 8;
+        $minLength = auth()->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         $planName = auth()->user()?->plan?->name ?? 'current';
 
         return [

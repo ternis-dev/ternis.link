@@ -67,7 +67,7 @@ class PlanLimitsTest extends TestCase
 
     public function test_custom_slug_shorter_than_plan_minimum_is_rejected(): void
     {
-        $user = $this->userOnPlan('free'); // min_slug_length = 8
+        $user = $this->userOnPlan('free'); // min_slug_length = 6
 
         $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain, 'abc'), $this->headersFor($user));
 
@@ -192,7 +192,7 @@ class PlanLimitsTest extends TestCase
         $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $this->headersFor($user));
 
         $response->assertStatus(201);
-        $this->assertGreaterThanOrEqual(8, strlen($response->json('slug')));
+        $this->assertGreaterThanOrEqual(6, strlen($response->json('slug')));
     }
 
     public function test_livewire_form_rejects_duplicate_slug(): void

@@ -40,7 +40,7 @@
                 placeholder="Leave blank for automatic generation"
             >
             <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
-                Alphanumeric characters, dashes, and underscores only. Min length: {{ auth()->user()->plan?->min_slug_length ?? 8 }} chars.
+                Alphanumeric characters, dashes, and underscores only. Min length: {{ auth()->user()->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH }} chars.
             </small>
             @error('slug') <div class="form-error">{{ $message }}</div> @enderror
         </div>

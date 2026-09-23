@@ -19,7 +19,9 @@ class EnforceDomainAccess
         }
 
         if (! $request->user()) {
-            return redirect()->route('login');
+            // Same-host /login: route('login') resolves against APP_URL
+            // (href.nz) and would 404 on dash/admin hosts in production.
+            return redirect()->away($request->getSchemeAndHttpHost().'/login');
         }
 
         // Admin domain requires admin role

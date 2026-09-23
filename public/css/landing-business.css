@@ -1,0 +1,146 @@
+/* ==========================================================
+ * href.re landing — official business branding (local assets only)
+ * Fonts: Inter (display/body), self-hosted in /fonts/*.woff2 — no CDN.
+ * Deep navy + amber/gold, serif-free professional tone. Loaded after
+ * css/app.css so these rules win for the business landing only.
+ * ========================================================== */
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/fonts/inter-var.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 500 700;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-var.woff2') format('woff2');
+}
+
+.re-root {
+    --re-gold: #f5b942;
+    --re-gold-2: #f97316;
+    --re-ink: #0b0f1a;
+    --re-panel: #141b2e;
+    --font-display: 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+}
+
+body.re-root {
+    font-family: var(--font-body);
+    background: radial-gradient(1000px 480px at 50% -10%, rgba(245, 185, 66, 0.14), transparent 60%),
+        var(--bg-primary);
+}
+
+.re-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: rgba(11, 15, 26, 0.9);
+    border-bottom: 1px solid #2a3350;
+}
+
+.re-brand {
+    font-weight: 800;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+    color: #fff;
+}
+
+.re-brand span {
+    color: var(--re-gold);
+}
+
+.re-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--re-gold);
+    border: 1px solid rgba(245, 185, 66, 0.5);
+    background: rgba(245, 185, 66, 0.1);
+    padding: 0.3rem 0.7rem;
+    border-radius: 9999px;
+}
+
+.re-hero {
+    text-align: center;
+    padding: 4.5rem 1.5rem 1rem;
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+.re-hero h1 {
+    font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    margin-bottom: 1rem;
+}
+
+.re-hero h1 span {
+    color: var(--re-gold);
+}
+
+.re-hero p {
+    color: var(--text-secondary);
+    font-size: 1.12rem;
+    max-width: 620px;
+    margin: 0 auto 1.75rem;
+}
+
+.re-trust {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+.re-trust span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    background: var(--re-panel);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+}
+
+.re-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    max-width: 980px;
+    margin: 2.5rem auto 0;
+    padding: 0 1.5rem;
+}
+
+.re-panel {
+    background: var(--re-panel);
+    border: 1px solid #2a3350;
+    border-left: 3px solid var(--re-gold);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    text-align: left;
+}
+
+.re-panel h3 {
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+}
+
+.re-panel p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.re-footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 3rem 1rem 2rem;
+}

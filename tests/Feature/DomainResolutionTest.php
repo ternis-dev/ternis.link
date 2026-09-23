@@ -23,13 +23,20 @@ class DomainResolutionTest extends TestCase
     {
         $response = $this->get('http://href.nz/');
         $response->assertStatus(200);
-        $response->assertSee('ternis');
+        $response->assertSee('href');
+    }
+
+    public function test_it_resolves_business_domain_landing_page(): void
+    {
+        $response = $this->get('http://href.re/');
+        $response->assertStatus(200);
+        $response->assertSee('href');
     }
 
     public function test_it_redirects_to_login_on_dashboard_domain_when_unauthenticated(): void
     {
         $response = $this->get('http://dash.ternis.link/');
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect('http://dash.ternis.link/login');
     }
 
     public function test_it_redirects_to_latest_version_on_api_domain(): void

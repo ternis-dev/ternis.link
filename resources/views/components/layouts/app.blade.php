@@ -15,15 +15,15 @@
                 <img src="{{ auth()->user()->avatarUrl(34) }}" alt="{{ auth()->user()->name }}" class="user-avatar">
                 <span class="user-name">{{ auth()->user()->name }}</span>
                 <span class="badge">{{ auth()->user()->role->value ?? auth()->user()->role }}</span>
-                <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
-                <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+                <a href="{{ url('/dashboard') }}" class="btn btn-secondary btn-sm">Dashboard</a>
+                <form method="POST" action="{{ url('/logout') }}" style="display:inline;">
                     @csrf
                     <button type="submit" class="btn btn-sm btn-secondary">Logout</button>
                 </form>
             </div>
         @else
             <div>
-                <a href="{{ route('login') }}" class="btn btn-primary btn-sm">Login with Ternis Auth</a>
+                <a href="{{ url('/login') }}" class="btn btn-primary btn-sm">Login with Ternis Auth</a>
             </div>
         @endauth
     </header>

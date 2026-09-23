@@ -1,0 +1,140 @@
+/* ==========================================================
+ * href.nz landing — public shortener branding (local assets only)
+ * Fonts: Space Grotesk (display) + Inter (body), self-hosted in
+ * /fonts/*.woff2 — no CDN. Loaded after css/app.css so variables
+ * and hero styles below win for the public landing only.
+ * ========================================================== */
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/fonts/inter-var.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 500 700;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-var.woff2') format('woff2');
+}
+
+.nz-root {
+    --nz-accent: #22d3ee;
+    --nz-accent-2: #34d399;
+    --nz-ink: #06121f;
+    --nz-paper: #f4fbff;
+    --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+}
+
+body.nz-root {
+    font-family: var(--font-body);
+    background: radial-gradient(1200px 600px at 80% -10%, rgba(34, 211, 238, 0.18), transparent 60%),
+        radial-gradient(900px 500px at 10% 0%, rgba(52, 211, 153, 0.14), transparent 55%),
+        var(--bg-primary);
+}
+
+.nz-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: rgba(6, 18, 31, 0.82);
+    border-bottom: 1px solid var(--border-color);
+    backdrop-filter: blur(8px);
+}
+
+.nz-brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: #fff;
+    letter-spacing: -0.02em;
+}
+
+.nz-brand span {
+    background: linear-gradient(90deg, var(--nz-accent), var(--nz-accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nz-hero {
+    text-align: center;
+    padding: 4.5rem 1.5rem 1rem;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.nz-hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.6rem, 6vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+}
+
+.nz-hero h1 span {
+    background: linear-gradient(90deg, var(--nz-accent), var(--nz-accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nz-hero p {
+    color: var(--text-secondary);
+    font-size: 1.15rem;
+    max-width: 600px;
+    margin: 0 auto 1.75rem;
+}
+
+.nz-cta-row {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.nz-btn-guest {
+    background: linear-gradient(90deg, #0ea5e9, #10b981);
+    color: #04121f;
+    font-weight: 700;
+}
+
+.nz-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    max-width: 960px;
+    margin: 2.5rem auto 0;
+    padding: 0 1.5rem;
+}
+
+.nz-feature {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    text-align: left;
+}
+
+.nz-feature h3 {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+}
+
+.nz-feature p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.nz-footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 3rem 1rem 2rem;
+}

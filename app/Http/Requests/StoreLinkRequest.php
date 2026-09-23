@@ -15,7 +15,7 @@ class StoreLinkRequest extends FormRequest
 
     public function rules(): array
     {
-        $minLength = $this->user()?->plan?->min_slug_length ?? 8;
+        $minLength = $this->user()?->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         $domainId = $this->input('domain_id');
 
         return [
@@ -35,7 +35,7 @@ class StoreLinkRequest extends FormRequest
 
     public function messages(): array
     {
-        $minLength = $this->user()?->plan?->min_slug_length ?? 8;
+        $minLength = $this->user()?->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         $planName = $this->user()?->plan?->name ?? 'current';
 
         return [

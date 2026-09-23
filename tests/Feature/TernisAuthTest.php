@@ -83,7 +83,7 @@ class TernisAuthTest extends TestCase
     {
         $response = $this->get('http://dash.ternis.link/auth/callback?error=login_required');
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect('http://dash.ternis.link/login');
         $this->assertGuest();
     }
 

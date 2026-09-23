@@ -47,6 +47,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Canonical Hosts (used for absolute cross-domain links + redirects)
+    |--------------------------------------------------------------------------
+    | route('login') resolves against APP_URL (href.nz), which 404s for
+    | auth routes pinned to dash/admin hosts. Use these hosts to build
+    | absolute dashboard URLs instead, preserving the request scheme so
+    | local/testing (http) and production (https) both work.
+    */
+
+    'dashboard_host' => env('DOMAIN_DASHBOARD', 'dash.ternis.link'),
+
+    'public_host' => env('DOMAIN_PUBLIC', 'href.nz'),
+
+    'business_host' => env('DOMAIN_BUSINESS', 'href.re'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Domain Type → Required Auth
     |--------------------------------------------------------------------------
     */

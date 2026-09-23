@@ -118,7 +118,7 @@ class AuthHardeningTest extends TestCase
         $response = $this->actingAs($user)
             ->get('http://dash.ternis.link/dashboard');
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect('http://dash.ternis.link/login');
         $this->assertGuest();
     }
 
