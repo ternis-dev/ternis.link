@@ -29,7 +29,7 @@ class RefreshSsoToken
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return redirect()->route('login')
+                return redirect()->away($request->getSchemeAndHttpHost().'/login')
                     ->with('error', 'Your session has expired. Please log in again.');
             }
         }

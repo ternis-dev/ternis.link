@@ -7,7 +7,6 @@ use App\Models\Domain;
 use App\Services\LinkService;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -15,34 +14,12 @@ class ShortenForm extends Component
 {
     public string $destination_url = '';
 
-    public ?string $slug = null;
-
     public ?string $shortUrl = null;
 
     protected function rules(): array
     {
-        $minLength = LinkService::ANONYMOUS_MIN_SLUG_LENGTH;
-
         return [
             'destination_url' => ['required', 'url', 'max:2048'],
-            'slug' => [
-                'nullable',
-                'string',
-                'regex:/^[a-zA-Z0-9_-]+$/',
-                'max:255',
-                "min:{$minLength}",
-                Rule::unique('links', 'slug')->where(fn ($query) => $query->where('domain_id', $this->resolveDomain()->id)),
-            ],
-        ];
-    }
-
-    protected function messages(): array
-    {
-        $minLength = LinkService::ANONYMOUS_MIN_SLUG_LENGTH;
-
-        return [
-            'slug.min' => "The slug must be at least {$minLength} characters for guest links. Log in for shorter slugs.",
-            'slug.unique' => 'This slug is already taken. Try another one.',
         ];
     }
 
@@ -61,11 +38,12 @@ class ShortenForm extends Component
         $domain = $this->resolveDomain();
 
         try {
+            // Guests always get an auto-generated 8-char slug — no custom slugs.
             $link = $linkService->create(
                 destinationUrl: $this->destination_url,
                 domain: $domain,
                 user: null,
-                customSlug: $this->slug ?: null,
+                customSlug: null,
                 creatorIpHash: hash('sha256', (string) request()->ip()),
             );
         } catch (ValidationException $e) {
@@ -88,7 +66,6 @@ class ShortenForm extends Component
         $this->shortUrl = "https://{$domain->hostname}/{$link->slug}";
 
         $this->destination_url = '';
-        $this->slug = null;
     }
 
     /**

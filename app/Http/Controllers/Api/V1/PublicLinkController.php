@@ -19,9 +19,9 @@ class PublicLinkController extends Controller
     /**
      * POST /v1/links/public — Create a short link without authentication.
      *
-     * Restricted to public system domains (e.g. href.nz). Anonymous links
-     * use the guest minimum slug length, carry no owner, and are attributed
-     * only via a hashed creator IP for daily-quota enforcement.
+     * Restricted to public system domains (e.g. href.nz). Guest links
+     * are always auto-generated (8 chars, no custom slug) and carry no
+     * owner — attributed only via a hashed creator IP for daily quota.
      */
     public function store(StorePublicLinkRequest $request): JsonResponse
     {
@@ -35,7 +35,7 @@ class PublicLinkController extends Controller
             destinationUrl: $request->validated('destination_url'),
             domain: $domain,
             user: null,
-            customSlug: $request->validated('slug'),
+            customSlug: null,
             expiresAt: $request->validated('expires_at') ? new \DateTime($request->validated('expires_at')) : null,
             creatorIpHash: hash('sha256', $request->ip()),
         );

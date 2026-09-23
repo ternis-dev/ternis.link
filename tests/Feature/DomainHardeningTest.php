@@ -90,10 +90,14 @@ class DomainHardeningTest extends TestCase
         $this->actingAs($this->user)->get('http://href.nz/dashboard/links')->assertStatus(404);
     }
 
-    public function test_login_and_auth_404_on_public_host(): void
+    public function test_login_and_auth_redirect_to_dashboard_host_from_public_host(): void
     {
-        $this->get('http://href.nz/login')->assertStatus(404);
-        $this->get('http://href.nz/auth/redirect')->assertStatus(404);
+        // OAuth must start+finish on the dashboard host (session + PKCE),
+        // so short-link hosts 302 there instead of 404ing.
+        $this->get('http://href.nz/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');
+        $this->get('http://href.nz/auth/redirect')->assertStatus(302)->assertRedirect('http://dash.ternis.link/auth/redirect');
+        $this->get('http://ternis.link/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');
+        $this->get('http://href.re/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');
         $this->get('http://dash.ternis.link/login')->assertStatus(200);
     }
 
@@ -116,8 +120,10 @@ class DomainHardeningTest extends TestCase
     public function test_landing_still_branches_by_host(): void
     {
         $this->get('http://href.nz/')->assertStatus(200);
+        $this->get('http://href.re/')->assertStatus(200);
+        $this->get('http://ternis.link/')->assertStatus(200);
         $this->get('http://links.t-api.de/')->assertStatus(302)->assertRedirect('/v1/');
-        $this->get('http://dash.ternis.link/')->assertRedirect(route('login'));
+        $this->get('http://dash.ternis.link/')->assertRedirect('http://dash.ternis.link/login');
         $this->get('http://10.0.0.5/healthz')->assertStatus(200);
     }
 

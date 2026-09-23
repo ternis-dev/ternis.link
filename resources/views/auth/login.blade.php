@@ -7,7 +7,7 @@
             <div class="alert alert-error">{{ session('error') }}</div>
         @endif
 
-        <a href="{{ route('auth.redirect') }}" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
+        <a href="{{ url('/auth/redirect') }}" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem;">
             Login with Ternis Auth SSO
         </a>
 
@@ -23,10 +23,10 @@
                     Bypass live SSO locally to test role-based dashboards and capabilities:
                 </p>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    <a href="{{ route('auth.demo', ['role' => 'admin']) }}" class="btn btn-secondary btn-sm">Admin</a>
-                    <a href="{{ route('auth.demo', ['role' => 'family']) }}" class="btn btn-secondary btn-sm">Family</a>
-                    <a href="{{ route('auth.demo', ['role' => 'partner']) }}" class="btn btn-secondary btn-sm">Partner</a>
-                    <a href="{{ route('auth.demo', ['role' => 'user']) }}" class="btn btn-secondary btn-sm">Standard User</a>
+                    <a href="{{ url('/auth/demo?role=admin') }}" class="btn btn-secondary btn-sm">Admin</a>
+                    <a href="{{ url('/auth/demo?role=family') }}" class="btn btn-secondary btn-sm">Family</a>
+                    <a href="{{ url('/auth/demo?role=partner') }}" class="btn btn-secondary btn-sm">Partner</a>
+                    <a href="{{ url('/auth/demo?role=user') }}" class="btn btn-secondary btn-sm">Standard User</a>
                 </div>
             </div>
         @endif

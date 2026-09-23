@@ -41,7 +41,7 @@ class PublicShorteningTest extends TestCase
         $response->assertStatus(201);
         $response->assertJsonStructure(['slug', 'destination_url', 'short_url']);
         $this->assertStringStartsWith('https://href.nz/', $response->json('short_url'));
-        $this->assertGreaterThanOrEqual(8, strlen($response->json('slug')));
+        $this->assertEquals(LinkService::GUEST_SLUG_LENGTH, strlen($response->json('slug')));
 
         $this->assertDatabaseHas('links', [
             'slug' => $response->json('slug'),
@@ -54,15 +54,16 @@ class PublicShorteningTest extends TestCase
         $this->assertEquals(hash('sha256', '127.0.0.1'), $link->creator_ip_hash);
     }
 
-    public function test_guest_can_choose_custom_slug_at_guest_minimum(): void
+    public function test_guest_custom_slug_is_rejected(): void
     {
         $response = $this->postJson('http://href.nz/v1/links/public', [
             'destination_url' => 'https://example.com/custom',
             'slug' => 'guest-slug-1',
         ]);
 
-        $response->assertStatus(201);
-        $response->assertJsonFragment(['slug' => 'guest-slug-1']);
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('slug');
+        $this->assertDatabaseMissing('links', ['slug' => 'guest-slug-1']);
     }
 
     public function test_guest_custom_slug_below_minimum_is_rejected(): void
@@ -75,6 +76,19 @@ class PublicShorteningTest extends TestCase
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('slug');
         $this->assertDatabaseMissing('links', ['slug' => 'abc']);
+    }
+
+    public function test_guest_custom_slug_via_service_is_rejected(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        app(LinkService::class)->create(
+            destinationUrl: 'https://example.com/service-custom',
+            domain: $this->publicDomain,
+            user: null,
+            customSlug: 'custom-slug-1',
+            creatorIpHash: hash('sha256', '127.0.0.1'),
+        );
     }
 
     public function test_guest_cannot_create_on_non_public_domain(): void
@@ -139,17 +153,9 @@ class PublicShorteningTest extends TestCase
             'domain_id' => $this->publicDomain->id,
             'user_id' => null,
         ]);
-    }
 
-    public function test_web_form_rejects_short_slug_for_guests(): void
-    {
-        Livewire::test(ShortenForm::class)
-            ->set('destination_url', 'https://example.com/web-short')
-            ->set('slug', 'abc')
-            ->call('create')
-            ->assertHasErrors('slug');
-
-        $this->assertDatabaseMissing('links', ['destination_url' => 'https://example.com/web-short']);
+        $link = Link::where('destination_url', 'https://example.com/web-guest')->firstOrFail();
+        $this->assertEquals(LinkService::GUEST_SLUG_LENGTH, strlen($link->slug));
     }
 
     public function test_landing_page_shows_guest_form_on_public_domain(): void
@@ -158,6 +164,20 @@ class PublicShorteningTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Shorten a link', escape: false);
+    }
+
+    public function test_business_and_public_landings_differ(): void
+    {
+        $public = $this->get('http://href.nz/');
+        $public->assertStatus(200);
+        $public->assertSee('href<span>.nz</span>', escape: false);
+
+        $business = $this->get('http://href.re/');
+        $business->assertStatus(200);
+        $business->assertSee('href<span>.re</span>', escape: false);
+
+        // Business landing offers no guest form.
+        $business->assertDontSee('Shorten a link', escape: false);
     }
 
     public function test_created_guest_link_redirects(): void

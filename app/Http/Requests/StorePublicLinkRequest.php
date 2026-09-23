@@ -4,9 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\DomainType;
 use App\Models\Domain;
-use App\Services\LinkService;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StorePublicLinkRequest extends FormRequest
 {
@@ -19,31 +17,19 @@ class StorePublicLinkRequest extends FormRequest
 
     public function rules(): array
     {
-        $domainId = $this->input('domain_id');
-        $minLength = LinkService::ANONYMOUS_MIN_SLUG_LENGTH;
-
         return [
             'destination_url' => ['required', 'url', 'max:2048'],
             'domain_id' => ['nullable', 'exists:domains,id'],
-            'slug' => [
-                'nullable',
-                'string',
-                'regex:/^[a-zA-Z0-9_-]+$/',
-                'max:255',
-                "min:{$minLength}",
-                Rule::unique('links', 'slug')->where(fn ($query) => $query->where('domain_id', $domainId)),
-            ],
+            // Guests never get custom slugs — auto-generated 8-char only.
+            'slug' => ['prohibited'],
             'expires_at' => ['nullable', 'date', 'after:now'],
         ];
     }
 
     public function messages(): array
     {
-        $minLength = LinkService::ANONYMOUS_MIN_SLUG_LENGTH;
-
         return [
-            'slug.min' => "The slug must be at least {$minLength} characters for guest links. Log in for shorter slugs.",
-            'slug.unique' => 'This slug is already taken on the selected domain.',
+            'slug.prohibited' => 'Custom slugs are for logged-in users only. Guests get an auto-generated link.',
         ];
     }
 

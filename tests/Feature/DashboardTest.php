@@ -34,7 +34,7 @@ class DashboardTest extends TestCase
     public function test_guest_cannot_access_dashboard(): void
     {
         $response = $this->get('http://dash.ternis.link/dashboard');
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect('http://dash.ternis.link/login');
     }
 
     public function test_authenticated_user_can_view_dashboard(): void

@@ -39,7 +39,7 @@ class AdminDashboardTest extends TestCase
 
     public function test_guest_is_redirected_to_login_on_admin_host(): void
     {
-        $this->get('http://admin.ternis.link/admin')->assertRedirect(route('login'));
+        $this->get('http://admin.ternis.link/admin')->assertRedirect('http://admin.ternis.link/login');
     }
 
     public function test_non_admin_gets_forbidden_on_admin_host(): void

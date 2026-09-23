@@ -19,8 +19,16 @@ class LinkService
     public const ANONYMOUS_DAILY_LIMIT = 50;
 
     /**
-     * Minimum slug length for anonymous links. API keys / paid plans
-     * unlock shorter slugs via the owner's plan.
+     * Guest links are always auto-generated — custom slugs are reserved
+     * for logged-in users. Guests get an 8-char slug, logged-in users
+     * get a 6-char slug by default (or their plan minimum when set).
+     */
+    public const GUEST_SLUG_LENGTH = 8;
+
+    public const AUTHENTICATED_DEFAULT_SLUG_LENGTH = 6;
+
+    /**
+     * @deprecated Use GUEST_SLUG_LENGTH. Kept for backwards compat.
      */
     public const ANONYMOUS_MIN_SLUG_LENGTH = 8;
 
@@ -42,9 +50,13 @@ class LinkService
      * per-domain slug uniqueness, daily creation quota, and
      * per-minute rate limit.
      *
-     * Anonymous links ($user === null) are restricted to the anonymous
-     * minimum slug length and a per-IP daily quota; pass the SHA-256
-     * of the creator IP via $creatorIpHash to attribute them.
+     * Anonymous links ($user === null) NEVER accept custom slugs —
+     * they are always auto-generated (GUEST_SLUG_LENGTH chars). Pass
+     * the SHA-256 of the creator IP via $creatorIpHash to attribute
+     * them for the per-IP daily quota.
+     *
+     * Authenticated auto-generated slugs use the owner's plan minimum
+     * (falling back to AUTHENTICATED_DEFAULT_SLUG_LENGTH).
      *
      * @throws ValidationException On slug or daily-quota violations (HTTP 422).
      * @throws ThrottleRequestsException On per-minute rate-limit violations (HTTP 429).
@@ -58,7 +70,15 @@ class LinkService
         ?string $creatorIpHash = null,
     ): Link {
         $customSlug = $customSlug !== null && trim($customSlug) === '' ? null : $customSlug;
-        $minLength = $user?->plan?->min_slug_length ?? self::ANONYMOUS_MIN_SLUG_LENGTH;
+
+        if ($user === null && $customSlug !== null) {
+            throw ValidationException::withMessages([
+                'slug' => 'Custom slugs are for logged-in users only. Guests get an auto-generated link.',
+            ]);
+        }
+
+        $minLength = $user?->plan?->min_slug_length ?? self::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
+        $generatedLength = $user === null ? self::GUEST_SLUG_LENGTH : $minLength;
 
         if (! $domain->is_active) {
             throw ValidationException::withMessages([
@@ -83,7 +103,7 @@ class LinkService
             $this->validateCustomSlug($customSlug, $domain->id, $minLength, $user);
             $slug = $customSlug;
         } else {
-            $slug = $this->slugGenerator->generate($minLength, $domain->id);
+            $slug = $this->slugGenerator->generate($generatedLength, $domain->id);
         }
 
         $link = Link::create([

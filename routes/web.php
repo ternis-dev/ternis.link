@@ -33,26 +33,74 @@ Route::get('/healthz', HealthController::class)
 
 /*
 |----------------------------------------------------------------------
-| Auth routes — dashboard hosts only (dash/admin.ternis.link).
-| Pinned via ensure.domain so /login and /auth/* 404 on redirect
-| and API domains instead of leaking session flows there.
+| Auth routes — served on dashboard/admin hosts, redirected from
+| short-link hosts (public, business, ternis, partner), 404 elsewhere.
+| Single route definitions (not duplicated per host type): Laravel only
+| matches the FIRST route for a given URI, so host branching must live
+| INSIDE the handler — a second /login route with different middleware
+| would never be reached (the first match aborts 404 in middleware).
+| The OAuth flow must start + finish on the dashboard host (session +
+| PKCE live there; cookies can't cross href.nz ↔ ternis.link anyway),
+| so /login and /auth/* on short-link hosts 302 to the dashboard host
+| instead of 404ing. This fixes href.nz/login and ternis.link/login.
 |----------------------------------------------------------------------
 */
-Route::middleware('ensure.domain:dashboard,admin')->group(function () {
-    Route::get('/login', [TernisAuthController::class, 'showLogin'])->name('login');
-    // Throttled: these initiate/complete the OAuth round-trip against
-    // Ternis Auth — don't let attackers loop them for free.
-    Route::middleware('throttle:10,1')->group(function () {
-        Route::get('/auth/redirect', [TernisAuthController::class, 'redirect'])->name('auth.redirect');
-        Route::get('/auth/silent', [TernisAuthController::class, 'silent'])->name('auth.silent');
-        Route::get('/auth/callback', [TernisAuthController::class, 'callback'])->name('auth.callback');
-    });
-    Route::post('/logout', [TernisAuthController::class, 'logout'])->name('logout');
+$redirectToDashboard = function () {
+    $host = config('domains.dashboard_host', 'dash.ternis.link');
+    $target = request()->getScheme().'://'.$host.request()->getRequestUri();
 
-    if (app()->environment('local', 'testing')) {
-        Route::get('/auth/demo', [TernisAuthController::class, 'demoLogin'])->name('auth.demo');
+    return redirect()->away($target, 302);
+};
+
+$serveOrRedirect = function (string $method) use ($redirectToDashboard) {
+    $type = request()->attributes->get('domain_type');
+
+    if (in_array($type, ['dashboard', 'admin'], true)) {
+        return app(TernisAuthController::class)->{$method}(request());
     }
+
+    if (in_array($type, ['public', 'business', 'ternis', 'partner'], true)) {
+        return $redirectToDashboard();
+    }
+
+    abort(404);
+};
+
+Route::get('/login', fn () => $serveOrRedirect('showLogin'))->name('login');
+Route::middleware('throttle:10,1')->group(function () use ($serveOrRedirect) {
+    Route::get('/auth/redirect', fn () => $serveOrRedirect('redirect'))->name('auth.redirect');
+    Route::get('/auth/silent', fn () => $serveOrRedirect('silent'))->name('auth.silent');
+    Route::get('/auth/callback', fn () => $serveOrRedirect('callback'))->name('auth.callback');
 });
+Route::post('/logout', function () use ($redirectToDashboard) {
+    $type = request()->attributes->get('domain_type');
+
+    if (in_array($type, ['dashboard', 'admin'], true)) {
+        return app(TernisAuthController::class)->logout(request());
+    }
+
+    if (in_array($type, ['public', 'business', 'ternis', 'partner'], true)) {
+        return $redirectToDashboard();
+    }
+
+    abort(404);
+})->name('logout');
+
+if (app()->environment('local', 'testing')) {
+    Route::get('/auth/demo', function () use ($redirectToDashboard) {
+        $type = request()->attributes->get('domain_type');
+
+        if (in_array($type, ['dashboard', 'admin'], true)) {
+            return app(TernisAuthController::class)->demoLogin(request());
+        }
+
+        if (in_array($type, ['public', 'business', 'ternis', 'partner'], true)) {
+            return $redirectToDashboard();
+        }
+
+        abort(404);
+    })->name('auth.demo');
+}
 
 /*
 |----------------------------------------------------------------------
@@ -84,23 +132,38 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
 
 /*
 |----------------------------------------------------------------------
-| Landing page — open on all hosts (branches by domain_type).
-| Kept under EnforceDomainAccess so dash.ternis.link/ still
-| redirects guests to login instead of showing the public landing.
+| Landing pages — public on short-link hosts (no EnforceDomainAccess).
+| href.nz → landing.public, href.re → landing.business, ternis/partner
+| → landing.index fallback. Dashboard/admin/API branches keep their
+| previous behaviour (same-host /login redirect for guests).
 |----------------------------------------------------------------------
 */
-Route::middleware(EnforceDomainAccess::class)->get('/', function () {
+Route::get('/', function () {
     $type = request()->attributes->get('domain_type');
     if ($type === 'dashboard') {
+        if (! auth()->check()) {
+            return redirect('/login');
+        }
+
         return redirect()->route('dashboard');
     }
     if ($type === 'admin') {
+        if (! auth()->check()) {
+            return redirect('/login');
+        }
+
         return redirect()->route('admin.dashboard');
     }
     if ($type === 'api') {
         $latest = ApiVersion::latestVersion();
 
         return redirect("/v{$latest}/", 302);
+    }
+    if ($type === 'business') {
+        return view('landing.business');
+    }
+    if ($type === 'public') {
+        return view('landing.public');
     }
 
     return view('landing.index');
@@ -129,6 +192,8 @@ Route::middleware(['ensure.domain:public,business,ternis,partner', EnforceDomain
     // roots (/v1, /v1/) fall through to routes/api/v*.php instead of
     // being treated as slugs. Web routes load before API routes, so
     // without this the API version root would 404 via ensure.domain.
+    // NOTE: /login and /auth/* are registered above, so they win over
+    // this catch-all on short-link hosts (redirect shims, not slugs).
     Route::get('/{input}', [RedirectController::class, 'resolve'])
         ->where('input', '^(?!v\d+$)[^/]+$')
         ->name('redirect.resolve');

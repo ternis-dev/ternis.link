@@ -74,9 +74,10 @@ paths:
     post:
       summary: Create an anonymous short link (no auth)
       description: |
-        Guests only. Restricted to active public system domains, slugs of
-        8+ chars (`[a-zA-Z0-9_-]`), `throttle:10,1` per IP plus a 50/day
-        per-IP quota (SHA-256 IP hash, never raw IPs).
+        Guests only. Auto-generated 8-char slugs (`[a-zA-Z0-9_-]`) —
+        custom `slug` values are rejected (422, prohibited). Restricted
+        to active public system domains, `throttle:10,1` per IP plus a
+        50/day per-IP quota (SHA-256 IP hash, never raw IPs).
         Hosts: `links.t-api.de`, public hosts. Others 404.
       security: []
       requestBody:
@@ -94,9 +95,6 @@ paths:
                 domain_id:
                   type: integer
                   description: Must be an active public system domain. Defaults to href.nz.
-                slug:
-                  type: string
-                  pattern: "^[a-zA-Z0-9_-]+$"
                 expires_at:
                   type: string
                   format: date-time
@@ -111,7 +109,7 @@ paths:
                   slug: { type: string }
                   destination_url: { type: string }
                   short_url: { type: string }
-        '422': { description: Validation error (short slug, non-public domain, quota) }
+        '422': { description: Validation error (custom slug prohibited, non-public domain, quota) }
         '429': { description: Per-minute throttle exceeded (Retry-After + X-RateLimit-*) }
         '404': { description: Wrong host for this endpoint }
         '410': { description: Version retired — see GET / for latest_version }
