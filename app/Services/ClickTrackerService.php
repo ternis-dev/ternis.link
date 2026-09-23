@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 
 class ClickTrackerService
 {
+    public function __construct(
+        private GeoIpService $geoIp,
+    ) {}
+
     /**
      * Track a click on a link (dispatched to queue).
      *
@@ -15,12 +19,16 @@ class ClickTrackerService
      */
     public function track(Link $link, Request $request, bool $isDirectUrl = false): void
     {
+        $geo = $this->geoIp->lookup($request);
+
         RecordClick::dispatch(
             linkId: $link->id,
             referrer: $request->header('Referer'),
             userAgent: $request->userAgent(),
             ipHash: $request->ip() ? hash('sha256', $request->ip()) : null,
             isDirectUrl: $isDirectUrl,
+            countryCode: $geo['country_code'],
+            city: $geo['city'],
         );
     }
 }

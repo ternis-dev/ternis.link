@@ -2,26 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Click;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     /**
      * Dashboard home — overview stats.
+     *
+     * Direct-URL redirect clicks stay admin-only here too, matching
+     * the API and Livewire analytics visibility rules.
      */
     public function index(Request $request)
     {
         $user = $request->user();
 
+        $clicks = Click::whereIn('link_id', $user->links()->select('links.id'))
+            ->when(! $user->isAdmin(), fn ($query) => $query->where('is_direct_url', false));
+
         $stats = [
             'total_links' => $user->links()->count(),
-            'total_clicks' => (int) $user->links()->sum('click_count'),
+            'total_clicks' => (clone $clicks)->count(),
             'links_this_month' => $user->links()
                 ->where('created_at', '>=', now()->startOfMonth())
                 ->count(),
-            'clicks_today' => $user->links()
-                ->join('clicks', 'links.id', '=', 'clicks.link_id')
-                ->where('clicks.created_at', '>=', now()->startOfDay())
+            'clicks_today' => (clone $clicks)
+                ->where('created_at', '>=', now()->startOfDay())
                 ->count(),
         ];
 

@@ -20,6 +20,8 @@ class RecordClick implements ShouldQueue
         public ?string $userAgent,
         public ?string $ipHash,
         public bool $isDirectUrl = false,
+        public ?string $countryCode = null,
+        public ?string $city = null,
     ) {}
 
     public function handle(): void
@@ -29,8 +31,8 @@ class RecordClick implements ShouldQueue
             'referrer' => $this->referrer,
             'user_agent' => $this->userAgent,
             'ip_hash' => $this->ipHash,
-            'country_code' => null,
-            'city' => null,
+            'country_code' => $this->countryCode,
+            'city' => $this->city,
             'is_direct_url' => $this->isDirectUrl,
         ]);
 
