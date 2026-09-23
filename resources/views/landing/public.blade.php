@@ -4,38 +4,56 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>href.nz — long links go in, short links come out</title>
-    <meta name="description" content="href.nz — the no-account link shortener. Paste a long link, get an 8-character short link back.">
+    <meta name="description" content="href.nz — the no-account link shortener. Paste a long link, get an 8-character short link back. Free, fast, no sign-up.">
+    <meta name="theme-color" content="#fdfdfb">
+    <link rel="canonical" href="https://href.nz/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="href.nz">
+    <meta property="og:title" content="href.nz — long links go in, short links come out">
+    <meta property="og:description" content="Paste a long link, get an 8-character href.nz link back. No account needed.">
+    <meta property="og:url" content="https://href.nz/">
+    <meta name="twitter:card" content="summary">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('css/landing-public.css') }}">
     @livewireStyles
 </head>
 <body class="nz-root">
+    <a class="mm-skip" href="#shorten">Skip to the shortener</a>
+
     <main class="mm-wrapper">
-        <article class="mm-sheet">
+        <article class="mm-sheet" aria-labelledby="page-title">
             <header class="mm-letterhead">
-                <a href="/" class="mm-brand nz-brand">href<span>.nz</span></a>
-                @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/dashboard') }}" class="mm-login">
-                        open dashboard 
-                        <svg width="24" height="10" viewBox="0 0 36 14" fill="none" aria-hidden="true"><path d="M2 9 C 12 7, 22 6, 29 7 M 29 7 l -8 -4 M 29 7 l -8 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </a>
-                @else
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="mm-login">
-                        members log in 
-                        <svg width="24" height="10" viewBox="0 0 36 14" fill="none" aria-hidden="true"><path d="M2 9 C 12 7, 22 6, 29 7 M 29 7 l -8 -4 M 29 7 l -8 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </a>
-                @endauth
+                <a href="/" class="mm-brand nz-brand" aria-label="href.nz home">href<span>.nz</span></a>
+                <nav aria-label="Account">
+                    @auth
+                        <a href="{{ \App\Support\DomainUrls::dashboard('/dashboard') }}" class="mm-login">
+                            open dashboard
+                            <svg width="24" height="10" viewBox="0 0 36 14" fill="none" aria-hidden="true"><path d="M2 9 C 12 7, 22 6, 29 7 M 29 7 l -8 -4 M 29 7 l -8 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </a>
+                    @else
+                        <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="mm-login">
+                            members log in
+                            <svg width="24" height="10" viewBox="0 0 36 14" fill="none" aria-hidden="true"><path d="M2 9 C 12 7, 22 6, 29 7 M 29 7 l -8 -4 M 29 7 l -8 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </a>
+                    @endauth
+                </nav>
             </header>
 
-            <div class="mm-meta">
-                <span class="lbl">memo</span> <span>№ 001 — for everyone with an ugly-long link</span>
-                <span class="lbl">re</span> <span>making links pocket-sized, no account needed</span>
-            </div>
+            <dl class="mm-meta">
+                <dt class="lbl">memo</dt> <dd>№ 001 — for everyone with an ugly-long link</dd>
+                <dt class="lbl">re</dt> <dd>making links pocket-sized, no account needed</dd>
+            </dl>
 
-            <h1 class="mm-title">long links go in.<br><span class="mm-stamp">short links come out.</span></h1>
-            <p class="mm-sub">Drop yours in the box below and walk away with an 8-character href.nz link.</p>
-            
+            <h1 class="mm-title" id="page-title">long links go in.<br><span class="mm-stamp">short links come out.</span></h1>
+            <p class="mm-sub">Drop yours in the box below and walk away with an 8-character href.nz link. Free, instant, no sign-up.</p>
+
+            <ol class="mm-steps" aria-label="How it works">
+                <li><strong>1</strong> Paste the long URL</li>
+                <li><strong>2</strong> Hit Shorten</li>
+                <li><strong>3</strong> Copy &amp; share</li>
+            </ol>
+
             <div class="mm-nudge" aria-hidden="true">
                 <svg width="48" height="36" viewBox="0 0 72 56" fill="none">
                     <path d="M6 6 C 28 10, 52 18, 56 44 M 56 44 l -11 -4 M 56 44 l 2 -11" stroke="#717171" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -43,9 +61,15 @@
                 <span>psst — right here!</span>
             </div>
 
-            <div class="mm-form-area">
+            <section class="mm-form-area" id="shorten" aria-label="Shorten a link">
                 <livewire:public.shorten-form />
-            </div>
+            </section>
+
+            <ul class="mm-trust" aria-label="At a glance">
+                <li>No account needed</li>
+                <li>8-character links</li>
+                <li>50 / day fair use</li>
+            </ul>
 
             <footer class="mm-signoff">
                 — by the makers of <strong>href.re</strong> &amp; <strong>static.re</strong>
@@ -58,21 +82,26 @@
             </svg>
         </div>
 
-        <aside class="mm-notes">
+        <aside class="mm-notes" aria-label="Good to know">
             <div class="mm-note">
-                <h2>margin note ①</h2>
+                <h2>margin note ① — members get more</h2>
                 <p>Guests get auto-made codes — picking your own is a members' perk.</p>
                 <p><a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">Log in</a> for custom slugs, shorter links &amp; click stats.</p>
             </div>
             <div class="mm-note">
-                <h2>margin note ②</h2>
+                <h2>margin note ② — fair &amp; private</h2>
                 <p>Fair use: 50 links a day per guest. Nothing of yours is kept but a hashed IP for counting.</p>
-                <p>Official business? That's next door on <a href="https://href.re">href.re</a>.</p>
+                <p>Links stay active as long as they're legit — abuse gets removed.</p>
+            </div>
+            <div class="mm-note">
+                <h2>margin note ③ — official business?</h2>
+                <p>Need a link people can trust is really from you?</p>
+                <p>That's next door on <a href="https://href.re">href.re</a> — verified, analytics-backed, business only.</p>
             </div>
         </aside>
 
         <footer class="mm-foot">
-            made with ♥ by ternis.link from <a href="https://ternis.dev">ternis.dev</a> · hosted on <a href="https://ternis.net">ternis.net</a>
+            made with ♥ by ternis.link from <a href="https://ternis.dev">ternis.dev</a> · hosted on <a href="https://ternis.net">ternis.net</a> · official links on <a href="https://href.re">href.re</a>
         </footer>
     </main>
 

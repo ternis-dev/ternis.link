@@ -16,6 +16,8 @@ class ShortenForm extends Component
 
     public ?string $shortUrl = null;
 
+    public ?string $originalUrl = null;
+
     protected function rules(): array
     {
         return [
@@ -64,8 +66,15 @@ class ShortenForm extends Component
         RateLimiter::hit($key, 60);
 
         $this->shortUrl = "https://{$domain->hostname}/{$link->slug}";
+        $this->originalUrl = $this->destination_url;
 
         $this->destination_url = '';
+    }
+
+    public function resetForm(): void
+    {
+        $this->reset(['destination_url', 'shortUrl', 'originalUrl']);
+        $this->resetValidation();
     }
 
     /**
