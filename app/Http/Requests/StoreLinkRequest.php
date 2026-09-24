@@ -19,7 +19,7 @@ class StoreLinkRequest extends FormRequest
         $minLength = $this->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         $domainId = $this->input('domain_id');
 
-        return [
+        $rules = [
             'destination_url' => ['required', 'url', 'max:2048'],
             'domain_id' => ['required', 'exists:domains,id'],
             'slug' => [
@@ -32,17 +32,51 @@ class StoreLinkRequest extends FormRequest
             ],
             'expires_at' => ['nullable', 'date', 'after:now'],
         ];
+
+        // Same semantics as the dashboard form: the picker is only
+        // enforced for eligible users generating (not customizing).
+        // Optional here (unlike the form): existing API clients that
+        // never send it keep getting the plan-minimum length.
+        if ($this->canChooseSlugLength() && trim((string) $this->input('slug')) === '') {
+            [$min, $max] = $this->slugLengthBounds();
+            $rules['slug_length'] = ['nullable', 'integer', "min:{$min}", "max:{$max}"];
+        }
+
+        return $rules;
     }
 
     public function messages(): array
     {
         $minLength = $this->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         $planName = $this->user()?->plan?->name ?? 'current';
+        [$lengthMin, $lengthMax] = $this->slugLengthBounds();
 
         return [
             'slug.min' => "The slug must be at least {$minLength} characters for your plan ({$planName}).",
             'slug.unique' => 'This slug is already taken on the selected domain.',
+            'slug_length.integer' => 'The slug length must be a whole number.',
+            'slug_length.min' => "The slug length must be at least {$lengthMin} characters.",
+            'slug_length.max' => "The slug length may not exceed {$lengthMax} characters.",
         ];
+    }
+
+    public function canChooseSlugLength(): bool
+    {
+        return (bool) $this->user()?->canChooseSlugLength();
+    }
+
+    /**
+     * @return array{int, int} [min, max]
+     */
+    public function slugLengthBounds(): array
+    {
+        if ($this->user()?->isAdmin()) {
+            return [3, 64];
+        }
+
+        $planMin = $this->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
+
+        return [max(3, $planMin), 64];
     }
 
     public function withValidator($validator): void

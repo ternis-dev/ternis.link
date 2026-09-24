@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\IpHash;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,7 +53,7 @@ class ErrorEncounter extends Model
                 'host' => mb_substr($request->getHost(), 0, 255),
                 'path' => mb_substr('/'.ltrim($request->path(), '/'), 0, 2048),
                 'user_id' => $request->user()?->id,
-                'ip_hash' => $request->ip() ? hash('sha256', (string) $request->ip()) : null,
+                'ip_hash' => IpHash::make($request->ip()),
                 'user_agent' => ($ua = $request->userAgent()) ? mb_substr($ua, 0, 512) : null,
             ]);
         } catch (Throwable) {

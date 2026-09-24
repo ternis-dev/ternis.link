@@ -42,13 +42,24 @@ class LinkController extends Controller
     public function store(StoreLinkRequest $request): JsonResponse
     {
         $domain = Domain::findOrFail($request->validated('domain_id'));
+        $user = $request->user();
+        $customSlug = $request->validated('slug');
+
+        // A custom slug always wins; the picker only sizes generated ones.
+        // Unvalidated (ineligible) values never reach the service.
+        $generatedLength = $customSlug === null
+            && $request->canChooseSlugLength()
+            && $request->validated('slug_length') !== null
+            ? (int) $request->validated('slug_length')
+            : null;
 
         $link = $this->linkService->create(
             destinationUrl: $request->validated('destination_url'),
             domain: $domain,
-            user: $request->user(),
-            customSlug: $request->validated('slug'),
+            user: $user,
+            customSlug: $customSlug,
             expiresAt: $request->validated('expires_at') ? new \DateTime($request->validated('expires_at')) : null,
+            generatedLength: $generatedLength,
         );
 
         return response()->json($link->load('domain'), 201);

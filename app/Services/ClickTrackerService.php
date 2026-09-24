@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Jobs\RecordClick;
 use App\Models\Link;
+use App\Support\IpHash;
 use Illuminate\Http\Request;
 
 class ClickTrackerService
@@ -25,7 +26,7 @@ class ClickTrackerService
             linkId: $link->id,
             referrer: $request->header('Referer'),
             userAgent: $request->userAgent(),
-            ipHash: $request->ip() ? hash('sha256', $request->ip()) : null,
+            ipHash: IpHash::make($request->ip()),
             isDirectUrl: $isDirectUrl,
             countryCode: $geo['country_code'],
             city: $geo['city'],

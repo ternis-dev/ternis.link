@@ -93,8 +93,8 @@ paths:
                   format: uri
                   maxLength: 2048
                 domain_id:
-                  type: integer
-                  description: Must be an active public system domain. Defaults to href.nz.
+                  type: string
+                  description: ULID. Must be an active public system domain. Defaults to href.nz.
                 expires_at:
                   type: string
                   format: date-time
@@ -137,6 +137,10 @@ paths:
         Custom slugs must match `[a-zA-Z0-9_-]` and the plan minimum
         length; per-domain uniqueness, daily quota, and per-minute rate
         limit apply (see LinkService). Custom domains must be verified.
+        Privileged users (admins, plans with slug-length choice) may pass
+        `slug_length` (3–64) to size auto-generated slugs; a custom `slug`
+        always wins and ineligible values are ignored. Scanner-probe
+        destinations are rejected (422). IDs are ULIDs (strings).
         Over-quota per-minute responses are `429` with `Retry-After`.
       requestBody:
         required: true
@@ -147,8 +151,9 @@ paths:
               required: [destination_url, domain_id]
               properties:
                 destination_url: { type: string, format: uri, maxLength: 2048 }
-                domain_id: { type: integer }
+                domain_id: { type: string, description: ULID }
                 slug: { type: string, pattern: "^[a-zA-Z0-9_-]+$", maxLength: 255 }
+                slug_length: { type: integer, minimum: 3, maximum: 64, description: Privileged users only; sizes auto-generated slugs, ignored with custom slug }
                 expires_at: { type: string, format: date-time }
       responses:
         '201':
@@ -162,7 +167,7 @@ paths:
         '410': { description: Version retired }
   /links/{link}:
     parameters:
-      - { name: link, in: path, required: true, schema: { type: integer } }
+      - { name: link, in: path, required: true, schema: { type: string, description: ULID } }
     get:
       summary: Get a link (owner or admin)
       responses:
@@ -194,7 +199,7 @@ paths:
         '410': { description: Version retired }
   /links/{link}/clicks:
     parameters:
-      - { name: link, in: path, required: true, schema: { type: integer } }
+      - { name: link, in: path, required: true, schema: { type: string, description: ULID } }
     get:
       summary: Paginated clicks (direct-URL clicks admin-only)
       responses:
@@ -202,7 +207,7 @@ paths:
         '403': { description: Not the owner }
   /links/{link}/clicks/summary:
     parameters:
-      - { name: link, in: path, required: true, schema: { type: integer } }
+      - { name: link, in: path, required: true, schema: { type: string, description: ULID } }
     get:
       summary: Aggregated click stats
       responses:
@@ -244,7 +249,7 @@ paths:
         '422': { description: Invalid/reserved/duplicate hostname }
   /domains/{domain}:
     parameters:
-      - { name: domain, in: path, required: true, schema: { type: integer } }
+      - { name: domain, in: path, required: true, schema: { type: string, description: ULID } }
     get:
       summary: Show a domain (+ verification instructions until verified)
       responses:
@@ -257,7 +262,7 @@ paths:
         '403': { description: Foreign or system domain }
   /domains/{domain}/verify:
     parameters:
-      - { name: domain, in: path, required: true, schema: { type: integer } }
+      - { name: domain, in: path, required: true, schema: { type: string, description: ULID } }
     post:
       summary: Verify DNS TXT record and activate
       responses:

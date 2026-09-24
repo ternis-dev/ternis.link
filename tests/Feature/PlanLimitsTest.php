@@ -56,12 +56,13 @@ class PlanLimitsTest extends TestCase
         return User::factory()->create(['plan_id' => $plan->id]);
     }
 
-    private function createLinkPayload(Domain $domain, ?string $slug = null, ?string $url = null): array
+    private function createLinkPayload(Domain $domain, ?string $slug = null, ?string $url = null, ?int $slugLength = null): array
     {
         return array_filter([
             'destination_url' => $url ?? 'https://example.com/'.Str::random(8),
             'domain_id' => $domain->id,
             'slug' => $slug,
+            'slug_length' => $slugLength,
         ], fn ($value) => $value !== null);
     }
 
@@ -302,5 +303,58 @@ class PlanLimitsTest extends TestCase
             ->get('createdSlug');
 
         $this->assertSame('my-picked', $slug);
+    }
+
+    public function test_api_applies_slug_length_for_privileged_users(): void
+    {
+        $user = $this->userOnPlan('family');
+
+        $payload = $this->createLinkPayload($this->domain);
+        $payload['slug_length'] = 16;
+
+        $response = $this->postJson('http://links.t-api.de/v1/links', $payload, $this->headersFor($user));
+
+        $response->assertStatus(201);
+        $this->assertSame(16, strlen($response->json('slug')));
+    }
+
+    public function test_api_rejects_slug_length_outside_bounds(): void
+    {
+        $user = $this->userOnPlan('family');
+
+        foreach ([2, 99] as $length) {
+            $payload = $this->createLinkPayload($this->domain);
+            $payload['slug_length'] = $length;
+
+            $this->postJson('http://links.t-api.de/v1/links', $payload, $this->headersFor($user))
+                ->assertStatus(422)
+                ->assertJsonValidationErrors('slug_length');
+        }
+    }
+
+    public function test_api_ignores_slug_length_for_ineligible_users(): void
+    {
+        $user = $this->userOnPlan('free'); // min_slug_length = 6, no length choice
+
+        $payload = $this->createLinkPayload($this->domain);
+        $payload['slug_length'] = 32;
+
+        $response = $this->postJson('http://links.t-api.de/v1/links', $payload, $this->headersFor($user));
+
+        $response->assertStatus(201);
+        $this->assertSame(6, strlen($response->json('slug')));
+    }
+
+    public function test_api_custom_slug_wins_over_slug_length(): void
+    {
+        $user = $this->userOnPlan('family');
+
+        $payload = $this->createLinkPayload($this->domain, 'api-picked');
+        $payload['slug_length'] = 32;
+
+        $response = $this->postJson('http://links.t-api.de/v1/links', $payload, $this->headersFor($user));
+
+        $response->assertStatus(201);
+        $response->assertJsonFragment(['slug' => 'api-picked']);
     }
 }

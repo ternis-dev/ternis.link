@@ -123,4 +123,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | IP Hash Pepper
+    |--------------------------------------------------------------------------
+    |
+    | Server-side secret mixed into stored IP hashes (guest quotas,
+    | unique visitors, error encounters). A plain SHA-256 of an IPv4
+    | address is enumerable, so a pepper makes leaked hashes
+    | unreversible. Empty = legacy plain SHA-256. Set once: rotating
+    | it orphans old quota linkage (counters restart, nothing breaks).
+    |
+    */
+
+    'ip_hash_pepper' => env('IP_HASH_PEPPER', ''),
+
 ];

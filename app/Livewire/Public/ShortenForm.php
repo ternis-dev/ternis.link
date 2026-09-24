@@ -5,6 +5,7 @@ namespace App\Livewire\Public;
 use App\Enums\DomainType;
 use App\Exceptions\JunkUrlException;
 use App\Models\Domain;
+use App\Support\IpHash;
 use App\Models\Link;
 use App\Services\LinkService;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -82,7 +83,7 @@ class ShortenForm extends Component
      */
     public function getQuotaLeftProperty(): int
     {
-        $used = Link::where('creator_ip_hash', hash('sha256', (string) request()->ip()))
+        $used = Link::where('creator_ip_hash', IpHash::make(request()->ip()))
             ->where('created_at', '>=', now()->startOfDay())
             ->count();
 
@@ -233,7 +234,7 @@ class ShortenForm extends Component
                 domain: $domain,
                 user: null,
                 customSlug: null,
-                creatorIpHash: hash('sha256', (string) request()->ip()),
+                creatorIpHash: IpHash::make(request()->ip()),
             );
         } catch (ValidationException $e) {
             // Scanner junk gets its own notice card, not the quota one.
