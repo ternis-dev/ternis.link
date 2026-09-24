@@ -409,17 +409,6 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     letter-spacing: 0.01em;
 }
 
-.sk-error {
-    margin: 0.6rem 0 0;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--sk-err-ink);
-    background: var(--sk-err-bg);
-    border: 1.5px solid var(--sk-err-border);
-    border-radius: 10px;
-    padding: 0.5rem 0.8rem;
-}
-
 /* --- result ------------------------------------------------ */
 .sk-result {
     position: relative;
@@ -842,3 +831,71 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     text-decoration: underline;
     text-underline-offset: 3px;
 }
+
+/* --- destination preview ------------------------------------ */
+.sk-preview {
+    margin-top: 0.7rem;
+    background: var(--sk-paper);
+    border: 1.5px dashed #b9b2a1;
+    border-radius: 12px;
+    padding: 0.55rem 0.85rem;
+    transform: rotate(-0.3deg);
+}
+
+.sk-preview p { margin: 0; font-size: 0.9rem; color: var(--sk-soft); }
+
+.sk-preview-will span {
+    font-family: var(--font-ui);
+    color: var(--sk-ink);
+}
+
+.sk-preview-get strong {
+    font-family: var(--font-ui);
+    font-size: 1.05rem;
+    color: var(--sk-ink);
+    letter-spacing: 0.04em;
+}
+
+.sk-count {
+    float: right;
+    font-family: var(--font-hand);
+    font-size: 1rem;
+    color: var(--sk-soft);
+    margin-left: 0.75rem;
+}
+
+/* --- error input state --------------------------------------- */
+.sk-input-row input.is-error {
+    border-color: var(--sk-err-border);
+    background: var(--sk-err-bg);
+    outline: 2px dashed var(--sk-err-border);
+    outline-offset: 4px;
+}
+
+/* --- oops card ------------------------------------------------ */
+.sk-oops {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+    margin-top: 0.8rem;
+    background: var(--sk-err-bg);
+    border: 2px solid var(--sk-err-border);
+    border-radius: 14px;
+    padding: 0.8rem 1rem;
+    color: var(--sk-err-ink);
+    transform: rotate(0.4deg);
+    animation: sk-pop 0.25s ease-out;
+}
+
+.sk-oops-title {
+    margin: 0;
+    font-family: var(--font-hand);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.sk-oops-msg { margin: 0.15rem 0 0; font-size: 0.92rem; }
+
+.sk-oops-nudge { margin: 0.4rem 0 0; font-size: 0.9rem; }
+.sk-oops-nudge a { color: inherit; font-weight: 700; }

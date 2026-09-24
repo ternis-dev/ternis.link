@@ -207,6 +207,48 @@ class PublicShorteningTest extends TestCase
             ->assertSet('urlState', 'idle');
     }
 
+    public function test_preview_shows_for_valid_input(): void
+    {
+        $url = 'https://example.com/preview-me';
+
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', $url)
+            ->assertSee('will shorten', escape: false)
+            ->assertSee('href.nz/○○○○○○○○', escape: false)
+            ->assertSee(strlen($url).' / 2048');
+    }
+
+    public function test_quota_error_flags_oops_card_with_login_nudge(): void
+    {
+        for ($i = 0; $i < LinkService::ANONYMOUS_DAILY_LIMIT; $i++) {
+            Link::create([
+                'slug' => 'quota-'.Str::random(8),
+                'destination_url' => 'https://example.com/quota-'.$i,
+                'domain_id' => $this->publicDomain->id,
+                'user_id' => null,
+                'creator_ip_hash' => hash('sha256', '127.0.0.1'),
+                'is_active' => true,
+            ]);
+        }
+
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'https://example.com/over-quota')
+            ->call('create')
+            ->assertSet('quotaExceeded', true)
+            ->assertSee("oops — that didn't stick!", escape: false)
+            ->assertSee('Members get a bigger daily pile');
+    }
+
+    public function test_invalid_submit_marks_field_with_error_state(): void
+    {
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'nope')
+            ->call('create')
+            ->assertHasErrors('destination_url')
+            ->assertSee('is-error', escape: false)
+            ->assertSee('aria-invalid', escape: false);
+    }
+
     public function test_business_and_public_landings_differ(): void
     {
         $public = $this->get('http://href.nz/');

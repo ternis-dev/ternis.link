@@ -87,6 +87,8 @@
                     inputmode="url"
                     maxlength="2048"
                     aria-describedby="public_destination_hint"
+                    @if ($errors->has('destination_url')) aria-invalid="true" @endif
+                    @class(['is-error' => $errors->has('destination_url')])
                 >
                 <button type="button" class="sk-tool" data-sk-paste aria-label="Paste from clipboard" title="Paste from clipboard">
                     <svg width="18" height="20" viewBox="0 0 22 26" fill="none" aria-hidden="true"><path d="M6 4 L6 23 L16 23 L16 4 M6 7 L4 7 L4 23 L18 23 L18 7 M8 4 C 8 2, 14 2, 14 4 M8 4 L6 4 M14 4 L16 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -107,15 +109,39 @@
                     </span>
                 </button>
             </div>
-            <p class="sk-focus-note" aria-hidden="true">looking good — hit Shorten when ready ↓</p>
+            <p class="sk-focus-note" aria-hidden="true">
+                @if ($urlState === 'valid')
+                    looking good — hit Shorten when ready ↓
+                @elseif ($urlState === 'invalid')
+                    hmm — that needs to start with https:// …
+                @else
+                    paste anything long in here ↓
+                @endif
+            </p>
+            @if ($this->normalizedPreview)
+                <div class="sk-preview" aria-live="polite">
+                    <p class="sk-preview-will">will shorten <span title="{{ $this->normalizedPreview }}">{{ \Illuminate\Support\Str::limit($this->normalizedPreview, 64) }}</span></p>
+                    <p class="sk-preview-get">you'll get <strong>{{ $this->previewHost }}/○○○○○○○○</strong></p>
+                </div>
+            @endif
             <p class="sk-hint" id="public_destination_hint">
+                <span class="sk-count" aria-hidden="true">{{ $this->charCount }} / 2048</span>
                 Include <code>https://</code>. Guests get auto-made codes —
                 <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" style="color: inherit; font-weight: 600;">log in</a> for custom slugs, shorter links &amp; click stats.
                 {{-- asterisk --}}
                 <svg style="display:inline-block; vertical-align: super;" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2 L8 14 M2.5 5 L13.5 11 M13.5 5 L2.5 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </p>
             @error('destination_url')
-                <p class="sk-error" role="alert">{{ $message }}</p>
+                <div class="sk-oops" role="alert">
+                    <svg width="34" height="34" viewBox="0 0 38 38" fill="none" aria-hidden="true"><path d="M19 4 C 10 4, 4 11, 4 19 C 4 27, 10 34, 19 34 C 28 34, 34 27, 34 19 C 34 11, 28 4, 19 4" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M13 13 C 17 17, 21 21, 25 25 M25 13 C 21 17, 17 21, 13 25" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+                    <div>
+                        <p class="sk-oops-title">oops — that didn't stick!</p>
+                        <p class="sk-oops-msg">{{ $message }}</p>
+                        @if ($quotaExceeded)
+                            <p class="sk-oops-nudge">Members get a bigger daily pile — <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">log in</a> and keep going.</p>
+                        @endif
+                    </div>
+                </div>
             @enderror
         </form>
     @endif

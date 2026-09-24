@@ -22,6 +22,9 @@ class ShortenForm extends Component
     /** Live input state: idle|invalid|valid (format hint only). */
     public string $urlState = 'idle';
 
+    /** True when the last submit failed on the daily guest quota. */
+    public bool $quotaExceeded = false;
+
     protected function rules(): array
     {
         return [
@@ -60,6 +63,39 @@ class ShortenForm extends Component
         return max(0, LinkService::ANONYMOUS_DAILY_LIMIT - $used);
     }
 
+    /**
+     * Trimmed input length for the 2048-char counter.
+     */
+    public function getCharCountProperty(): int
+    {
+        return strlen(trim($this->destination_url));
+    }
+
+    /**
+     * What the link will shorten to, once the input looks valid —
+     * shown as a preview before submitting.
+     */
+    public function getNormalizedPreviewProperty(): ?string
+    {
+        if ($this->urlState !== 'valid') {
+            return null;
+        }
+
+        return trim($this->destination_url);
+    }
+
+    /**
+     * Hostname the short link will live on.
+     */
+    public function getPreviewHostProperty(): string
+    {
+        try {
+            return $this->resolveDomain()->hostname;
+        } catch (\Throwable) {
+            return 'href.nz';
+        }
+    }
+
     public function create(LinkService $linkService): void
     {
         $key = 'public-shorten:'.request()->ip();
@@ -70,6 +106,7 @@ class ShortenForm extends Component
             return;
         }
 
+        $this->quotaExceeded = false;
         $this->validate();
 
         $domain = $this->resolveDomain();
@@ -88,6 +125,10 @@ class ShortenForm extends Component
             foreach ($e->errors() as $field => $messages) {
                 foreach ((array) $messages as $message) {
                     $this->addError($field, $message);
+
+                    if (str_contains((string) $message, 'Daily link limit')) {
+                        $this->quotaExceeded = true;
+                    }
                 }
             }
 
@@ -109,7 +150,7 @@ class ShortenForm extends Component
 
     public function resetForm(): void
     {
-        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState']);
+        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded']);
         $this->urlState = 'idle';
         $this->resetValidation();
     }
