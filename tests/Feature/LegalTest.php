@@ -19,14 +19,21 @@ class LegalTest extends TestCase
     }
     public function test_legal_pages_render_publicly(): void
     {
-        foreach (['privacy' => 'Privacy Policy', 'terms' => 'Terms of Service', 'imprint' => 'Imprint'] as $slug => $title) {
+        foreach (['privacy' => 'Privacy Policy', 'terms' => 'Terms of Service'] as $slug => $title) {
             $this->get("http://ternis.link/legal/{$slug}")
                 ->assertStatus(200)
                 ->assertSee($title, escape: false)
                 ->assertSee('Privacy Policy', escape: false)
                 ->assertSee('Terms of Service', escape: false)
-                ->assertSee('Imprint', escape: false);
+                ->assertSee('https://ternis.dev/en/legal/imprint', escape: false);
         }
+    }
+
+    public function test_imprint_redirects_to_central_legal_page(): void
+    {
+        $this->get('http://ternis.link/legal/imprint')
+            ->assertStatus(302)
+            ->assertRedirect('https://ternis.dev/en/legal/imprint');
     }
 
     public function test_legal_pages_work_on_dashboard_host(): void

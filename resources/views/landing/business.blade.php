@@ -64,7 +64,7 @@
     </main>
 
     <footer class="mt-14 border-t border-neutral-200 py-6 dark:border-neutral-800">
-        <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">href.re — official business shortener by ternis.link · public links: <strong>href.nz</strong> · <a href="https://ternis.link/legal/privacy" class="underline underline-offset-2">privacy</a> · <a href="https://ternis.link/legal/terms" class="underline underline-offset-2">terms</a> · <a href="https://ternis.link/legal/imprint" class="underline underline-offset-2">imprint</a></p>
+        <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">href.re — official business shortener by ternis.link · public links: <strong>href.nz</strong> · <a href="https://ternis.link/legal/privacy" class="underline underline-offset-2">privacy</a> · <a href="https://ternis.link/legal/terms" class="underline underline-offset-2">terms</a> · <a href="https://ternis.dev/en/legal/imprint" class="underline underline-offset-2">imprint</a></p>
     </footer>
 </body>
 </html>

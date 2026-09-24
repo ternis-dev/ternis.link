@@ -12,16 +12,27 @@ use Illuminate\Support\Str;
 class LegalController extends Controller
 {
     /**
-     * @var array<string, string> slug => page title
+     * @var array<string, string> slug => page title (rendered locally)
      */
     public const PAGES = [
         'privacy' => 'Privacy Policy',
         'terms' => 'Terms of Service',
-        'imprint' => 'Imprint',
+    ];
+
+    /**
+     * @var array<string, string> slug => canonical URL (single source
+     * of truth lives on ternis.dev, never duplicated here).
+     */
+    public const REDIRECTS = [
+        'imprint' => 'https://ternis.dev/en/legal/imprint',
     ];
 
     public function show(string $slug)
     {
+        if (isset(self::REDIRECTS[$slug])) {
+            return redirect()->away(self::REDIRECTS[$slug], 302);
+        }
+
         if (! isset(self::PAGES[$slug])) {
             abort(404);
         }
@@ -36,6 +47,7 @@ class LegalController extends Controller
             'title' => self::PAGES[$slug],
             'html' => Str::markdown((string) file_get_contents($path)),
             'pages' => self::PAGES,
+            'redirects' => self::REDIRECTS,
             'current' => $slug,
         ]);
     }
