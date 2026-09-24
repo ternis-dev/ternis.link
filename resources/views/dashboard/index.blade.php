@@ -24,8 +24,4 @@
         </div>
         <livewire:dashboard.link-table />
     </x-ui.card>
-
-    <x-ui.modal name="link-creator" title="New Short Link">
-        <livewire:dashboard.link-form :modal="true" />
-    </x-ui.modal>
 </x-layouts.dashboard>

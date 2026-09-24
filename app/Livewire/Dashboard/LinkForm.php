@@ -21,6 +21,29 @@ class LinkForm extends Component
      */
     public bool $modal = false;
 
+    protected $listeners = [
+        'open-link-creator' => 'handleOpenModal',
+    ];
+
+    public function handleOpenModal(): void
+    {
+        $this->createdSlug = null;
+        $this->createdDomain = null;
+        $this->resetErrorBag();
+    }
+
+    public function createAnother(): void
+    {
+        $this->createdSlug = null;
+        $this->createdDomain = null;
+        $this->destination_url = '';
+        $this->slug = null;
+        $this->description = null;
+        $this->tags = null;
+        $this->expires_at = null;
+        $this->resetErrorBag();
+    }
+
     public string $destination_url = '';
 
     public ?string $slug = null;

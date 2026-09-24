@@ -113,22 +113,66 @@ if (app()->environment('local', 'testing')) {
 | route existence).
 |----------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->group(function () {
-    // Legacy /dashboard prefix. Everywhere else it 301s to the new
-    // root URLs; on local dev (where /dashboard/* is how localhost
-    // reaches the dashboard) the bare path serves the home page.
-    Route::get('/dashboard', function () {
-        if (in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true)) {
-            return app(DashboardController::class)->index();
+/*
+|----------------------------------------------------------------------
+| /dashboard handling — host branching:
+| - On local dev (localhost, 127.0.0.1, ::1, testserver), serves the
+|   dashboard home (requiring auth).
+| - On dashboard/admin hosts (dash.ternis.link): legacy 301 redirect to
+|   the root URLs.
+| - On ternis short-link hosts (ternis.link): 302 redirects to the
+|   dashboard host (dash.ternis.link).
+| - Elsewhere (e.g. href.nz, api host): 404 to avoid leaking or
+|   swallowing short link slugs.
+|----------------------------------------------------------------------
+*/
+Route::get('/dashboard', function () {
+    $host = request()->getHost();
+    $type = request()->attributes->get('domain_type');
+    $dashHost = (string) config('domains.dashboard_host', 'dash.ternis.link');
+
+    if (in_array($host, ['localhost', '127.0.0.1', '::1', 'testserver'], true)) {
+        if (! auth()->check()) {
+            return redirect('/login');
         }
 
-        return redirect('/', 301);
-    });
-    Route::get('/dashboard/{any}', function (string $any) {
-        $query = request()->getQueryString();
+        return app(DashboardController::class)->index(request());
+    }
 
-        return redirect('/'.$any.($query ? '?'.$query : ''), 301);
-    })->where('any', '.*');
+    if (in_array($type, ['dashboard', 'admin'], true)) {
+        return redirect('/', 301);
+    }
+
+    if ($host === 'ternis.link' || $type === 'ternis') {
+        $target = request()->getScheme().'://'.$dashHost;
+
+        return redirect()->away($target, 302);
+    }
+
+    abort(404);
+});
+
+Route::get('/dashboard/{any}', function (string $any) {
+    $host = request()->getHost();
+    $type = request()->attributes->get('domain_type');
+    $dashHost = (string) config('domains.dashboard_host', 'dash.ternis.link');
+    $query = request()->getQueryString();
+    $qs = $query ? '?'.$query : '';
+
+    if (in_array($type, ['dashboard', 'admin'], true)) {
+        return redirect('/'.$any.$qs, 301);
+    }
+
+    if ($host === 'ternis.link' || $type === 'ternis') {
+        $target = request()->getScheme().'://'.$dashHost.'/'.$any.$qs;
+
+        return redirect()->away($target, 302);
+    }
+
+    abort(404);
+})->where('any', '.*');
+
+Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->group(function () {
 
     // /admin on the dashboard host belongs to the admin host. Pinned
     // to the dashboard host so admin.ternis.link/admin/* still reaches

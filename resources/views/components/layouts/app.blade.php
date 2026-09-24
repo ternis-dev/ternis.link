@@ -38,7 +38,7 @@
                     <img src="{{ auth()->user()->avatarUrl(34) }}" alt="{{ auth()->user()->name }}" class="h-8 w-8 rounded-full border border-neutral-300 object-cover dark:border-neutral-700">
                     <span class="hidden text-sm font-medium md:inline">{{ auth()->user()->name }}</span>
                     <x-ui.badge>{{ auth()->user()->role->value ?? auth()->user()->role }}</x-ui.badge>
-                    <x-ui.button href="{{ url('/dashboard') }}" size="sm">Dashboard</x-ui.button>
+                    <x-ui.button href="{{ in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true) ? url('/dashboard') : \App\Support\DomainUrls::dashboard('/') }}" size="sm">Dashboard</x-ui.button>
                     <form method="POST" action="{{ url('/logout') }}" class="inline">
                         @csrf
                         <x-ui.button type="submit" variant="ghost" size="sm">Logout</x-ui.button>

@@ -24,7 +24,7 @@ We may deactivate or delete links, throttle or block accounts/IP ranges, and rep
 
 ## Availability
 
-A best-effort service without uptime guarantees. Expired or deactivated links show a not-found page. We may change quotas, limits and features with notice.
+A best-effort service without uptime guarantees. Expired or deactivated links show a not-found page. We may change quotas, limits and features without prior notice.
 
 ## Liability
 
@@ -32,4 +32,4 @@ To the extent permitted by law, liability is limited to intent and gross neglige
 
 ## Changes and contact
 
-We may update these terms with 14 days notice on the service. Questions or abuse reports: [CONTACT_EMAIL].
+We may update these terms with 14 days notice on the service. Questions or legal inquiries: [legal@ternis.dev](mailto:legal@ternis.dev) or [platforms@ternis.dev](mailto:platforms@ternis.dev). Abuse reports: [abuse@ternis.dev](mailto:abuse@ternis.dev).

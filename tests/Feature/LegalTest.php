@@ -17,6 +17,7 @@ class LegalTest extends TestCase
         parent::setUp();
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
     }
+
     public function test_legal_pages_render_publicly(): void
     {
         foreach (['privacy' => 'Privacy Policy', 'terms' => 'Terms of Service'] as $slug => $title) {
@@ -25,8 +26,15 @@ class LegalTest extends TestCase
                 ->assertSee($title, escape: false)
                 ->assertSee('Privacy Policy', escape: false)
                 ->assertSee('Terms of Service', escape: false)
+                ->assertSee('legal@ternis.dev', escape: false)
+                ->assertSee('platforms@ternis.dev', escape: false)
+                ->assertSee('abuse@ternis.dev', escape: false)
                 ->assertSee('https://ternis.dev/en/legal/imprint', escape: false);
         }
+
+        $this->get('http://ternis.link/legal/terms')
+            ->assertStatus(200)
+            ->assertSee('without prior notice', escape: false);
     }
 
     public function test_imprint_redirects_to_central_legal_page(): void

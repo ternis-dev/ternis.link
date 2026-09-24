@@ -4,7 +4,7 @@
 
 This policy explains what data ternis.link collects when you shorten links, open short links, or use the dashboard — and your rights over that data.
 
-**Controller:** Ternis / ternis.link ([CONTACT_EMAIL]). If you have questions about your data, contact us there.
+**Controller:** Ternis / ternis.link ([legal@ternis.dev](mailto:legal@ternis.dev) / [platforms@ternis.dev](mailto:platforms@ternis.dev)). If you have questions about your data, contact us there.
 
 ## What we collect
 
@@ -46,7 +46,7 @@ We do not sell data and share nothing for marketing. Data is processed on infras
 
 ## Your rights
 
-Access, rectification, erasure, restriction, portability and objection (GDPR Art. 15–21), plus the right to complain to your supervisory authority. Because guest links carry no account, include the short URL(s) in erasure requests so we can find them. Contact: [CONTACT_EMAIL].
+Access, rectification, erasure, restriction, portability and objection (GDPR Art. 15–21), plus the right to complain to your supervisory authority. Because guest links carry no account, include the short URL(s) in erasure requests so we can find them. Contact: [legal@ternis.dev](mailto:legal@ternis.dev) or [platforms@ternis.dev](mailto:platforms@ternis.dev). Abuse reports: [abuse@ternis.dev](mailto:abuse@ternis.dev).
 
 ## Changes
 
