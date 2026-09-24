@@ -38,6 +38,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - Custom grayscale UI system on Tailwind CSS v4 (`resources/css/app.css` + `components/ui/*` Blade components: button, card, field, table, badge, alert, stat, segmented, status) with light/dark mode (class toggle, persisted, defaults to dark).
   - Dashboard layout switchable per user (side or top navigation) via Settings; account theme preference (system/light/dark).
   - Analytics charts via Chart.js (clicks-over-time bars, browser doughnut with server-rendered HTML legend), grayscale palettes that follow the active theme.
+  - href.nz keeps its hand-drawn memo identity (`landing-public.css` Vite entry + Caveat): ruled paper sheet, washi tape, 30+ wobbly inline-SVG doodles (paperclip, coffee ring, stamp, scissors cut-lines), light-paper only.
   - Self-hosted fonts (`public/fonts/inter-var.woff2`, `space-grotesk-var.woff2`) + single Vite bundle — no external CDN.
   - Custom branded error pages (`resources/views/errors/404,403,419,429,500,503.blade.php`) for web requests; API/`expectsJson` requests still receive JSON.
   - Error encounters (`error_encounters` table): every rendered error response is logged with `http_code`, `error_message`, `exception_class`, `method`/`host`/`path`, `user_id`, SHA-256 `ip_hash`, and `user_agent`. Validation noise and health probes are skipped; logging never throws. SSO callback failures (stale/reused codes) redirect to login with a friendly message instead of 500ing.
