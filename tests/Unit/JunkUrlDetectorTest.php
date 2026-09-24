@@ -72,6 +72,20 @@ class JunkUrlDetectorTest extends TestCase
         yield 'query probe words' => ['https://example.com/search?q=phpinfo+tutorial'];
         yield 'test tld' => ['https://staging-env.myapp.test/login'];
         yield 'uppercase' => ['https://Example.COM/Pricing'];
+        yield 'github blog' => ['https://blog.github.com'];
+        yield 'gitlab docs' => ['https://docs.gitlab.com'];
+        yield 'github raw content' => ['https://raw.githubusercontent.com/user/repo/master/file.txt'];
+        yield 'subdomain with example label' => ['https://sub.example.com/overview'];
+        yield 'solr apache homepage' => ['https://solr.apache.org'];
+        yield 'topman clothing' => ['https://topman.com/collections'];
+        yield 'apma association' => ['https://apma.org/about'];
+        yield 'upma association' => ['https://upma.org'];
+        yield 'shopmanager tool' => ['https://shopmanager.com/dashboard'];
+        yield 'tripmanager tool' => ['https://tripmanager.com'];
+        yield 'shipmate logistics' => ['https://shipmate.com'];
+        yield 'local.ch swiss directory' => ['https://app.local.ch'];
+        yield 'json.org documentation' => ['https://news.json.org'];
+        yield 'debian orig tarball' => ['https://deb.debian.org/debian/pool/main/h/hello/hello_2.10.orig.tar.gz'];
     }
 
     #[DataProvider('legitimateUrls')]
@@ -83,7 +97,17 @@ class JunkUrlDetectorTest extends TestCase
 
     public function test_flags_probe_paths_and_backup_suffixes(): void
     {
-        foreach (['https://example.com/xmlrpc.php', 'https://example.com/.env', 'https://example.com/wp-login.php'] as $url) {
+        foreach ([
+            'https://example.com/xmlrpc.php',
+            'https://example.com/.env',
+            'https://example.com/wp-login.php',
+            'https://example.com/web.config',
+            'https://example.com/database.yml',
+            'https://example.com/pma',
+            'https://example.com/.git/config',
+            'https://example.com/.svn/all-wcprops',
+            'https://example.com/wp-config.php.orig',
+        ] as $url) {
             $this->assertTrue($this->detector->isJunk($url), "Expected junk: {$url}");
         }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use App\Exceptions\JunkUrlException;
@@ -27,9 +29,19 @@ use App\Exceptions\JunkUrlException;
 final class JunkUrlDetector
 {
     /**
-     * Probe keywords flagged anywhere in the host, or in a short,
-     * dash-free final path segment (blog slugs contain dashes and
-     * pass through, e.g. /how-to-disable-phpinfo).
+     * File extensions and backup markers masquerading as TLDs.
+     */
+    private const FILE_EXTENSION_TLDS = [
+        'php', 'php3', 'php4', 'php5', 'php7', 'php8', 'phtml',
+        'asp', 'aspx', 'jsp', 'jspx', 'cgi', 'pl', 'py', 'rb', 'sh', 'bash',
+        'env', 'bak', 'old', 'save', 'swp', 'tmp', 'temp', 'bkp',
+        'backup', 'orig', 'sql', 'dump', 'log', 'conf', 'ini', 'config',
+        'dist', 'local', 'example', 'git', 'svn', 'yml', 'yaml', 'json',
+    ];
+
+    /**
+     * Scanner probe tokens that flag a match if present in the host
+     * or inside short, dash-free path segments.
      */
     private const PROBE_KEYWORDS = [
         'phpinfo',
@@ -46,13 +58,10 @@ final class JunkUrlDetector
         'adminer',
         'actuator',
         'eval-stdin',
-        '.git/',
-        '.svn/',
     ];
 
     /**
-     * Exact probe filenames flagged as the final path segment
-     * (case-insensitive).
+     * Filename targets commonly probed at root or as the final path segment.
      */
     private const PROBE_FILENAMES = [
         'phpinfo.php',
@@ -70,20 +79,12 @@ final class JunkUrlDetector
         '.env',
         'server-status',
         'server-info',
+        'web.config',
+        'database.yml',
+        'pma',
     ];
 
-    /**
-     * Final host labels that are file extensions or backup markers —
-     * never real top-level domains.
-     */
-    private const FILE_EXTENSION_TLDS = [
-        'php', 'php3', 'php4', 'php5', 'php7', 'phtml',
-        'asp', 'aspx', 'jsp', 'cgi', 'pl', 'sh',
-        'env', 'bak', 'old', 'save', 'swp', 'tmp',
-        'backup', 'orig', 'sql', 'dump', 'log', 'conf', 'ini',
-    ];
-
-    private const BACKUP_LABEL_PATTERN = '/^(bak|backup|old|save|orig|tmp|temp|bkp|copy)\d*$/';
+    private const BACKUP_LABEL_PATTERN = '/^(bak|backup|old|save|orig|tmp|temp|bkp|copy)\d*$/i';
 
     private const DOTLESS_ALLOWLIST = ['localhost'];
 
@@ -97,98 +98,126 @@ final class JunkUrlDetector
      */
     public function reasons(string $url): array
     {
-        $parts = parse_url(trim($url));
+        $trimmed = trim($url);
+        if ($trimmed === '') {
+            return [];
+        }
 
+        $parts = parse_url($trimmed);
         if (! is_array($parts)) {
-            return []; // Unparseable — leave that to `url` validation.
+            return [];
         }
 
         $scheme = strtolower((string) ($parts['scheme'] ?? ''));
         if (! in_array($scheme, ['http', 'https'], true)) {
-            return []; // Other schemes are rejected elsewhere, not scored here.
+            return [];
         }
 
-        $host = strtolower((string) ($parts['host'] ?? ''));
-        $path = strtolower((string) ($parts['path'] ?? ''));
+        $rawHost = (string) ($parts['host'] ?? '');
+        $path = (string) ($parts['path'] ?? '');
 
-        if ($host === '' || str_starts_with($host, '.') || str_contains($host, '~')) {
-            return ['host is not a valid hostname'];
+        if ($rawHost === '') {
+            return ['missing host component'];
         }
 
-        // IP hosts always pass (intranet dashboards, dev boxes); only
-        // their paths are scored.
+        $host = strtolower($rawHost);
+
+        // Discard scanner anomalies directly in the hostname
+        if (
+            str_starts_with($host, '.') ||
+            str_ends_with($host, '.') ||
+            str_contains($host, '~') ||
+            str_contains($host, '..')
+        ) {
+            return ['host contains invalid or scanner-probe characters'];
+        }
+
+        // IP hosts bypass domain checks; only path heuristics apply
         if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
             return $this->pathReasons($path);
         }
 
         $reasons = [];
 
+        // Catch payloads where the entire host is a probe filename (e.g., https://i.php, https://test.php)
+        if (in_array($host, self::PROBE_FILENAMES, true)) {
+            $reasons[] = "host is a targeted scanner probe file '{$host}'";
+        }
+
         if (! str_contains($host, '.')) {
             if (! in_array($host, self::DOTLESS_ALLOWLIST, true)) {
-                return ['host has no domain extension'];
+                $reasons[] = 'host has no domain extension';
             }
         } else {
             $labels = explode('.', $host);
-            $tld = (string) end($labels);
+            $tld = end($labels);
 
             if (in_array($tld, self::FILE_EXTENSION_TLDS, true)) {
-                $reasons[] = "host ends in .{$tld}, a file extension rather than a domain";
-            } elseif (preg_match(self::BACKUP_LABEL_PATTERN, $tld) === 1) {
-                $reasons[] = "host ends in .{$tld}, which looks like a backup copy";
+                $reasons[] = "host ends in .{$tld}, a file extension rather than a valid TLD";
+            } elseif (preg_match(self::BACKUP_LABEL_PATTERN, (string) $tld) === 1) {
+                $reasons[] = "host ends in .{$tld}, which matches backup naming conventions";
             }
         }
 
         foreach (self::PROBE_KEYWORDS as $keyword) {
             if (str_contains($host, $keyword)) {
-                $reasons[] = "host matches the known scanner probe '{$keyword}'";
+                $reasons[] = "host contains probe keyword '{$keyword}'";
                 break;
             }
         }
 
         if (str_contains($host, '.env')) {
-            $reasons[] = 'host targets an environment (.env) file';
+            $reasons[] = 'host targets an environment configuration file';
         }
 
         return array_merge($reasons, $this->pathReasons($path));
     }
 
     /**
-     * Score the path: exact probe filenames, keyword hits in short
-     * dash-free final segments, .env files and backup-copy suffixes.
-     *
      * @return list<string>
      */
     private function pathReasons(string $path): array
     {
-        if ($path === '' || $path === '/') {
+        $rawPath = trim($path);
+        if ($rawPath === '' || $rawPath === '/') {
             return [];
         }
 
-        if (preg_match('#/\.env(\.|/|$)#', $path) === 1) {
+        $normalized = strtolower(rawurldecode($rawPath));
+
+        if (preg_match('#(?:^|/)\.env(?:\.|$|/)#', $normalized) === 1) {
             return ['path targets an environment (.env) file'];
         }
 
-        $segments = array_values(array_filter(explode('/', $path), fn ($s) => $s !== ''));
-        $last = (string) end($segments);
+        if (preg_match('#(?:^|/)\.(?:git|svn)(?:/|$)#', $normalized) === 1) {
+            return ['path targets source control repository metadata'];
+        }
+
+        if (
+            str_ends_with($normalized, '~') ||
+            preg_match('#\.(?:bak|old|save|backup|swp|tmp|temp|bkp)(?:\.|/|$)|(?<!/)\.orig(?:\.bak|\.old|/|$)#', $normalized) === 1
+        ) {
+            return ['path targets a backup or editor temporary artifact'];
+        }
+
+        $segments = array_values(array_filter(explode('/', $normalized), static fn (string $s): bool => $s !== ''));
+        if ($segments === []) {
+            return [];
+        }
+
+        $last = end($segments);
 
         if (in_array($last, self::PROBE_FILENAMES, true)) {
-            return ["path ends in the known scanner probe '{$last}'"];
+            return ["path ends in targeted probe file '{$last}'"];
         }
 
-        // Bare probe paths (/phpinfo.php) are short and dash-free;
-        // article slugs (/how-to-disable-phpinfo) pass through.
-        if ($last !== '' && strlen($last) <= 32 && ! str_contains($last, '-')) {
+        // Short, dash-free segments (e.g., /phpinfo) are scanner probes; hyphenated slugs pass
+        if (strlen($last) <= 32 && ! str_contains($last, '-')) {
             foreach (self::PROBE_KEYWORDS as $keyword) {
-                $needle = rtrim($keyword, '/');
-                if ($needle !== '' && str_contains($last, $needle)) {
-                    return ["path matches the known scanner probe '{$needle}'"];
+                if (str_contains($last, $keyword)) {
+                    return ["path segment matches scanner probe keyword '{$keyword}'"];
                 }
             }
-        }
-
-        if (str_ends_with($path, '~')
-            || preg_match('#\.(bak|old|save|backup|swp|tmp|orig)(\.|$)#', $path) === 1) {
-            return ['path looks like a backup copy'];
         }
 
         return [];
