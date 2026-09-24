@@ -1,14 +1,13 @@
 <div class="sk-card tilt-l" data-sk-form>
     <span class="sk-tape" aria-hidden="true"></span>
-    {{-- sparkle --}}
-    <svg class="dk dk-faint dk-hide-sm" style="top: -16px; left: 16px; transform: rotate(-12deg);" width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 3 Q 17 13, 27 15 Q 17 17, 16 27 Q 15 17, 5 15 Q 15 13, 16 3" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
-    {{-- sparkle --}}
-    <svg class="dk dk-faint dk-hide-sm" style="top: -10px; right: 28px; transform: rotate(14deg);" width="16" height="16" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 3 Q 17 13, 27 15 Q 17 17, 16 27 Q 15 17, 5 15 Q 15 13, 16 3" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>
+    {{-- sparkles --}}
+    <svg class="dk dk-faint dk-hide-sm" style="top: -14px; left: 18px;" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 4.8 2.1 6.9 7.5 7.5-5.4.6-6.8 2.7-7.5 7.5-.7-4.8-2.1-6.9-7.5-7.5 5.4-.6 6.8-2.7 7.5-7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    <svg class="dk dk-faint dk-hide-sm" style="top: -8px; right: 30px;" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 4.8 2.1 6.9 7.5 7.5-5.4.6-6.8 2.7-7.5 7.5-.7-4.8-2.1-6.9-7.5-7.5 5.4-.6 6.8-2.7 7.5-7.5Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
 
     <div class="sk-form-head">
         <h2 class="sk-form-title">
-            {{-- chain link --}}
-            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M13 19 L19 13 M15 8 L18 5 a5.5 5.5 0 0 1 8 8 l-3 3 M17 24 l-3 3 a5.5 5.5 0 0 1-8-8 l3-3" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+            {{-- link --}}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Shorten a link — no account needed
         </h2>
         <div class="sk-meter" title="Guest links left today">
@@ -24,11 +23,11 @@
 
     @if ($shortUrl)
         <div class="sk-ticket" role="status" aria-live="polite">
-            {{-- burst --}}
-            <svg class="dk" style="top: -24px; right: 6px; transform: rotate(8deg);" width="46" height="46" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 3 L27 17 L41 12 L31 23 L45 28 L30 30 L34 44 L24 33 L14 44 L18 30 L3 28 L17 23 L7 12 L21 17 Z" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg>
+            {{-- dotted ring --}}
+            <svg class="dk" style="top: -22px; right: 8px;" width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="24" r="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="4 5"/><path d="M24 13.5c.5 3.4 1.5 4.9 5.3 5.3-3.8.4-4.8 1.9-5.3 5.3-.5-3.4-1.5-4.9-5.3-5.3 3.8-.4 4.8-1.9 5.3-5.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
             <p class="sk-result-kicker">
-                {{-- done check --}}
-                <svg width="22" height="20" viewBox="0 0 26 22" fill="none" aria-hidden="true"><path d="M3 12 C 6 14, 8 16, 11 19 C 14 13, 18 8, 24 3" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {{-- check --}}
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="m8.2 12.3 2.5 2.5 5.1-5.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Done — your short link is ready
             </p>
             <a href="{{ $shortUrl }}" target="_blank" rel="noopener" class="sk-ticket-link" data-sk-result-link>{{ $shortUrl }}</a>
@@ -45,12 +44,16 @@
                     data-copy-value="{{ $shortUrl }}"
                     aria-label="Copy short link to clipboard"
                 >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="2.2"/><path d="M5.5 15V6.8A2.3 2.3 0 0 1 7.8 4.5h8.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
                     Copy
                 </button>
-                <a href="{{ $shortUrl }}" target="_blank" rel="noopener" class="sk-open">Open link ↗</a>
+                <a href="{{ $shortUrl }}" target="_blank" rel="noopener" class="sk-open">
+                    Open link
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4.5h5.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 4.5 11 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19.5 13.5V18a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2H11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                </a>
                 <button type="button" wire:click="resetForm" class="sk-again">
-                    {{-- redo arrow --}}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12 C 4 7, 8 4, 13 4 C 18 4, 21 8, 20.5 12 C 20 16, 16 20, 11 20 M11 20 l-4 -1 M11 20 l1 -4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    {{-- refresh --}}
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 1 2.2 5.3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4.5 17.5v-4h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     Shorten another
                 </button>
             </div>
@@ -59,43 +62,50 @@
     @else
         <form wire:submit="create" novalidate>
             <div class="sk-label-row">
-                <label class="sk-label" for="public_destination_url">Destination URL
-                    {{-- arrow into the field --}}
-                    <svg style="display:inline-block; vertical-align: -4px;" width="30" height="14" viewBox="0 0 40 18" fill="none" aria-hidden="true"><path d="M2 12 C 12 10, 22 9, 33 10 M33 10 l-7 -4 M33 10 l-7 4" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </label>
-                <span class="sk-url-state" aria-hidden="true">
+                <label class="sk-label" for="public_destination_url">Destination URL</label>
+                <span class="sk-url-state" aria-live="polite">
                     @if ($urlState === 'valid')
-                        <svg width="20" height="18" viewBox="0 0 26 22" fill="none" aria-hidden="true"><path d="M3 12 C 6 14, 8 16, 11 19 C 14 13, 18 8, 24 3" stroke="#2f7a3d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span class="sk-state is-valid">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="m8.2 12.3 2.5 2.5 5.1-5.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Looks good
+                        </span>
                     @elseif ($urlState === 'invalid')
-                        <svg width="18" height="18" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M5 5 C 9 9, 13 13, 17 17 M17 5 C 13 9, 9 13, 5 17" stroke="#b33636" stroke-width="2.6" stroke-linecap="round"/></svg>
+                        <span class="sk-state is-invalid">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                            Check the URL
+                        </span>
                     @endif
                 </span>
             </div>
             <div class="sk-input-row">
-                <input
-                    type="url"
-                    id="public_destination_url"
-                    name="destination_url"
-                    wire:model.live.debounce.400ms="destination_url"
-                    wire:loading.attr="disabled"
-                    wire:target="create"
-                    placeholder="https://example.com/very-long-url…"
-                    required
-                    autocomplete="off"
-                    autocapitalize="off"
-                    spellcheck="false"
-                    inputmode="url"
-                    maxlength="2048"
-                    aria-describedby="public_destination_hint"
-                    @if ($errors->has('destination_url')) aria-invalid="true" @endif
-                    @class(['is-error' => $errors->has('destination_url'), 'is-valid' => $urlState === 'valid' && ! $errors->has('destination_url')])
-                >
-                <button type="button" class="sk-tool" data-sk-paste aria-label="Paste from clipboard" title="Paste from clipboard">
-                    <svg width="18" height="20" viewBox="0 0 22 26" fill="none" aria-hidden="true"><path d="M6 4 L6 23 L16 23 L16 4 M6 7 L4 7 L4 23 L18 23 L18 7 M8 4 C 8 2, 14 2, 14 4 M8 4 L6 4 M14 4 L16 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button type="button" class="sk-tool" data-sk-clear aria-label="Clear field" title="Clear">
-                    <svg width="16" height="16" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M5 5 C 9 9, 13 13, 17 17 M17 5 C 13 9, 9 13, 5 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-                </button>
+                <div class="sk-field">
+                    <input
+                        type="url"
+                        id="public_destination_url"
+                        name="destination_url"
+                        wire:model.live.debounce.400ms="destination_url"
+                        wire:loading.attr="disabled"
+                        wire:target="create"
+                        placeholder="https://example.com/very-long-url…"
+                        required
+                        autocomplete="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        inputmode="url"
+                        maxlength="2048"
+                        aria-describedby="public_destination_hint{{ $errors->has('destination_url') ? ' public_destination_error' : '' }}"
+                        @if ($errors->has('destination_url')) aria-invalid="true" @endif
+                        @class(['is-error' => $errors->has('destination_url'), 'is-valid' => $urlState === 'valid' && ! $errors->has('destination_url')])
+                    >
+                    <span class="sk-field-tools">
+                        <button type="button" class="sk-tool" data-sk-paste aria-label="Paste from clipboard" title="Paste from clipboard">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5.5" y="4.5" width="13" height="16" rx="2.5" stroke="currentColor" stroke-width="2.2"/><path d="M9 4.5V3.4c0-1 .8-1.9 1.9-1.9h2.2c1.1 0 1.9.9 1.9 1.9v1.1" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M9 12h6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                        </button>
+                        <button type="button" class="sk-tool" data-sk-clear aria-label="Clear field" title="Clear">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                        </button>
+                    </span>
+                </div>
                 <button
                     type="submit"
                     class="sk-btn"
@@ -111,62 +121,71 @@
             </div>
             <p class="sk-focus-note" aria-hidden="true">
                 @if ($urlState === 'valid')
-                    looking good — hit Shorten when ready ↓
+                    Looks good — hit Shorten when you’re ready.
                 @elseif ($urlState === 'invalid')
-                    hmm — that needs to start with https:// …
+                    Tip: links start with https://
                 @else
-                    paste anything long in here ↓
+                    Paste the full link, starting with https://
                 @endif
             </p>
             @if ($this->fixablePreview)
                 <div class="sk-fix" aria-live="polite">
-                    <span>did you mean <strong>{{ \Illuminate\Support\Str::limit($this->fixablePreview, 56) }}</strong>?</span>
-                    <button type="button" wire:click="applyFix" class="sk-fix-btn">yes, fix it ✓</button>
+                    <span class="sk-fix-text">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 4.8 2.1 6.9 7.5 7.5-5.4.6-6.8 2.7-7.5 7.5-.7-4.8-2.1-6.9-7.5-7.5 5.4-.6 6.8-2.7 7.5-7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                        Did you mean <strong>{{ \Illuminate\Support\Str::limit($this->fixablePreview, 56) }}</strong>?
+                    </span>
+                    <button type="button" wire:click="applyFix" class="sk-fix-btn">
+                        Use this URL
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12h15M13.5 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
                 </div>
             @endif
             @if ($this->duplicate)
                 <div class="sk-dup" aria-live="polite">
-                    <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M13 19 L19 13 M15 8 L18 5 a5.5 5.5 0 0 1 8 8 l-3 3 M17 24 l-3 3 a5.5 5.5 0 0 1-8-8 l3-3" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <div>
-                        <p class="sk-dup-title">already on file — no need to shorten twice!</p>
+                        <p class="sk-dup-title">Already shortened</p>
                         <p class="sk-dup-link">
                             <a href="https://{{ $this->previewHost }}/{{ $this->duplicate->slug }}" target="_blank" rel="noopener">{{ $this->previewHost }}/{{ $this->duplicate->slug }}</a>
-                            <button type="button" data-copy-value="https://{{ $this->previewHost }}/{{ $this->duplicate->slug }}" aria-label="Copy existing short link">copy</button>
+                            <button type="button" data-copy-value="https://{{ $this->previewHost }}/{{ $this->duplicate->slug }}" aria-label="Copy existing short link">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="2.2"/><path d="M5.5 15V6.8A2.3 2.3 0 0 1 7.8 4.5h8.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                                Copy
+                            </button>
                         </p>
                     </div>
                 </div>
             @endif
             @if ($this->normalizedPreview)
                 <div class="sk-preview" aria-live="polite">
-                    <p class="sk-preview-will">will shorten <span title="{{ $this->normalizedPreview }}">{{ \Illuminate\Support\Str::limit($this->normalizedPreview, 64) }}</span></p>
-                    <p class="sk-preview-get">you'll get <strong>{{ $this->previewHost }}/○○○○○○○○</strong></p>
+                    <p class="sk-preview-will">You’re shortening <span title="{{ $this->normalizedPreview }}">{{ \Illuminate\Support\Str::limit($this->normalizedPreview, 64) }}</span></p>
+                    <p class="sk-preview-get">You’ll get <strong>{{ $this->previewHost }}/••••••••</strong></p>
                 </div>
             @endif
             <p class="sk-hint" id="public_destination_hint">
                 <span class="sk-count" aria-hidden="true">{{ $this->charCount }} / 2048</span>
                 Include <code>https://</code>. Guests get auto-made codes —
                 <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" style="color: inherit; font-weight: 600;">log in</a> for custom slugs, shorter links &amp; click stats.
-                {{-- asterisk --}}
-                <svg style="display:inline-block; vertical-align: super;" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2 L8 14 M2.5 5 L13.5 11 M13.5 5 L2.5 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </p>
             @error('destination_url')
-                <div class="sk-oops" role="alert">
-                    <svg width="34" height="34" viewBox="0 0 38 38" fill="none" aria-hidden="true"><path d="M19 4 C 10 4, 4 11, 4 19 C 4 27, 10 34, 19 34 C 28 34, 34 27, 34 19 C 34 11, 28 4, 19 4" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M13 13 C 17 17, 21 21, 25 25 M25 13 C 21 17, 17 21, 13 25" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+                <div class="sk-oops" role="alert" id="public_destination_error">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M12 7.5V13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.4" r="1.3" fill="currentColor"/></svg>
                     <div>
                         <p class="sk-oops-title">
                             @if ($errorKind === 'quota')
-                                out of today's pile!
+                                Daily limit reached
                             @elseif ($errorKind === 'too_long')
-                                whoa, that's a long one!
+                                That link is too long
                             @elseif ($errorKind === 'throttle')
-                                take a breath!
+                                Slow down a moment
+                            @elseif ($errorKind === 'empty')
+                                Paste a link first
                             @else
-                                oops — that didn't stick!
+                                That link doesn’t look right
                             @endif
                         </p>
                         <p class="sk-oops-msg">{{ $message }}</p>
                         @if ($quotaExceeded)
-                            <p class="sk-oops-nudge">Members get a bigger daily pile — <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">log in</a> and keep going.</p>
+                            <p class="sk-oops-nudge">Members get a higher daily limit — <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">log in</a> to keep going.</p>
                         @endif
                     </div>
                 </div>
@@ -223,15 +242,26 @@
 
             var scope = button.closest('[role="status"]') || button.closest('[data-sk-tray]');
             var feedback = scope ? scope.querySelector('[data-copy-feedback]') : null;
+            var label = button.querySelector('[data-copy-label]') || null;
 
             if (done) {
-                var original = button.textContent;
-                button.textContent = 'Copied ✓';
-                if (feedback) feedback.hidden = false;
-                setTimeout(function () {
-                    button.textContent = original;
-                    if (feedback) feedback.hidden = true;
-                }, 2000);
+                if (label) {
+                    var original = label.textContent;
+                    label.textContent = 'Copied';
+                    if (feedback) feedback.hidden = false;
+                    setTimeout(function () {
+                        label.textContent = original;
+                        if (feedback) feedback.hidden = true;
+                    }, 2000);
+                } else {
+                    var originalHtml = button.innerHTML;
+                    button.innerHTML = 'Copied';
+                    if (feedback) feedback.hidden = false;
+                    setTimeout(function () {
+                        button.innerHTML = originalHtml;
+                        if (feedback) feedback.hidden = true;
+                    }, 2000);
+                }
             } else if (feedback) {
                 feedback.textContent = 'Copy failed — select the link manually.';
                 feedback.hidden = false;

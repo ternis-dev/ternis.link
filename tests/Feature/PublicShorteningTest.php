@@ -213,8 +213,8 @@ class PublicShorteningTest extends TestCase
 
         Livewire::test(ShortenForm::class)
             ->set('destination_url', $url)
-            ->assertSee('will shorten', escape: false)
-            ->assertSee('href.nz/○○○○○○○○', escape: false)
+            ->assertSee('You’re shortening', escape: false)
+            ->assertSee('href.nz/••••••••', escape: false)
             ->assertSee(strlen($url).' / 2048');
     }
 
@@ -236,8 +236,8 @@ class PublicShorteningTest extends TestCase
             ->call('create')
             ->assertSet('quotaExceeded', true)
             ->assertSet('errorKind', 'quota')
-            ->assertSee("out of today's pile!", escape: false)
-            ->assertSee('Members get a bigger daily pile');
+            ->assertSee('Daily limit reached', escape: false)
+            ->assertSee('higher daily limit');
     }
 
     public function test_invalid_submit_marks_field_with_error_state(): void
@@ -255,7 +255,7 @@ class PublicShorteningTest extends TestCase
         $test = Livewire::test(ShortenForm::class)
             ->set('destination_url', 'example.com/missing-scheme')
             ->assertSet('urlState', 'invalid')
-            ->assertSee('did you mean', escape: false)
+            ->assertSee('Did you mean', escape: false)
             ->assertSee('https://example.com/missing-scheme');
 
         $test->call('applyFix')
@@ -281,7 +281,7 @@ class PublicShorteningTest extends TestCase
 
         Livewire::test(ShortenForm::class)
             ->set('destination_url', 'https://example.com/already-here')
-            ->assertSee('already on file', escape: false)
+            ->assertSee('Already shortened', escape: false)
             ->assertSee('href.nz/alreadyhere1');
     }
 
@@ -292,7 +292,7 @@ class PublicShorteningTest extends TestCase
             ->set('destination_url', 'https://example.com/'.str_repeat('a', 2048))
             ->call('create')
             ->assertSet('errorKind', 'too_long')
-            ->assertSee("whoa, that's a long one!", escape: false);
+            ->assertSee('That link is too long', escape: false);
 
         // Plain invalid.
         Livewire::test(ShortenForm::class)

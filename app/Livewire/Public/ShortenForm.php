@@ -26,8 +26,8 @@ class ShortenForm extends Component
     public bool $quotaExceeded = false;
 
     /**
-     * Error personality for the oops card:
-     * idle|invalid|too_long|quota|throttle.
+     * Error personality for the notice card:
+     * idle|empty|invalid|too_long|quota|throttle.
      */
     public string $errorKind = 'idle';
 
@@ -38,23 +38,42 @@ class ShortenForm extends Component
         ];
     }
 
+    protected function messages(): array
+    {
+        return [
+            'destination_url.required' => 'Please paste a link to shorten.',
+            'destination_url.url' => 'That doesn’t look like a valid URL — make sure it starts with https://.',
+            'destination_url.max' => 'That URL is too long — keep it under 2,048 characters.',
+        ];
+    }
+
     /**
-     * Lightweight format hint while typing — real validation still
-     * happens on submit.
+     * Live format hint while typing — real validation still
+     * happens on submit. Clears a previous submit error as soon
+     * as the user starts fixing the input.
      */
     public function updatedDestinationUrl(): void
     {
-        $value = trim($this->destination_url);
+        $this->destination_url = trim($this->destination_url);
+        $value = $this->destination_url;
 
         if ($value === '') {
             $this->urlState = 'idle';
+            $this->resetValidation('destination_url');
+            $this->errorKind = 'idle';
+            $this->quotaExceeded = false;
 
             return;
         }
 
-        $this->urlState = filter_var($value, FILTER_VALIDATE_URL) && strlen($value) <= 2048
-            ? 'valid'
-            : 'invalid';
+        $valid = strlen($value) <= 2048 && filter_var($value, FILTER_VALIDATE_URL) !== false;
+        $this->urlState = $valid ? 'valid' : 'invalid';
+
+        if ($valid) {
+            $this->resetValidation('destination_url');
+            $this->errorKind = 'idle';
+            $this->quotaExceeded = false;
+        }
     }
 
     /**
@@ -74,7 +93,7 @@ class ShortenForm extends Component
      */
     public function getCharCountProperty(): int
     {
-        return strlen(trim($this->destination_url));
+        return mb_strlen(trim($this->destination_url));
     }
 
     /**
@@ -103,8 +122,8 @@ class ShortenForm extends Component
     }
 
     /**
-     * When the input is invalid only because the scheme is missing,
-     * offer the fixed URL for one-click repair.
+     * When the input is invalid only because the scheme is missing
+     * (or is plain http://), offer the fixed URL for one-click repair.
      */
     public function getFixablePreviewProperty(): ?string
     {
@@ -112,7 +131,22 @@ class ShortenForm extends Component
             return null;
         }
 
-        $fixed = 'https://'.ltrim(trim($this->destination_url));
+        $value = trim($this->destination_url);
+
+        if ($value === '' || str_contains($value, ' ')) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http://')) {
+            $fixed = 'https://'.substr($value, 7);
+        } elseif (str_starts_with($value, '//')) {
+            $fixed = 'https:'.$value;
+        } elseif (preg_match('#^[a-z][a-z0-9+.-]*://#i', $value)) {
+            // Some other scheme (ftp:, file:, …) — don't guess.
+            return null;
+        } else {
+            $fixed = 'https://'.ltrim($value, '/');
+        }
 
         if (strlen($fixed) > 2048 || ! filter_var($fixed, FILTER_VALIDATE_URL)) {
             return null;
@@ -134,6 +168,8 @@ class ShortenForm extends Component
 
         $this->destination_url = $fixed;
         $this->urlState = 'valid';
+        $this->quotaExceeded = false;
+        $this->errorKind = 'idle';
         $this->resetValidation();
     }
 
@@ -165,20 +201,24 @@ class ShortenForm extends Component
         $key = 'public-shorten:'.request()->ip();
 
         if (RateLimiter::tooManyAttempts($key, 10)) {
-            $this->addError('destination_url', 'Too many links created. Please wait a moment and try again.');
+            $this->destination_url = trim($this->destination_url);
+            $this->addError('destination_url', 'Too many tries in a row — wait a few seconds and try again.');
             $this->errorKind = 'throttle';
 
             return;
         }
 
+        $this->destination_url = trim($this->destination_url);
         $this->quotaExceeded = false;
         $this->errorKind = 'idle';
 
         try {
             $this->validate();
         } catch (ValidationException $e) {
-            $message = (string) $e->validator->errors()->first('destination_url');
-            $this->errorKind = str_contains($message, '2048') ? 'too_long' : 'invalid';
+            $failed = $e->validator->failed()['destination_url'] ?? [];
+            $this->errorKind = isset($failed['Max'])
+                ? 'too_long'
+                : (isset($failed['Required']) ? 'empty' : 'invalid');
 
             throw $e;
         }
@@ -211,7 +251,7 @@ class ShortenForm extends Component
 
             return;
         } catch (ThrottleRequestsException) {
-            $this->addError('destination_url', 'Too many links created. Please wait a moment and try again.');
+            $this->addError('destination_url', 'Too many tries in a row — wait a few seconds and try again.');
             $this->errorKind = 'throttle';
 
             return;
