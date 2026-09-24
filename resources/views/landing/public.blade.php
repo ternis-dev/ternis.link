@@ -16,6 +16,9 @@
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     @vite(['resources/css/landing-public.css'])
     @livewireStyles
+    @if (config('services.turnstile.key'))
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+    @endif
 </head>
 <body class="sk-root">
     <div class="sk-gauge" id="sk-gauge" role="scrollbar" aria-orientation="vertical" aria-label="Scroll page" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">

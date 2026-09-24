@@ -5,9 +5,10 @@ namespace App\Livewire\Public;
 use App\Enums\DomainType;
 use App\Exceptions\JunkUrlException;
 use App\Models\Domain;
-use App\Support\IpHash;
 use App\Models\Link;
 use App\Services\LinkService;
+use App\Services\TurnstileService;
+use App\Support\IpHash;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +17,8 @@ use Livewire\Component;
 class ShortenForm extends Component
 {
     public string $destination_url = '';
+
+    public ?string $turnstile_token = null;
 
     public ?string $shortUrl = null;
 
@@ -29,7 +32,7 @@ class ShortenForm extends Component
 
     /**
      * Error personality for the notice card:
-     * idle|empty|invalid|too_long|quota|throttle|junk.
+     * idle|empty|invalid|too_long|quota|throttle|junk|security.
      */
     public string $errorKind = 'idle';
 
@@ -198,7 +201,7 @@ class ShortenForm extends Component
             ->first();
     }
 
-    public function create(LinkService $linkService): void
+    public function create(LinkService $linkService, TurnstileService $turnstile): void
     {
         $key = 'public-shorten:'.request()->ip();
 
@@ -225,6 +228,27 @@ class ShortenForm extends Component
             throw $e;
         }
 
+        if ($turnstile->isEnabled()) {
+            if (empty($this->turnstile_token)) {
+                $this->addError('turnstile_token', 'Please complete the security check.');
+                $this->errorKind = 'security';
+
+                return;
+            }
+
+            if (! $turnstile->verify($this->turnstile_token, request()->ip())) {
+                $this->addError('turnstile_token', 'Security check failed — please try again.');
+                $this->errorKind = 'security';
+                $this->turnstile_token = null;
+                $this->dispatch('reset-turnstile');
+
+                return;
+            }
+
+            $this->turnstile_token = null;
+            $this->dispatch('reset-turnstile');
+        }
+
         $domain = $this->resolveDomain();
 
         try {
@@ -237,6 +261,9 @@ class ShortenForm extends Component
                 creatorIp: request()->ip(),
             );
         } catch (ValidationException $e) {
+            $this->turnstile_token = null;
+            $this->dispatch('reset-turnstile');
+
             // Scanner junk gets its own notice card, not the quota one.
             if ($e instanceof JunkUrlException) {
                 foreach ($e->errors() as $field => $messages) {
@@ -265,6 +292,9 @@ class ShortenForm extends Component
 
             return;
         } catch (ThrottleRequestsException) {
+            $this->turnstile_token = null;
+            $this->dispatch('reset-turnstile');
+
             $this->addError('destination_url', 'Too many tries in a row — wait a few seconds and try again.');
             $this->errorKind = 'throttle';
 
@@ -282,10 +312,11 @@ class ShortenForm extends Component
 
     public function resetForm(): void
     {
-        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind']);
+        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'turnstile_token']);
         $this->urlState = 'idle';
         $this->errorKind = 'idle';
         $this->resetValidation();
+        $this->dispatch('reset-turnstile');
     }
 
     /**

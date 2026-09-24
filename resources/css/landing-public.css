@@ -518,6 +518,17 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     letter-spacing: 0.01em;
 }
 
+.sk-turnstile-zone {
+    margin: 0.9rem 0 0.2rem;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.sk-turnstile {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
 /* --- result ------------------------------------------------ */
 .sk-result {
     position: relative;

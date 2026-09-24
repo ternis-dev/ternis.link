@@ -192,6 +192,60 @@
                     </div>
                 </div>
             @enderror
+
+            @if (config('services.turnstile.key'))
+                <div class="sk-turnstile-zone">
+                    <div
+                        wire:ignore
+                        class="sk-turnstile"
+                        x-data="{
+                            widgetId: null,
+                            init() {
+                                var self = this;
+                                function renderWidget() {
+                                    if (typeof turnstile === 'undefined') {
+                                        setTimeout(renderWidget, 100);
+                                        return;
+                                    }
+                                    if (self.widgetId !== null) return;
+                                    self.widgetId = turnstile.render(self.$refs.cfContainer, {
+                                        sitekey: '{{ config('services.turnstile.key') }}',
+                                        theme: 'light',
+                                        callback: function (token) {
+                                            $wire.set('turnstile_token', token);
+                                        },
+                                        'expired-callback': function () {
+                                            $wire.set('turnstile_token', null);
+                                        },
+                                        'error-callback': function () {
+                                            $wire.set('turnstile_token', null);
+                                        }
+                                    });
+                                }
+                                renderWidget();
+                            },
+                            reset() {
+                                if (typeof turnstile !== 'undefined' && this.widgetId !== null) {
+                                    turnstile.reset(this.widgetId);
+                                }
+                            }
+                        }"
+                        x-on:reset-turnstile.window="reset()"
+                    >
+                        <div x-ref="cfContainer"></div>
+                    </div>
+                </div>
+            @endif
+
+            @error('turnstile_token')
+                <div class="sk-oops" role="alert" id="public_turnstile_error">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M12 7.5V13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.4" r="1.3" fill="currentColor"/></svg>
+                    <div>
+                        <p class="sk-oops-title">Security check</p>
+                        <p class="sk-oops-msg">{{ $message }}</p>
+                    </div>
+                </div>
+            @enderror
         </form>
     @endif
 

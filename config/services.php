@@ -47,4 +47,9 @@ return [
         'post_logout_redirect_uri' => env('TERNIS_AUTH_POST_LOGOUT_REDIRECT_URI'),
     ],
 
+    'turnstile' => [
+        'key' => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];
