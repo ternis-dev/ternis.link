@@ -25,6 +25,12 @@ class ShortenForm extends Component
     /** True when the last submit failed on the daily guest quota. */
     public bool $quotaExceeded = false;
 
+    /**
+     * Error personality for the oops card:
+     * idle|invalid|too_long|quota|throttle.
+     */
+    public string $errorKind = 'idle';
+
     protected function rules(): array
     {
         return [
@@ -96,18 +102,86 @@ class ShortenForm extends Component
         }
     }
 
+    /**
+     * When the input is invalid only because the scheme is missing,
+     * offer the fixed URL for one-click repair.
+     */
+    public function getFixablePreviewProperty(): ?string
+    {
+        if ($this->urlState !== 'invalid') {
+            return null;
+        }
+
+        $fixed = 'https://'.ltrim(trim($this->destination_url));
+
+        if (strlen($fixed) > 2048 || ! filter_var($fixed, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        return $fixed;
+    }
+
+    /**
+     * Apply the scheme fix suggested by fixablePreview.
+     */
+    public function applyFix(): void
+    {
+        $fixed = $this->fixablePreview;
+
+        if ($fixed === null) {
+            return;
+        }
+
+        $this->destination_url = $fixed;
+        $this->urlState = 'valid';
+        $this->resetValidation();
+    }
+
+    /**
+     * An existing active link for the same destination on this domain —
+     * no need to shorten twice.
+     */
+    public function getDuplicateProperty(): ?Link
+    {
+        if ($this->urlState !== 'valid' || $this->shortUrl !== null) {
+            return null;
+        }
+
+        try {
+            $domain = $this->resolveDomain();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return Link::accessible()
+            ->where('domain_id', $domain->id)
+            ->where('destination_url', trim($this->destination_url))
+            ->orderByDesc('created_at')
+            ->first();
+    }
+
     public function create(LinkService $linkService): void
     {
         $key = 'public-shorten:'.request()->ip();
 
         if (RateLimiter::tooManyAttempts($key, 10)) {
             $this->addError('destination_url', 'Too many links created. Please wait a moment and try again.');
+            $this->errorKind = 'throttle';
 
             return;
         }
 
         $this->quotaExceeded = false;
-        $this->validate();
+        $this->errorKind = 'idle';
+
+        try {
+            $this->validate();
+        } catch (ValidationException $e) {
+            $message = (string) $e->validator->errors()->first('destination_url');
+            $this->errorKind = str_contains($message, '2048') ? 'too_long' : 'invalid';
+
+            throw $e;
+        }
 
         $domain = $this->resolveDomain();
 
@@ -128,6 +202,9 @@ class ShortenForm extends Component
 
                     if (str_contains((string) $message, 'Daily link limit')) {
                         $this->quotaExceeded = true;
+                        $this->errorKind = 'quota';
+                    } elseif ($this->errorKind === 'idle') {
+                        $this->errorKind = 'invalid';
                     }
                 }
             }
@@ -135,6 +212,7 @@ class ShortenForm extends Component
             return;
         } catch (ThrottleRequestsException) {
             $this->addError('destination_url', 'Too many links created. Please wait a moment and try again.');
+            $this->errorKind = 'throttle';
 
             return;
         }
@@ -150,8 +228,9 @@ class ShortenForm extends Component
 
     public function resetForm(): void
     {
-        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded']);
+        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind']);
         $this->urlState = 'idle';
+        $this->errorKind = 'idle';
         $this->resetValidation();
     }
 

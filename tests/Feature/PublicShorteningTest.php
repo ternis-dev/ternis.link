@@ -235,7 +235,8 @@ class PublicShorteningTest extends TestCase
             ->set('destination_url', 'https://example.com/over-quota')
             ->call('create')
             ->assertSet('quotaExceeded', true)
-            ->assertSee("oops — that didn't stick!", escape: false)
+            ->assertSet('errorKind', 'quota')
+            ->assertSee("out of today's pile!", escape: false)
             ->assertSee('Members get a bigger daily pile');
     }
 
@@ -247,6 +248,57 @@ class PublicShorteningTest extends TestCase
             ->assertHasErrors('destination_url')
             ->assertSee('is-error', escape: false)
             ->assertSee('aria-invalid', escape: false);
+    }
+
+    public function test_missing_scheme_suggests_one_click_fix(): void
+    {
+        $test = Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'example.com/missing-scheme')
+            ->assertSet('urlState', 'invalid')
+            ->assertSee('did you mean', escape: false)
+            ->assertSee('https://example.com/missing-scheme');
+
+        $test->call('applyFix')
+            ->assertSet('destination_url', 'https://example.com/missing-scheme')
+            ->assertSet('urlState', 'valid')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('links', [
+            'destination_url' => 'https://example.com/missing-scheme',
+        ]);
+    }
+
+    public function test_duplicate_destination_shows_existing_link(): void
+    {
+        $link = Link::create([
+            'slug' => 'alreadyhere1',
+            'destination_url' => 'https://example.com/already-here',
+            'domain_id' => $this->publicDomain->id,
+            'user_id' => null,
+            'is_active' => true,
+        ]);
+
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'https://example.com/already-here')
+            ->assertSee('already on file', escape: false)
+            ->assertSee('href.nz/alreadyhere1');
+    }
+
+    public function test_error_kinds_match_failure_reason(): void
+    {
+        // Too long.
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'https://example.com/'.str_repeat('a', 2048))
+            ->call('create')
+            ->assertSet('errorKind', 'too_long')
+            ->assertSee("whoa, that's a long one!", escape: false);
+
+        // Plain invalid.
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'nope')
+            ->call('create')
+            ->assertSet('errorKind', 'invalid');
     }
 
     public function test_business_and_public_landings_differ(): void

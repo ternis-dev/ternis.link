@@ -88,7 +88,7 @@
                     maxlength="2048"
                     aria-describedby="public_destination_hint"
                     @if ($errors->has('destination_url')) aria-invalid="true" @endif
-                    @class(['is-error' => $errors->has('destination_url')])
+                    @class(['is-error' => $errors->has('destination_url'), 'is-valid' => $urlState === 'valid' && ! $errors->has('destination_url')])
                 >
                 <button type="button" class="sk-tool" data-sk-paste aria-label="Paste from clipboard" title="Paste from clipboard">
                     <svg width="18" height="20" viewBox="0 0 22 26" fill="none" aria-hidden="true"><path d="M6 4 L6 23 L16 23 L16 4 M6 7 L4 7 L4 23 L18 23 L18 7 M8 4 C 8 2, 14 2, 14 4 M8 4 L6 4 M14 4 L16 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -118,6 +118,24 @@
                     paste anything long in here ↓
                 @endif
             </p>
+            @if ($this->fixablePreview)
+                <div class="sk-fix" aria-live="polite">
+                    <span>did you mean <strong>{{ \Illuminate\Support\Str::limit($this->fixablePreview, 56) }}</strong>?</span>
+                    <button type="button" wire:click="applyFix" class="sk-fix-btn">yes, fix it ✓</button>
+                </div>
+            @endif
+            @if ($this->duplicate)
+                <div class="sk-dup" aria-live="polite">
+                    <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M13 19 L19 13 M15 8 L18 5 a5.5 5.5 0 0 1 8 8 l-3 3 M17 24 l-3 3 a5.5 5.5 0 0 1-8-8 l3-3" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+                    <div>
+                        <p class="sk-dup-title">already on file — no need to shorten twice!</p>
+                        <p class="sk-dup-link">
+                            <a href="https://{{ $this->previewHost }}/{{ $this->duplicate->slug }}" target="_blank" rel="noopener">{{ $this->previewHost }}/{{ $this->duplicate->slug }}</a>
+                            <button type="button" data-copy-value="https://{{ $this->previewHost }}/{{ $this->duplicate->slug }}" aria-label="Copy existing short link">copy</button>
+                        </p>
+                    </div>
+                </div>
+            @endif
             @if ($this->normalizedPreview)
                 <div class="sk-preview" aria-live="polite">
                     <p class="sk-preview-will">will shorten <span title="{{ $this->normalizedPreview }}">{{ \Illuminate\Support\Str::limit($this->normalizedPreview, 64) }}</span></p>
@@ -135,7 +153,17 @@
                 <div class="sk-oops" role="alert">
                     <svg width="34" height="34" viewBox="0 0 38 38" fill="none" aria-hidden="true"><path d="M19 4 C 10 4, 4 11, 4 19 C 4 27, 10 34, 19 34 C 28 34, 34 27, 34 19 C 34 11, 28 4, 19 4" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M13 13 C 17 17, 21 21, 25 25 M25 13 C 21 17, 17 21, 13 25" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
                     <div>
-                        <p class="sk-oops-title">oops — that didn't stick!</p>
+                        <p class="sk-oops-title">
+                            @if ($errorKind === 'quota')
+                                out of today's pile!
+                            @elseif ($errorKind === 'too_long')
+                                whoa, that's a long one!
+                            @elseif ($errorKind === 'throttle')
+                                take a breath!
+                            @else
+                                oops — that didn't stick!
+                            @endif
+                        </p>
                         <p class="sk-oops-msg">{{ $message }}</p>
                         @if ($quotaExceeded)
                             <p class="sk-oops-nudge">Members get a bigger daily pile — <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">log in</a> and keep going.</p>
@@ -228,7 +256,9 @@
         if (paste) {
             try {
                 var text = await navigator.clipboard.readText();
-                input.value = (text || '').trim().slice(0, 2048);
+                /* Grab the first URL when clipboard holds prose. */
+                var found = (text || '').match(/https?:\/\/[^\s<>"']+/);
+                input.value = (found ? found[0] : (text || '').trim()).slice(0, 2048);
                 input.dispatchEvent(new Event('input', { bubbles: true }));
                 input.focus();
             } catch (e) {
