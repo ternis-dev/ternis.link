@@ -11,6 +11,9 @@
                 <a href="{{ route('dashboard.api-keys') }}" @class(['active' => request()->routeIs('dashboard.api-keys*')])>
                     API Keys
                 </a>
+                <a href="{{ route('dashboard.domains') }}" @class(['active' => request()->routeIs('dashboard.domains*')])>
+                    Domains
+                </a>
                 @if (auth()->check() && auth()->user()->isAdmin())
                     <a href="{{ route('admin.dashboard') }}" @class(['active' => request()->routeIs('admin.*')])>
                         Admin

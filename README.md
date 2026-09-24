@@ -114,7 +114,7 @@ Run the test suite:
 php artisan test
 ```
 
-All 149 feature and unit tests cover:
+All 165 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain (guests always 8-char auto, authed 6-char default via plan minimum)
 - Anonymous link creation (public API rejects custom slugs, guest web form has no slug field, quotas, throttling)
@@ -131,6 +131,7 @@ All 149 feature and unit tests cover:
 - API v1 CRUD endpoints, Bearer API key authentication, and click analytics
 - Dashboard analytics polish (7/30/90-day period filter, zero-filled clicks-over-time chart, referrer/country/browser breakdowns with shares, CSV export)
 - Livewire dashboard link table, link creation form, and API key manager
+- Dashboard domain manager (custom hostname registration, DNS TXT instructions, verification, removal; plan-gated, tamper-proof scoping)
 - Admin dashboard (`admin.ternis.link` overview, link moderation, user role/plan management, host pinning, self-demotion guard)
 - Redirect cache (hot-slug hits skip DB, per-domain keys, update/deactivate/expiry invalidation, no negative caching)
 

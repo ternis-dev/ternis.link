@@ -130,4 +130,12 @@ class DashboardController extends Controller
     {
         return view('dashboard.api-keys.index');
     }
+
+    /**
+     * Custom domains management page (Livewire: DomainManager).
+     */
+    public function domains()
+    {
+        return view('dashboard.domains.index');
+    }
 }
