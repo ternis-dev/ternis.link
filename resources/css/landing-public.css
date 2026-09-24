@@ -13,6 +13,31 @@
     src: url('/fonts/caveat-var.woff2') format('woff2');
 }
 
+/* Kalam — legible handwriting for body & UI (latin subset, self-hosted). */
+@font-face {
+    font-family: 'Kalam';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('/fonts/kalam-light.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Kalam';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/kalam-regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Kalam';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/kalam-bold.woff2') format('woff2');
+}
+
 .sk-root {
     --sk-paper: #f6f3ec;
     --sk-card: #fffdf7;
@@ -27,9 +52,8 @@
     --sk-err-bg: #fbf0f0;
     --sk-err-border: #b33636;
     --sk-err-ink: #6f1f1f;
-    --font-hand: 'Caveat', cursive;
-    --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-hand: 'Caveat', 'Kalam', cursive;
+    --font-ui: 'Kalam', 'Caveat', cursive;
 }
 
 body.sk-root {
@@ -38,7 +62,7 @@ body.sk-root {
     padding: 0 1rem 3rem;
     overflow-x: hidden;
     font-family: var(--font-ui);
-    font-size: 1rem;
+    font-size: 1.08rem;
     line-height: 1.55;
     color: var(--sk-ink);
     background:
@@ -50,6 +74,11 @@ body.sk-root {
 body.sk-root ::selection {
     background: var(--sk-ink);
     color: var(--sk-card);
+}
+
+/* Ink bite — headlines print a touch heavier, like felt pen. */
+.sk-title, .sk-form-title, .sk-brand, .sk-note h2, .sk-kicker, .sk-result-kicker {
+    text-shadow: 0 0 0.6px currentColor;
 }
 
 /* --- doodle helper ---------------------------------------- */
@@ -272,7 +301,7 @@ body.sk-root ::selection {
 
 .sk-form-sub {
     margin: 0 0 1.1rem;
-    font-size: 0.92rem;
+    font-size: 0.99rem;
     color: var(--sk-soft);
 }
 
@@ -293,7 +322,7 @@ body.sk-root ::selection {
     flex: 1;
     min-width: 0;
     font-family: var(--font-ui);
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: var(--sk-ink);
     background: var(--sk-paper);
     border: 2px solid var(--sk-ink);
@@ -331,12 +360,14 @@ body.sk-root ::selection {
 
 .sk-hint {
     margin: 0.6rem 0 0;
-    font-size: 0.82rem;
+    font-size: 0.9rem;
     color: var(--sk-soft);
 }
 
 .sk-hint code, .sk-result-link {
-    font-family: var(--font-mono);
+    font-family: var(--font-ui);
+    font-size: 1.02em;
+    letter-spacing: 0.01em;
 }
 
 .sk-error {
@@ -409,14 +440,14 @@ body.sk-root ::selection {
 
 .sk-copied {
     margin: 0.45rem 0 0;
-    font-size: 0.82rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--sk-ok-ink);
 }
 
 .sk-original {
     margin: 0.45rem 0 0;
-    font-size: 0.8rem;
+    font-size: 0.88rem;
     color: var(--sk-soft);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -476,7 +507,7 @@ body.sk-root ::selection {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    font-size: 0.85rem;
+    font-size: 0.93rem;
     color: var(--sk-soft);
     background: var(--sk-card);
     border: 1.5px dashed #b9b2a1;
@@ -499,7 +530,7 @@ body.sk-root ::selection {
     border: 2px solid var(--sk-ink);
     border-radius: 4px 16px 4px 16px;
     padding: 1.1rem 1rem 1rem;
-    font-size: 0.88rem;
+    font-size: 0.96rem;
     box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.08);
 }
 
@@ -549,7 +580,7 @@ body.sk-root ::selection {
 .sk-foot {
     margin: 1.25rem 0 0;
     text-align: center;
-    font-size: 0.82rem;
+    font-size: 0.9rem;
     color: var(--sk-soft);
 }
 
