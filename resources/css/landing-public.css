@@ -13,29 +13,13 @@
     src: url('/fonts/caveat-var.woff2') format('woff2');
 }
 
-/* Kalam — legible handwriting for body & UI (latin subset, self-hosted). */
+/* Gochi Hand — visibly hand-drawn body & UI face (latin, self-hosted). */
 @font-face {
-    font-family: 'Kalam';
-    font-style: normal;
-    font-weight: 300;
-    font-display: swap;
-    src: url('/fonts/kalam-light.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Kalam';
+    font-family: 'Gochi Hand';
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('/fonts/kalam-regular.woff2') format('woff2');
-}
-
-@font-face {
-    font-family: 'Kalam';
-    font-style: normal;
-    font-weight: 700;
-    font-display: swap;
-    src: url('/fonts/kalam-bold.woff2') format('woff2');
+    src: url('/fonts/gochi-hand.woff2') format('woff2');
 }
 
 .sk-root {
@@ -45,15 +29,14 @@
     --sk-soft: #5f5c55;
     --sk-faint: #d9d3c4;
     --sk-rule: #e9e4d6;
-    --sk-focus: #1d4ed8;
     --sk-ok-bg: #eef7ee;
     --sk-ok-border: #2f7a3d;
     --sk-ok-ink: #1e4d27;
     --sk-err-bg: #fbf0f0;
     --sk-err-border: #b33636;
     --sk-err-ink: #6f1f1f;
-    --font-hand: 'Caveat', 'Kalam', cursive;
-    --font-ui: 'Kalam', 'Caveat', cursive;
+    --font-hand: 'Caveat', 'Gochi Hand', cursive;
+    --font-ui: 'Gochi Hand', 'Caveat', cursive;
 }
 
 body.sk-root {
@@ -332,8 +315,12 @@ body.sk-root ::selection {
 }
 
 .sk-input-row input:focus {
-    border-color: var(--sk-focus);
-    box-shadow: 0 0 0 3px rgba(29, 78, 214, 0.15);
+    border-color: var(--sk-ink);
+    background: #fff;
+    /* Hand-sketched selection: dashed offset outline + hard pen shadow. */
+    outline: 2px dashed var(--sk-ink);
+    outline-offset: 4px;
+    box-shadow: 3px 4px 0 rgba(43, 43, 43, 0.85);
 }
 
 .sk-input-row input::placeholder { color: #a09a8b; }
@@ -586,10 +573,22 @@ body.sk-root ::selection {
 
 .sk-foot a { color: var(--sk-ink); font-weight: 600; }
 
+/* Focus note — only visible while the URL field is focused. */
+.sk-focus-note {
+    display: none;
+    margin: 0.55rem 0 0;
+    font-family: var(--font-hand);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--sk-soft);
+}
+
+.sk-input-row:focus-within + .sk-focus-note { display: block; }
+
 /* --- focus --------------------------------------------------- */
 .sk-root a:focus-visible, .sk-root button:focus-visible, .sk-root input:focus-visible {
-    outline: 3px solid var(--sk-focus);
-    outline-offset: 2px;
+    outline: 2.5px dashed var(--sk-ink);
+    outline-offset: 3px;
 }
 
 @media (max-width: 640px) {

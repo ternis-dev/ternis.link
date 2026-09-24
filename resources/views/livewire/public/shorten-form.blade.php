@@ -83,6 +83,7 @@
                     </span>
                 </button>
             </div>
+            <p class="sk-focus-note" aria-hidden="true">looking good — hit Shorten when ready ↓</p>
             <p class="sk-hint" id="public_destination_hint">
                 Include <code>https://</code>. Guests get auto-made codes —
                 <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" style="color: inherit; font-weight: 600;">log in</a> for custom slugs, shorter links &amp; click stats.
