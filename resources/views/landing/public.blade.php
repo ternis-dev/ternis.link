@@ -18,12 +18,13 @@
     @livewireStyles
 </head>
 <body class="sk-root">
-    <div class="sk-progress" aria-hidden="true">
-        <svg viewBox="0 0 1200 22" preserveAspectRatio="none" aria-hidden="true">
-            <path id="sk-progress-path" pathLength="100" d="M4 13 C 180 6, 360 17, 540 11 S 900 15, 1196 9" />
+    <div class="sk-rail" id="sk-rail" role="scrollbar" aria-orientation="vertical" aria-label="Scroll page" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+        <svg class="sk-rail-lines" viewBox="0 0 40 1000" preserveAspectRatio="none" aria-hidden="true">
+            <path class="sk-rail-track" d="M20 8 C 14 200, 26 350, 18 520 S 24 800, 19 992" />
+            <path class="sk-rail-fill" id="sk-rail-fill" pathLength="100" d="M20 8 C 14 200, 26 350, 18 520 S 24 800, 19 992" />
         </svg>
-        <span class="sk-progress-pencil" id="sk-progress-pencil" aria-hidden="true">
-            <svg width="26" height="26" viewBox="0 0 28 30" fill="none" aria-hidden="true"><path d="M10 3 L18 3 L18 20 L14 27 L10 20 Z M10 7 L18 7 M14 27 L14 22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="sk-rail-pencil" id="sk-rail-pencil" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="12.5" fill="currentColor" stroke="#2b2b2b" stroke-width="2.4"/><path d="M20 8 L10 18 L8.5 22.5 L13 21 Z M17.5 10.5 L20.5 13.5" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
     </div>
     <a class="sk-skip" href="#shorten">Skip to the shortener</a>
@@ -173,43 +174,92 @@
     @livewireScripts
 
     <script>
-    /* Drawn scroll progress: the top squiggle draws itself as you
-     * scroll, pencil riding the tip. pathLength=100 normalizes math. */
+    /* Drawn scrollbar: wobbly rail on the right edge replaces the
+     * native scrollbar. Fill draws with scroll; the pencil thumb is
+     * draggable, the track is click-to-jump, keys work when focused. */
     (function () {
         if (typeof document === 'undefined') return;
 
         function init() {
-            var path = document.getElementById('sk-progress-path');
-            var pen = document.getElementById('sk-progress-pencil');
-            var bar = path ? path.closest('.sk-progress') : null;
-            if (!path || !pen || !bar) return;
+            var rail = document.getElementById('sk-rail');
+            var fill = document.getElementById('sk-rail-fill');
+            var pen = document.getElementById('sk-rail-pencil');
+            if (!rail || !fill || !pen) return;
 
-            path.style.strokeDasharray = '100';
-            path.style.strokeDashoffset = '100';
+            fill.style.strokeDasharray = '100';
+            fill.style.strokeDashoffset = '100';
 
-            var ticking = false;
-
-            function update() {
-                ticking = false;
-                var max = document.documentElement.scrollHeight - window.innerHeight;
-                if (max <= 0) {
-                    bar.style.display = 'none';
-                    return;
-                }
-                bar.style.display = '';
-                var p = Math.min(1, Math.max(0, (window.scrollY || 0) / max));
-                path.style.strokeDashoffset = String(100 - 100 * p);
-                pen.style.left = (p * 100) + '%';
+            function max() {
+                return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
             }
 
-            window.addEventListener('scroll', function () {
+            function render() {
+                var m = max();
+                if (m <= 0) {
+                    rail.style.display = 'none';
+                    return;
+                }
+                rail.style.display = '';
+                var p = Math.min(1, Math.max(0, (window.scrollY || 0) / m));
+                fill.style.strokeDashoffset = String(100 - 100 * p);
+                pen.style.top = (p * 100) + '%';
+                rail.setAttribute('aria-valuenow', String(Math.round(p * 100)));
+            }
+
+            var ticking = false;
+            function requestRender() {
                 if (!ticking) {
                     ticking = true;
-                    requestAnimationFrame(update);
+                    requestAnimationFrame(function () {
+                        ticking = false;
+                        render();
+                    });
                 }
-            }, { passive: true });
-            window.addEventListener('resize', update);
-            update();
+            }
+
+            window.addEventListener('scroll', requestRender, { passive: true });
+            window.addEventListener('resize', render);
+
+            function jumpTo(clientY) {
+                var rect = rail.getBoundingClientRect();
+                var p = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+                window.scrollTo({ top: p * max(), behavior: 'auto' });
+            }
+
+            /* Drag the pencil thumb. */
+            var dragging = false;
+            pen.addEventListener('pointerdown', function (event) {
+                dragging = true;
+                pen.setPointerCapture(event.pointerId);
+                event.preventDefault();
+            });
+            pen.addEventListener('pointermove', function (event) {
+                if (dragging) jumpTo(event.clientY);
+            });
+            pen.addEventListener('pointerup', function () { dragging = false; });
+            pen.addEventListener('pointercancel', function () { dragging = false; });
+
+            /* Click-to-jump on the track. */
+            rail.addEventListener('pointerdown', function (event) {
+                if (event.target.closest('#sk-rail-pencil')) return;
+                jumpTo(event.clientY);
+            });
+
+            /* Keyboard support. */
+            rail.addEventListener('keydown', function (event) {
+                var m = max();
+                var y = window.scrollY || 0;
+                if (event.key === 'ArrowDown') window.scrollTo({ top: y + 80 });
+                else if (event.key === 'ArrowUp') window.scrollTo({ top: y - 80 });
+                else if (event.key === 'PageDown') window.scrollTo({ top: y + window.innerHeight * 0.9 });
+                else if (event.key === 'PageUp') window.scrollTo({ top: y - window.innerHeight * 0.9 });
+                else if (event.key === 'Home') window.scrollTo({ top: 0 });
+                else if (event.key === 'End') window.scrollTo({ top: m });
+                else return;
+                event.preventDefault();
+            });
+
+            render();
         }
 
         if (document.readyState === 'loading') {
