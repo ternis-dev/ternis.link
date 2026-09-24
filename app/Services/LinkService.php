@@ -308,9 +308,16 @@ class LinkService
 
     /**
      * Update a link.
+     *
+     * @throws JunkUrlException When the new destination is scanner junk.
      */
     public function update(Link $link, array $data): Link
     {
+        if (isset($data['destination_url'])) {
+            $data['destination_url'] = trim((string) $data['destination_url']);
+            $this->junkUrls->rejectIfJunk($data['destination_url']);
+        }
+
         $link->update($data);
         Link::forgetCachedSlug($link->domain_id, $link->slug);
 

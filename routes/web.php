@@ -114,6 +114,7 @@ Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::cla
     Route::get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
     Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
     Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
+    Route::get('/links/{link}/edit', [DashboardController::class, 'editLink'])->name('dashboard.links.edit');
     Route::get('/links/{link}/export', [DashboardController::class, 'exportClicks'])->name('dashboard.links.export');
     Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
     Route::get('/domains', [DashboardController::class, 'domains'])->name('dashboard.domains');

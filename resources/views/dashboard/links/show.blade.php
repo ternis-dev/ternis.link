@@ -15,6 +15,7 @@
             @endif
         </x-slot:subtitle>
         <x-slot:actions>
+            <x-ui.button href="{{ route('dashboard.links.edit', $link->id) }}" size="sm">Edit Link</x-ui.button>
             <x-ui.button href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" size="sm" target="_blank">Visit Link ↗</x-ui.button>
         </x-slot:actions>
     </x-ui.page-header>

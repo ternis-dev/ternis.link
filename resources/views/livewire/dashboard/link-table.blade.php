@@ -71,6 +71,7 @@
                     <td>
                         <div class="flex gap-2">
                             <x-ui.button href="{{ route('dashboard.links.show', $link->id) }}" size="sm">Analytics</x-ui.button>
+                            <x-ui.button href="{{ route('dashboard.links.edit', $link->id) }}" size="sm">Edit</x-ui.button>
                             @if ($link->is_active)
                                 <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
                             @endif

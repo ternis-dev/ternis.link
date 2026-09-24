@@ -85,6 +85,20 @@ class DashboardController extends Controller
     }
 
     /**
+     * Link edit page (Livewire: LinkEditForm).
+     *
+     * Admins may edit ANY link; regular users only their own.
+     */
+    public function editLink(string $link)
+    {
+        $link = auth()->user()->isAdmin()
+            ? Link::with(['domain', 'user'])->findOrFail($link)
+            : auth()->user()->links()->with('domain')->findOrFail($link);
+
+        return view('dashboard.links.edit', compact('link'));
+    }
+
+    /**
      * Export a link's clicks as CSV.
      *
      * Admins may export ANY link (including direct-URL rows); regular
