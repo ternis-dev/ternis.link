@@ -77,5 +77,8 @@ class RedirectTest extends TestCase
 
         $response->assertStatus(404);
         $response->assertSee('404');
+        $response->assertSee('notfoundslug', escape: false);
+        $response->assertSee('for the domain', escape: false);
+        $response->assertSee('href.nz', escape: false);
     }
 }

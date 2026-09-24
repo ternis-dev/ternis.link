@@ -70,13 +70,13 @@ class RedirectController extends Controller
         }
 
         if (! $domain) {
-            return response()->view('redirect.not-found', ['slug' => $input], 404);
+            return response()->view('redirect.not-found', ['slug' => $input, 'domain' => request()->getHost()], 404);
         }
 
         $link = $this->linkService->resolveSlug($input, $domain);
 
         if (! $link) {
-            return response()->view('redirect.not-found', ['slug' => $input], 404);
+            return response()->view('redirect.not-found', ['slug' => $input, 'domain' => $domain->hostname], 404);
         }
 
         $this->clickTracker->track($link, $request);
