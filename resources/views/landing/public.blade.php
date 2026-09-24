@@ -238,20 +238,10 @@
                 window.scrollTo({ top: p * max(), behavior: 'auto' });
             }
 
-            /* Press-drag anywhere on the tube: down scrolls down,
-             * up scrolls up — cursor position maps to scroll directly. */
-            var dragging = false;
+            /* Click-to-jump on the tube (no dragging). */
             gauge.addEventListener('pointerdown', function (event) {
-                dragging = true;
-                gauge.setPointerCapture(event.pointerId);
                 jumpTo(event.clientY);
-                event.preventDefault();
             });
-            gauge.addEventListener('pointermove', function (event) {
-                if (dragging) jumpTo(event.clientY);
-            });
-            gauge.addEventListener('pointerup', function () { dragging = false; });
-            gauge.addEventListener('pointercancel', function () { dragging = false; });
 
             /* Keyboard support. */
             gauge.addEventListener('keydown', function (event) {
