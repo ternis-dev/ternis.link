@@ -122,6 +122,11 @@ paths:
           required: false
           schema: { type: string, enum: [all, mine], default: all }
           description: Admins only — `mine` restricts to own links. Regular users always see own links.
+        - name: tag
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter to links carrying that exact (lowercase) tag.
       responses:
         '200':
           description: Paginated links

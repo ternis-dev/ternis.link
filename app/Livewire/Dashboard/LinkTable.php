@@ -18,6 +18,8 @@ class LinkTable extends Component
 
     public string $search = '';
 
+    public string $tag = '';
+
     public string $sortBy = 'created_at';
 
     public string $sortDir = 'desc';
@@ -29,6 +31,11 @@ class LinkTable extends Component
     private const SORTABLE = ['slug', 'click_count', 'created_at'];
 
     public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingTag(): void
     {
         $this->resetPage();
     }
@@ -71,7 +78,9 @@ class LinkTable extends Component
             ->when($this->search, function ($query) use ($isAdmin) {
                 $query->where(function ($q) use ($isAdmin) {
                     $q->where('slug', 'like', "%{$this->search}%")
-                        ->orWhere('destination_url', 'like', "%{$this->search}%");
+                        ->orWhere('destination_url', 'like', "%{$this->search}%")
+                        ->orWhere('description', 'like', "%{$this->search}%")
+                        ->orWhere('tags', 'like', "%{$this->search}%");
                     if ($isAdmin) {
                         $q->orWhereHas('user', fn ($u) => $u
                             ->where('email', 'like', "%{$this->search}%")
@@ -79,9 +88,36 @@ class LinkTable extends Component
                     }
                 });
             })
+            ->when($this->tag, fn ($query) => $query->where('tags', 'like', '%"'.strtolower($this->tag).'"%'))
             ->orderBy($sortBy, $sortDir)
             ->paginate(20);
 
-        return view('livewire.dashboard.link-table', compact('links'));
+        return view('livewire.dashboard.link-table', [
+            'links' => $links,
+            'availableTags' => $this->availableTags($base),
+        ]);
+    }
+
+    /**
+     * Distinct tags across the visible scope for the filter dropdown.
+     * Tags are normalized lowercase at write time; matching is by
+     * quoted element so 'doc' never matches 'docs'.
+     *
+     * @return list<string>
+     */
+    private function availableTags($base): array
+    {
+        $tags = (clone $base)
+            ->whereNotNull('tags')
+            ->pluck('tags')
+            ->flatten()
+            ->filter(fn ($tag) => is_string($tag) && $tag !== '')
+            ->unique()
+            ->sort()
+            ->values()
+            ->take(50)
+            ->all();
+
+        return array_values($tags);
     }
 }

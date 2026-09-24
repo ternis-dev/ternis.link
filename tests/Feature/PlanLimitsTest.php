@@ -357,4 +357,25 @@ class PlanLimitsTest extends TestCase
         $response->assertStatus(201);
         $response->assertJsonFragment(['slug' => 'api-picked']);
     }
+
+    public function test_api_filters_links_by_tag(): void
+    {
+        $user = $this->userOnPlan('pro');
+
+        Link::create([
+            'slug' => 'api-tag-docs-1', 'destination_url' => 'https://example.com/d',
+            'tags' => ['docs'], 'domain_id' => $this->domain->id, 'user_id' => $user->id, 'is_active' => true,
+        ]);
+        Link::create([
+            'slug' => 'api-tag-other-1', 'destination_url' => 'https://example.com/o',
+            'tags' => ['other'], 'domain_id' => $this->domain->id, 'user_id' => $user->id, 'is_active' => true,
+        ]);
+
+        $response = $this->getJson('http://links.t-api.de/v1/links?tag=DOCS', $this->headersFor($user));
+
+        $response->assertStatus(200);
+        $slugs = collect($response->json('data'))->pluck('slug')->all();
+        $this->assertContains('api-tag-docs-1', $slugs);
+        $this->assertNotContains('api-tag-other-1', $slugs);
+    }
 }

@@ -1,12 +1,22 @@
 <div>
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <x-ui.input
-            name="table-search"
-            type="text"
-            wire:model.live.debounce.300ms="search"
-            placeholder="{{ auth()->user()?->isAdmin() ? 'Search by slug, URL or owner...' : 'Search by slug or destination URL...' }}"
-            class="max-w-md"
-        />
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+            <x-ui.input
+                name="table-search"
+                type="text"
+                wire:model.live.debounce.300ms="search"
+                placeholder="{{ auth()->user()?->isAdmin() ? 'Search by slug, URL, description, tag or owner...' : 'Search by slug, URL, description or tag...' }}"
+                class="max-w-md flex-1"
+            />
+            @if ($availableTags !== [])
+                <x-ui.select name="table-tag" wire:model.live="tag" class="w-auto" aria-label="Filter by tag">
+                    <option value="">All tags</option>
+                    @foreach ($availableTags as $availableTag)
+                        <option value="{{ $availableTag }}">{{ $availableTag }}</option>
+                    @endforeach
+                </x-ui.select>
+            @endif
+        </div>
         <x-ui.button href="{{ route('dashboard.links.create') }}" variant="primary">+ Create Link</x-ui.button>
     </div>
 
@@ -42,10 +52,23 @@
                             {{ $link->slug }}
                         </a>
                     </td>
-                    <td class="max-w-[300px] truncate">
-                        <a href="{{ $link->destination_url }}" target="_blank" rel="noopener noreferrer" class="text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">
+                    <td class="max-w-[300px]">
+                        <a href="{{ $link->destination_url }}" target="_blank" rel="noopener noreferrer" class="block truncate text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">
                             {{ $link->destination_url }}
                         </a>
+                        @if ($link->description)
+                            <p class="mt-0.5 truncate text-xs text-neutral-500 dark:text-neutral-500" title="{{ $link->description }}">{{ $link->description }}</p>
+                        @endif
+                        @if (! empty($link->tags))
+                            <p class="mt-1 flex flex-wrap gap-1">
+                                @foreach (array_slice($link->tags, 0, 3) as $tag)
+                                    <button type="button" wire:click="$set('tag', @js($tag))" title="Filter by {{ $tag }}" class="inline-flex cursor-pointer items-center rounded-full border border-neutral-300 px-1.5 py-px text-[11px] font-medium text-neutral-600 transition-colors hover:border-neutral-900 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white">{{ $tag }}</button>
+                                @endforeach
+                                @if (count($link->tags) > 3)
+                                    <span class="text-[11px] text-neutral-400 dark:text-neutral-600">+{{ count($link->tags) - 3 }}</span>
+                                @endif
+                            </p>
+                        @endif
                     </td>
                     <td>
                         <code>{{ $link->domain->hostname ?? 'href.nz' }}</code>

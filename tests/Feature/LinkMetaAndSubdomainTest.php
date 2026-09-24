@@ -272,4 +272,50 @@ class LinkMetaAndSubdomainTest extends TestCase
         $this->assertTrue(User::factory()->partner()->create()->canClaimSubdomain());
         $this->assertFalse(User::factory()->create()->canClaimSubdomain());
     }
+
+    // --- tag discovery --------------------------------------------
+
+    public function test_table_filters_by_tag_and_searches_meta(): void
+    {
+        $user = $this->userOnPlan('free');
+        $this->makeLink($user, 'tagged-docs-1', 'https://example.com/docs', 'Docs page', ['docs']);
+        $this->makeLink($user, 'tagged-other-1', 'https://example.com/other', 'Other page', ['other']);
+
+        Livewire::actingAs($user)
+            ->test(\App\Livewire\Dashboard\LinkTable::class)
+            ->assertSee('All tags', escape: false)
+            ->assertSee('docs', escape: false)
+            ->set('tag', 'docs')
+            ->assertSee('tagged-docs-1', escape: false)
+            ->assertDontSee('tagged-other-1', escape: false)
+            ->set('tag', '')
+            ->set('search', 'Other page')
+            ->assertSee('tagged-other-1', escape: false)
+            ->assertDontSee('tagged-docs-1', escape: false);
+    }
+
+    public function test_admin_moderation_search_finds_tags(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = $this->userOnPlan('free');
+        $this->makeLink($user, 'mod-tagged-1', 'https://example.com/m', null, ['moderate-me']);
+
+        Livewire::actingAs($admin)
+            ->test(\App\Livewire\Admin\LinkModeration::class)
+            ->set('search', 'moderate-me')
+            ->assertSee('mod-tagged-1', escape: false);
+    }
+
+    private function makeLink(User $user, string $slug, string $url, ?string $description, array $tags): Link
+    {
+        return Link::create([
+            'slug' => $slug,
+            'destination_url' => $url,
+            'description' => $description,
+            'tags' => $tags,
+            'domain_id' => $this->domain->id,
+            'user_id' => $user->id,
+            'is_active' => true,
+        ]);
+    }
 }

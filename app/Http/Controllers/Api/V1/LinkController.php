@@ -21,15 +21,19 @@ class LinkController extends Controller
      * GET /v1/links — List links.
      *
      * Admins list ALL links by default (`?scope=mine` restricts to their
-     * own); regular users list their own links only.
+     * own); regular users list their own links only. `?tag=` filters to
+     * links carrying that exact tag.
      */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
         $adminAll = $user->isAdmin() && $request->query('scope', 'all') === 'all';
 
+        $tag = strtolower(trim((string) $request->query('tag', '')));
+
         $links = ($adminAll ? Link::query() : $user->links())
             ->with($adminAll ? ['domain', 'user'] : 'domain')
+            ->when($tag !== '', fn ($query) => $query->where('tags', 'like', '%"'.$tag.'"%'))
             ->orderByDesc('created_at')
             ->paginate(25);
 

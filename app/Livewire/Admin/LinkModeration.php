@@ -62,7 +62,9 @@ class LinkModeration extends Component
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('slug', 'like', "%{$this->search}%")
-                        ->orWhere('destination_url', 'like', "%{$this->search}%");
+                        ->orWhere('destination_url', 'like', "%{$this->search}%")
+                        ->orWhere('description', 'like', "%{$this->search}%")
+                        ->orWhere('tags', 'like', "%{$this->search}%");
                 });
             })
             ->when($this->status === 'active', fn ($q) => $q->where('is_active', true)->where(fn ($s) => $s->whereNull('expires_at')->orWhere('expires_at', '>', now())))
