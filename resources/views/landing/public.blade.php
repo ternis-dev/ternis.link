@@ -40,9 +40,6 @@
                 <rect id="sk-gauge-fill" x="0" y="1000" width="40" height="0" fill="url(#sk-hatch)" />
             </g>
         </svg>
-        <span class="sk-gauge-pencil" id="sk-gauge-pencil" aria-hidden="true">
-            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="12.5" fill="currentColor" stroke="#2b2b2b" stroke-width="2.4"/><path d="M20 8 L10 18 L8.5 22.5 L13 21 Z M17.5 10.5 L20.5 13.5" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
     </div>
     <a class="sk-skip" href="#shorten">Skip to the shortener</a>
 
@@ -201,8 +198,7 @@
         function init() {
             var gauge = document.getElementById('sk-gauge');
             var hatch = document.getElementById('sk-gauge-fill');
-            var pen = document.getElementById('sk-gauge-pencil');
-            if (!gauge || !hatch || !pen) return;
+            if (!gauge || !hatch) return;
 
             function max() {
                 return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -219,8 +215,6 @@
                 /* viewBox is 1000 tall: hatching rises from the bottom. */
                 hatch.setAttribute('y', String(1000 - 1000 * p));
                 hatch.setAttribute('height', String(1000 * p));
-                /* Knob sits on the fill surface (top of the hatching). */
-                pen.style.top = ((1 - p) * 100) + '%';
                 gauge.setAttribute('aria-valuenow', String(Math.round(p * 100)));
             }
 
@@ -244,24 +238,20 @@
                 window.scrollTo({ top: p * max(), behavior: 'auto' });
             }
 
-            /* Drag the pencil thumb. */
+            /* Press-drag anywhere on the tube: down scrolls down,
+             * up scrolls up — cursor position maps to scroll directly. */
             var dragging = false;
-            pen.addEventListener('pointerdown', function (event) {
+            gauge.addEventListener('pointerdown', function (event) {
                 dragging = true;
-                pen.setPointerCapture(event.pointerId);
+                gauge.setPointerCapture(event.pointerId);
+                jumpTo(event.clientY);
                 event.preventDefault();
             });
-            pen.addEventListener('pointermove', function (event) {
+            gauge.addEventListener('pointermove', function (event) {
                 if (dragging) jumpTo(event.clientY);
             });
-            pen.addEventListener('pointerup', function () { dragging = false; });
-            pen.addEventListener('pointercancel', function () { dragging = false; });
-
-            /* Click-to-jump on the tube. */
-            gauge.addEventListener('pointerdown', function (event) {
-                if (event.target.closest('#sk-gauge-pencil')) return;
-                jumpTo(event.clientY);
-            });
+            gauge.addEventListener('pointerup', function () { dragging = false; });
+            gauge.addEventListener('pointercancel', function () { dragging = false; });
 
             /* Keyboard support. */
             gauge.addEventListener('keydown', function (event) {

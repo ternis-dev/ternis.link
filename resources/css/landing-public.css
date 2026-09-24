@@ -81,21 +81,6 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     outline-offset: -4px;
 }
 
-/* Pencil knob riding the fill surface — the drag handle. */
-.sk-gauge-pencil {
-    position: absolute;
-    left: 0;
-    width: 30px;
-    height: 30px;
-    margin-top: -15px;
-    color: var(--sk-card);
-    cursor: grab;
-    line-height: 0;
-    filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, 0.25));
-}
-
-.sk-gauge-pencil:active { cursor: grabbing; }
-
 /* Left fill-up gauge — decorative twin of the right rail: a drawn
  * outline tube that fills with ink as you scroll. Aria-hidden,
  * the right rail remains the interactive scrollbar. */
