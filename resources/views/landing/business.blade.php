@@ -25,7 +25,10 @@
     <header class="border-b border-neutral-200 dark:border-neutral-800">
         <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
             <a href="/" class="font-display text-2xl font-bold tracking-tight">href<span>.re</span></a>
-            <x-ui.badge tone="solid">Official · Business only</x-ui.badge>
+            <div class="flex items-center gap-3">
+                <a href="https://href.nz" class="text-xs text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors" rel="noopener">Public Shortener (href.nz) →</a>
+                <x-ui.badge tone="solid">Official · Business only</x-ui.badge>
+            </div>
         </div>
     </header>
 
@@ -33,12 +36,13 @@
         <section class="py-14 text-center sm:py-20">
             <h1 class="font-display text-5xl font-bold tracking-tight sm:text-6xl">Official links, <span class="text-neutral-400 dark:text-neutral-500">recognizable.</span></h1>
             <p class="mx-auto mt-4 max-w-xl text-neutral-500 dark:text-neutral-400"><strong class="text-neutral-900 dark:text-white">href.re</strong> is reserved for official ternis business links. No public shortening here — every redirect is provisioned and audited by the ternis team.</p>
-            <div class="mt-8">
+            <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
                 @auth
                     <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/') }}" variant="primary" size="lg">Go to Dashboard</x-ui.button>
                 @else
                     <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/login') }}" variant="primary" size="lg">Sign in with Ternis Auth</x-ui.button>
                 @endauth
+                <x-ui.button href="https://href.nz" variant="secondary" size="lg" rel="noopener">Open href.nz</x-ui.button>
             </div>
             <ul class="mt-8 flex flex-wrap justify-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                 <li class="rounded-full bg-neutral-100 px-3 py-1 dark:bg-neutral-900">✓ Verified sender</li>
@@ -50,11 +54,11 @@
         <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <x-ui.card>
                 <h2 class="text-sm font-semibold">Business only</h2>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Public guest shortening is disabled on this domain. Need a public link? Use <strong>href.nz</strong>.</p>
+                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Public guest shortening is disabled on this domain. Need a public link? Use <a href="https://href.nz" class="font-medium text-neutral-900 underline underline-offset-2 hover:text-black dark:text-white dark:hover:text-neutral-200" rel="noopener">href.nz</a>.</p>
             </x-ui.card>
             <x-ui.card>
                 <h2 class="text-sm font-semibold">Trusted by default</h2>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Recipients can trust href.re redirects — they are issued internally and access-controlled.</p>
+                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Recipients can trust href.re redirects — they are issued internally and access-controlled via <a href="https://ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">ternis.link</a>.</p>
             </x-ui.card>
             <x-ui.card>
                 <h2 class="text-sm font-semibold">Measured</h2>
@@ -64,7 +68,13 @@
     </main>
 
     <footer class="mt-14 border-t border-neutral-200 py-6 dark:border-neutral-800">
-        <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">href.re — official business shortener by ternis.link · public links: <strong>href.nz</strong> · <a href="https://ternis.link/legal/privacy" class="underline underline-offset-2">privacy</a> · <a href="https://ternis.link/legal/terms" class="underline underline-offset-2">terms</a> · <a href="https://ternis.dev/en/legal/imprint" class="underline underline-offset-2">imprint</a></p>
+        <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">
+            href.re — official business shortener by <a href="https://ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">ternis.link</a> · 
+            public links: <a href="https://href.nz" class="font-semibold underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">href.nz</a> · 
+            <a href="https://ternis.link/legal/privacy" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">privacy</a> · 
+            <a href="https://ternis.link/legal/terms" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">terms</a> · 
+            <a href="https://ternis.dev/en/legal/imprint" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">imprint</a>
+        </p>
     </footer>
 </body>
 </html>
