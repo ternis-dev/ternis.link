@@ -166,6 +166,47 @@ class PublicShorteningTest extends TestCase
         $response->assertSee('Shorten a link', escape: false);
     }
 
+    public function test_form_tracks_live_url_state(): void
+    {
+        Livewire::test(ShortenForm::class)
+            ->assertSet('urlState', 'idle')
+            ->set('destination_url', 'not a url')
+            ->assertSet('urlState', 'invalid')
+            ->set('destination_url', 'https://example.com/looks-good')
+            ->assertSet('urlState', 'valid')
+            ->set('destination_url', '')
+            ->assertSet('urlState', 'idle');
+    }
+
+    public function test_form_shows_remaining_guest_quota(): void
+    {
+        $test = Livewire::test(ShortenForm::class);
+        $this->assertSame(LinkService::ANONYMOUS_DAILY_LIMIT, $test->get('quotaLeft'));
+        $test->assertSee(LinkService::ANONYMOUS_DAILY_LIMIT.' of '.LinkService::ANONYMOUS_DAILY_LIMIT.' free links left today');
+
+        Link::create([
+            'slug' => 'quota-'.Str::random(6),
+            'destination_url' => 'https://example.com/quota',
+            'domain_id' => $this->publicDomain->id,
+            'user_id' => null,
+            'creator_ip_hash' => hash('sha256', '127.0.0.1'),
+            'is_active' => true,
+        ]);
+
+        $test = Livewire::test(ShortenForm::class);
+        $this->assertSame(LinkService::ANONYMOUS_DAILY_LIMIT - 1, $test->get('quotaLeft'));
+    }
+
+    public function test_successful_create_resets_url_state(): void
+    {
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'https://example.com/state-reset')
+            ->assertSet('urlState', 'valid')
+            ->call('create')
+            ->assertHasNoErrors()
+            ->assertSet('urlState', 'idle');
+    }
+
     public function test_business_and_public_landings_differ(): void
     {
         $public = $this->get('http://href.nz/');

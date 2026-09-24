@@ -650,3 +650,195 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     .dk-hide-sm { display: none; }
     .sk-card { padding: 1.25rem 1.1rem; }
 }
+
+/* --- form head + quota meter -------------------------------- */
+.sk-form-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.sk-meter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--sk-paper);
+    border: 1.5px dashed #b9b2a1;
+    border-radius: 999px;
+    padding: 0.3rem 0.8rem;
+    transform: rotate(1deg);
+}
+
+.sk-meter-boxes { display: inline-flex; gap: 3px; }
+
+.sk-meter-box {
+    width: 9px;
+    height: 13px;
+    border: 1.5px solid var(--sk-soft);
+    border-radius: 2px;
+    transform: rotate(-2deg);
+}
+
+.sk-meter-box.is-full { background: var(--sk-ink); }
+
+.sk-meter-text {
+    font-family: var(--font-hand);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--sk-soft);
+    white-space: nowrap;
+}
+
+/* --- label row + live URL state ------------------------------ */
+.sk-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.sk-label-row .sk-label { margin-bottom: 0; }
+
+.sk-url-state { line-height: 0; padding-bottom: 0.3rem; }
+
+/* --- tool buttons (paste / clear) ---------------------------- */
+.sk-tool {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    border: 2px solid var(--sk-ink);
+    border-radius: 12px;
+    background: var(--sk-card);
+    color: var(--sk-soft);
+    cursor: pointer;
+}
+
+.sk-tool:hover { color: var(--sk-ink); background: rgba(43, 43, 43, 0.05); }
+
+/* --- ticket-stub result -------------------------------------- */
+.sk-ticket {
+    position: relative;
+    margin-top: 1.1rem;
+    background: var(--sk-ok-bg);
+    border: 2px solid var(--sk-ok-border);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    animation: sk-pop 0.25s ease-out;
+}
+
+.sk-ticket-link {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--sk-ok-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 0.4rem;
+}
+
+.sk-ticket-perf {
+    margin: 0.85rem -0.4rem 0;
+    border-top: 2px dashed var(--sk-ok-border);
+    opacity: 0.55;
+    position: relative;
+}
+
+.sk-ticket-perf::before, .sk-ticket-perf::after {
+    content: '';
+    position: absolute;
+    top: -9px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--sk-card);
+    border: 2px solid var(--sk-ok-border);
+}
+
+.sk-ticket-perf::before { left: -22px; }
+.sk-ticket-perf::after { right: -22px; }
+
+/* --- recent-links tray --------------------------------------- */
+.sk-tray {
+    margin-top: 1.25rem;
+    border-top: 2px dashed var(--sk-faint);
+    padding-top: 0.8rem;
+}
+
+.sk-tray-title {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-hand);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--sk-soft);
+}
+
+.sk-tray-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.sk-tray-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--sk-paper);
+    border: 1.5px solid var(--sk-faint);
+    border-radius: 10px;
+    padding: 0.35rem 0.6rem 0.45rem 0.8rem;
+    transform: rotate(-0.3deg);
+}
+
+.sk-tray-list li:nth-child(even) { transform: rotate(0.3deg); }
+
+.sk-tray-list a {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-ui);
+    font-size: 1.02rem;
+    color: var(--sk-ink);
+    text-decoration: none;
+}
+
+.sk-tray-list a:hover { text-decoration: underline; }
+
+.sk-tray-list button {
+    font-family: var(--font-hand);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--sk-soft);
+    background: transparent;
+    border: 1.5px solid var(--sk-faint);
+    border-radius: 8px;
+    padding: 0.05rem 0.6rem 0.15rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.sk-tray-list button:hover { color: var(--sk-ink); border-color: var(--sk-ink); }
+
+.sk-tray-clear {
+    margin-top: 0.6rem;
+    font-family: var(--font-hand);
+    font-size: 1.05rem;
+    color: var(--sk-soft);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}

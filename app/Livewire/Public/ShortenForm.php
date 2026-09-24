@@ -4,6 +4,7 @@ namespace App\Livewire\Public;
 
 use App\Enums\DomainType;
 use App\Models\Domain;
+use App\Models\Link;
 use App\Services\LinkService;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Facades\RateLimiter;
@@ -18,11 +19,45 @@ class ShortenForm extends Component
 
     public ?string $originalUrl = null;
 
+    /** Live input state: idle|invalid|valid (format hint only). */
+    public string $urlState = 'idle';
+
     protected function rules(): array
     {
         return [
             'destination_url' => ['required', 'url', 'max:2048'],
         ];
+    }
+
+    /**
+     * Lightweight format hint while typing — real validation still
+     * happens on submit.
+     */
+    public function updatedDestinationUrl(): void
+    {
+        $value = trim($this->destination_url);
+
+        if ($value === '') {
+            $this->urlState = 'idle';
+
+            return;
+        }
+
+        $this->urlState = filter_var($value, FILTER_VALIDATE_URL) && strlen($value) <= 2048
+            ? 'valid'
+            : 'invalid';
+    }
+
+    /**
+     * Guest links left today for this IP (quota meter display).
+     */
+    public function getQuotaLeftProperty(): int
+    {
+        $used = Link::where('creator_ip_hash', hash('sha256', (string) request()->ip()))
+            ->where('created_at', '>=', now()->startOfDay())
+            ->count();
+
+        return max(0, LinkService::ANONYMOUS_DAILY_LIMIT - $used);
     }
 
     public function create(LinkService $linkService): void
@@ -69,11 +104,13 @@ class ShortenForm extends Component
         $this->originalUrl = $this->destination_url;
 
         $this->destination_url = '';
+        $this->urlState = 'idle';
     }
 
     public function resetForm(): void
     {
-        $this->reset(['destination_url', 'shortUrl', 'originalUrl']);
+        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState']);
+        $this->urlState = 'idle';
         $this->resetValidation();
     }
 

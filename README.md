@@ -117,10 +117,11 @@ Run the test suite:
 php artisan test
 ```
 
-All 182 feature and unit tests cover:
+All 185 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain (guests always 8-char auto, authed 6-char default via plan minimum)
 - Anonymous link creation (public API rejects custom slugs, guest web form has no slug field, quotas, throttling)
+- Guest shortener form (live URL state hint, remaining-quota meter, ticket-stub result, device-local recent-links tray)
 - Per-domain landing pages (`href.nz` public + form vs `href.re` business, local fonts/CSS)
 - Auth redirect shims (`href.nz/login`, `ternis.link/login`, `href.re/login` 302 to dashboard host)
 - Custom error pages (web HTML `errors/*` views, JSON for API/`expectsJson`)
