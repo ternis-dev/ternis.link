@@ -6,13 +6,13 @@
     <title>{{ $title ?? 'ternis.link' }}</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <script>
+        // Paint order: explicit browser toggle > account preference > OS.
+        window.tlThemeDefault = @json(auth()->user()?->theme ?? 'system');
         try {
             const stored = localStorage.getItem('tl-theme');
-            if (stored === 'light' || (stored !== 'dark' && matchMedia('(prefers-color-scheme: light)').matches)) {
-                document.documentElement.classList.remove('dark');
-            } else {
-                document.documentElement.classList.add('dark');
-            }
+            const server = window.tlThemeDefault !== 'system' ? window.tlThemeDefault : null;
+            const want = stored || server || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.classList.toggle('dark', want !== 'light');
         } catch (e) {
             document.documentElement.classList.add('dark');
         }

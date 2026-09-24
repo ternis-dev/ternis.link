@@ -15,14 +15,12 @@
         @if ($totalClicks === 0)
             <p class="text-sm text-neutral-500 dark:text-neutral-400">No clicks in the last {{ $period }} days yet. Share your link to see traffic here.</p>
         @else
-            <div class="ui-chart-bars" role="img" aria-label="Daily clicks for the last {{ $period }} days">
-                @foreach ($clicksByDay as $day)
-                    <div
-                        class="ui-chart-bar"
-                        style="height: {{ max(3, round($day['count'] / $maxDailyClicks * 100)) }}%;"
-                        title="{{ $day['label'] }}: {{ $day['count'] }} clicks"
-                    ></div>
-                @endforeach
+            <div class="relative h-56" role="img" aria-label="Daily clicks for the last {{ $period }} days">
+                <canvas
+                    data-chart="clicks"
+                    data-chart-labels='@json($clicksByDay->pluck("label")->values())'
+                    data-chart-values='@json($clicksByDay->pluck("count")->values())'
+                ></canvas>
             </div>
             <div class="mt-2 flex justify-between text-xs text-neutral-500 dark:text-neutral-500">
                 <span>{{ $clicksByDay->first()['label'] }}</span>
@@ -64,11 +62,25 @@
         @if ($topBrowsers->isEmpty())
             <p class="text-sm text-neutral-500 dark:text-neutral-400">No browser data recorded yet.</p>
         @else
-            <div class="flex flex-col gap-3.5">
-                @foreach ($topBrowsers as $b)
-                    @php($share = $totalClicks > 0 ? round($b['count'] / $totalClicks * 100, 1) : 0)
-                    <x-ui.bar-row :label="$b['browser']" :value="$b['count'].' · '.$share.'%'" :share="$share" />
-                @endforeach
+            <div class="flex flex-col items-center gap-6 sm:flex-row">
+                <div class="relative h-48 w-full max-w-55 sm:w-1/2" role="img" aria-label="Clicks by browser">
+                    <canvas
+                        id="chart-browsers"
+                        data-chart="browsers"
+                        data-chart-labels='@json($topBrowsers->pluck("browser")->values())'
+                        data-chart-values='@json($topBrowsers->pluck("count")->values())'
+                    ></canvas>
+                </div>
+                <ul class="w-full flex-1 space-y-3" data-chart-legend="chart-browsers">
+                    @foreach ($topBrowsers as $i => $b)
+                        @php($share = $totalClicks > 0 ? round($b['count'] / $totalClicks * 100, 1) : 0)
+                        <li class="flex items-center gap-2.5 text-sm">
+                            <span data-swatch="{{ $i }}" class="h-3 w-3 shrink-0 rounded-sm bg-neutral-300 dark:bg-neutral-700" aria-hidden="true"></span>
+                            <span class="min-w-0 flex-1 truncate">{{ $b['browser'] }}</span>
+                            <span class="text-xs whitespace-nowrap text-neutral-500 dark:text-neutral-400">{{ $b['count'] }} · {{ $share }}%</span>
+                        </li>
+                    @endforeach
+                </ul>
             </div>
         @endif
     </x-ui.card>

@@ -36,6 +36,8 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
 - **Frontend**:
   - Built with Blade + Livewire 4.
   - Custom grayscale UI system on Tailwind CSS v4 (`resources/css/app.css` + `components/ui/*` Blade components: button, card, field, table, badge, alert, stat, segmented, status) with light/dark mode (class toggle, persisted, defaults to dark).
+  - Dashboard layout switchable per user (side or top navigation) via Settings; account theme preference (system/light/dark).
+  - Analytics charts via Chart.js (clicks-over-time bars, browser doughnut with server-rendered HTML legend), grayscale palettes that follow the active theme.
   - Self-hosted fonts (`public/fonts/inter-var.woff2`, `space-grotesk-var.woff2`) + single Vite bundle — no external CDN.
   - Custom branded error pages (`resources/views/errors/404,403,419,429,500,503.blade.php`) for web requests; API/`expectsJson` requests still receive JSON.
   - Error encounters (`error_encounters` table): every rendered error response is logged with `http_code`, `error_message`, `exception_class`, `method`/`host`/`path`, `user_id`, SHA-256 `ip_hash`, and `user_agent`. Validation noise and health probes are skipped; logging never throws. SSO callback failures (stale/reused codes) redirect to login with a friendly message instead of 500ing.
@@ -114,7 +116,7 @@ Run the test suite:
 php artisan test
 ```
 
-All 173 feature and unit tests cover:
+All 182 feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain (guests always 8-char auto, authed 6-char default via plan minimum)
 - Anonymous link creation (public API rejects custom slugs, guest web form has no slug field, quotas, throttling)
@@ -129,8 +131,8 @@ All 173 feature and unit tests cover:
 - Ternis Auth OAuth PKCE authorization redirect & user provisioning callback
 - Direct URL redirects (`/url/{url}`, `/go/{url}`) & bare path redirects
 - API v1 CRUD endpoints, Bearer API key authentication, and click analytics
-- Dashboard analytics polish (7/30/90-day period filter, zero-filled clicks-over-time chart, referrer/country/browser breakdowns with shares, CSV export)
-- Livewire dashboard link table, link creation form, and API key manager
+- Dashboard analytics polish (7/30/90-day period filter, Chart.js clicks-over-time chart, referrer/country/browser breakdowns with shares, CSV export)
+- Livewire dashboard link table, link creation form, settings form (nav layout + theme), and API key manager
 - Dashboard domain manager (custom hostname registration, DNS TXT instructions, verification, removal; plan-gated, tamper-proof scoping)
 - Admin dashboard (`admin.ternis.link` overview, link moderation, domain moderation, user role/plan management, host pinning, self-demotion guard)
 - Redirect cache (hot-slug hits skip DB, per-domain keys, update/deactivate/expiry invalidation, no negative caching)

@@ -138,4 +138,12 @@ class DashboardController extends Controller
     {
         return view('dashboard.domains.index');
     }
+
+    /**
+     * Settings page (Livewire: SettingsForm).
+     */
+    public function settings()
+    {
+        return view('dashboard.settings.index');
+    }
 }

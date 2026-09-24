@@ -22,7 +22,18 @@ class User extends Authenticatable
         'sso_user_type',
         'role',
         'plan_id',
+        'nav_layout',
+        'theme',
     ];
+
+    public const NAV_LAYOUTS = ['side', 'top'];
+
+    public const THEMES = ['system', 'light', 'dark'];
+
+    public function usesTopNav(): bool
+    {
+        return $this->nav_layout === 'top';
+    }
 
     protected $casts = [
         'role' => UserRole::class,
