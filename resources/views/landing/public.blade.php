@@ -48,7 +48,7 @@
             <a href="/" class="sk-brand" aria-label="href.nz home">href<span>.nz</span></a>
             <nav aria-label="Account">
                 @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/dashboard') }}" class="sk-login">
+                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="sk-login">
                         open dashboard
                         {{-- 1 · login arrow --}}
                         <svg width="26" height="12" viewBox="0 0 28 14" fill="none" aria-hidden="true"><path d="M2 10 C 10 8, 18 7.5, 24 8.5 M24 8.5 L18.5 5 M24 8.5 L18.5 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>

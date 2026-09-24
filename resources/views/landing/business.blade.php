@@ -35,7 +35,7 @@
             <p class="mx-auto mt-4 max-w-xl text-neutral-500 dark:text-neutral-400"><strong class="text-neutral-900 dark:text-white">href.re</strong> is reserved for official ternis business links. No public shortening here — every redirect is provisioned and audited by the ternis team.</p>
             <div class="mt-8">
                 @auth
-                    <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/dashboard') }}" variant="primary" size="lg">Go to Dashboard</x-ui.button>
+                    <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/') }}" variant="primary" size="lg">Go to Dashboard</x-ui.button>
                 @else
                     <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/login') }}" variant="primary" size="lg">Sign in with Ternis Auth</x-ui.button>
                 @endauth
