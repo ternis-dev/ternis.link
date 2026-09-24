@@ -232,17 +232,6 @@
             window.addEventListener('scroll', requestRender, { passive: true });
             window.addEventListener('resize', render);
 
-            function jumpTo(clientY) {
-                var rect = gauge.getBoundingClientRect();
-                var p = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
-                window.scrollTo({ top: p * max(), behavior: 'auto' });
-            }
-
-            /* Click-to-jump on the tube (no dragging). */
-            gauge.addEventListener('pointerdown', function (event) {
-                jumpTo(event.clientY);
-            });
-
             /* Keyboard support. */
             gauge.addEventListener('keydown', function (event) {
                 var m = max();
