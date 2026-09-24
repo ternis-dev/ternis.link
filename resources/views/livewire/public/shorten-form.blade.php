@@ -179,6 +179,8 @@
                                 Slow down a moment
                             @elseif ($errorKind === 'empty')
                                 Paste a link first
+                            @elseif ($errorKind === 'junk')
+                                That doesn’t look like a real link
                             @else
                                 That link doesn’t look right
                             @endif

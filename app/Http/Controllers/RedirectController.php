@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Domain;
 use App\Services\ClickTrackerService;
+use App\Services\JunkUrlDetector;
 use App\Services\LinkService;
 use App\Services\SlugResolverService;
 use Illuminate\Http\Request;
@@ -14,11 +15,16 @@ class RedirectController extends Controller
         private SlugResolverService $slugResolver,
         private LinkService $linkService,
         private ClickTrackerService $clickTracker,
+        private JunkUrlDetector $junkUrls,
     ) {}
 
     /**
      * Handle /url/{url} — preferred direct URL redirect.
      * Clicks are stored but only visible to admins.
+     *
+     * Scanner probes are still redirected (it's a redirector) but
+     * never get a tracking row — that's what polluted the admin
+     * with u_* junk links.
      */
     public function directUrl(Request $request, string $url)
     {
@@ -29,7 +35,7 @@ class RedirectController extends Controller
             $domain = Domain::where('hostname', 'href.nz')->first();
         }
 
-        if ($domain) {
+        if ($domain && ! $this->junkUrls->isJunk($normalizedUrl)) {
             $link = $this->linkService->findOrCreateDirectUrlLink($normalizedUrl, $domain);
             $this->clickTracker->track($link, $request, isDirectUrl: true);
         }

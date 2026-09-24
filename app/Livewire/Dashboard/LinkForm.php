@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Services\LinkService;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class LinkForm extends Component
@@ -88,6 +89,16 @@ class LinkForm extends Component
                 customSlug: $this->slug ?: null,
                 expiresAt: $this->expires_at ? new \DateTime($this->expires_at) : null,
             );
+        } catch (ValidationException $e) {
+            // Service-level rejections (scanner junk, slug races) land
+            // on the matching field instead of blowing up the form.
+            foreach ($e->errors() as $field => $messages) {
+                foreach ((array) $messages as $message) {
+                    $this->addError($field, $message);
+                }
+            }
+
+            return;
         } catch (ThrottleRequestsException) {
             $this->addError('destination_url', 'Too many links created. Please wait a moment and try again.');
 

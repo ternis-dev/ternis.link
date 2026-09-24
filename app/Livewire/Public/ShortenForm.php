@@ -3,6 +3,7 @@
 namespace App\Livewire\Public;
 
 use App\Enums\DomainType;
+use App\Exceptions\JunkUrlException;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
@@ -27,7 +28,7 @@ class ShortenForm extends Component
 
     /**
      * Error personality for the notice card:
-     * idle|empty|invalid|too_long|quota|throttle.
+     * idle|empty|invalid|too_long|quota|throttle|junk.
      */
     public string $errorKind = 'idle';
 
@@ -235,6 +236,18 @@ class ShortenForm extends Component
                 creatorIpHash: hash('sha256', (string) request()->ip()),
             );
         } catch (ValidationException $e) {
+            // Scanner junk gets its own notice card, not the quota one.
+            if ($e instanceof JunkUrlException) {
+                foreach ($e->errors() as $field => $messages) {
+                    foreach ((array) $messages as $message) {
+                        $this->addError($field, $message);
+                    }
+                }
+                $this->errorKind = 'junk';
+
+                return;
+            }
+
             // Daily quota errors come from the service, not component rules.
             foreach ($e->errors() as $field => $messages) {
                 foreach ((array) $messages as $message) {

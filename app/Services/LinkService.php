@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\JunkUrlException;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -41,6 +42,7 @@ class LinkService
 
     public function __construct(
         private SlugGeneratorService $slugGenerator,
+        private JunkUrlDetector $junkUrls,
     ) {}
 
     /**
@@ -59,6 +61,7 @@ class LinkService
      * (falling back to AUTHENTICATED_DEFAULT_SLUG_LENGTH).
      *
      * @throws ValidationException On slug or daily-quota violations (HTTP 422).
+     * @throws JunkUrlException On scanner-junk destinations (HTTP 422).
      * @throws ThrottleRequestsException On per-minute rate-limit violations (HTTP 429).
      */
     public function create(
@@ -69,6 +72,12 @@ class LinkService
         ?\DateTimeInterface $expiresAt = null,
         ?string $creatorIpHash = null,
     ): Link {
+        $destinationUrl = trim($destinationUrl);
+
+        // Scanner probes never become links — rejected before quota or
+        // rate-limit state is touched, so junk can't burn anyone's budget.
+        $this->junkUrls->rejectIfJunk($destinationUrl);
+
         $customSlug = $customSlug !== null && trim($customSlug) === '' ? null : $customSlug;
 
         if ($user === null && $customSlug !== null) {
