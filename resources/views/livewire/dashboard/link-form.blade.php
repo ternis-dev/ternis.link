@@ -14,11 +14,6 @@
             wire:model="destination_url"
             placeholder="https://example.com/very-long-url"
             required
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-            inputmode="url"
-            maxlength="2048"
         />
 
         <x-ui.select label="Domain *" name="domain_id" wire:model="domain_id" required>
@@ -34,10 +29,6 @@
             wire:model="slug"
             placeholder="Leave blank for automatic generation"
             hint="Alphanumeric characters, dashes, and underscores only. Min length: {{ auth()->user()->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH }} chars."
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-            maxlength="255"
         />
 
         <x-ui.input

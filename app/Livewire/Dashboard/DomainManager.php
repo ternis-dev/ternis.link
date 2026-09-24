@@ -30,8 +30,6 @@ class DomainManager extends Component
     protected function messages(): array
     {
         return [
-            'hostname.required' => 'Please enter a hostname.',
-            'hostname.max' => 'That hostname is too long.',
             'hostname.regex' => 'The hostname must be a valid domain name (e.g. links.example.com).',
             'hostname.unique' => 'This hostname is already registered.',
         ];

@@ -17,20 +17,11 @@ class ApiKeyManager extends Component
         'keyName' => ['required', 'string', 'max:255'],
     ];
 
-    protected function messages(): array
-    {
-        return [
-            'keyName.required' => 'Give the key a label so you can recognise it later.',
-            'keyName.max' => 'That label is too long — keep it under 255 characters.',
-        ];
-    }
-
     /**
      * Generate a new API key.
      */
     public function createKey(): void
     {
-        $this->keyName = trim($this->keyName);
         $this->validate();
 
         // Generate a raw key with tl_ prefix. Only the SHA-256 digest
