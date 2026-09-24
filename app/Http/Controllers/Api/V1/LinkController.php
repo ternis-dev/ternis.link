@@ -60,6 +60,8 @@ class LinkController extends Controller
             customSlug: $customSlug,
             expiresAt: $request->validated('expires_at') ? new \DateTime($request->validated('expires_at')) : null,
             generatedLength: $generatedLength,
+            description: $request->validated('description'),
+            tags: $request->validated('tags'),
         );
 
         return response()->json($link->load('domain'), 201);

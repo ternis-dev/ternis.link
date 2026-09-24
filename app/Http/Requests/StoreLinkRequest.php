@@ -31,6 +31,9 @@ class StoreLinkRequest extends FormRequest
                 Rule::unique('links', 'slug')->where(fn ($query) => $query->where('domain_id', $domainId)),
             ],
             'expires_at' => ['nullable', 'date', 'after:now'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'tags' => ['nullable', 'array', 'max:10'],
+            'tags.*' => ['string', 'max:30', 'regex:/^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$/'],
         ];
 
         // Same semantics as the dashboard form: the picker is only
@@ -54,6 +57,8 @@ class StoreLinkRequest extends FormRequest
         return [
             'slug.min' => "The slug must be at least {$minLength} characters for your plan ({$planName}).",
             'slug.unique' => 'This slug is already taken on the selected domain.',
+            'description.max' => 'The description may not exceed 500 characters.',
+            'tags.*.regex' => 'Each tag may only contain lowercase letters, numbers and dashes.',
             'slug_length.integer' => 'The slug length must be a whole number.',
             'slug_length.min' => "The slug length must be at least {$lengthMin} characters.",
             'slug_length.max' => "The slug length may not exceed {$lengthMax} characters.",

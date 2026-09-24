@@ -154,6 +154,8 @@ paths:
                 domain_id: { type: string, description: ULID }
                 slug: { type: string, pattern: "^[a-zA-Z0-9_-]+$", maxLength: 255 }
                 slug_length: { type: integer, minimum: 3, maximum: 64, description: Privileged users only; sizes auto-generated slugs, ignored with custom slug }
+                description: { type: string, maxLength: 500 }
+                tags: { type: array, maxItems: 10, items: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$" } }
                 expires_at: { type: string, format: date-time }
       responses:
         '201':
@@ -185,6 +187,8 @@ paths:
               type: object
               properties:
                 destination_url: { type: string, format: uri, maxLength: 2048 }
+                description: { type: string, maxLength: 500, nullable: true }
+                tags: { type: array, maxItems: 10, items: { type: string }, nullable: true }
                 is_active: { type: boolean }
                 expires_at: { type: string, format: date-time, nullable: true }
       responses:

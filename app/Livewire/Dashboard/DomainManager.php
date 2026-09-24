@@ -14,6 +14,10 @@ class DomainManager extends Component
 
     public ?string $justCreatedId = null;
 
+    public string $subdomain = '';
+
+    public ?string $claimedHostname = null;
+
     protected function rules(): array
     {
         return [
@@ -32,7 +36,38 @@ class DomainManager extends Component
         return [
             'hostname.regex' => 'The hostname must be a valid domain name (e.g. links.example.com).',
             'hostname.unique' => 'This hostname is already registered.',
+            'subdomain.required' => 'Pick a name for your subdomain.',
+            'subdomain.max' => 'That name is too long.',
         ];
+    }
+
+    /**
+     * Claim a personal {name}.ternis.link subdomain. No DNS needed —
+     * the app owns the parent zone, so claims are verified instantly.
+     */
+    public function claimSubdomain(DomainService $domains): void
+    {
+        $this->claimedHostname = null;
+        $this->subdomain = strtolower(trim($this->subdomain));
+
+        $this->validate([
+            'subdomain' => ['required', 'string', 'max:63'],
+        ]);
+
+        try {
+            $domain = $domains->claimSubdomain(auth()->user(), $this->subdomain);
+        } catch (ValidationException $e) {
+            $this->addError('subdomain', $e->validator->errors()->first('subdomain') ?? 'This name cannot be claimed.');
+
+            return;
+        } catch (HttpException $e) {
+            $this->addError('subdomain', $e->getMessage());
+
+            return;
+        }
+
+        $this->claimedHostname = $domain->hostname;
+        $this->subdomain = '';
     }
 
     /**
@@ -138,8 +173,16 @@ class DomainManager extends Component
         $canAdd = $user->isAdmin() || (bool) $user->plan?->custom_subdomain;
         $planName = $user->plan?->name ?? 'current';
 
+        $canClaimSubdomain = $user->canClaimSubdomain();
+        $personalSubdomain = $user->domains()
+            ->where('domains.hostname', 'like', '%.'.DomainService::SUBDOMAIN_ROOT)
+            ->where('domains.is_active', true)
+            ->orderBy('hostname')
+            ->first();
+
         return view('livewire.dashboard.domain-manager', compact(
-            'systemDomains', 'ownDomains', 'instructions', 'canAdd', 'planName'
+            'systemDomains', 'ownDomains', 'instructions', 'canAdd', 'planName',
+            'canClaimSubdomain', 'personalSubdomain'
         ));
     }
 }

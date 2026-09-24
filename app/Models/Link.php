@@ -17,6 +17,8 @@ class Link extends Model
     protected $fillable = [
         'slug',
         'destination_url',
+        'description',
+        'tags',
         'domain_id',
         'user_id',
         'creator_ip_hash',
@@ -26,6 +28,7 @@ class Link extends Model
     ];
 
     protected $casts = [
+        'tags' => 'array',
         'is_active' => 'boolean',
         'expires_at' => 'datetime',
         'click_count' => 'integer',

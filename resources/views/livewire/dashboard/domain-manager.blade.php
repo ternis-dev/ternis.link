@@ -34,6 +34,44 @@
         </x-ui.alert>
     @endif
 
+    @if ($canClaimSubdomain)
+        <x-ui.card title="Your ternis.link Subdomain" class="mb-8 max-w-2xl">
+            @if ($claimedHostname)
+                <x-ui.alert tone="success" class="mb-5">
+                    <strong><code>{{ $claimedHostname }}</code> is yours!</strong><br>
+                    Already verified — it’s available in the link creation form right away.
+                </x-ui.alert>
+            @endif
+
+            @if ($personalSubdomain)
+                <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Your personal subdomain is <code>{{ $personalSubdomain->hostname }}</code> — verified and ready for links.
+                    One per account.
+                </p>
+            @else
+                <p class="mb-5 text-sm text-neutral-500 dark:text-neutral-400">
+                    Claim a personal <code>{name}.ternis.link</code> address. No DNS setup needed —
+                    the app owns the parent zone, so claims are verified instantly. One per account.
+                </p>
+
+                <form wire:submit="claimSubdomain" class="flex flex-wrap items-end gap-3">
+                    <div class="min-w-60 flex-1">
+                        <x-ui.input
+                            label="Subdomain name *"
+                            name="subdomain"
+                            type="text"
+                            wire:model="subdomain"
+                            placeholder="e.g. fabian"
+                            required
+                            hint="3–63 lowercase letters, numbers and dashes. You’ll get {name}.ternis.link."
+                        />
+                    </div>
+                    <x-ui.button type="submit" variant="primary">Claim Subdomain</x-ui.button>
+                </form>
+            @endif
+        </x-ui.card>
+    @endif
+
     <x-ui.card title="Your Domains" class="mb-8">
         <x-ui.table>
             <thead>

@@ -23,6 +23,10 @@ class LinkForm extends Component
 
     public ?int $slug_length = null;
 
+    public ?string $description = null;
+
+    public ?string $tags = null;
+
     public ?string $expires_at = null;
 
     public ?string $createdSlug = null;
@@ -45,6 +49,8 @@ class LinkForm extends Component
                 Rule::unique('links', 'slug')->where(fn ($query) => $query->where('domain_id', $this->domain_id)),
             ],
             'expires_at' => ['nullable', 'date', 'after:now'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'tags' => ['nullable', 'string', 'max:255'],
         ];
 
         // The length picker is only enforced when it applies: eligible
@@ -70,6 +76,7 @@ class LinkForm extends Component
             'slug_length.integer' => 'The slug length must be a whole number.',
             'slug_length.min' => "The slug length must be at least {$lengthMin} characters.",
             'slug_length.max' => "The slug length may not exceed {$lengthMax} characters.",
+            'description.max' => 'The description may not exceed 500 characters.',
         ];
     }
 
@@ -136,6 +143,12 @@ class LinkForm extends Component
             ? (int) $this->slug_length
             : null;
 
+        if (($invalid = LinkService::invalidTags($this->tags)) !== []) {
+            $this->addError('tags', 'Tags may only contain lowercase letters, numbers and dashes: '.implode(', ', array_slice($invalid, 0, 3)).'.');
+
+            return;
+        }
+
         try {
             $link = $linkService->create(
                 destinationUrl: $this->destination_url,
@@ -144,6 +157,8 @@ class LinkForm extends Component
                 customSlug: $customSlug,
                 expiresAt: $this->expires_at ? new \DateTime($this->expires_at) : null,
                 generatedLength: $generatedLength,
+                description: $this->description,
+                tags: $this->tags,
             );
         } catch (ValidationException $e) {
             // Service-level rejections (scanner junk, slug races) land
@@ -167,6 +182,8 @@ class LinkForm extends Component
         // Reset form (keep the chosen length)
         $this->destination_url = '';
         $this->slug = null;
+        $this->description = null;
+        $this->tags = null;
         $this->expires_at = null;
     }
 

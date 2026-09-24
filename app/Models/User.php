@@ -102,6 +102,15 @@ class User extends Authenticatable
     }
 
     /**
+     * May this user claim a personal {name}.ternis.link subdomain?
+     * Inner circle only: admins, family and partners.
+     */
+    public function canClaimSubdomain(): bool
+    {
+        return $this->isAdmin() || $this->isFamily() || $this->isPartner();
+    }
+
+    /**
      * Get the avatar URL with optional size parameter.
      * Falls back to user.t-api.de which never returns broken images.
      */

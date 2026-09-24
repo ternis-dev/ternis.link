@@ -26,6 +26,25 @@
         />
 
         <x-ui.input
+            label="Description (optional)"
+            name="description"
+            type="text"
+            wire:model="description"
+            placeholder="What is this link for?"
+            maxlength="500"
+        />
+
+        <x-ui.input
+            label="Tags (optional)"
+            name="tags"
+            type="text"
+            wire:model="tags"
+            placeholder="docs, release, q4"
+            hint="Comma-separated, lowercase letters, numbers and dashes only."
+            maxlength="255"
+        />
+
+        <x-ui.input
             label="Expiration Date (optional)"
             name="expires_at"
             type="datetime-local"

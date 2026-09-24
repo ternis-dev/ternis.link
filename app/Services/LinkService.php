@@ -29,6 +29,13 @@ class LinkService
     public const AUTHENTICATED_DEFAULT_SLUG_LENGTH = 6;
 
     /**
+     * Tag rules: lowercase slugs, max 10 per link.
+     */
+    public const MAX_TAGS = 10;
+
+    public const TAG_PATTERN = '/^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$/';
+
+    /**
      * @deprecated Use GUEST_SLUG_LENGTH. Kept for backwards compat.
      */
     public const ANONYMOUS_MIN_SLUG_LENGTH = 8;
@@ -39,6 +46,52 @@ class LinkService
      * explicit forgets below and in DeactivateExpiredLinks.
      */
     public const RESOLVE_CACHE_TTL = 300;
+
+    /**
+     * Normalize user-supplied tags: lowercase, trim, drop empties and
+     * invalid entries, dedupe, cap the count. Accepts a string array
+     * (API) or a comma-separated string (dashboard form).
+     *
+     * @return list<string>
+     */
+    public static function normalizeTags(array|string|null $input): array
+    {
+        $parts = is_string($input) ? explode(',', $input) : (is_array($input) ? $input : []);
+
+        $tags = [];
+        foreach ($parts as $part) {
+            $tag = strtolower(trim((string) $part));
+            if ($tag !== '' && preg_match(self::TAG_PATTERN, $tag) === 1 && ! in_array($tag, $tags, true)) {
+                $tags[] = $tag;
+            }
+        }
+
+        return array_slice($tags, 0, self::MAX_TAGS);
+    }
+
+    /**
+     * Tags the normalizer would drop — for friendly form feedback.
+     *
+     * @return list<string>
+     */
+    public static function invalidTags(array|string|null $input): array
+    {
+        $parts = is_string($input) ? explode(',', $input) : (is_array($input) ? $input : []);
+
+        $invalid = [];
+        foreach ($parts as $part) {
+            $raw = trim((string) $part);
+            if ($raw === '') {
+                continue;
+            }
+            $tag = strtolower($raw);
+            if (preg_match(self::TAG_PATTERN, $tag) !== 1 && ! in_array($raw, $invalid, true)) {
+                $invalid[] = $raw;
+            }
+        }
+
+        return $invalid;
+    }
 
     public function __construct(
         private SlugGeneratorService $slugGenerator,
@@ -72,6 +125,8 @@ class LinkService
         ?\DateTimeInterface $expiresAt = null,
         ?string $creatorIpHash = null,
         ?int $generatedLength = null,
+        ?string $description = null,
+        array|string|null $tags = null,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -123,6 +178,8 @@ class LinkService
         $link = Link::create([
             'slug' => $slug,
             'destination_url' => $destinationUrl,
+            'description' => $description !== null && trim($description) !== '' ? mb_substr(trim($description), 0, 500) : null,
+            'tags' => ($normalizedTags = self::normalizeTags($tags)) !== [] ? $normalizedTags : null,
             'domain_id' => $domain->id,
             'user_id' => $user?->id,
             'creator_ip_hash' => $creatorIpHash,
@@ -316,6 +373,17 @@ class LinkService
         if (isset($data['destination_url'])) {
             $data['destination_url'] = trim((string) $data['destination_url']);
             $this->junkUrls->rejectIfJunk($data['destination_url']);
+        }
+
+        if (array_key_exists('description', $data)) {
+            $data['description'] = $data['description'] !== null && trim((string) $data['description']) !== ''
+                ? mb_substr(trim((string) $data['description']), 0, 500)
+                : null;
+        }
+
+        if (array_key_exists('tags', $data)) {
+            $normalized = self::normalizeTags($data['tags']);
+            $data['tags'] = $normalized !== [] ? $normalized : null;
         }
 
         $link->update($data);

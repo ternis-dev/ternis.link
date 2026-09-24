@@ -12,6 +12,28 @@ class DomainService
 {
     public const HOSTNAME_PATTERN = '/^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))*\.[a-z]{2,}$/';
 
+    /**
+     * Parent zone for personal subdomains. The app serves *.ternis.link
+     * (Caddy) and resolves them via wildcard_roots, so claims need no
+     * DNS proof — ownership of the parent is proof enough.
+     */
+    public const SUBDOMAIN_ROOT = 'ternis.link';
+
+    public const SUBDOMAIN_LABEL_PATTERN = '/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/';
+
+    /**
+     * Single labels under ternis.link that can never be claimed.
+     */
+    public const RESERVED_SUBDOMAIN_LABELS = [
+        'www', 'mail', 'ftp', 'api', 'app', 'dash', 'dashboard', 'admin',
+        'auth', 'login', 'logout', 'sso', 'links', 'link', 'go', 'short',
+        'url', 'static', 'cdn', 'assets', 'status', 'health', 'healthz',
+        'metrics', 'support', 'help', 'docs', 'blog', 'dev', 'test',
+        'staging', 'prod', 'webhook', 'webhooks', 'billing', 'abuse',
+        'postmaster', 'hostmaster', 'security', 'privacy', 'legal',
+        'ternis',
+    ];
+
     public function __construct(
         private DomainVerificationService $verification,
     ) {}
@@ -92,6 +114,64 @@ class DomainService
             'verification_token' => Str::random(32),
             'type' => DomainType::Partner,
             'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Claim a personal {name}.ternis.link subdomain. Reserved for the
+     * inner circle (admin/family/partner roles) — one active subdomain
+     * per account. Created already verified: the app controls the
+     * parent zone (wildcard DNS + wildcard_roots), so no TXT proof
+     * is needed and the domain is usable for links immediately.
+     *
+     * @throws ValidationException
+     */
+    public function claimSubdomain(User $user, string $name): Domain
+    {
+        if (! $user->canClaimSubdomain()) {
+            abort(403, 'Personal ternis.link subdomains are available to family, partner and admin accounts.');
+        }
+
+        $label = strtolower(trim($name, " \t\n\r\0\x0B."));
+
+        if (! preg_match(self::SUBDOMAIN_LABEL_PATTERN, $label)) {
+            throw ValidationException::withMessages([
+                'subdomain' => 'Use 3–63 lowercase letters, numbers and dashes.',
+            ]);
+        }
+
+        $hostname = $label.'.'.self::SUBDOMAIN_ROOT;
+
+        if (in_array($label, self::RESERVED_SUBDOMAIN_LABELS, true) || $this->isReserved($hostname)) {
+            throw ValidationException::withMessages([
+                'subdomain' => "“{$label}” is reserved — pick another name.",
+            ]);
+        }
+
+        if (Domain::where('hostname', $hostname)->exists()) {
+            throw ValidationException::withMessages([
+                'subdomain' => 'This subdomain is already taken.',
+            ]);
+        }
+
+        $hasOne = $user->domains()
+            ->where('hostname', 'like', '%.'.self::SUBDOMAIN_ROOT)
+            ->where('is_active', true)
+            ->exists();
+
+        if ($hasOne) {
+            throw ValidationException::withMessages([
+                'subdomain' => 'You already have a personal subdomain — one per account.',
+            ]);
+        }
+
+        return Domain::create([
+            'hostname' => $hostname,
+            'user_id' => $user->id,
+            'verification_token' => null,
+            'type' => DomainType::Ternis,
+            'is_active' => true,
+            'verified_at' => now(),
         ]);
     }
 
