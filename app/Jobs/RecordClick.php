@@ -22,6 +22,8 @@ class RecordClick implements ShouldQueue
         public bool $isDirectUrl = false,
         public ?string $countryCode = null,
         public ?string $city = null,
+        /** Raw visitor IP (or null when capture is off); the model's encrypted cast encrypts it on write. */
+        public ?string $ip = null,
     ) {}
 
     public function handle(): void
@@ -31,6 +33,7 @@ class RecordClick implements ShouldQueue
             'referrer' => $this->referrer,
             'user_agent' => $this->userAgent,
             'ip_hash' => $this->ipHash,
+            'ip_encrypted' => $this->ip,
             'country_code' => $this->countryCode,
             'city' => $this->city,
             'is_direct_url' => $this->isDirectUrl,

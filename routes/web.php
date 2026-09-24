@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Middleware\EnforceDomainAccess;
@@ -168,6 +169,17 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/domains', [AdminController::class, 'domains'])->name('domains');
 });
+
+/*
+|----------------------------------------------------------------------
+| Legal pages — Markdown from resources/legal/*.md, allowlisted slugs.
+| Public on the main, dashboard and admin hosts (no auth); 404
+| everywhere else via ensure.domain.
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:ternis,dashboard,admin'])->get('/legal/{slug}', [LegalController::class, 'show'])
+    ->where('slug', '[a-z-]+')
+    ->name('legal.show');
 
 /*
 |----------------------------------------------------------------------

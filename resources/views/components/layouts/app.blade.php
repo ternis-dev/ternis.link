@@ -57,6 +57,12 @@
     <footer class="border-t border-neutral-200 py-6 dark:border-neutral-800">
         <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">
             ternis.link — by <a href="https://ternis.dev" class="underline underline-offset-2">ternis.dev</a> · hosted on <a href="https://ternis.net" class="underline underline-offset-2">ternis.net</a>
+            ·
+            <a href="{{ url('/legal/privacy') }}" class="underline underline-offset-2">Privacy</a>
+            ·
+            <a href="{{ url('/legal/terms') }}" class="underline underline-offset-2">Terms</a>
+            ·
+            <a href="{{ url('/legal/imprint') }}" class="underline underline-offset-2">Imprint</a>
         </p>
     </footer>
 

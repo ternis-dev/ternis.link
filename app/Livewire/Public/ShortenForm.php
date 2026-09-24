@@ -234,7 +234,7 @@ class ShortenForm extends Component
                 domain: $domain,
                 user: null,
                 customSlug: null,
-                creatorIpHash: IpHash::make(request()->ip()),
+                creatorIp: request()->ip(),
             );
         } catch (ValidationException $e) {
             // Scanner junk gets its own notice card, not the quota one.

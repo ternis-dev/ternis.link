@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('links:deactivate-expired')->daily();
+Schedule::command('privacy:prune-ips')->daily();

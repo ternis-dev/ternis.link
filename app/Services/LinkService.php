@@ -6,6 +6,8 @@ use App\Exceptions\JunkUrlException;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
+use App\Support\IpCapture;
+use App\Support\IpHash;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
@@ -127,12 +129,20 @@ class LinkService
         ?int $generatedLength = null,
         ?string $description = null,
         array|string|null $tags = null,
+        ?string $creatorIp = null,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
         // Scanner probes never become links — rejected before quota or
         // rate-limit state is touched, so junk can't burn anyone's budget.
         $this->junkUrls->rejectIfJunk($destinationUrl);
+
+        // Raw creator IP (guests): the hash drives quotas, the encrypted
+        // copy is abuse forensics with a short retention. Raw wins when
+        // both are given; the model's cast encrypts it on write.
+        if ($creatorIp !== null && trim($creatorIp) !== '') {
+            $creatorIpHash = IpHash::make($creatorIp);
+        }
 
         $customSlug = $customSlug !== null && trim($customSlug) === '' ? null : $customSlug;
 
@@ -183,6 +193,7 @@ class LinkService
             'domain_id' => $domain->id,
             'user_id' => $user?->id,
             'creator_ip_hash' => $creatorIpHash,
+            'creator_ip_encrypted' => IpCapture::enabled() ? $creatorIp : null,
             'is_active' => true,
             'expires_at' => $expiresAt,
         ]);

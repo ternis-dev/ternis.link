@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePublicLinkRequest;
 use App\Models\Domain;
 use App\Services\LinkService;
-use App\Support\IpHash;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -38,7 +37,7 @@ class PublicLinkController extends Controller
             user: null,
             customSlug: null,
             expiresAt: $request->validated('expires_at') ? new \DateTime($request->validated('expires_at')) : null,
-            creatorIpHash: IpHash::make($request->ip()),
+            creatorIp: $request->ip(),
         );
 
         $link->load('domain');

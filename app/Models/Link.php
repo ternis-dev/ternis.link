@@ -22,6 +22,7 @@ class Link extends Model
         'domain_id',
         'user_id',
         'creator_ip_hash',
+        'creator_ip_encrypted',
         'click_count',
         'is_active',
         'expires_at',
@@ -29,6 +30,7 @@ class Link extends Model
 
     protected $casts = [
         'tags' => 'array',
+        'creator_ip_encrypted' => 'encrypted',
         'is_active' => 'boolean',
         'expires_at' => 'datetime',
         'click_count' => 'integer',

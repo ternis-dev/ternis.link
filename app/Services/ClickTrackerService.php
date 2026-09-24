@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Jobs\RecordClick;
 use App\Models\Link;
+use App\Support\IpCapture;
 use App\Support\IpHash;
 use Illuminate\Http\Request;
 
@@ -30,6 +31,7 @@ class ClickTrackerService
             isDirectUrl: $isDirectUrl,
             countryCode: $geo['country_code'],
             city: $geo['city'],
+            ip: IpCapture::enabled() ? $request->ip() : null,
         );
     }
 }

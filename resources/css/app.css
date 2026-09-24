@@ -38,6 +38,56 @@
         display: none !important;
     }
 
+    /* Legal pages (Markdown-rendered, no typography plugin). */
+    .legal-prose {
+        @apply text-[0.95rem] leading-relaxed text-neutral-700 dark:text-neutral-300;
+    }
+
+    .legal-prose h1 {
+        @apply mb-2 font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100;
+    }
+
+    .legal-prose h2 {
+        @apply mt-8 mb-2 text-lg font-semibold text-neutral-900 dark:text-neutral-100;
+    }
+
+    .legal-prose p {
+        @apply my-3;
+    }
+
+    .legal-prose blockquote {
+        @apply rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-1 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400;
+    }
+
+    .legal-prose ul {
+        @apply my-3 list-disc space-y-1 pl-6;
+    }
+
+    .legal-prose table {
+        @apply my-4 w-full border-collapse text-sm;
+    }
+
+    .legal-prose th,
+    .legal-prose td {
+        @apply border border-neutral-200 px-3 py-2 text-left align-top dark:border-neutral-800;
+    }
+
+    .legal-prose th {
+        @apply bg-neutral-50 font-semibold dark:bg-neutral-900;
+    }
+
+    .legal-prose a {
+        @apply font-medium text-neutral-900 underline underline-offset-2 dark:text-neutral-100;
+    }
+
+    .legal-prose strong {
+        @apply font-semibold text-neutral-900 dark:text-neutral-100;
+    }
+
+    .legal-prose code {
+        @apply rounded border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 font-mono text-[0.85em] dark:border-neutral-800 dark:bg-neutral-900;
+    }
+
     body {
         @apply bg-white font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
     }

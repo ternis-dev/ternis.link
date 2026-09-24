@@ -18,6 +18,7 @@ class Click extends Model
         'referrer',
         'user_agent',
         'ip_hash',
+        'ip_encrypted',
         'country_code',
         'city',
         'is_direct_url',
@@ -27,6 +28,7 @@ class Click extends Model
     protected $casts = [
         'is_direct_url' => 'boolean',
         'created_at' => 'datetime',
+        'ip_encrypted' => 'encrypted',
     ];
 
     public function link(): BelongsTo
