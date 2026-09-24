@@ -54,4 +54,12 @@ class AdminController extends Controller
     {
         return view('admin.users');
     }
+
+    /**
+     * Domain moderation page (Livewire: Admin\DomainModeration).
+     */
+    public function domains()
+    {
+        return view('admin.domains');
+    }
 }

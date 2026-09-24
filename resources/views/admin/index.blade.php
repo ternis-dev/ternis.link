@@ -9,6 +9,7 @@
         <div style="display: flex; gap: 0.5rem;">
             <a href="{{ route('admin.links') }}" class="btn btn-secondary btn-sm">Moderate Links</a>
             <a href="{{ route('admin.users') }}" class="btn btn-secondary btn-sm">Manage Users</a>
+            <a href="{{ route('admin.domains') }}" class="btn btn-secondary btn-sm">Moderate Domains</a>
         </div>
     </div>
 

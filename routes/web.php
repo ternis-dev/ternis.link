@@ -130,6 +130,7 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
     Route::get('/', [AdminController::class, 'index'])->name('dashboard');
     Route::get('/links', [AdminController::class, 'links'])->name('links');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::get('/domains', [AdminController::class, 'domains'])->name('domains');
 });
 
 /*
