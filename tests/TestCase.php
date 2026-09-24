@@ -11,6 +11,10 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        // Views load assets via @vite (Tailwind bundle). No manifest is
+        // built in CI/testing, so stub Vite out — assertions are text-based.
+        $this->withoutVite();
+
         // Array cache persists in-process across tests. Flush it so a
         // cached slug from one test can never leak into the next test's
         // fresh in-memory database.

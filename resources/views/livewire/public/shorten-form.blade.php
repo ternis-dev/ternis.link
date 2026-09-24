@@ -1,80 +1,75 @@
-<div class="nz-form">
-    <h2 class="nz-form-title">Shorten a link — no account needed</h2>
-    <p class="nz-form-sub">Paste any long URL. Guests get an auto-generated 8-character link on this domain.</p>
+<x-ui.card>
+    <h2 class="font-display text-xl font-bold tracking-tight">Shorten a link — no account needed</h2>
+    <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Paste any long URL. Guests get an auto-generated 8-character link on this domain.</p>
 
     @if ($shortUrl)
-        <div class="nz-result" role="status" aria-live="polite">
-            <p class="nz-result-kicker">
-                <span class="nz-check" aria-hidden="true">✓</span>
+        <div class="mt-5 rounded-lg border-2 border-neutral-900 p-4 dark:border-white" role="status" aria-live="polite">
+            <p class="flex items-center gap-2 text-sm font-semibold">
+                <span aria-hidden="true" class="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white dark:bg-white dark:text-neutral-900">✓</span>
                 Done — your short link is ready
             </p>
-            <div class="nz-result-row">
-                <a href="{{ $shortUrl }}" target="_blank" rel="noopener" class="nz-result-link">{{ $shortUrl }}</a>
-                <button
-                    type="button"
-                    class="nz-copy"
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+                <a href="{{ $shortUrl }}" target="_blank" rel="noopener" class="min-w-0 flex-1 truncate font-mono text-sm underline underline-offset-2">{{ $shortUrl }}</a>
+                <x-ui.button
+                    size="sm"
+                    variant="primary"
                     data-copy-value="{{ $shortUrl }}"
                     aria-label="Copy short link to clipboard"
-                >
-                    Copy
-                </button>
+                >Copy</x-ui.button>
             </div>
-            <p class="nz-copied" data-copy-feedback hidden>Copied to clipboard.</p>
+            <p class="mt-2 text-xs text-neutral-500" data-copy-feedback hidden>Copied to clipboard.</p>
             @if ($originalUrl)
-                <p class="nz-original" title="{{ $originalUrl }}">
+                <p class="mt-2 truncate text-xs text-neutral-500 dark:text-neutral-500" title="{{ $originalUrl }}">
                     Shortened from <span>{{ \Illuminate\Support\Str::limit($originalUrl, 72) }}</span>
                 </p>
             @endif
-            <div class="nz-result-actions">
-                <a href="{{ $shortUrl }}" target="_blank" rel="noopener" class="nz-open">Open link ↗</a>
-                <button type="button" wire:click="resetForm" class="nz-again">Shorten another</button>
+            <div class="mt-4 flex flex-wrap gap-2">
+                <x-ui.button href="{{ $shortUrl }}" size="sm" target="_blank" rel="noopener">Open link ↗</x-ui.button>
+                <x-ui.button wire:click="resetForm" size="sm">Shorten another</x-ui.button>
             </div>
         </div>
     @else
-        <form wire:submit="create" novalidate>
-            <div class="nz-field">
-                <label class="nz-label" for="public_destination_url">Destination URL</label>
-                <div class="nz-input-row">
-                    <input
-                        type="url"
-                        id="public_destination_url"
-                        name="destination_url"
-                        wire:model="destination_url"
-                        wire:loading.attr="disabled"
-                        wire:target="create"
-                        placeholder="https://example.com/very-long-url…"
-                        required
-                        autocomplete="off"
-                        autocapitalize="off"
-                        spellcheck="false"
-                        inputmode="url"
-                        maxlength="2048"
-                        aria-describedby="public_destination_hint"
-                    >
-                    <button
-                        type="submit"
-                        class="nz-submit"
-                        wire:loading.attr="disabled"
-                        wire:target="create"
-                    >
-                        <span wire:loading.remove wire:target="create">Shorten</span>
-                        <span wire:loading wire:target="create" class="nz-spinner-row">
-                            <span class="nz-spinner" aria-hidden="true"></span>
-                            Shortening…
-                        </span>
-                    </button>
-                </div>
-                <p class="nz-hint" id="public_destination_hint">
-                    Include <code>https://</code>. Guests get auto-made codes —
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">log in</a> for custom slugs, shorter links &amp; click stats.
-                </p>
-                @error('destination_url')
-                    <p class="nz-error" role="alert">{{ $message }}</p>
-                @enderror
+        <form wire:submit="create" novalidate class="mt-5">
+            <label class="mb-1.5 block text-sm font-medium text-neutral-600 dark:text-neutral-400" for="public_destination_url">Destination URL</label>
+            <div class="flex flex-col gap-2 sm:flex-row">
+                <input
+                    type="url"
+                    id="public_destination_url"
+                    name="destination_url"
+                    wire:model="destination_url"
+                    wire:loading.attr="disabled"
+                    wire:target="create"
+                    placeholder="https://example.com/very-long-url…"
+                    required
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    inputmode="url"
+                    maxlength="2048"
+                    aria-describedby="public_destination_hint"
+                    class="w-full flex-1 rounded-lg border border-neutral-300 bg-white px-3.5 py-2.5 text-sm placeholder:text-neutral-400 focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/15 focus:outline-none dark:border-neutral-700 dark:bg-neutral-950 dark:placeholder:text-neutral-600 dark:focus:border-white dark:focus:ring-white/15"
+                >
+                <x-ui.button
+                    type="submit"
+                    variant="primary"
+                    wire:loading.attr="disabled"
+                    wire:target="create"
+                    class="shrink-0"
+                >
+                    <span wire:loading.remove wire:target="create">Shorten</span>
+                    <span wire:loading wire:target="create">Shortening…</span>
+                </x-ui.button>
             </div>
+            <p class="mt-1.5 text-xs text-neutral-500 dark:text-neutral-500" id="public_destination_hint">
+                Include <code>https://</code>. Guests get auto-made codes —
+                <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="underline underline-offset-2">log in</a> for custom slugs, shorter links &amp; click stats.
+            </p>
+            @error('destination_url')
+                <p class="mt-1.5 text-xs font-medium" role="alert">{{ $message }}</p>
+            @enderror
         </form>
     @endif
-</div>
+</x-ui.card>
 
 <script>
 (function () {
@@ -114,17 +109,15 @@
             }
         }
 
-        var scope = button.closest('.nz-result');
+        var scope = button.closest('[role="status"]');
         var feedback = scope ? scope.querySelector('[data-copy-feedback]') : null;
 
         if (done) {
             var original = button.textContent;
             button.textContent = 'Copied ✓';
-            button.classList.add('is-copied');
             if (feedback) feedback.hidden = false;
             setTimeout(function () {
                 button.textContent = original;
-                button.classList.remove('is-copied');
                 if (feedback) feedback.hidden = true;
             }, 2000);
         } else if (feedback) {

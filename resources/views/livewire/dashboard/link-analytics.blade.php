@@ -1,161 +1,110 @@
 <div>
-    <div class="analytics-toolbar">
-        <div class="segmented" role="group" aria-label="Analytics period">
-            @foreach (\App\Livewire\Dashboard\LinkAnalytics::PERIODS as $days)
-                <button
-                    type="button"
-                    wire:click="setPeriod({{ $days }})"
-                    @class(['active' => $period === $days])
-                >{{ $days }}d</button>
-            @endforeach
-        </div>
-        <a href="{{ route('dashboard.links.export', $link->id) }}" class="btn btn-secondary btn-sm">Export CSV</a>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <x-ui.segmented :options="\App\Livewire\Dashboard\LinkAnalytics::PERIODS" :active="$period" action="setPeriod" suffix="d" label="Analytics period" />
+        <x-ui.button href="{{ route('dashboard.links.export', $link->id) }}" size="sm">Export CSV</x-ui.button>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($totalClicks) }}</span>
-            <span class="stat-label">Clicks · last {{ $period }} days</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($uniqueVisitors) }}</span>
-            <span class="stat-label">Unique Visitors</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ $averagePerDay }}</span>
-            <span class="stat-label">Avg. per day</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ $peakDay ? $peakDay['label'] : '—' }}</span>
-            <span class="stat-label">Peak day{{ $peakDay ? ' ('.$peakDay['count'].')' : '' }}</span>
-        </div>
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <x-ui.stat :value="number_format($totalClicks)" :label="'Clicks · last '.$period.' days'" />
+        <x-ui.stat :value="number_format($uniqueVisitors)" label="Unique Visitors" />
+        <x-ui.stat :value="$averagePerDay" label="Avg. per day" />
+        <x-ui.stat :value="$peakDay ? $peakDay['label'] : '—'" :label="'Peak day'.($peakDay ? ' ('.$peakDay['count'].')' : '')" />
     </div>
 
-    <div class="card">
-        <h3 class="card-title">Clicks over time</h3>
+    <x-ui.card title="Clicks over time" class="mb-6">
         @if ($totalClicks === 0)
-            <p style="color: var(--text-muted); font-size: 0.9rem;">No clicks in the last {{ $period }} days yet. Share your link to see traffic here.</p>
+            <p class="text-sm text-neutral-500 dark:text-neutral-400">No clicks in the last {{ $period }} days yet. Share your link to see traffic here.</p>
         @else
-            <div class="chart-bars" role="img" aria-label="Daily clicks for the last {{ $period }} days">
+            <div class="ui-chart-bars" role="img" aria-label="Daily clicks for the last {{ $period }} days">
                 @foreach ($clicksByDay as $day)
                     <div
-                        class="chart-bar"
+                        class="ui-chart-bar"
                         style="height: {{ max(3, round($day['count'] / $maxDailyClicks * 100)) }}%;"
                         title="{{ $day['label'] }}: {{ $day['count'] }} clicks"
                     ></div>
                 @endforeach
             </div>
-            <div class="chart-axis">
+            <div class="mt-2 flex justify-between text-xs text-neutral-500 dark:text-neutral-500">
                 <span>{{ $clicksByDay->first()['label'] }}</span>
                 <span>{{ $clicksByDay->get((int) floor($clicksByDay->count() / 2))['label'] ?? '' }}</span>
                 <span>{{ $clicksByDay->last()['label'] }}</span>
             </div>
         @endif
-    </div>
+    </x-ui.card>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-        <div class="card" style="margin-bottom: 0;">
-            <h3 class="card-title">Top Referrers</h3>
+    <div class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <x-ui.card title="Top Referrers">
             @if ($topReferrers->isEmpty())
-                <p style="color: var(--text-muted); font-size: 0.9rem;">No referrer data recorded yet.</p>
+                <p class="text-sm text-neutral-500 dark:text-neutral-400">No referrer data recorded yet.</p>
             @else
-                <div class="breakdown">
+                <div class="flex flex-col gap-3.5">
                     @foreach ($topReferrers as $ref)
                         @php($share = $totalClicks > 0 ? round($ref->count / $totalClicks * 100, 1) : 0)
-                        <div class="breakdown-row">
-                            <div class="breakdown-meta">
-                                <span class="breakdown-label" title="{{ $ref->referrer }}">{{ $ref->referrer }}</span>
-                                <span class="breakdown-value">{{ $ref->count }} · {{ $share }}%</span>
-                            </div>
-                            <div class="breakdown-track">
-                                <div class="breakdown-fill" style="width: {{ $share }}%;"></div>
-                            </div>
-                        </div>
+                        <x-ui.bar-row :label="$ref->referrer" :value="$ref->count.' · '.$share.'%'" :share="$share" />
                     @endforeach
                 </div>
             @endif
-        </div>
+        </x-ui.card>
 
-        <div class="card" style="margin-bottom: 0;">
-            <h3 class="card-title">Top Countries</h3>
+        <x-ui.card title="Top Countries">
             @if ($topCountries->isEmpty())
-                <p style="color: var(--text-muted); font-size: 0.9rem;">No geo data recorded yet.</p>
+                <p class="text-sm text-neutral-500 dark:text-neutral-400">No geo data recorded yet.</p>
             @else
-                <div class="breakdown">
+                <div class="flex flex-col gap-3.5">
                     @foreach ($topCountries as $c)
                         @php($share = $totalClicks > 0 ? round($c->count / $totalClicks * 100, 1) : 0)
-                        <div class="breakdown-row">
-                            <div class="breakdown-meta">
-                                <span class="breakdown-label">{{ $c->country_code }}</span>
-                                <span class="breakdown-value">{{ $c->count }} · {{ $share }}%</span>
-                            </div>
-                            <div class="breakdown-track">
-                                <div class="breakdown-fill" style="width: {{ $share }}%;"></div>
-                            </div>
-                        </div>
+                        <x-ui.bar-row :label="$c->country_code" :value="$c->count.' · '.$share.'%'" :share="$share" />
                     @endforeach
                 </div>
             @endif
-        </div>
+        </x-ui.card>
     </div>
 
-    <div class="card">
-        <h3 class="card-title">Browsers</h3>
+    <x-ui.card title="Browsers" class="mb-6">
         @if ($topBrowsers->isEmpty())
-            <p style="color: var(--text-muted); font-size: 0.9rem;">No browser data recorded yet.</p>
+            <p class="text-sm text-neutral-500 dark:text-neutral-400">No browser data recorded yet.</p>
         @else
-            <div class="breakdown">
+            <div class="flex flex-col gap-3.5">
                 @foreach ($topBrowsers as $b)
                     @php($share = $totalClicks > 0 ? round($b['count'] / $totalClicks * 100, 1) : 0)
-                    <div class="breakdown-row">
-                        <div class="breakdown-meta">
-                            <span class="breakdown-label">{{ $b['browser'] }}</span>
-                            <span class="breakdown-value">{{ $b['count'] }} · {{ $share }}%</span>
-                        </div>
-                        <div class="breakdown-track">
-                            <div class="breakdown-fill" style="width: {{ $share }}%;"></div>
-                        </div>
-                    </div>
+                    <x-ui.bar-row :label="$b['browser']" :value="$b['count'].' · '.$share.'%'" :share="$share" />
                 @endforeach
             </div>
         @endif
-    </div>
+    </x-ui.card>
 
-    <div class="card">
-        <h3 class="card-title">Recent Clicks</h3>
+    <x-ui.card title="Recent Clicks">
         @if ($recentClicks->isEmpty())
-            <p style="color: var(--text-muted); font-size: 0.9rem;">No clicks recorded yet.</p>
+            <p class="text-sm text-neutral-500 dark:text-neutral-400">No clicks recorded yet.</p>
         @else
-            <div class="table-container">
-                <table>
-                    <thead>
+            <x-ui.table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Referrer</th>
+                        <th>User Agent</th>
+                        <th>IP Hash</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($recentClicks as $click)
                         <tr>
-                            <th>Timestamp</th>
-                            <th>Referrer</th>
-                            <th>User Agent</th>
-                            <th>IP Hash</th>
+                            <td class="text-xs whitespace-nowrap text-neutral-500">
+                                {{ $click->created_at->format('Y-m-d H:i:s') }}
+                            </td>
+                            <td class="max-w-[250px] truncate">
+                                {{ $click->referrer ?? 'Direct / None' }}
+                            </td>
+                            <td class="max-w-[250px] truncate text-xs text-neutral-500">
+                                {{ $click->user_agent ?? 'Unknown' }}
+                            </td>
+                            <td>
+                                <code>{{ substr($click->ip_hash, 0, 10) }}…</code>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($recentClicks as $click)
-                            <tr>
-                                <td style="font-size: 0.85rem; color: var(--text-muted); white-space: nowrap;">
-                                    {{ $click->created_at->format('Y-m-d H:i:s') }}
-                                </td>
-                                <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    {{ $click->referrer ?? 'Direct / None' }}
-                                </td>
-                                <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; color: var(--text-secondary);">
-                                    {{ $click->user_agent ?? 'Unknown' }}
-                                </td>
-                                <td>
-                                    <code>{{ substr($click->ip_hash, 0, 10) }}…</code>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                    @endforeach
+                </tbody>
+            </x-ui.table>
         @endif
-    </div>
+    </x-ui.card>
 </div>

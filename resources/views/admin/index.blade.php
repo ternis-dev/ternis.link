@@ -1,114 +1,81 @@
 <x-layouts.dashboard title="Admin Overview — ternis.link">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1 style="font-size: 1.75rem; font-weight: 700;">Admin Overview</h1>
-            <p style="color: var(--text-secondary); margin-top: 0.25rem;">
-                System-wide analytics and moderation. Admin host only.
-            </p>
-        </div>
-        <div style="display: flex; gap: 0.5rem;">
-            <a href="{{ route('admin.links') }}" class="btn btn-secondary btn-sm">Moderate Links</a>
-            <a href="{{ route('admin.users') }}" class="btn btn-secondary btn-sm">Manage Users</a>
-            <a href="{{ route('admin.domains') }}" class="btn btn-secondary btn-sm">Moderate Domains</a>
-        </div>
+    <x-ui.page-header
+        title="Admin Overview"
+        subtitle="System-wide analytics and moderation. Admin host only."
+    >
+        <x-slot:actions>
+            <x-ui.button href="{{ route('admin.links') }}" size="sm">Moderate Links</x-ui.button>
+            <x-ui.button href="{{ route('admin.users') }}" size="sm">Manage Users</x-ui.button>
+            <x-ui.button href="{{ route('admin.domains') }}" size="sm">Moderate Domains</x-ui.button>
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <x-ui.stat :value="number_format($stats['total_users'])" label="Total Users" />
+        <x-ui.stat :value="number_format($stats['total_links'])" label="Total Links" />
+        <x-ui.stat :value="number_format($stats['active_links'])" label="Active Links" />
+        <x-ui.stat :value="number_format($stats['total_clicks'])" label="Total Clicks" />
+        <x-ui.stat :value="number_format($stats['total_domains'])" label="Total Domains" />
+        <x-ui.stat :value="number_format($stats['links_today'])" label="Links Today" />
+        <x-ui.stat :value="number_format($stats['clicks_today'])" label="Clicks Today" />
+        <x-ui.stat :value="number_format($stats['direct_url_clicks'])" label="Direct-URL Clicks" />
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['total_users']) }}</span>
-            <span class="stat-label">Total Users</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['total_links']) }}</span>
-            <span class="stat-label">Total Links</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['active_links']) }}</span>
-            <span class="stat-label">Active Links</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['total_clicks']) }}</span>
-            <span class="stat-label">Total Clicks</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['total_domains']) }}</span>
-            <span class="stat-label">Total Domains</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['links_today']) }}</span>
-            <span class="stat-label">Links Today</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['clicks_today']) }}</span>
-            <span class="stat-label">Clicks Today</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['direct_url_clicks']) }}</span>
-            <span class="stat-label">Direct-URL Clicks</span>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2 class="card-title">Top Links by Clicks</h2>
-        <div class="table-container">
-            <table>
-                <thead>
+    <x-ui.card title="Top Links by Clicks" class="mb-6">
+        <x-ui.table>
+            <thead>
+                <tr>
+                    <th>Slug</th>
+                    <th>Domain</th>
+                    <th>Owner</th>
+                    <th>Clicks</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($topLinks as $link)
                     <tr>
-                        <th>Slug</th>
-                        <th>Domain</th>
-                        <th>Owner</th>
-                        <th>Clicks</th>
+                        <td class="font-semibold"><a href="{{ route('dashboard.links.show', $link->id) }}" class="underline-offset-2 hover:underline">{{ $link->slug }}</a></td>
+                        <td><code>{{ $link->domain->hostname ?? '—' }}</code></td>
+                        <td class="text-xs text-neutral-500">{{ $link->user?->email ?? 'Guest' }}</td>
+                        <td class="font-bold">{{ number_format($link->click_count) }}</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @forelse ($topLinks as $link)
-                        <tr>
-                            <td style="font-weight: 600;"><a href="{{ route('dashboard.links.show', $link->id) }}">{{ $link->slug }}</a></td>
-                            <td><code>{{ $link->domain->hostname ?? '—' }}</code></td>
-                            <td style="color: var(--text-muted); font-size: 0.85rem;">{{ $link->user?->email ?? 'Guest' }}</td>
-                            <td><strong style="color: var(--primary);">{{ number_format($link->click_count) }}</strong></td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">No links yet.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2 class="card-title">Recent Links</h2>
-        <div class="table-container">
-            <table>
-                <thead>
+                @empty
                     <tr>
-                        <th>Slug</th>
-                        <th>Destination</th>
-                        <th>Status</th>
+                        <td colspan="4"><x-ui.empty-state>No links yet.</x-ui.empty-state></td>
                     </tr>
-                </thead>
-                <tbody>
-                    @forelse ($recentLinks as $link)
-                        <tr>
-                            <td style="font-weight: 600;"><a href="{{ route('dashboard.links.show', $link->id) }}">{{ $link->slug }}</a></td>
-                            <td style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary);">{{ $link->destination_url }}</td>
-                            <td>
-                                @if ($link->is_active && !$link->isExpired())
-                                    <span style="color: var(--success); font-size: 0.85rem; font-weight: 600;">● Active</span>
-                                @else
-                                    <span style="color: var(--danger); font-size: 0.85rem;">Disabled</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">No links yet.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                @endforelse
+            </tbody>
+        </x-ui.table>
+    </x-ui.card>
+
+    <x-ui.card title="Recent Links">
+        <x-ui.table>
+            <thead>
+                <tr>
+                    <th>Slug</th>
+                    <th>Destination</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($recentLinks as $link)
+                    <tr>
+                        <td class="font-semibold"><a href="{{ route('dashboard.links.show', $link->id) }}" class="underline-offset-2 hover:underline">{{ $link->slug }}</a></td>
+                        <td class="max-w-[320px] truncate text-neutral-500 dark:text-neutral-400">{{ $link->destination_url }}</td>
+                        <td>
+                            @if ($link->is_active && !$link->isExpired())
+                                <x-ui.status state="active" />
+                            @else
+                                <x-ui.status state="disabled" />
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="3"><x-ui.empty-state>No links yet.</x-ui.empty-state></td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </x-ui.table>
+    </x-ui.card>
 </x-layouts.dashboard>

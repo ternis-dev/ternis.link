@@ -1,75 +1,63 @@
 <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;">
-        <input
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <x-ui.input
+            name="user-search"
             type="text"
             wire:model.live.debounce.300ms="search"
             placeholder="Search by name or email..."
-            style="max-width: 320px; padding: 0.625rem 0.875rem; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);"
-        >
-        <select
-            wire:model.live="roleFilter"
-            style="padding: 0.625rem 0.875rem; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);"
-        >
+            class="max-w-xs"
+        />
+        <x-ui.select name="role-filter" wire:model.live="roleFilter" class="w-auto">
             <option value="all">All roles</option>
             @foreach ($roles as $role)
                 <option value="{{ $role->value }}">{{ ucfirst($role->value) }}</option>
             @endforeach
-        </select>
+        </x-ui.select>
     </div>
 
-    <div class="table-container">
-        <table>
-            <thead>
+    <x-ui.table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Plan</th>
+                <th>Links</th>
+                <th>Joined</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($users as $user)
                 <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Plan</th>
-                    <th>Links</th>
-                    <th>Joined</th>
+                    <td>
+                        <div class="font-semibold">{{ $user->name }}</div>
+                        <div class="text-xs text-neutral-500">{{ $user->email }}</div>
+                    </td>
+                    <td>
+                        <x-ui.select :name="'role-'.$user->id" wire:change="updateRole({{ $user->id }}, $event.target.value)">
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->value }}" @selected($user->role === $role)>{{ ucfirst($role->value) }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </td>
+                    <td>
+                        <x-ui.select :name="'plan-'.$user->id" wire:change="updatePlan({{ $user->id }}, $event.target.value)">
+                            @foreach ($plans as $plan)
+                                <option value="{{ $plan->id }}" @selected($user->plan_id === $plan->id)>{{ $plan->name }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </td>
+                    <td class="font-bold">{{ number_format($user->links_count) }}</td>
+                    <td class="text-xs text-neutral-500">{{ $user->created_at->format('M d, Y') }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                @forelse ($users as $user)
-                    <tr>
-                        <td>
-                            <div style="font-weight: 600;">{{ $user->name }}</div>
-                            <div style="color: var(--text-muted); font-size: 0.85rem;">{{ $user->email }}</div>
-                        </td>
-                        <td>
-                            <select
-                                wire:change="updateRole({{ $user->id }}, $event.target.value)"
-                                style="padding: 0.375rem 0.5rem; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);"
-                            >
-                                @foreach ($roles as $role)
-                                    <option value="{{ $role->value }}" @selected($user->role === $role)>{{ ucfirst($role->value) }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td>
-                            <select
-                                wire:change="updatePlan({{ $user->id }}, $event.target.value)"
-                                style="padding: 0.375rem 0.5rem; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary);"
-                            >
-                                @foreach ($plans as $plan)
-                                    <option value="{{ $plan->id }}" @selected($user->plan_id === $plan->id)>{{ $plan->name }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td><strong style="color: var(--primary);">{{ number_format($user->links_count) }}</strong></td>
-                        <td style="color: var(--text-muted); font-size: 0.85rem;">{{ $user->created_at->format('M d, Y') }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
-                            No users found.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+            @empty
+                <tr>
+                    <td colspan="5"><x-ui.empty-state>No users found.</x-ui.empty-state></td>
+                </tr>
+            @endforelse
+        </tbody>
+    </x-ui.table>
 
-    <div style="margin-top: 1.5rem;">
+    <div class="mt-6">
         {{ $users->links() }}
     </div>
 </div>

@@ -1,95 +1,88 @@
 <div>
-    <div class="card" style="max-width: 650px; margin-bottom: 2rem;">
-        <h2 class="card-title">Generate API Key</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 1.25rem; font-size: 0.9rem;">
+    <x-ui.card title="Generate API Key" class="mb-8 max-w-2xl">
+        <p class="mb-5 text-sm text-neutral-500 dark:text-neutral-400">
             API keys allow you to authenticate with <code>links.t-api.de</code> programmatically.
         </p>
 
         @if ($newlyCreatedKey)
-            <div class="alert alert-success">
+            <x-ui.alert tone="success" class="mb-5">
                 <strong>New API Key Generated:</strong><br>
-                <div style="margin: 0.75rem 0; padding: 0.75rem; background: var(--bg-primary); border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 0.9rem; word-break: break-all; color: var(--text-primary); border: 1px solid var(--border-color);">
+                <div class="my-3 rounded-lg border border-neutral-300 bg-neutral-100 p-3 font-mono text-sm break-all dark:border-neutral-700 dark:bg-neutral-950">
                     {{ $newlyCreatedKey }}
                 </div>
-                <small style="display: block; margin-bottom: 0.75rem;">Make sure to copy your API key now. You won't be able to see it again!</small>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button
-                        type="button"
-                        class="btn btn-primary btn-sm"
+                <small class="mb-3 block">Make sure to copy your API key now. You won't be able to see it again!</small>
+                <div class="flex gap-2">
+                    <x-ui.button
+                        size="sm"
+                        variant="primary"
                         onclick="navigator.clipboard.writeText(@js($newlyCreatedKey)).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy key', 2000); })"
-                    >Copy key</button>
-                    <button wire:click="dismissNewKey" class="btn btn-secondary btn-sm">I have saved my key</button>
+                    >Copy key</x-ui.button>
+                    <x-ui.button wire:click="dismissNewKey" size="sm">I have saved my key</x-ui.button>
                 </div>
-            </div>
+            </x-ui.alert>
         @endif
 
-        <form wire:submit="createKey">
-            <div class="form-group">
-                <label for="keyName">Key Label / Name *</label>
-                <input
+        <form wire:submit="createKey" class="flex flex-wrap items-end gap-3">
+            <div class="min-w-60 flex-1">
+                <x-ui.input
+                    label="Key Label / Name *"
+                    name="keyName"
                     type="text"
-                    id="keyName"
                     wire:model="keyName"
                     placeholder="e.g. CLI Script, Production Server"
                     required
-                >
-                @error('keyName') <div class="form-error">{{ $message }}</div> @enderror
+                />
             </div>
-
-            <button type="submit" class="btn btn-primary">Generate Key</button>
+            <x-ui.button type="submit" variant="primary">Generate Key</x-ui.button>
         </form>
-    </div>
+    </x-ui.card>
 
-    <div class="card">
-        <h2 class="card-title">Active API Keys</h2>
-
-        <div class="table-container">
-            <table>
-                <thead>
+    <x-ui.card title="Active API Keys">
+        <x-ui.table>
+            <thead>
+                <tr>
+                    <th>Label</th>
+                    <th>Prefix</th>
+                    <th>API Version</th>
+                    <th>Created</th>
+                    <th>Last Used</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($apiKeys as $key)
                     <tr>
-                        <th>Label</th>
-                        <th>Prefix</th>
-                        <th>API Version</th>
-                        <th>Created</th>
-                        <th>Last Used</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <td class="font-semibold">{{ $key->name }}</td>
+                        <td><code>{{ $key->masked_key }}</code></td>
+                        <td>v{{ $key->api_version }}</td>
+                        <td class="text-xs text-neutral-500">{{ $key->created_at->format('M d, Y') }}</td>
+                        <td class="text-xs text-neutral-500">
+                            {{ $key->last_used_at ? $key->last_used_at->diffForHumans() : 'Never' }}
+                        </td>
+                        <td>
+                            @if ($key->isValid())
+                                <x-ui.status state="active" />
+                            @else
+                                <x-ui.status state="disabled" />
+                            @endif
+                        </td>
+                        <td>
+                            @if ($key->isValid())
+                                <x-ui.button wire:click="revokeKey({{ $key->id }})" wire:confirm="Revoke this API key immediately?" size="sm" variant="danger">Revoke</x-ui.button>
+                            @else
+                                <span class="text-xs text-neutral-500">Revoked</span>
+                            @endif
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @forelse ($apiKeys as $key)
-                        <tr>
-                            <td style="font-weight: 600;">{{ $key->name }}</td>
-                            <td><code>{{ $key->masked_key }}</code></td>
-                            <td>v{{ $key->api_version }}</td>
-                            <td style="color: var(--text-muted); font-size: 0.85rem;">{{ $key->created_at->format('M d, Y') }}</td>
-                            <td style="color: var(--text-muted); font-size: 0.85rem;">
-                                {{ $key->last_used_at ? $key->last_used_at->diffForHumans() : 'Never' }}
-                            </td>
-                            <td>
-                                @if ($key->isValid())
-                                    <span style="color: var(--success); font-weight: 600; font-size: 0.85rem;">● Active</span>
-                                @else
-                                    <span style="color: var(--danger); font-size: 0.85rem;">Revoked</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if ($key->isValid())
-                                    <button wire:click="revokeKey({{ $key->id }})" wire:confirm="Revoke this API key immediately?" class="btn btn-danger btn-sm">Revoke</button>
-                                @else
-                                    <span style="color: var(--text-muted); font-size: 0.8rem;">Revoked</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                                No API keys yet. Generate one above to access the API.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                @empty
+                    <tr>
+                        <td colspan="7">
+                            <x-ui.empty-state>No API keys yet. Generate one above to access the API.</x-ui.empty-state>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </x-ui.table>
+    </x-ui.card>
 </div>

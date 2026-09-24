@@ -1,41 +1,27 @@
 <x-layouts.dashboard title="Dashboard — ternis.link">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1 style="font-size: 1.75rem; font-weight: 700;">Dashboard</h1>
-            <p style="color: var(--text-secondary); margin-top: 0.25rem;">
-                Welcome back, {{ auth()->user()->name }} (Plan: <strong>{{ auth()->user()->plan?->name ?? 'free' }}</strong>)
-                @if (auth()->user()?->isAdmin())
-                    · <strong>Admin view: stats across ALL links</strong>
-                @endif
-            </p>
-        </div>
-        <a href="{{ route('dashboard.links.create') }}" class="btn btn-primary">+ Create Link</a>
+    <x-ui.page-header title="Dashboard">
+        <x-slot:subtitle>
+            Welcome back, {{ auth()->user()->name }} (Plan: <strong>{{ auth()->user()->plan?->name ?? 'free' }}</strong>)
+            @if (auth()->user()?->isAdmin())
+                · <strong>Admin view: stats across ALL links</strong>
+            @endif
+        </x-slot:subtitle>
+        <x-slot:actions>
+            <x-ui.button href="{{ route('dashboard.links.create') }}" variant="primary">+ Create Link</x-ui.button>
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <x-ui.stat :value="number_format($stats['total_links'])" label="Total Links" />
+        <x-ui.stat :value="number_format($stats['total_clicks'])" label="Total Clicks" />
+        <x-ui.stat :value="number_format($stats['links_this_month'])" label="Links This Month" />
+        <x-ui.stat :value="number_format($stats['clicks_today'])" label="Clicks Today" />
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['total_links']) }}</span>
-            <span class="stat-label">Total Links</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['total_clicks']) }}</span>
-            <span class="stat-label">Total Clicks</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['links_this_month']) }}</span>
-            <span class="stat-label">Links This Month</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-value">{{ number_format($stats['clicks_today']) }}</span>
-            <span class="stat-label">Clicks Today</span>
-        </div>
-    </div>
-
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2 class="card-title" style="margin-bottom: 0;">Recent Links</h2>
-            <a href="{{ route('dashboard.links') }}" class="btn btn-secondary btn-sm">View All</a>
+    <x-ui.card title="Recent Links">
+        <div class="mb-4 flex justify-end">
+            <x-ui.button href="{{ route('dashboard.links') }}" size="sm">View All</x-ui.button>
         </div>
         <livewire:dashboard.link-table />
-    </div>
+    </x-ui.card>
 </x-layouts.dashboard>

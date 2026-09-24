@@ -3,7 +3,93 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* Class-based dark mode (toggled via localStorage, defaults to dark). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Self-hosted fonts (no CDN). */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-var.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-var.woff2') format('woff2');
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-white font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+    }
+
+    ::selection {
+        @apply bg-neutral-900 text-white dark:bg-white dark:text-neutral-900;
+    }
+
+    code {
+        @apply rounded border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 font-mono text-[0.85em] dark:border-neutral-800 dark:bg-neutral-900;
+    }
+
+    /* Accessible keyboard focus everywhere. */
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-neutral-500;
+    }
+}
+
+@layer components {
+    /* Data tables — semantic <table> markup stays unstyled in Blade. */
+    .ui-table {
+        @apply w-full border-collapse text-sm;
+    }
+
+    .ui-table th,
+    .ui-table td {
+        @apply border-b border-neutral-200 px-4 py-3 text-left align-middle dark:border-neutral-800;
+    }
+
+    .ui-table thead th {
+        @apply bg-neutral-50 text-xs font-semibold tracking-wider text-neutral-500 uppercase dark:bg-neutral-900 dark:text-neutral-400;
+    }
+
+    .ui-table tbody tr {
+        @apply transition-colors last:[&>td]:border-b-0 hover:bg-neutral-50 dark:hover:bg-neutral-900/60;
+    }
+
+    .ui-table th.sortable {
+        @apply cursor-pointer select-none;
+    }
+
+    /* Clicks-over-time bars (pure grayscale gradient). */
+    .ui-chart-bars {
+        @apply flex h-36 items-end gap-[3px] pt-2;
+    }
+
+    .ui-chart-bar {
+        @apply min-w-[2px] flex-1 rounded-t bg-gradient-to-b from-neutral-700 to-neutral-300 dark:from-neutral-100 dark:to-neutral-700;
+    }
+
+    /* Theme toggle icon swap. */
+    .theme-toggle .icon-sun {
+        @apply hidden dark:block;
+    }
+
+    .theme-toggle .icon-moon {
+        @apply block dark:hidden;
+    }
 }

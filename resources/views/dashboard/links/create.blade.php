@@ -1,8 +1,12 @@
 <x-layouts.dashboard title="Create Link — ternis.link">
-    <div style="margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.75rem; font-weight: 700;">Create Short Link</h1>
-        <p style="color: var(--text-secondary); margin-top: 0.25rem;">Shorten a URL with customized branding and analytics.</p>
-    </div>
+    <x-ui.page-header
+        title="Create Short Link"
+        subtitle="Shorten a URL with customized branding and analytics."
+        :backHref="route('dashboard.links')"
+        backLabel="Back to Links"
+    />
 
-    <livewire:dashboard.link-form />
+    <div class="max-w-2xl">
+        <livewire:dashboard.link-form />
+    </div>
 </x-layouts.dashboard>

@@ -16,7 +16,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - `admin.ternis.link`: Admin dashboard with system overview, link moderation, and user/plan management.
   - `links.t-api.de`: Dedicated API domain (`/v1`, `/` → latest version).
   - `api.ternis.link`: Permanent redirect to `links.t-api.de`.
-  - Landing assets (CSS + fonts) are fully local: `public/css/landing-*.css`, `public/css/error.css`, `public/fonts/*.woff2` (Inter + Space Grotesk, no CDN).
+  - Frontend assets are fully local: single Vite bundle + `public/fonts/*.woff2` (Inter + Space Grotesk, no CDN).
 - **Authentication — Ternis Auth SSO Only**:
   - **No local passwords or registration**: Authentication is delegated exclusively to Ternis Auth SSO via OAuth 2.0 / OpenID Connect with PKCE.
   - Silent SSO authentication check support (`prompt=none`).
@@ -35,8 +35,8 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - Hot slugs are cached for 5 minutes (`link:{domain_id}:{slug}`) — misses are never cached, writes invalidate via model events, and the expiry cleanup invalidates explicitly.
 - **Frontend**:
   - Built with Blade + Livewire 4.
-  - Custom Vanilla nested CSS (`public/css/app.css`) with dark mode interface, plus per-domain landing CSS (`landing-public.css`, `landing-business.css`) and shared error CSS (`error.css`).
-  - Self-hosted fonts (`public/fonts/inter-var.woff2`, `space-grotesk-var.woff2`) — no external CDN.
+  - Custom grayscale UI system on Tailwind CSS v4 (`resources/css/app.css` + `components/ui/*` Blade components: button, card, field, table, badge, alert, stat, segmented, status) with light/dark mode (class toggle, persisted, defaults to dark).
+  - Self-hosted fonts (`public/fonts/inter-var.woff2`, `space-grotesk-var.woff2`) + single Vite bundle — no external CDN.
   - Custom branded error pages (`resources/views/errors/404,403,419,429,500,503.blade.php`) for web requests; API/`expectsJson` requests still receive JSON.
   - Error encounters (`error_encounters` table): every rendered error response is logged with `http_code`, `error_message`, `exception_class`, `method`/`host`/`path`, `user_id`, SHA-256 `ip_hash`, and `user_agent`. Validation noise and health probes are skipped; logging never throws. SSO callback failures (stale/reused codes) redirect to login with a friendly message instead of 500ing.
 - **Deployment**:
@@ -99,7 +99,7 @@ overages are `429` with `Retry-After`.
 
 - **Framework**: Laravel 13 (PHP 8.3+)
 - **Frontend**: Blade + Livewire 4
-- **Styling**: Vanilla CSS (CSS nesting)
+- **Styling**: Tailwind CSS v4 (custom grayscale component system)
 - **Database**: SQLite (local/testing) / PostgreSQL or MySQL (production)
 - **Auth**: Ternis Auth SSO (OAuth 2.0 + PKCE)
 - **Web Server**: Caddy
