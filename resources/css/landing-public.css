@@ -64,6 +64,56 @@ body.sk-root ::selection {
     text-shadow: 0 0 0.6px currentColor;
 }
 
+/* --- drawn scroll progress + playful scrollbar ----------------
+ * Fixed squiggle up top that draws itself as you scroll, with a
+ * pencil riding the leading tip. Native scrollbar goes sketchy too.
+ * ========================================================== */
+.sk-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 22px;
+    z-index: 60;
+    pointer-events: none;
+}
+
+.sk-progress svg {
+    display: block;
+    width: 100%;
+    height: 22px;
+    overflow: visible;
+}
+
+.sk-progress path {
+    fill: none;
+    stroke: var(--sk-ink);
+    stroke-width: 5;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.sk-progress-pencil {
+    position: absolute;
+    top: -4px;
+    width: 26px;
+    height: 26px;
+    margin-left: -13px;
+    color: var(--sk-ink);
+    line-height: 0;
+}
+
+html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar { width: 14px; }
+html::-webkit-scrollbar-track, body.sk-root::-webkit-scrollbar-track { background: var(--sk-paper); }
+
+html::-webkit-scrollbar-thumb, body.sk-root::-webkit-scrollbar-thumb {
+    background: var(--sk-card);
+    border: 3px solid var(--sk-ink);
+    border-radius: 9px;
+}
+
+html, body.sk-root { scrollbar-width: thin; scrollbar-color: var(--sk-ink) var(--sk-paper); }
+
 /* --- doodle helper ---------------------------------------- */
 .dk {
     position: absolute;

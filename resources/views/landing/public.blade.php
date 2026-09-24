@@ -18,6 +18,14 @@
     @livewireStyles
 </head>
 <body class="sk-root">
+    <div class="sk-progress" aria-hidden="true">
+        <svg viewBox="0 0 1200 22" preserveAspectRatio="none" aria-hidden="true">
+            <path id="sk-progress-path" pathLength="100" d="M4 13 C 180 6, 360 17, 540 11 S 900 15, 1196 9" />
+        </svg>
+        <span class="sk-progress-pencil" id="sk-progress-pencil" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 28 30" fill="none" aria-hidden="true"><path d="M10 3 L18 3 L18 20 L14 27 L10 20 Z M10 7 L18 7 M14 27 L14 22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+    </div>
     <a class="sk-skip" href="#shorten">Skip to the shortener</a>
 
     <div class="sk-wrap">
@@ -163,5 +171,53 @@
     </div>
 
     @livewireScripts
+
+    <script>
+    /* Drawn scroll progress: the top squiggle draws itself as you
+     * scroll, pencil riding the tip. pathLength=100 normalizes math. */
+    (function () {
+        if (typeof document === 'undefined') return;
+
+        function init() {
+            var path = document.getElementById('sk-progress-path');
+            var pen = document.getElementById('sk-progress-pencil');
+            var bar = path ? path.closest('.sk-progress') : null;
+            if (!path || !pen || !bar) return;
+
+            path.style.strokeDasharray = '100';
+            path.style.strokeDashoffset = '100';
+
+            var ticking = false;
+
+            function update() {
+                ticking = false;
+                var max = document.documentElement.scrollHeight - window.innerHeight;
+                if (max <= 0) {
+                    bar.style.display = 'none';
+                    return;
+                }
+                bar.style.display = '';
+                var p = Math.min(1, Math.max(0, (window.scrollY || 0) / max));
+                path.style.strokeDashoffset = String(100 - 100 * p);
+                pen.style.left = (p * 100) + '%';
+            }
+
+            window.addEventListener('scroll', function () {
+                if (!ticking) {
+                    ticking = true;
+                    requestAnimationFrame(update);
+                }
+            }, { passive: true });
+            window.addEventListener('resize', update);
+            update();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
 </body>
 </html>
