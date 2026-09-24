@@ -69,7 +69,7 @@
                         </td>
                         <td>
                             @if ($key->isValid())
-                                <x-ui.button wire:click="revokeKey({{ $key->id }})" wire:confirm="Revoke this API key immediately?" size="sm" variant="danger">Revoke</x-ui.button>
+                                <x-ui.button wire:click="revokeKey('{{ $key->id }}')" wire:confirm="Revoke this API key immediately?" size="sm" variant="danger">Revoke</x-ui.button>
                             @else
                                 <span class="text-xs text-neutral-500">Revoked</span>
                             @endif

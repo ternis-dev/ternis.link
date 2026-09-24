@@ -38,7 +38,7 @@ class LinkModeration extends Component
         }
     }
 
-    public function deactivate(int $linkId): void
+    public function deactivate(string $linkId): void
     {
         $this->ensureAdmin();
 
@@ -46,7 +46,7 @@ class LinkModeration extends Component
         $link->update(['is_active' => false]);
     }
 
-    public function reactivate(int $linkId): void
+    public function reactivate(string $linkId): void
     {
         $this->ensureAdmin();
 

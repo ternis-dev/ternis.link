@@ -135,7 +135,7 @@ class LinkService
     /**
      * Check whether a slug is still free on the given domain.
      */
-    public function slugAvailable(string $slug, int $domainId): bool
+    public function slugAvailable(string $slug, string $domainId): bool
     {
         return ! Link::where('domain_id', $domainId)
             ->where('slug', $slug)
@@ -215,7 +215,7 @@ class LinkService
      *
      * @throws ValidationException
      */
-    protected function validateCustomSlug(string $slug, int $domainId, int $minLength, ?User $user): void
+    protected function validateCustomSlug(string $slug, string $domainId, int $minLength, ?User $user): void
     {
         if (! preg_match('/^[a-zA-Z0-9_-]+$/', $slug)) {
             throw ValidationException::withMessages([

@@ -58,9 +58,9 @@
                     </td>
                     <td>
                         @if ($link->is_active)
-                            <x-ui.button wire:click="deactivate({{ $link->id }})" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
+                            <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
                         @else
-                            <x-ui.button wire:click="reactivate({{ $link->id }})" size="sm">Reactivate</x-ui.button>
+                            <x-ui.button wire:click="reactivate('{{ $link->id }}')" size="sm">Reactivate</x-ui.button>
                         @endif
                     </td>
                 </tr>

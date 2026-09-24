@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 
 class Link extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlids;
 
     protected $fillable = [
         'slug',
@@ -48,12 +49,12 @@ class Link extends Model
     /**
      * Cache key for a hot slug lookup (scoped per domain).
      */
-    public static function cacheKey(int $domainId, string $slug): string
+    public static function cacheKey(string $domainId, string $slug): string
     {
         return "link:{$domainId}:{$slug}";
     }
 
-    public static function forgetCachedSlug(int $domainId, string $slug): void
+    public static function forgetCachedSlug(string $domainId, string $slug): void
     {
         Cache::forget(self::cacheKey($domainId, $slug));
     }
@@ -70,7 +71,7 @@ class Link extends Model
             $originalDomainId = $link->getOriginal('domain_id');
 
             if (is_string($originalSlug) && $originalDomainId !== null) {
-                self::forgetCachedSlug((int) $originalDomainId, $originalSlug);
+                self::forgetCachedSlug((string) $originalDomainId, $originalSlug);
             }
 
             self::forgetCachedSlug($link->domain_id, $link->slug);

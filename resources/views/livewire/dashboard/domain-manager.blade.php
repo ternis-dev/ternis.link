@@ -59,9 +59,9 @@
                         <td>
                             <div class="flex gap-2">
                                 @if (! $domain->isVerified())
-                                    <x-ui.button wire:click="verifyDomain({{ $domain->id }})" size="sm" variant="primary">Verify</x-ui.button>
+                                    <x-ui.button wire:click="verifyDomain('{{ $domain->id }}')" size="sm" variant="primary">Verify</x-ui.button>
                                 @endif
-                                <x-ui.button wire:click="removeDomain({{ $domain->id }})" wire:confirm="Remove {{ $domain->hostname }}? Links on it stop resolving, analytics are preserved." size="sm" variant="danger">Remove</x-ui.button>
+                                <x-ui.button wire:click="removeDomain('{{ $domain->id }}')" wire:confirm="Remove {{ $domain->hostname }}? Links on it stop resolving, analytics are preserved." size="sm" variant="danger">Remove</x-ui.button>
                             </div>
                         </td>
                     </tr>

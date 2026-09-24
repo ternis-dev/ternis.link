@@ -97,6 +97,7 @@ class DashboardSettingsTest extends TestCase
             ->assertStatus(200)
             ->assertSee('data-nav="top"', escape: false)
             ->assertDontSee('data-nav="side"', escape: false)
+            ->assertSee('data-nav="top" class="sticky top-4 z-30', escape: false)
             ->assertSee('Settings');
     }
 

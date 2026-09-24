@@ -18,7 +18,7 @@ $topNav = auth()->check() && auth()->user()->usesTopNav();
 
 <x-layouts.app :title="$title">
     @if ($topNav)
-        <nav aria-label="Dashboard" data-nav="top" class="mb-6 flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
+        <nav aria-label="Dashboard" data-nav="top" class="sticky top-4 z-30 mb-6 flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
             @foreach ($nav as $item)
                 <a
                     href="{{ route($item['route']) }}"

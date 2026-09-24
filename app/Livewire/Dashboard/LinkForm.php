@@ -15,7 +15,7 @@ class LinkForm extends Component
 
     public ?string $slug = null;
 
-    public int $domain_id = 0;
+    public ?string $domain_id = null;
 
     public ?string $expires_at = null;
 

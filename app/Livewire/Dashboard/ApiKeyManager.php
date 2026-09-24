@@ -42,7 +42,7 @@ class ApiKeyManager extends Component
         $this->keyName = '';
     }
 
-    public function revokeKey(int $keyId): void
+    public function revokeKey(string $keyId): void
     {
         $key = auth()->user()->apiKeys()->findOrFail($keyId);
         $key->update(['revoked_at' => now()]);

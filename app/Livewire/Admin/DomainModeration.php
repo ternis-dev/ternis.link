@@ -43,7 +43,7 @@ class DomainModeration extends Component
      * analytics are preserved. System domains are protected: tampered
      * IDs resolve to null and become a no-op with an error.
      */
-    public function deactivate(int $domainId): void
+    public function deactivate(string $domainId): void
     {
         $this->ensureAdmin();
 
@@ -58,7 +58,7 @@ class DomainModeration extends Component
         $domain->update(['is_active' => false]);
     }
 
-    public function reactivate(int $domainId): void
+    public function reactivate(string $domainId): void
     {
         $this->ensureAdmin();
 
@@ -105,7 +105,7 @@ class DomainModeration extends Component
      * Only user-owned domains can be moderated; system hostnames and
      * tampered IDs resolve to null.
      */
-    private function moderatableDomain(int $domainId): ?Domain
+    private function moderatableDomain(string $domainId): ?Domain
     {
         return Domain::where('id', $domainId)->whereNotNull('user_id')->first();
     }

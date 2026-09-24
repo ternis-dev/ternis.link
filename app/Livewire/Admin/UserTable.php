@@ -26,7 +26,7 @@ class UserTable extends Component
         $this->resetPage();
     }
 
-    public function updateRole(int $userId, string $role): void
+    public function updateRole(string $userId, string $role): void
     {
         $this->ensureAdmin();
 
@@ -44,7 +44,7 @@ class UserTable extends Component
         $user->update(['role' => $role]);
     }
 
-    public function updatePlan(int $userId, int $planId): void
+    public function updatePlan(string $userId, string $planId): void
     {
         $this->ensureAdmin();
 

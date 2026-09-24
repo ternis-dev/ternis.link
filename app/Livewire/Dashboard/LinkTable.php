@@ -41,7 +41,7 @@ class LinkTable extends Component
         }
     }
 
-    public function deactivate(int $linkId): void
+    public function deactivate(string $linkId): void
     {
         // Admins may deactivate ANY link; regular users only their own.
         $link = auth()->user()->isAdmin()

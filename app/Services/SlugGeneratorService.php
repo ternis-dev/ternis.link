@@ -16,9 +16,9 @@ class SlugGeneratorService
      * Generate a unique slug for the given domain.
      *
      * @param  int  $length  Slug length (determined by user's plan min_slug_length)
-     * @param  int  $domainId  Domain to check uniqueness against
+     * @param  string  $domainId  Domain to check uniqueness against
      */
-    public function generate(int $length, int $domainId): string
+    public function generate(int $length, string $domainId): string
     {
         $maxAttempts = 10;
 

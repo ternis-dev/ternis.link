@@ -12,7 +12,7 @@ class DomainManager extends Component
 {
     public string $hostname = '';
 
-    public ?int $justCreatedId = null;
+    public ?string $justCreatedId = null;
 
     protected function rules(): array
     {
@@ -65,7 +65,7 @@ class DomainManager extends Component
     /**
      * Attempt DNS TXT verification for an owned domain.
      */
-    public function verifyDomain(int $domainId, DomainService $domains): void
+    public function verifyDomain(string $domainId, DomainService $domains): void
     {
         $domain = $this->ownedDomain($domainId);
 
@@ -86,7 +86,7 @@ class DomainManager extends Component
     /**
      * Soft-deactivate an owned domain (links and analytics are preserved).
      */
-    public function removeDomain(int $domainId, DomainService $domains): void
+    public function removeDomain(string $domainId, DomainService $domains): void
     {
         $domain = $this->ownedDomain($domainId);
 
@@ -103,7 +103,7 @@ class DomainManager extends Component
      * Scope lookups to the current user's own active domains so tampered
      * IDs (foreign or system domains) resolve to null and become a no-op.
      */
-    private function ownedDomain(int $domainId): ?Domain
+    private function ownedDomain(string $domainId): ?Domain
     {
         return auth()->user()->domains()
             ->where('domains.id', $domainId)

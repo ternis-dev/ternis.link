@@ -15,7 +15,7 @@ class RecordClick implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public function __construct(
-        public int $linkId,
+        public string $linkId,
         public ?string $referrer,
         public ?string $userAgent,
         public ?string $ipHash,

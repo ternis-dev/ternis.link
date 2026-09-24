@@ -33,14 +33,14 @@
                         <div class="text-xs text-neutral-500">{{ $user->email }}</div>
                     </td>
                     <td>
-                        <x-ui.select :name="'role-'.$user->id" wire:change="updateRole({{ $user->id }}, $event.target.value)">
+                        <x-ui.select :name="'role-'.$user->id" wire:change="updateRole('{{ $user->id }}', $event.target.value)">
                             @foreach ($roles as $role)
                                 <option value="{{ $role->value }}" @selected($user->role === $role)>{{ ucfirst($role->value) }}</option>
                             @endforeach
                         </x-ui.select>
                     </td>
                     <td>
-                        <x-ui.select :name="'plan-'.$user->id" wire:change="updatePlan({{ $user->id }}, $event.target.value)">
+                        <x-ui.select :name="'plan-'.$user->id" wire:change="updatePlan('{{ $user->id }}', $event.target.value)">
                             @foreach ($plans as $plan)
                                 <option value="{{ $plan->id }}" @selected($user->plan_id === $plan->id)>{{ $plan->name }}</option>
                             @endforeach

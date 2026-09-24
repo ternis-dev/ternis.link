@@ -75,11 +75,11 @@ class DashboardController extends Controller
      *
      * Admins may open stats for ANY link; regular users only their own.
      */
-    public function showLink(int $linkId)
+    public function showLink(string $link)
     {
         $link = auth()->user()->isAdmin()
-            ? Link::with(['domain', 'user'])->findOrFail($linkId)
-            : auth()->user()->links()->with('domain')->findOrFail($linkId);
+            ? Link::with(['domain', 'user'])->findOrFail($link)
+            : auth()->user()->links()->with('domain')->findOrFail($link);
 
         return view('dashboard.links.show', compact('link'));
     }
@@ -90,12 +90,12 @@ class DashboardController extends Controller
      * Admins may export ANY link (including direct-URL rows); regular
      * users only their own links (direct-URL rows excluded).
      */
-    public function exportClicks(int $linkId)
+    public function exportClicks(string $link)
     {
         $user = auth()->user();
         $link = $user->isAdmin()
-            ? Link::with('domain')->findOrFail($linkId)
-            : $user->links()->with('domain')->findOrFail($linkId);
+            ? Link::with('domain')->findOrFail($link)
+            : $user->links()->with('domain')->findOrFail($link);
 
         $clicks = $link->clicks()
             ->when(! $user->isAdmin(), fn ($query) => $query->where('is_direct_url', false))

@@ -56,9 +56,9 @@
                         @if ($domain->isSystemDomain())
                             <span class="text-xs text-neutral-500">Protected</span>
                         @elseif ($domain->is_active)
-                            <x-ui.button wire:click="deactivate({{ $domain->id }})" wire:confirm="Disable {{ $domain->hostname }}? Links on it stop resolving, analytics are preserved." size="sm" variant="danger">Disable</x-ui.button>
+                            <x-ui.button wire:click="deactivate('{{ $domain->id }}')" wire:confirm="Disable {{ $domain->hostname }}? Links on it stop resolving, analytics are preserved." size="sm" variant="danger">Disable</x-ui.button>
                         @else
-                            <x-ui.button wire:click="reactivate({{ $domain->id }})" size="sm">Reactivate</x-ui.button>
+                            <x-ui.button wire:click="reactivate('{{ $domain->id }}')" size="sm">Reactivate</x-ui.button>
                         @endif
                     </td>
                 </tr>
