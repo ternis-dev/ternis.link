@@ -93,6 +93,15 @@ class User extends Authenticatable
     }
 
     /**
+     * May this user pick the auto-generated slug length on the link
+     * form? Admins always; everyone else needs it on their plan.
+     */
+    public function canChooseSlugLength(): bool
+    {
+        return $this->isAdmin() || (bool) $this->plan?->allowsSlugLengthChoice();
+    }
+
+    /**
      * Get the avatar URL with optional size parameter.
      * Falls back to user.t-api.de which never returns broken images.
      */

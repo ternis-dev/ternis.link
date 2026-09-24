@@ -71,6 +71,7 @@ class LinkService
         ?string $customSlug = null,
         ?\DateTimeInterface $expiresAt = null,
         ?string $creatorIpHash = null,
+        ?int $generatedLength = null,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -87,7 +88,11 @@ class LinkService
         }
 
         $minLength = $user?->plan?->min_slug_length ?? self::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
-        $generatedLength = $user === null ? self::GUEST_SLUG_LENGTH : $minLength;
+        // Explicit length choice (dashboard picker) wins over the plan
+        // default; clamped defensively so callers can't pass absurdities.
+        $generatedLength = $generatedLength !== null
+            ? max(1, min(64, $generatedLength))
+            : ($user === null ? self::GUEST_SLUG_LENGTH : $minLength);
 
         if (! $domain->is_active) {
             throw ValidationException::withMessages([

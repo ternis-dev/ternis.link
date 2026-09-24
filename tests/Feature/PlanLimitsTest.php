@@ -217,4 +217,90 @@ class PlanLimitsTest extends TestCase
 
         $this->assertEquals(1, Link::where('domain_id', $this->domain->id)->where('slug', 'livewire-taken')->count());
     }
+
+    public function test_admin_can_choose_generated_slug_length(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $slug = Livewire::actingAs($admin)
+            ->test(LinkForm::class)
+            ->assertSee('Generated Slug Length', escape: false)
+            ->set('destination_url', 'https://example.com/picked-length')
+            ->set('domain_id', $this->domain->id)
+            ->set('slug_length', 12)
+            ->call('create')
+            ->assertHasNoErrors()
+            ->get('createdSlug');
+
+        $this->assertIsString($slug);
+        $this->assertSame(12, strlen($slug));
+    }
+
+    public function test_capable_plan_can_choose_generated_slug_length(): void
+    {
+        $user = $this->userOnPlan('family');
+
+        $slug = Livewire::actingAs($user)
+            ->test(LinkForm::class)
+            ->assertSee('Generated Slug Length', escape: false)
+            ->set('destination_url', 'https://example.com/family-length')
+            ->set('domain_id', $this->domain->id)
+            ->set('slug_length', 10)
+            ->call('create')
+            ->assertHasNoErrors()
+            ->get('createdSlug');
+
+        $this->assertSame(10, strlen($slug));
+    }
+
+    public function test_slug_length_outside_bounds_is_rejected(): void
+    {
+        $user = $this->userOnPlan('family');
+
+        foreach ([2, 99] as $length) {
+            Livewire::actingAs($user)
+                ->test(LinkForm::class)
+                ->set('destination_url', 'https://example.com/bad-length')
+                ->set('domain_id', $this->domain->id)
+                ->set('slug_length', $length)
+                ->call('create')
+                ->assertHasErrors('slug_length');
+        }
+
+        $this->assertDatabaseMissing('links', ['destination_url' => 'https://example.com/bad-length']);
+    }
+
+    public function test_free_plan_has_no_picker_and_ignores_tampered_length(): void
+    {
+        $user = $this->userOnPlan('free'); // min_slug_length = 6, no length choice
+
+        $slug = Livewire::actingAs($user)
+            ->test(LinkForm::class)
+            ->assertDontSee('Generated Slug Length', escape: false)
+            ->set('destination_url', 'https://example.com/tampered')
+            ->set('domain_id', $this->domain->id)
+            ->set('slug_length', 32)
+            ->call('create')
+            ->assertHasNoErrors()
+            ->get('createdSlug');
+
+        $this->assertSame(6, strlen($slug));
+    }
+
+    public function test_custom_slug_wins_over_picked_length(): void
+    {
+        $user = $this->userOnPlan('family');
+
+        $slug = Livewire::actingAs($user)
+            ->test(LinkForm::class)
+            ->set('destination_url', 'https://example.com/custom-wins')
+            ->set('domain_id', $this->domain->id)
+            ->set('slug', 'my-picked')
+            ->set('slug_length', 32)
+            ->call('create')
+            ->assertHasNoErrors()
+            ->get('createdSlug');
+
+        $this->assertSame('my-picked', $slug);
+    }
 }

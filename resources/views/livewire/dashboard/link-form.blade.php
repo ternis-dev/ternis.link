@@ -31,6 +31,20 @@
             hint="Alphanumeric characters, dashes, and underscores only. Min length: {{ auth()->user()->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH }} chars."
         />
 
+        @if ($canChooseSlugLength)
+            <x-ui.input
+                label="Generated Slug Length"
+                name="slug_length"
+                type="number"
+                wire:model="slug_length"
+                required
+                min="{{ $slugLengthMin }}"
+                max="{{ $slugLengthMax }}"
+                step="1"
+                hint="Length of auto-generated slugs ({{ $slugLengthMin }}–{{ $slugLengthMax }} characters). Ignored when a custom slug is set."
+            />
+        @endif
+
         <x-ui.input
             label="Expiration Date (optional)"
             name="expires_at"

@@ -11,11 +11,17 @@ use Livewire\Component;
 
 class LinkForm extends Component
 {
+    public const MIN_GENERATED_LENGTH = 3;
+
+    public const MAX_GENERATED_LENGTH = 64;
+
     public string $destination_url = '';
 
     public ?string $slug = null;
 
     public ?string $domain_id = null;
+
+    public ?int $slug_length = null;
 
     public ?string $expires_at = null;
 
@@ -27,7 +33,7 @@ class LinkForm extends Component
     {
         $minLength = auth()->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
 
-        return [
+        $rules = [
             'destination_url' => ['required', 'url', 'max:2048'],
             'domain_id' => ['required', 'exists:domains,id'],
             'slug' => [
@@ -40,17 +46,56 @@ class LinkForm extends Component
             ],
             'expires_at' => ['nullable', 'date', 'after:now'],
         ];
+
+        // The length picker is only enforced when it applies: eligible
+        // user, auto-generated slug (no custom slug entered).
+        if ($this->canChooseSlugLength() && trim((string) $this->slug) === '') {
+            [$min, $max] = $this->slugLengthBounds();
+            $rules['slug_length'] = ['required', 'integer', "min:{$min}", "max:{$max}"];
+        }
+
+        return $rules;
     }
 
     protected function messages(): array
     {
         $minLength = auth()->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         $planName = auth()->user()?->plan?->name ?? 'current';
+        [$lengthMin, $lengthMax] = $this->slugLengthBounds();
 
         return [
             'slug.min' => "The slug must be at least {$minLength} characters for your plan ({$planName}).",
             'slug.unique' => 'This slug is already taken on the selected domain.',
+            'slug_length.required' => 'Choose a length for the auto-generated slug.',
+            'slug_length.integer' => 'The slug length must be a whole number.',
+            'slug_length.min' => "The slug length must be at least {$lengthMin} characters.",
+            'slug_length.max' => "The slug length may not exceed {$lengthMax} characters.",
         ];
+    }
+
+    /**
+     * Whether the length picker applies to the current user.
+     */
+    public function canChooseSlugLength(): bool
+    {
+        return (bool) auth()->user()?->canChooseSlugLength();
+    }
+
+    /**
+     * Picker bounds: global 3–64 floor/ceiling, never below the
+     * plan minimum (admins always get the full range).
+     *
+     * @return array{int, int} [min, max]
+     */
+    public function slugLengthBounds(): array
+    {
+        if (auth()->user()?->isAdmin()) {
+            return [self::MIN_GENERATED_LENGTH, self::MAX_GENERATED_LENGTH];
+        }
+
+        $planMin = auth()->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
+
+        return [max(self::MIN_GENERATED_LENGTH, $planMin), self::MAX_GENERATED_LENGTH];
     }
 
     public function mount(): void
@@ -58,6 +103,10 @@ class LinkForm extends Component
         $firstDomain = $this->getAvailableDomains()->first();
         if ($firstDomain) {
             $this->domain_id = $firstDomain->id;
+        }
+
+        if ($this->canChooseSlugLength()) {
+            $this->slug_length = $this->slugLengthBounds()[0];
         }
     }
 
@@ -80,14 +129,21 @@ class LinkForm extends Component
         }
 
         $domain = Domain::findOrFail($this->domain_id);
+        $customSlug = trim((string) $this->slug) !== '' ? trim((string) $this->slug) : null;
+
+        // A custom slug always wins; the picker only sizes auto-generated ones.
+        $generatedLength = $customSlug === null && $this->canChooseSlugLength() && $this->slug_length !== null
+            ? (int) $this->slug_length
+            : null;
 
         try {
             $link = $linkService->create(
                 destinationUrl: $this->destination_url,
                 domain: $domain,
                 user: $user,
-                customSlug: $this->slug ?: null,
+                customSlug: $customSlug,
                 expiresAt: $this->expires_at ? new \DateTime($this->expires_at) : null,
+                generatedLength: $generatedLength,
             );
         } catch (ValidationException $e) {
             // Service-level rejections (scanner junk, slug races) land
@@ -108,7 +164,7 @@ class LinkForm extends Component
         $this->createdSlug = $link->slug;
         $this->createdDomain = $domain->hostname;
 
-        // Reset form
+        // Reset form (keep the chosen length)
         $this->destination_url = '';
         $this->slug = null;
         $this->expires_at = null;
@@ -116,9 +172,12 @@ class LinkForm extends Component
 
     public function render()
     {
-        $domains = $this->getAvailableDomains();
-
-        return view('livewire.dashboard.link-form', compact('domains'));
+        return view('livewire.dashboard.link-form', [
+            'domains' => $this->getAvailableDomains(),
+            'canChooseSlugLength' => $this->canChooseSlugLength(),
+            'slugLengthMin' => $this->slugLengthBounds()[0],
+            'slugLengthMax' => $this->slugLengthBounds()[1],
+        ]);
     }
 
     /**

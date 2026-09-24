@@ -15,12 +15,14 @@ class Plan extends Model
         'name',
         'min_slug_length',
         'custom_subdomain',
+        'slug_length_choice',
         'rate_limit_per_minute',
         'max_links_per_day',
     ];
 
     protected $casts = [
         'custom_subdomain' => 'boolean',
+        'slug_length_choice' => 'boolean',
         'min_slug_length' => 'integer',
         'rate_limit_per_minute' => 'integer',
         'max_links_per_day' => 'integer',
@@ -34,6 +36,11 @@ class Plan extends Model
     public function allowsCustomSubdomain(): bool
     {
         return $this->custom_subdomain;
+    }
+
+    public function allowsSlugLengthChoice(): bool
+    {
+        return $this->slug_length_choice;
     }
 
     public function hasUnlimitedLinks(): bool
