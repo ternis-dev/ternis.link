@@ -31,6 +31,10 @@
                     wire:model="keyName"
                     placeholder="e.g. CLI Script, Production Server"
                     required
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    maxlength="255"
                 />
             </div>
             <x-ui.button type="submit" variant="primary">Generate Key</x-ui.button>

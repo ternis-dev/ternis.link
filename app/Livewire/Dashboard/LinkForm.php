@@ -47,8 +47,17 @@ class LinkForm extends Component
         $planName = auth()->user()?->plan?->name ?? 'current';
 
         return [
+            'destination_url.required' => 'Please paste a destination URL.',
+            'destination_url.url' => 'That doesn’t look like a valid URL — include https:// at the start.',
+            'destination_url.max' => 'That URL is too long — keep it under 2,048 characters.',
+            'domain_id.required' => 'Choose a domain for the short link.',
+            'domain_id.exists' => 'The selected domain is no longer available.',
+            'slug.regex' => 'Slugs may only contain letters, numbers, dashes and underscores.',
+            'slug.max' => 'That slug is too long — keep it under 255 characters.',
             'slug.min' => "The slug must be at least {$minLength} characters for your plan ({$planName}).",
             'slug.unique' => 'This slug is already taken on the selected domain.',
+            'expires_at.date' => 'The expiration doesn’t look like a valid date.',
+            'expires_at.after' => 'The expiration date must be in the future.',
         ];
     }
 
@@ -62,6 +71,9 @@ class LinkForm extends Component
 
     public function create(LinkService $linkService): void
     {
+        $this->destination_url = trim($this->destination_url);
+        $this->slug = $this->slug !== null && trim($this->slug) !== '' ? trim($this->slug) : null;
+
         $this->validate();
 
         $user = auth()->user();

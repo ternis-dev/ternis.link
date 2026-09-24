@@ -21,6 +21,11 @@
                         wire:model="hostname"
                         placeholder="e.g. links.example.com"
                         required
+                        autocomplete="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        inputmode="url"
+                        maxlength="255"
                     />
                 </div>
                 <x-ui.button type="submit" variant="primary">Add Domain</x-ui.button>
@@ -78,7 +83,7 @@
                                         size="sm"
                                         onclick="navigator.clipboard.writeText(@js($instructions[$domain->id]['value'])).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy token', 2000); })"
                                     >Copy token</x-ui.button>
-                                    @error("verify.{$domain->id}") <p class="mt-2 text-xs font-medium" role="alert">{{ $message }}</p> @enderror
+                                    @error("verify.{$domain->id}") <p class="mt-2 text-xs font-medium text-red-600 dark:text-red-400" role="alert">{{ $message }}</p> @enderror
                                 </div>
                             </td>
                         </tr>

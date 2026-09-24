@@ -8,6 +8,7 @@
         @endif
 
         <x-ui.button href="{{ url('/auth/redirect') }}" variant="primary" size="lg" class="mt-8">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3.5h4.5A1.5 1.5 0 0 1 21 5v14a1.5 1.5 0 0 1-1.5 1.5H15"/><path d="M10 8l4 4-4 4M14 12H3.5"/></svg>
             Login with Ternis Auth SSO
         </x-ui.button>
 

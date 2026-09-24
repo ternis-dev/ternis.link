@@ -30,7 +30,7 @@
                     </span>
                 </label>
             </div>
-            @error('nav_layout') <p class="mt-2 text-xs font-medium" role="alert">{{ $message }}</p> @enderror
+            @error('nav_layout') <p class="mt-2 text-xs font-medium text-red-600 dark:text-red-400" role="alert">{{ $message }}</p> @enderror
         </x-ui.card>
 
         <x-ui.card title="Color Theme">
@@ -42,7 +42,7 @@
                     <option value="dark">Dark</option>
                 </x-ui.select>
             </div>
-            @error('theme') <p class="mt-2 text-xs font-medium" role="alert">{{ $message }}</p> @enderror
+            @error('theme') <p class="mt-2 text-xs font-medium text-red-600 dark:text-red-400" role="alert">{{ $message }}</p> @enderror
         </x-ui.card>
 
         <x-ui.button type="submit" variant="primary">Save Settings</x-ui.button>
