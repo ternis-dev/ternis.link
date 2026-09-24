@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\RefreshSsoToken;
@@ -105,12 +106,45 @@ if (app()->environment('local', 'testing')) {
 /*
 |----------------------------------------------------------------------
 | Dashboard routes (dash.ternis.link) — require SSO login.
-| ensure.domain runs before auth so the wrong host 404s instead of
-| redirecting to login (fail fast, don't leak route existence).
+| Served at the domain root (no /dashboard prefix): the hostname
+| already says dashboard. ensure.domain runs before auth so the wrong
+| host 404s instead of redirecting to login (fail fast, don't leak
+| route existence).
 |----------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->prefix('dashboard')->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->group(function () {
+    // Legacy /dashboard prefix. Everywhere else it 301s to the new
+    // root URLs; on local dev (where /dashboard/* is how localhost
+    // reaches the dashboard) the bare path serves the home page.
+    Route::get('/dashboard', function () {
+        if (in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true)) {
+            return app(DashboardController::class)->index();
+        }
+
+        return redirect('/', 301);
+    });
+    Route::get('/dashboard/{any}', function (string $any) {
+        $query = request()->getQueryString();
+
+        return redirect('/'.$any.($query ? '?'.$query : ''), 301);
+    })->where('any', '.*');
+
+    // /admin on the dashboard host belongs to the admin host. Pinned
+    // to the dashboard host so admin.ternis.link/admin/* still reaches
+    // the admin panel (no self-redirect loop).
+    Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))->get('/admin{any?}', function () {
+        $suffix = substr(request()->getRequestUri(), strlen('/admin'));
+
+        return redirect()->away('https://admin.ternis.link'.$suffix, 302);
+    })->where('any', '.*');
+
+    // Dashboard home. Pinned to the dashboard host: a second host-blind
+    // GET / would collide with the landing home route in the collection
+    // (same method+URI evicts it) and swallow the public landing.
+    Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
+        ->get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/new', [DashboardController::class, 'createLink'])->name('dashboard.new');
     Route::get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
     Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
     Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
@@ -191,6 +225,12 @@ Route::middleware(['ensure.domain:public,business,ternis,partner', EnforceDomain
     Route::get('/go/{url}', [RedirectController::class, 'goUrl'])
         ->where('url', '.*')
         ->name('redirect.go');
+
+    // Link preview sandbox (href.nz only — the handler 404s elsewhere).
+    // Must stay above the catch-all: /preview/x would classify as slug.
+    Route::get('/preview/{input}', [PreviewController::class, 'show'])
+        ->where('input', '.*')
+        ->name('redirect.preview');
 
     // Slug or URL detection — MUST be last (catch-all).
     // Version prefixes (v1, v2, …) are reserved so single-segment API

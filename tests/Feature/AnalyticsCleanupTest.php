@@ -124,7 +124,7 @@ class AnalyticsCleanupTest extends TestCase
         Click::create(['link_id' => $link->id, 'is_direct_url' => true]);
 
         $this->actingAs($user)
-            ->get('http://dash.ternis.link/dashboard')
+            ->get('http://dash.ternis.link')
             ->assertStatus(200)
             ->assertViewHas('stats', fn ($stats) => $stats['total_clicks'] === 2 && $stats['clicks_today'] === 2);
     }
@@ -138,7 +138,7 @@ class AnalyticsCleanupTest extends TestCase
         Click::create(['link_id' => $link->id, 'is_direct_url' => true]);
 
         $this->actingAs($admin)
-            ->get('http://dash.ternis.link/dashboard')
+            ->get('http://dash.ternis.link')
             ->assertStatus(200)
             ->assertViewHas('stats', fn ($stats) => $stats['total_clicks'] === 2 && $stats['clicks_today'] === 2);
     }

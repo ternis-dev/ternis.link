@@ -51,7 +51,7 @@ class DomainManagerTest extends TestCase
         $user = $this->userOnPlan('family');
 
         $this->actingAs($user)
-            ->get('http://dash.ternis.link/dashboard/domains')
+            ->get('http://dash.ternis.link/domains')
             ->assertStatus(200)
             ->assertSee('Domains')
             ->assertSee('Add Custom Domain');
@@ -59,7 +59,7 @@ class DomainManagerTest extends TestCase
 
     public function test_guest_cannot_access_domains_page(): void
     {
-        $this->get('http://dash.ternis.link/dashboard/domains')
+        $this->get('http://dash.ternis.link/domains')
             ->assertRedirect('http://dash.ternis.link/login');
     }
 

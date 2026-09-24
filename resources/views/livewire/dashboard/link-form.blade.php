@@ -73,7 +73,11 @@
 
         <div class="flex gap-3 pt-1">
             <x-ui.button type="submit" variant="primary">Create Short Link</x-ui.button>
-            <x-ui.button href="{{ route('dashboard.links') }}">Cancel</x-ui.button>
+            @if ($modal)
+                <x-ui.button x-on:click="$dispatch('close-link-creator')">Close</x-ui.button>
+            @else
+                <x-ui.button href="{{ route('dashboard.links') }}">Cancel</x-ui.button>
+            @endif
         </div>
     </form>
 </x-ui.card>

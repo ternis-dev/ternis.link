@@ -166,7 +166,7 @@ class JunkUrlTest extends TestCase
         }
 
         $this->actingAs($user)
-            ->get('http://dash.ternis.link/dashboard/links')
+            ->get('http://dash.ternis.link/links')
             ->assertStatus(200)
             ->assertSee('ui-pagination', escape: false)
             ->assertSee('aria-label="Pagination"', escape: false)

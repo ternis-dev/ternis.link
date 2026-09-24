@@ -58,7 +58,7 @@ class LinkEditTest extends TestCase
     public function test_edit_page_renders_for_owner(): void
     {
         $this->actingAs($this->user)
-            ->get("http://dash.ternis.link/dashboard/links/{$this->link->id}/edit")
+            ->get("http://dash.ternis.link/links/{$this->link->id}/edit")
             ->assertStatus(200)
             ->assertSee('Edit Short Link', escape: false)
             ->assertSee('id="destination_url"', escape: false)
@@ -70,7 +70,7 @@ class LinkEditTest extends TestCase
         $stranger = User::factory()->create();
 
         $this->actingAs($stranger)
-            ->get("http://dash.ternis.link/dashboard/links/{$this->link->id}/edit")
+            ->get("http://dash.ternis.link/links/{$this->link->id}/edit")
             ->assertStatus(404);
     }
 
@@ -144,7 +144,7 @@ class LinkEditTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)
-            ->get("http://dash.ternis.link/dashboard/links/{$this->link->id}/edit")
+            ->get("http://dash.ternis.link/links/{$this->link->id}/edit")
             ->assertStatus(200);
 
         Livewire::actingAs($admin)
@@ -172,8 +172,8 @@ class LinkEditTest extends TestCase
     public function test_links_table_links_to_edit_page(): void
     {
         $this->actingAs($this->user)
-            ->get('http://dash.ternis.link/dashboard/links')
+            ->get('http://dash.ternis.link/links')
             ->assertStatus(200)
-            ->assertSee("/dashboard/links/{$this->link->id}/edit", escape: false);
+            ->assertSee("/links/{$this->link->id}/edit", escape: false);
     }
 }

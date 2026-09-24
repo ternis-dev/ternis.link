@@ -34,22 +34,22 @@ class AdminAllLinksTest extends TestCase
 
         // Detail page
         $this->actingAs($admin)
-            ->get("http://dash.ternis.link/dashboard/links/{$link->id}")
+            ->get("http://dash.ternis.link/links/{$link->id}")
             ->assertStatus(200)
             ->assertSee('other-users-link');
 
         // Export
         $this->actingAs($admin)
-            ->get("http://dash.ternis.link/dashboard/links/{$link->id}/export")
+            ->get("http://dash.ternis.link/links/{$link->id}/export")
             ->assertStatus(200);
 
         // Non-admin still blocked
         $stranger = User::factory()->create();
         $this->actingAs($stranger)
-            ->get("http://dash.ternis.link/dashboard/links/{$link->id}")
+            ->get("http://dash.ternis.link/links/{$link->id}")
             ->assertStatus(404);
         $this->actingAs($stranger)
-            ->get("http://dash.ternis.link/dashboard/links/{$link->id}/export")
+            ->get("http://dash.ternis.link/links/{$link->id}/export")
             ->assertStatus(404);
     }
 
@@ -86,7 +86,7 @@ class AdminAllLinksTest extends TestCase
         Link::create(['slug' => 'stat-b', 'destination_url' => 'https://example.com/b', 'domain_id' => $domain->id, 'user_id' => $owner->id, 'is_active' => true]);
 
         $this->actingAs($admin)
-            ->get('http://dash.ternis.link/dashboard')
+            ->get('http://dash.ternis.link')
             ->assertStatus(200)
             ->assertSee('Admin view: stats across ALL links', escape: false)
             ->assertViewHas('stats', fn ($s) => $s['total_links'] === 2);

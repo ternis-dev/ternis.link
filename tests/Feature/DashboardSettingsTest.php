@@ -33,14 +33,14 @@ class DashboardSettingsTest extends TestCase
 
     public function test_guest_cannot_access_settings(): void
     {
-        $this->get('http://dash.ternis.link/dashboard/settings')
+        $this->get('http://dash.ternis.link/settings')
             ->assertRedirect('http://dash.ternis.link/login');
     }
 
     public function test_settings_page_renders_with_defaults(): void
     {
         $this->actingAs($this->user)
-            ->get('http://dash.ternis.link/dashboard/settings')
+            ->get('http://dash.ternis.link/settings')
             ->assertStatus(200)
             ->assertSee('Settings')
             ->assertSee('Navigation Layout', escape: false)
@@ -82,7 +82,7 @@ class DashboardSettingsTest extends TestCase
     public function test_dashboard_uses_side_nav_by_default(): void
     {
         $this->actingAs($this->user)
-            ->get('http://dash.ternis.link/dashboard')
+            ->get('http://dash.ternis.link')
             ->assertStatus(200)
             ->assertSee('data-nav="side"', escape: false)
             ->assertDontSee('data-nav="top"', escape: false);
@@ -93,7 +93,7 @@ class DashboardSettingsTest extends TestCase
         $this->user->update(['nav_layout' => 'top']);
 
         $this->actingAs($this->user)
-            ->get('http://dash.ternis.link/dashboard')
+            ->get('http://dash.ternis.link')
             ->assertStatus(200)
             ->assertSee('data-nav="top"', escape: false)
             ->assertDontSee('data-nav="side"', escape: false)
@@ -129,7 +129,7 @@ class DashboardSettingsTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->get("http://dash.ternis.link/dashboard/links/{$link->id}");
+            ->get("http://dash.ternis.link/links/{$link->id}");
 
         $response->assertStatus(200);
         $response->assertSee('data-chart="clicks"', escape: false);
@@ -156,7 +156,7 @@ class DashboardSettingsTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->get("http://dash.ternis.link/dashboard/links/{$link->id}");
+            ->get("http://dash.ternis.link/links/{$link->id}");
 
         $response->assertStatus(200);
         $response->assertSee('data-chart="browsers"', escape: false);

@@ -94,6 +94,17 @@ class ResolveDomain
                 return $next($request);
             }
 
+            // New root dashboard URLs (no /dashboard prefix). Localhost
+            // serves them like the legacy /dashboard/* paths above; /
+            // intentionally stays public (landing) here.
+            if ($request->is('links*') || $request->is('new') || $request->is('api-keys*') || $request->is('domains*') || $request->is('settings*')) {
+                $request->attributes->set('domain_type', 'dashboard');
+                $request->attributes->set('domain_hostname', 'dash.ternis.link');
+                $request->attributes->set('domain_model', Domain::where('hostname', 'ternis.link')->first());
+
+                return $next($request);
+            }
+
             if ($request->is('v1*')) {
                 $request->attributes->set('domain_type', 'api');
                 $request->attributes->set('domain_hostname', 'links.t-api.de');

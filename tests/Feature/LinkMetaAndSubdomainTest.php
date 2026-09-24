@@ -258,7 +258,7 @@ class LinkMetaAndSubdomainTest extends TestCase
         $this->assertFalse($user->canClaimSubdomain());
 
         $this->actingAs($user)
-            ->get('http://dash.ternis.link/dashboard/domains')
+            ->get('http://dash.ternis.link/domains')
             ->assertStatus(200)
             ->assertDontSee('Your ternis.link Subdomain', escape: false);
 

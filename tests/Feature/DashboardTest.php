@@ -33,14 +33,14 @@ class DashboardTest extends TestCase
 
     public function test_guest_cannot_access_dashboard(): void
     {
-        $response = $this->get('http://dash.ternis.link/dashboard');
+        $response = $this->get('http://dash.ternis.link');
         $response->assertRedirect('http://dash.ternis.link/login');
     }
 
     public function test_authenticated_user_can_view_dashboard(): void
     {
         $response = $this->actingAs($this->user)
-            ->get('http://dash.ternis.link/dashboard');
+            ->get('http://dash.ternis.link');
 
         $response->assertStatus(200);
         $response->assertSee('Dashboard');
@@ -50,7 +50,7 @@ class DashboardTest extends TestCase
     public function test_authenticated_user_can_view_links_page(): void
     {
         $response = $this->actingAs($this->user)
-            ->get('http://dash.ternis.link/dashboard/links');
+            ->get('http://dash.ternis.link/links');
 
         $response->assertStatus(200);
         $response->assertSee('Your Links');
@@ -59,7 +59,7 @@ class DashboardTest extends TestCase
     public function test_authenticated_user_can_view_create_link_page(): void
     {
         $response = $this->actingAs($this->user)
-            ->get('http://dash.ternis.link/dashboard/links/create');
+            ->get('http://dash.ternis.link/links/create');
 
         $response->assertStatus(200);
         $response->assertSee('Create Short Link');
@@ -76,7 +76,7 @@ class DashboardTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->get("http://dash.ternis.link/dashboard/links/{$link->id}");
+            ->get("http://dash.ternis.link/links/{$link->id}");
 
         $response->assertStatus(200);
         $response->assertSee('myshowslug');
@@ -85,7 +85,7 @@ class DashboardTest extends TestCase
     public function test_authenticated_user_can_view_api_keys_page(): void
     {
         $response = $this->actingAs($this->user)
-            ->get('http://dash.ternis.link/dashboard/api-keys');
+            ->get('http://dash.ternis.link/api-keys');
 
         $response->assertStatus(200);
         $response->assertSee('API Keys');

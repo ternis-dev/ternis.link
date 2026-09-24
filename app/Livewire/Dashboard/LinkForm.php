@@ -15,6 +15,12 @@ class LinkForm extends Component
 
     public const MAX_GENERATED_LENGTH = 64;
 
+    /**
+     * Modal mode: hides the Cancel link (a Close button is shown
+     * instead) and notifies listening tables on success.
+     */
+    public bool $modal = false;
+
     public string $destination_url = '';
 
     public ?string $slug = null;
@@ -178,6 +184,10 @@ class LinkForm extends Component
 
         $this->createdSlug = $link->slug;
         $this->createdDomain = $domain->hostname;
+
+        if ($this->modal) {
+            $this->dispatch('link-created');
+        }
 
         // Reset form (keep the chosen length)
         $this->destination_url = '';

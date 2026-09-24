@@ -100,7 +100,7 @@ class AuthHardeningTest extends TestCase
         $this->fakeRefresh($user->sso_sub);
 
         $response = $this->actingAs($user)
-            ->get('http://dash.ternis.link/dashboard');
+            ->get('http://dash.ternis.link');
 
         $response->assertStatus(200);
         $this->assertAuthenticatedAs($user);
@@ -116,7 +116,7 @@ class AuthHardeningTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)
-            ->get('http://dash.ternis.link/dashboard');
+            ->get('http://dash.ternis.link');
 
         $response->assertRedirect('http://dash.ternis.link/login');
         $this->assertGuest();
@@ -129,7 +129,7 @@ class AuthHardeningTest extends TestCase
         $user = User::factory()->create(); // Demo-style login, no OAuthIdentity.
 
         $response = $this->actingAs($user)
-            ->get('http://dash.ternis.link/dashboard');
+            ->get('http://dash.ternis.link');
 
         $response->assertStatus(200);
         Http::assertNothingSent();

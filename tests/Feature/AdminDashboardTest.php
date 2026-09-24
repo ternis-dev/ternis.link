@@ -89,10 +89,10 @@ class AdminDashboardTest extends TestCase
 
     public function test_admin_routes_404_on_wrong_hosts(): void
     {
-        // Dashboard host must not serve the admin area.
+        // Dashboard host redirects into the admin area instead of 404ing.
         $this->actingAs($this->admin)
             ->get('http://dash.ternis.link/admin')
-            ->assertNotFound();
+            ->assertRedirect('https://admin.ternis.link');
 
         // Public host must not serve the admin area either.
         $this->actingAs($this->admin)

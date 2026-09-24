@@ -10,6 +10,12 @@ class LinkTable extends Component
 {
     use WithPagination;
 
+    /**
+     * Refresh when a link is created through the quick-create modal
+     * rendered on the same page.
+     */
+    protected $listeners = ['link-created' => '$refresh'];
+
     public string $search = '';
 
     public string $sortBy = 'created_at';

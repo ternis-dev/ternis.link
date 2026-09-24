@@ -65,7 +65,7 @@ class AnalyticsPolishTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->get("http://dash.ternis.link/dashboard/links/{$this->link->id}");
+            ->get("http://dash.ternis.link/links/{$this->link->id}");
 
         $response->assertStatus(200);
         $response->assertSee('Clicks over time');
@@ -83,7 +83,7 @@ class AnalyticsPolishTest extends TestCase
     public function test_analytics_empty_state(): void
     {
         $response = $this->actingAs($this->user)
-            ->get("http://dash.ternis.link/dashboard/links/{$this->link->id}");
+            ->get("http://dash.ternis.link/links/{$this->link->id}");
 
         $response->assertStatus(200);
         $response->assertSee('No clicks in the last 30 days yet');
@@ -132,7 +132,7 @@ class AnalyticsPolishTest extends TestCase
         $this->recordClick(['referrer' => 'https://export.test', 'country_code' => 'AT']);
 
         $response = $this->actingAs($this->user)
-            ->get("http://dash.ternis.link/dashboard/links/{$this->link->id}/export");
+            ->get("http://dash.ternis.link/links/{$this->link->id}/export");
 
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
@@ -145,13 +145,13 @@ class AnalyticsPolishTest extends TestCase
     public function test_export_csv_requires_ownership(): void
     {
         // Guest first: actingAs() below persists for later requests.
-        $this->get("http://dash.ternis.link/dashboard/links/{$this->link->id}/export")
+        $this->get("http://dash.ternis.link/links/{$this->link->id}/export")
             ->assertRedirect('http://dash.ternis.link/login');
 
         $other = User::factory()->create();
 
         $this->actingAs($other)
-            ->get("http://dash.ternis.link/dashboard/links/{$this->link->id}/export")
+            ->get("http://dash.ternis.link/links/{$this->link->id}/export")
             ->assertStatus(404);
     }
 

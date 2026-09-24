@@ -7,7 +7,7 @@
             @endif
         </x-slot:subtitle>
         <x-slot:actions>
-            <x-ui.button href="{{ route('dashboard.links.create') }}" variant="primary">+ Create Link</x-ui.button>
+            <x-ui.button variant="primary" x-data @click="$dispatch('open-link-creator')">+ Create Link</x-ui.button>
         </x-slot:actions>
     </x-ui.page-header>
 
@@ -24,4 +24,8 @@
         </div>
         <livewire:dashboard.link-table />
     </x-ui.card>
+
+    <x-ui.modal name="link-creator" title="New Short Link">
+        <livewire:dashboard.link-form :modal="true" />
+    </x-ui.modal>
 </x-layouts.dashboard>
