@@ -18,6 +18,17 @@
     @livewireStyles
 </head>
 <body class="sk-root">
+    <div class="sk-gauge" aria-hidden="true">
+        <svg viewBox="0 0 40 1000" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+                <clipPath id="sk-gauge-clip">
+                    <path d="M12 22 C 10 300, 15 650, 12 978 A8 8 0 0 0 28 978 C 25 650, 30 300, 28 22 A8 8 0 0 0 12 22 Z" />
+                </clipPath>
+            </defs>
+            <path class="sk-gauge-outline" d="M12 22 C 10 300, 15 650, 12 978 A8 8 0 0 0 28 978 C 25 650, 30 300, 28 22 A8 8 0 0 0 12 22 Z" />
+            <rect id="sk-gauge-fill" class="sk-gauge-fill" x="0" y="1000" width="40" height="0" clip-path="url(#sk-gauge-clip)" />
+        </svg>
+    </div>
     <div class="sk-rail" id="sk-rail" role="scrollbar" aria-orientation="vertical" aria-label="Scroll page" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
         <svg class="sk-rail-lines" viewBox="0 0 40 1000" preserveAspectRatio="none" aria-hidden="true">
             <path class="sk-rail-track" d="M20 8 C 14 200, 26 350, 18 520 S 24 800, 19 992" />
@@ -184,6 +195,8 @@
             var rail = document.getElementById('sk-rail');
             var fill = document.getElementById('sk-rail-fill');
             var pen = document.getElementById('sk-rail-pencil');
+            var gauge = document.getElementById('sk-gauge-fill');
+            var gaugeWrap = gauge ? gauge.closest('.sk-gauge') : null;
             if (!rail || !fill || !pen) return;
 
             fill.style.strokeDasharray = '100';
@@ -197,13 +210,20 @@
                 var m = max();
                 if (m <= 0) {
                     rail.style.display = 'none';
+                    if (gaugeWrap) gaugeWrap.style.display = 'none';
                     return;
                 }
                 rail.style.display = '';
+                if (gaugeWrap) gaugeWrap.style.display = '';
                 var p = Math.min(1, Math.max(0, (window.scrollY || 0) / m));
                 fill.style.strokeDashoffset = String(100 - 100 * p);
                 pen.style.top = (p * 100) + '%';
                 rail.setAttribute('aria-valuenow', String(Math.round(p * 100)));
+                if (gauge) {
+                    /* viewBox is 1000 tall: fill rises from the bottom. */
+                    gauge.setAttribute('y', String(1000 - 1000 * p));
+                    gauge.setAttribute('height', String(1000 * p));
+                }
             }
 
             var ticking = false;
