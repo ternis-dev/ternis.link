@@ -155,9 +155,13 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     stroke-linecap: round;
 }
 
-.sk-gauge-fill {
-    fill: var(--sk-ink);
-    opacity: 0.85;
+/* Second-pass sketch strokes: overshoot corners like a real pen. */
+.sk-gauge-sketch {
+    fill: none;
+    stroke: var(--sk-soft);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    opacity: 0.7;
 }
 
 /* --- doodle helper ---------------------------------------- */

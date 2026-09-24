@@ -24,9 +24,21 @@
                 <clipPath id="sk-gauge-clip">
                     <path d="M12 22 C 10 300, 15 650, 12 978 A8 8 0 0 0 28 978 C 25 650, 30 300, 28 22 A8 8 0 0 0 12 22 Z" />
                 </clipPath>
+                <pattern id="sk-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                    <line x1="0" y1="0" x2="0" y2="9" stroke="#2b2b2b" stroke-width="2.6" />
+                </pattern>
+                <filter id="sk-rough" x="-20%" y="-20%" width="140%" height="140%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="noise" />
+                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
+                </filter>
             </defs>
-            <path class="sk-gauge-outline" d="M12 22 C 10 300, 15 650, 12 978 A8 8 0 0 0 28 978 C 25 650, 30 300, 28 22 A8 8 0 0 0 12 22 Z" />
-            <rect id="sk-gauge-fill" class="sk-gauge-fill" x="0" y="1000" width="40" height="0" clip-path="url(#sk-gauge-clip)" />
+            <g filter="url(#sk-rough)">
+                <path class="sk-gauge-outline" d="M12 22 C 9 290, 16 640, 11 978 A8 8 0 0 0 28 978 C 26 640, 31 290, 28 22 A8 8 0 0 0 12 22 Z" />
+                <path class="sk-gauge-sketch" d="M12 22 C 11 200, 13 420, 12 640 M28 340 C 27 560, 29 780, 27 978 M4 22 C 14 20, 24 20, 34 23 M6 978 C 15 980, 25 980, 34 977" />
+            </g>
+            <g clip-path="url(#sk-gauge-clip)">
+                <rect id="sk-gauge-fill" x="0" y="1000" width="40" height="0" fill="url(#sk-hatch)" />
+            </g>
         </svg>
     </div>
     <div class="sk-rail" id="sk-rail" role="scrollbar" aria-orientation="vertical" aria-label="Scroll page" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
