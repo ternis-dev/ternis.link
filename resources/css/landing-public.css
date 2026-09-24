@@ -76,42 +76,15 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     width: 0;
 }
 
-.sk-rail {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 40px;
-    z-index: 60;
-    cursor: pointer;
-    touch-action: none;
+.sk-gauge:focus-visible {
+    outline: 2.5px dashed var(--sk-ink);
+    outline-offset: -4px;
 }
 
-.sk-rail svg.sk-rail-lines {
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-}
-
-.sk-rail-track, .sk-rail-fill {
-    fill: none;
-    stroke-linecap: round;
-}
-
-.sk-rail-track {
-    stroke: var(--sk-faint);
-    stroke-width: 3;
-}
-
-.sk-rail-fill {
-    stroke: var(--sk-ink);
-    stroke-width: 5;
-}
-
-.sk-rail-pencil {
+/* Pencil knob riding the fill surface — the drag handle. */
+.sk-gauge-pencil {
     position: absolute;
-    left: 5px;
+    left: 0;
     width: 30px;
     height: 30px;
     margin-top: -15px;
@@ -121,12 +94,7 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, 0.25));
 }
 
-.sk-rail-pencil:active { cursor: grabbing; }
-
-.sk-rail:focus-visible {
-    outline: 2.5px dashed var(--sk-ink);
-    outline-offset: -4px;
-}
+.sk-gauge-pencil:active { cursor: grabbing; }
 
 /* Left fill-up gauge — decorative twin of the right rail: a drawn
  * outline tube that fills with ink as you scroll. Aria-hidden,
@@ -134,11 +102,12 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
 .sk-gauge {
     position: fixed;
     top: 0;
-    left: 0;
+    right: 0;
     bottom: 0;
-    width: 26px;
+    width: 30px;
     z-index: 60;
-    pointer-events: none;
+    cursor: pointer;
+    touch-action: none;
 }
 
 .sk-gauge svg {

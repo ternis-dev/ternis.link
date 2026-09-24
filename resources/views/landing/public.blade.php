@@ -18,7 +18,7 @@
     @livewireStyles
 </head>
 <body class="sk-root">
-    <div class="sk-gauge" aria-hidden="true">
+    <div class="sk-gauge" id="sk-gauge" role="scrollbar" aria-orientation="vertical" aria-label="Scroll page" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
         <svg viewBox="0 0 40 1000" preserveAspectRatio="none" aria-hidden="true">
             <defs>
                 <clipPath id="sk-gauge-clip">
@@ -40,13 +40,7 @@
                 <rect id="sk-gauge-fill" x="0" y="1000" width="40" height="0" fill="url(#sk-hatch)" />
             </g>
         </svg>
-    </div>
-    <div class="sk-rail" id="sk-rail" role="scrollbar" aria-orientation="vertical" aria-label="Scroll page" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
-        <svg class="sk-rail-lines" viewBox="0 0 40 1000" preserveAspectRatio="none" aria-hidden="true">
-            <path class="sk-rail-track" d="M20 8 C 14 200, 26 350, 18 520 S 24 800, 19 992" />
-            <path class="sk-rail-fill" id="sk-rail-fill" pathLength="100" d="M20 8 C 14 200, 26 350, 18 520 S 24 800, 19 992" />
-        </svg>
-        <span class="sk-rail-pencil" id="sk-rail-pencil" aria-hidden="true">
+        <span class="sk-gauge-pencil" id="sk-gauge-pencil" aria-hidden="true">
             <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="12.5" fill="currentColor" stroke="#2b2b2b" stroke-width="2.4"/><path d="M20 8 L10 18 L8.5 22.5 L13 21 Z M17.5 10.5 L20.5 13.5" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
     </div>
@@ -197,22 +191,18 @@
     @livewireScripts
 
     <script>
-    /* Drawn scrollbar: wobbly rail on the right edge replaces the
-     * native scrollbar. Fill draws with scroll; the pencil thumb is
-     * draggable, the track is click-to-jump, keys work when focused. */
+    /* Drawn scrollbar: hatched gauge tube on the right edge. The
+     * hatching shades upward with scroll; the pencil knob rides the
+     * fill surface and is draggable, the tube is click-to-jump,
+     * keys work when focused. */
     (function () {
         if (typeof document === 'undefined') return;
 
         function init() {
-            var rail = document.getElementById('sk-rail');
-            var fill = document.getElementById('sk-rail-fill');
-            var pen = document.getElementById('sk-rail-pencil');
-            var gauge = document.getElementById('sk-gauge-fill');
-            var gaugeWrap = gauge ? gauge.closest('.sk-gauge') : null;
-            if (!rail || !fill || !pen) return;
-
-            fill.style.strokeDasharray = '100';
-            fill.style.strokeDashoffset = '100';
+            var gauge = document.getElementById('sk-gauge');
+            var hatch = document.getElementById('sk-gauge-fill');
+            var pen = document.getElementById('sk-gauge-pencil');
+            if (!gauge || !hatch || !pen) return;
 
             function max() {
                 return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -221,21 +211,17 @@
             function render() {
                 var m = max();
                 if (m <= 0) {
-                    rail.style.display = 'none';
-                    if (gaugeWrap) gaugeWrap.style.display = 'none';
+                    gauge.style.display = 'none';
                     return;
                 }
-                rail.style.display = '';
-                if (gaugeWrap) gaugeWrap.style.display = '';
+                gauge.style.display = '';
                 var p = Math.min(1, Math.max(0, (window.scrollY || 0) / m));
-                fill.style.strokeDashoffset = String(100 - 100 * p);
-                pen.style.top = (p * 100) + '%';
-                rail.setAttribute('aria-valuenow', String(Math.round(p * 100)));
-                if (gauge) {
-                    /* viewBox is 1000 tall: fill rises from the bottom. */
-                    gauge.setAttribute('y', String(1000 - 1000 * p));
-                    gauge.setAttribute('height', String(1000 * p));
-                }
+                /* viewBox is 1000 tall: hatching rises from the bottom. */
+                hatch.setAttribute('y', String(1000 - 1000 * p));
+                hatch.setAttribute('height', String(1000 * p));
+                /* Knob sits on the fill surface (top of the hatching). */
+                pen.style.top = ((1 - p) * 100) + '%';
+                gauge.setAttribute('aria-valuenow', String(Math.round(p * 100)));
             }
 
             var ticking = false;
@@ -253,7 +239,7 @@
             window.addEventListener('resize', render);
 
             function jumpTo(clientY) {
-                var rect = rail.getBoundingClientRect();
+                var rect = gauge.getBoundingClientRect();
                 var p = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
                 window.scrollTo({ top: p * max(), behavior: 'auto' });
             }
@@ -271,14 +257,14 @@
             pen.addEventListener('pointerup', function () { dragging = false; });
             pen.addEventListener('pointercancel', function () { dragging = false; });
 
-            /* Click-to-jump on the track. */
-            rail.addEventListener('pointerdown', function (event) {
-                if (event.target.closest('#sk-rail-pencil')) return;
+            /* Click-to-jump on the tube. */
+            gauge.addEventListener('pointerdown', function (event) {
+                if (event.target.closest('#sk-gauge-pencil')) return;
                 jumpTo(event.clientY);
             });
 
             /* Keyboard support. */
-            rail.addEventListener('keydown', function (event) {
+            gauge.addEventListener('keydown', function (event) {
                 var m = max();
                 var y = window.scrollY || 0;
                 if (event.key === 'ArrowDown') window.scrollTo({ top: y + 80 });
