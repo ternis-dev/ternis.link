@@ -24,49 +24,46 @@
 <body class="sk-root">
 
     {{-- =====================================================
-         Preloader — sketchbook ink-fill style, matches the
-         scroll gauge: same hatch pattern, same rough filter,
-         same hand-drawn ink aesthetic.
+         Preloader — sketch progress card. Same idea as before
+         (hatched ink fill = load progress), new presentation:
+         brand, wobbly progress bar with live %, status line.
+         All text is system fonts only: the hand-drawn webfonts
+         load after first paint, so anything set in them would
+         visibly swap mid-load. System stacks never shift.
          ===================================================== --}}
     <div class="sk-loader" id="sk-loader" aria-hidden="true" role="presentation">
         <div class="sk-loader-inner">
-            {{-- ink tube (same visual language as sk-gauge) --}}
-            <svg class="sk-loader-tube" viewBox="0 0 60 340" fill="none" aria-hidden="true">
-                <defs>
-                    <clipPath id="sk-loader-clip">
-                        <path d="M18 38 C 16 100, 19 200, 17 302 A10 10 0 0 0 43 302 C 41 200, 44 100, 42 38 A10 10 0 0 0 18 38 Z"/>
-                    </clipPath>
-                    <pattern id="sk-loader-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                        <line x1="0" y1="0" x2="0" y2="9" stroke="#2b2b2b" stroke-width="2.6"/>
-                    </pattern>
-                    <filter id="sk-loader-rough" x="-30%" y="-10%" width="160%" height="120%">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3" result="noise"/>
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5"/>
-                    </filter>
-                </defs>
-                <g filter="url(#sk-loader-rough)">
-                    {{-- tube outline --}}
-                    <path class="sk-loader-outline"
-                          d="M18 38 C 15 100, 20 200, 16 302 A10 10 0 0 0 43 302 C 41 200, 45 100, 42 38 A10 10 0 0 0 18 38 Z"/>
-                    {{-- sketch strokes (second-pass wobbly lines) --}}
-                    <path class="sk-loader-sketch"
-                          d="M18 38 C 17 120, 19 200, 17 280 M42 80 C 41 160, 43 240, 42 302
-                             M12 38 C 22 36, 38 36, 48 40 M14 302 C 24 305, 38 305, 46 301"/>
-                </g>
-                {{-- ink fill that animates upward --}}
-                <g clip-path="url(#sk-loader-clip)">
-                    <rect class="sk-loader-fill" x="0" y="0" width="60" height="340" fill="url(#sk-loader-hatch)"/>
-                </g>
-                {{-- cap / nib at the bottom --}}
-                <g filter="url(#sk-loader-rough)">
-                    <path class="sk-loader-nib"
-                          d="M22 302 C 22 318, 28 328, 30 332 C 32 328, 38 318, 38 302"/>
-                </g>
-            </svg>
-            {{-- brand shown inside loader --}}
-            <span class="sk-loader-brand" aria-label="href.nz">href<span>.nz</span></span>
-            {{-- hand-drawn "loading…" label --}}
-            <span class="sk-loader-label">loading…</span>
+            <p class="sk-load-brand">href.nz</p>
+            <div class="sk-load-row">
+                <svg class="sk-load-bar" viewBox="0 0 360 64" fill="none" aria-hidden="true">
+                    <defs>
+                        <clipPath id="sk-load-clip">
+                            <rect x="18" y="18" width="324" height="28"/>
+                        </clipPath>
+                        <pattern id="sk-load-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <line x1="0" y1="0" x2="0" y2="9" stroke="#2b2b2b" stroke-width="2.6"/>
+                        </pattern>
+                        <filter id="sk-load-rough" x="-10%" y="-30%" width="120%" height="160%">
+                            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3" result="noise"/>
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5"/>
+                        </filter>
+                    </defs>
+                    {{-- hatched progress fill, grows left to right (JS sets width) --}}
+                    <g clip-path="url(#sk-load-clip)">
+                        <rect class="sk-loader-fill" x="18" y="14" width="0" height="36" fill="url(#sk-load-hatch)"/>
+                    </g>
+                    <g filter="url(#sk-load-rough)">
+                        {{-- wobbly frame drawn over the fill edges --}}
+                        <path class="sk-load-frame"
+                              d="M14 14 C 120 11, 240 15, 346 12 L346 50 C 240 53, 120 49, 14 52 Z"/>
+                        {{-- second-pass sketch strokes --}}
+                        <path class="sk-load-frame-sketch"
+                              d="M20 20 C 130 18, 230 21, 340 19 M20 44 C 130 46, 240 43, 340 45"/>
+                    </g>
+                </svg>
+                <span class="sk-load-pct" id="sk-load-pct">0%</span>
+            </div>
+            <p class="sk-load-status">loading the sketchbook…</p>
         </div>
     </div>
 
@@ -241,27 +238,26 @@
     @livewireScripts
 
     <script>
-    /* ── Preloader: hand-drawn ink tube fills up, then fades out. ──
-     * The tube SVG rect is clipped; we animate its y/height so the
-     * ink appears to rise. Once full, the overlay fades and the page
-     * entrance animation kicks in. Respects prefers-reduced-motion. */
+    /* ── Preloader: hatched progress bar fills left to right,
+     * live % readout counts alongside. Once full, the overlay
+     * fades and the page entrance animation kicks in. Respects
+     * prefers-reduced-motion. */
     (function () {
         var loader = document.getElementById('sk-loader');
         var fill   = loader ? loader.querySelector('.sk-loader-fill') : null;
+        var pct    = document.getElementById('sk-load-pct');
         if (!loader || !fill) return;
 
         var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var TUBE_H  = 340;  /* viewBox height of the loader tube */
+        var FILL_W  = 324;  /* inner width of the loader bar */
         var start   = null;
         var FILL_MS = reduced ? 0 : 700;  /* how long the fill-up takes */
-        var HOLD_MS = reduced ? 0 : 120;  /* pause at top before fade   */
+        var HOLD_MS = reduced ? 0 : 120;  /* pause at full before fade   */
 
-        function setFill(progress) {
-            /* progress 0→1: rect y moves from TUBE_H→0, height grows 0→TUBE_H */
-            var h = Math.round(TUBE_H * progress);
-            var y = TUBE_H - h;
-            fill.setAttribute('y', String(y));
-            fill.setAttribute('height', String(h));
+        function setFill(eased) {
+            /* eased 0→1: fill width grows 0→FILL_W, % counts 0→100 */
+            fill.setAttribute('width', String(Math.round(FILL_W * eased)));
+            if (pct) pct.textContent = Math.round(eased * 100) + '%';
         }
 
         /* Initialise fill at zero. */
