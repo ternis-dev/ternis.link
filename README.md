@@ -16,7 +16,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - `admin.ternis.link`: Admin dashboard with system overview, link moderation, and user/plan management.
   - `links.t-api.de`: Dedicated API domain (`/v1`, `/` → latest version).
   - `api.ternis.link`: Permanent redirect to `links.t-api.de`.
-  - Frontend assets are fully local: single Vite bundle + `public/fonts/*.woff2` (Inter + Space Grotesk, no CDN).
+  - Frontend assets and fonts are local: single Vite bundle + `public/fonts/*.woff2` (Inter + Space Grotesk). The only deliberate third-party runtime is the Cloudflare Turnstile bot check on protected public forms.
 - **Authentication — Ternis Auth SSO Only**:
   - **No local passwords or registration**: Authentication is delegated exclusively to Ternis Auth SSO via OAuth 2.0 / OpenID Connect with PKCE.
   - Silent SSO authentication check support (`prompt=none`).
@@ -39,7 +39,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - Dashboard layout switchable per user (side or top navigation) via Settings; account theme preference (system/light/dark).
   - Analytics charts via Chart.js (clicks-over-time bars, browser doughnut with server-rendered HTML legend), grayscale palettes that follow the active theme.
   - href.nz is a from-scratch hand-written sketchbook page (`landing-public.css` Vite entry + Caveat): kicker badge, scribble-marked headline, numbered sketch steps, taped form card, pinned notes, scissors cut-line — 30+ wobbly inline-SVG doodles on first paint, light-paper only.
-  - Self-hosted fonts (`public/fonts/inter-var.woff2`, `space-grotesk-var.woff2`) + single Vite bundle — no external CDN.
+  - Self-hosted fonts (`public/fonts/inter-var.woff2`, `space-grotesk-var.woff2`) + single Vite bundle; Cloudflare Turnstile is the only external script and is loaded only when its site key is configured.
   - Custom branded error pages (`resources/views/errors/404,403,419,429,500,503.blade.php`) for web requests; API/`expectsJson` requests still receive JSON.
   - Error encounters (`error_encounters` table): every rendered error response is logged with `http_code`, `error_message`, `exception_class`, `method`/`host`/`path`, `user_id`, SHA-256 `ip_hash`, and `user_agent`. Validation noise and health probes are skipped; logging never throws. SSO callback failures (stale/reused codes) redirect to login with a friendly message instead of 500ing.
 - **Deployment**:
@@ -51,7 +51,9 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
 
 1. **Environment**: copy `.env.example` → `.env` and apply the `Production overrides`
    block (`APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`,
-   `TRUSTED_PROXIES=*`, PostgreSQL + Redis, Ternis Auth credentials).
+   `TRUSTED_PROXIES=*`, PostgreSQL + Redis, Ternis Auth credentials). Create a Cloudflare
+   Turnstile widget for the public shortener host (`href.nz`) and set both
+   `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`; partial configuration fails closed.
 2. **Install & migrate**: `composer install --no-dev`, `php artisan key:generate`,
    `php artisan migrate --force`, `npm install && npm run build`.
 3. **Queue worker** (async `RecordClick` analytics — do not stay on `sync`):
@@ -117,11 +119,12 @@ Run the test suite:
 php artisan test
 ```
 
-All 191 feature and unit tests cover:
+All feature and unit tests cover:
 - URL vs. Slug classification and URL normalization
 - Unique slug generation per domain (guests always 8-char auto, authed 6-char default via plan minimum)
 - Anonymous link creation (public API rejects custom slugs, guest web form has no slug field, quotas, throttling)
 - Guest shortener form (live URL state hint, one-click scheme fix, duplicate detection, remaining-quota meter, destination preview + char counter, contextual focus notes, per-kind oops errors with quota login nudge, ticket-stub result, device-local recent-links tray)
+- Cloudflare Turnstile widget rendering, action/hostname-bound Siteverify validation, fail-closed partial configuration, token reset, and conditional script loading
 - Per-domain landing pages (`href.nz` public + form vs `href.re` business, local fonts/CSS)
 - Auth redirect shims (`href.nz/login`, `ternis.link/login`, `href.re/login` 302 to dashboard host)
 - Custom error pages (web HTML `errors/*` views, JSON for API/`expectsJson`)

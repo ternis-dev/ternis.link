@@ -200,26 +200,36 @@
                         class="sk-turnstile"
                         x-data="{
                             widgetId: null,
+                            loadTimer: null,
                             init() {
                                 var self = this;
                                 function renderWidget() {
                                     if (typeof turnstile === 'undefined') {
-                                        setTimeout(renderWidget, 100);
+                                        self.loadTimer = setTimeout(renderWidget, 100);
                                         return;
                                     }
                                     if (self.widgetId !== null) return;
-                                    self.widgetId = turnstile.render(self.$refs.cfContainer, {
-                                        sitekey: '{{ config('services.turnstile.key') }}',
-                                        theme: 'light',
-                                        callback: function (token) {
-                                            $wire.set('turnstile_token', token);
-                                        },
-                                        'expired-callback': function () {
-                                            $wire.set('turnstile_token', null);
-                                        },
-                                        'error-callback': function () {
-                                            $wire.set('turnstile_token', null);
-                                        }
+                                    turnstile.ready(function () {
+                                        self.widgetId = turnstile.render(self.$refs.cfContainer, {
+                                            sitekey: '{{ config('services.turnstile.key') }}',
+                                            action: '{{ \App\Services\TurnstileService::ACTION }}',
+                                            theme: 'light',
+                                            callback: function (token) {
+                                                $wire.set('turnstile_token', token);
+                                            },
+                                            'expired-callback': function () {
+                                                $wire.set('turnstile_token', null);
+                                            },
+                                            'timeout-callback': function () {
+                                                $wire.set('turnstile_token', null);
+                                            },
+                                            'error-callback': function () {
+                                                $wire.set('turnstile_token', null);
+                                            },
+                                            'unsupported-callback': function () {
+                                                $wire.set('turnstile_token', null);
+                                            }
+                                        });
                                     });
                                 }
                                 renderWidget();
@@ -227,6 +237,13 @@
                             reset() {
                                 if (typeof turnstile !== 'undefined' && this.widgetId !== null) {
                                     turnstile.reset(this.widgetId);
+                                }
+                            },
+                            destroy() {
+                                if (this.loadTimer !== null) clearTimeout(this.loadTimer);
+                                if (typeof turnstile !== 'undefined' && this.widgetId !== null) {
+                                    turnstile.remove(this.widgetId);
+                                    this.widgetId = null;
                                 }
                             }
                         }"

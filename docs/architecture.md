@@ -26,12 +26,12 @@ app/
   Models/             User, Link, Domain, Click, ApiKey, ApiVersion, Plan, OAuthIdentity, ErrorEncounter
   Services/           LinkService, SlugGeneratorService, SlugResolverService, ClickTrackerService,
                       GeoIpService, DomainService, DomainVerificationService,
-                      TernisAuthService, JunkUrlDetector
+                      TernisAuthService, TurnstileService, JunkUrlDetector
   Support/            IpHash, IpCapture, DomainUrls
 bootstrap/app.php     routing + global middleware + exception hook
 config/domains.php    host → domain_type map, wildcard roots, canonical hosts, auth_required
 config/privacy.php    IP_CAPTURE_ENABLED / IP_RETENTION_DAYS
-config/services.php   ternis_auth (base_url, client_*, redirect_uri, scopes, avatar, end_session)
+config/services.php   ternis_auth (base_url, client_*, redirect_uri, scopes, avatar, end_session), turnstile (site key/secret)
 routes/web.php        healthz, auth shims, dashboard, admin, legal, landing, redirects
 routes/api/v1.php     /v1/* (mounted with prefix v1 in bootstrap/app.php)
 routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips — daily)
@@ -69,6 +69,10 @@ routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips —
 7. **Errors:** `withExceptions` renders JSON for `api/*`, `v1/*`, or `expectsJson`; otherwise
    branded `errors/{403,404,419,429,500,503}` views. Every rendered non-validation error
    (except `healthz`/`up`) is persisted via `ErrorEncounter::record()` — never throws.
+8. **Guest bot protection:** when Turnstile is configured, the public Livewire form requires a
+   single-use widget token and `TurnstileService` verifies it with Cloudflare Siteverify before
+   link creation. Partial key configuration fails closed; the public JSON API remains throttled
+   but does not require a widget token.
 
 ## Key services
 
@@ -81,6 +85,7 @@ routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips —
 | `GeoIpService` | `lookup(request): [country_code, city]` |
 | `DomainService` / `DomainVerificationService` | Normalize/validate hostnames, reserved-host guard, `createForUser`, `claimSubdomain`, TXT `verify` + `instructions`, `deactivate` |
 | `TernisAuthService` | PKCE verifier/challenge, authorize + silent (`prompt=none`) URLs, code exchange, userinfo, `findOrCreateUser` (role mapping, default `free` plan, token store), `refreshAccessToken`, end-session URL |
+| `TurnstileService` | Cloudflare Siteverify client; fails closed on partial configuration, transport errors, invalid/expired/replayed tokens, oversized tokens, and action/hostname mismatches |
 | `JunkUrlDetector` | `isJunk` / `reasons` / `rejectIfJunk` (throws `JunkUrlException extends ValidationException`, 422) — scanner probes, localhost, private IPs |
 | `IpHash` / `IpCapture` (`app/Support`) | HMAC-SHA256 IP hash (`IP_HASH_PEPPER`, fallback plain SHA-256); encrypted capture gate (`IP_CAPTURE_ENABLED`) + retention (`IP_RETENTION_DAYS`, default 30) |
 | `DomainUrls` | `dashboard(path)` — absolute dashboard URL preserving scheme (avoids `route('login')` resolving against `APP_URL=href.nz` and 404ing) |

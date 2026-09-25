@@ -17,6 +17,7 @@
     @vite(['resources/css/landing-public.css'])
     @livewireStyles
     @if (config('services.turnstile.key'))
+        <link rel="preconnect" href="https://challenges.cloudflare.com">
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     @endif
 </head>

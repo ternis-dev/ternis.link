@@ -11,34 +11,47 @@ class TurnstileService
 {
     public const VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
+    public const ACTION = 'shorten_link';
+
     /**
-     * Determine whether Turnstile verification is actively configured.
+     * A partial configuration must fail closed instead of silently
+     * accepting submissions without server-side verification.
      */
     public function isEnabled(): bool
     {
-        return ! empty(config('services.turnstile.secret'));
+        $siteKey = trim((string) config('services.turnstile.key'));
+        $secretKey = trim((string) config('services.turnstile.secret'));
+
+        return $siteKey !== '' || $secretKey !== '';
     }
 
     /**
-     * Verify a Turnstile response token with Cloudflare's siteverify API.
+     * Verify a Turnstile response token with Cloudflare's Siteverify API.
      */
-    public function verify(?string $token, ?string $ip = null): bool
-    {
+    public function verify(
+        ?string $token,
+        ?string $ip = null,
+        string $expectedAction = self::ACTION,
+        ?string $expectedHostname = null,
+    ): bool {
         if (! $this->isEnabled()) {
             return true;
         }
 
-        if (empty($token)) {
+        $secretKey = trim((string) config('services.turnstile.secret'));
+        $token = trim((string) $token);
+
+        if ($secretKey === '' || $token === '' || strlen($token) > 2048) {
             return false;
         }
 
         try {
             $payload = [
-                'secret' => (string) config('services.turnstile.secret'),
+                'secret' => $secretKey,
                 'response' => $token,
             ];
 
-            if (! empty($ip)) {
+            if ($ip !== null && $ip !== '') {
                 $payload['remoteip'] = $ip;
             }
 
@@ -49,7 +62,6 @@ class TurnstileService
             if (! $response->successful()) {
                 Log::warning('Turnstile verification request failed', [
                     'status' => $response->status(),
-                    'body' => $response->body(),
                 ]);
 
                 return false;
@@ -57,7 +69,23 @@ class TurnstileService
 
             $data = $response->json();
 
-            return (bool) ($data['success'] ?? false);
+            if (! is_array($data) || ! ($data['success'] ?? false)) {
+                Log::notice('Turnstile token rejected', [
+                    'error_codes' => is_array($data) ? ($data['error-codes'] ?? []) : ['invalid-response'],
+                ]);
+
+                return false;
+            }
+
+            if (! hash_equals($expectedAction, (string) ($data['action'] ?? ''))) {
+                return false;
+            }
+
+            $expectedHostname = strtolower(trim((string) $expectedHostname));
+            $verifiedHostname = strtolower(trim((string) ($data['hostname'] ?? '')));
+
+            return $expectedHostname === ''
+                || hash_equals($expectedHostname, $verifiedHostname);
         } catch (\Throwable $e) {
             Log::error('Turnstile verification exception', [
                 'message' => $e->getMessage(),

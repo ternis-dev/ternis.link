@@ -236,7 +236,11 @@ class ShortenForm extends Component
                 return;
             }
 
-            if (! $turnstile->verify($this->turnstile_token, request()->ip())) {
+            if (! $turnstile->verify(
+                $this->turnstile_token,
+                request()->ip(),
+                expectedHostname: request()->getHost(),
+            )) {
                 $this->addError('turnstile_token', 'Security check failed — please try again.');
                 $this->errorKind = 'security';
                 $this->turnstile_token = null;

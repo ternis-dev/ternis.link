@@ -16,13 +16,15 @@ This policy explains what data ternis.link collects when you shorten links, open
 
 **Sessions and errors.** Login sessions and a minimal error log (no raw IPs — only hashes) to keep the service running and debuggable.
 
+**Bot protection.** The guest shortener uses Cloudflare Turnstile. Cloudflare processes signals such as the visitor IP address, TLS fingerprint, user agent, site key, and page origin to distinguish people from bots. We validate Turnstile's short-lived, single-use token on the server; we do not retain that token.
+
 ## What we never store in plain text
 
 IP addresses are never stored readable. Day-to-day features (quotas, unique counts, rate limits) run on **SHA-256 hashes, optionally mixed with a server-side secret**. Raw visitor/creator IPs exist only in encrypted form for the 30-day abuse window described above.
 
 ## Cookies
 
-We use strictly necessary cookies only: the login session and framework security tokens (CSRF). No tracking, analytics or advertising cookies — on any domain.
+We use strictly necessary cookies only: the login session and framework security tokens (CSRF). No tracking, analytics or advertising cookies — on any domain. The external Turnstile widget is also subject to Cloudflare's [Turnstile Privacy Addendum](https://www.cloudflare.com/turnstile-privacy-policy/).
 
 ## Legal basis (GDPR)
 
@@ -42,7 +44,7 @@ We use strictly necessary cookies only: the login session and framework security
 
 ## Sharing
 
-We do not sell data and share nothing for marketing. Data is processed on infrastructure operated by ternis.net. Abuse cases (spam, phishing, attacks launched through short links) may be reported to providers or authorities with the minimum data required.
+We do not sell data and share nothing for marketing. Data is processed on infrastructure operated by ternis.net. Cloudflare processes bot-protection signals as a processor when you use Turnstile, as described above. Abuse cases (spam, phishing, attacks launched through short links) may be reported to providers or authorities with the minimum data required.
 
 ## Your rights
 
