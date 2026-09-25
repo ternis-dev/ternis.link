@@ -1174,3 +1174,202 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     outline: 2px dashed var(--sk-ok-ink);
     outline-offset: 2px;
 }
+
+/* ==========================================================
+ * PRELOADER — hand-drawn ink tube, matches the scroll gauge
+ * visual language: hatched fill, wobbly outline, pencil nib.
+ * ========================================================== */
+.sk-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sk-paper);
+    background-image:
+        radial-gradient(800px 250px at 50% -60px, rgba(0,0,0,0.04), transparent 70%),
+        repeating-linear-gradient(transparent, transparent 27px,
+            rgba(0,0,0,0.022) 27px, rgba(0,0,0,0.022) 28px);
+    transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+
+/* When JS adds this class, the overlay fades out. */
+.sk-loader.sk-loader-done {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.sk-loader-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    /* subtle entrance of the loader itself */
+    animation: sk-loader-pop 0.3s ease-out both;
+}
+
+@keyframes sk-loader-pop {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+.sk-loader-tube {
+    width: 60px;
+    height: 170px;
+    overflow: visible;
+    /* animate a gentle sway while loading */
+    animation: sk-loader-sway 2.4s ease-in-out infinite;
+    transform-origin: 30px 160px; /* pivot near the nib */
+}
+
+@keyframes sk-loader-sway {
+    0%, 100% { transform: rotate(-1.5deg); }
+    50%       { transform: rotate( 1.5deg); }
+}
+
+.sk-loader-outline {
+    fill: none;
+    stroke: var(--sk-soft);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+}
+
+.sk-loader-sketch {
+    fill: none;
+    stroke: var(--sk-soft);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    opacity: 0.65;
+}
+
+.sk-loader-nib {
+    fill: none;
+    stroke: var(--sk-soft);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.sk-loader-brand {
+    font-family: var(--font-hand);
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--sk-ink);
+    text-shadow: 0 0 0.6px currentColor;
+    transform: rotate(-2deg);
+    display: inline-block;
+    line-height: 1;
+}
+
+.sk-loader-brand span {
+    font-weight: 500;
+}
+
+.sk-loader-label {
+    font-family: var(--font-hand);
+    font-size: 1.15rem;
+    color: var(--sk-soft);
+    animation: sk-loader-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes sk-loader-blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.45; }
+}
+
+/* ==========================================================
+ * PAGE ENTRANCE — sk-wrap fades + lifts in after preloader.
+ * JS adds .sk-loader-done to the overlay; we key the entrance
+ * off the loader being gone so it feels timed correctly.
+ * We use a CSS animation with a delay so it naturally follows
+ * the loader transition (no JS needed on the content side).
+ * ========================================================== */
+.sk-enter {
+    animation: sk-enter-rise 0.55s 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes sk-enter-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================
+ * ENHANCED INTERACTIVITY & POLISH
+ * ========================================================== */
+
+/* Brand: subtle gravity wobble on hover */
+.sk-brand {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sk-brand:hover {
+    transform: rotate(2deg) scale(1.04);
+}
+
+/* Step items: lift on hover like picking up a card */
+.sk-steps li {
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.18s ease;
+}
+.sk-steps li:hover {
+    transform: translateY(-3px) rotate(0deg) !important;
+    box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.14);
+}
+
+/* Note cards: lift and de-rotate on hover */
+.sk-note {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease;
+}
+.sk-note:hover {
+    transform: translateY(-4px) rotate(0deg) !important;
+    box-shadow: 5px 7px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Kicker badge: pops a little on hover */
+.sk-kicker {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease;
+}
+.sk-kicker:hover {
+    transform: rotate(0deg) scale(1.04);
+    box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.14);
+}
+
+/* Trust pills: subtle lift */
+.sk-trust li {
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.18s ease;
+}
+.sk-trust li:hover {
+    transform: translateY(-2px);
+    border-color: var(--sk-soft);
+}
+
+/* Sketch doodle elements: gentle float animation */
+.dk {
+    animation: sk-dk-float 6s ease-in-out infinite;
+}
+.dk:nth-child(2) { animation-delay: -2s; }
+.dk:nth-child(3) { animation-delay: -4s; }
+
+@keyframes sk-dk-float {
+    0%, 100% { transform: translateY(0)    rotate(var(--dk-rotate, 0deg)); }
+    50%       { transform: translateY(-4px) rotate(var(--dk-rotate, 0deg)); }
+}
+
+/* Don't float the form-zone pointer — it's positioned precisely */
+.sk-form-zone > .dk { animation: none; }
+
+/* ==========================================================
+ * REDUCED-MOTION overrides
+ * ========================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .sk-loader-tube { animation: none; }
+    .sk-loader-label { animation: none; opacity: 1; }
+    .sk-loader-inner { animation: none; }
+    .sk-enter { animation: none; }
+    .sk-brand, .sk-steps li, .sk-note, .sk-kicker, .sk-trust li { transition: none; }
+    .dk { animation: none; }
+}

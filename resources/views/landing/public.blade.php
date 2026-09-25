@@ -22,6 +22,54 @@
     @endif
 </head>
 <body class="sk-root">
+
+    {{-- =====================================================
+         Preloader — sketchbook ink-fill style, matches the
+         scroll gauge: same hatch pattern, same rough filter,
+         same hand-drawn ink aesthetic.
+         ===================================================== --}}
+    <div class="sk-loader" id="sk-loader" aria-hidden="true" role="presentation">
+        <div class="sk-loader-inner">
+            {{-- ink tube (same visual language as sk-gauge) --}}
+            <svg class="sk-loader-tube" viewBox="0 0 60 340" fill="none" aria-hidden="true">
+                <defs>
+                    <clipPath id="sk-loader-clip">
+                        <path d="M18 38 C 16 100, 19 200, 17 302 A10 10 0 0 0 43 302 C 41 200, 44 100, 42 38 A10 10 0 0 0 18 38 Z"/>
+                    </clipPath>
+                    <pattern id="sk-loader-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                        <line x1="0" y1="0" x2="0" y2="9" stroke="#2b2b2b" stroke-width="2.6"/>
+                    </pattern>
+                    <filter id="sk-loader-rough" x="-30%" y="-10%" width="160%" height="120%">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3" result="noise"/>
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3.5"/>
+                    </filter>
+                </defs>
+                <g filter="url(#sk-loader-rough)">
+                    {{-- tube outline --}}
+                    <path class="sk-loader-outline"
+                          d="M18 38 C 15 100, 20 200, 16 302 A10 10 0 0 0 43 302 C 41 200, 45 100, 42 38 A10 10 0 0 0 18 38 Z"/>
+                    {{-- sketch strokes (second-pass wobbly lines) --}}
+                    <path class="sk-loader-sketch"
+                          d="M18 38 C 17 120, 19 200, 17 280 M42 80 C 41 160, 43 240, 42 302
+                             M12 38 C 22 36, 38 36, 48 40 M14 302 C 24 305, 38 305, 46 301"/>
+                </g>
+                {{-- ink fill that animates upward --}}
+                <g clip-path="url(#sk-loader-clip)">
+                    <rect class="sk-loader-fill" x="0" y="0" width="60" height="340" fill="url(#sk-loader-hatch)"/>
+                </g>
+                {{-- cap / nib at the bottom --}}
+                <g filter="url(#sk-loader-rough)">
+                    <path class="sk-loader-nib"
+                          d="M22 302 C 22 318, 28 328, 30 332 C 32 328, 38 318, 38 302"/>
+                </g>
+            </svg>
+            {{-- brand shown inside loader --}}
+            <span class="sk-loader-brand" aria-label="href.nz">href<span>.nz</span></span>
+            {{-- hand-drawn "loading…" label --}}
+            <span class="sk-loader-label">loading…</span>
+        </div>
+    </div>
+
     <div class="sk-gauge" id="sk-gauge" role="scrollbar" aria-orientation="vertical" aria-label="Scroll page" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
         <svg viewBox="0 0 40 1000" preserveAspectRatio="none" aria-hidden="true">
             <defs>
@@ -47,7 +95,7 @@
     </div>
     <a class="sk-skip" href="#shorten">Skip to the shortener</a>
 
-    <div class="sk-wrap">
+    <div class="sk-wrap sk-enter">
         <header class="sk-head">
             <a href="/" class="sk-brand" aria-label="href.nz home">href<span>.nz</span></a>
             <nav aria-label="Account">
@@ -191,6 +239,76 @@
     </div>
 
     @livewireScripts
+
+    <script>
+    /* ── Preloader: hand-drawn ink tube fills up, then fades out. ──
+     * The tube SVG rect is clipped; we animate its y/height so the
+     * ink appears to rise. Once full, the overlay fades and the page
+     * entrance animation kicks in. Respects prefers-reduced-motion. */
+    (function () {
+        var loader = document.getElementById('sk-loader');
+        var fill   = loader ? loader.querySelector('.sk-loader-fill') : null;
+        if (!loader || !fill) return;
+
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var TUBE_H  = 340;  /* viewBox height of the loader tube */
+        var start   = null;
+        var FILL_MS = reduced ? 0 : 700;  /* how long the fill-up takes */
+        var HOLD_MS = reduced ? 0 : 120;  /* pause at top before fade   */
+
+        function setFill(progress) {
+            /* progress 0→1: rect y moves from TUBE_H→0, height grows 0→TUBE_H */
+            var h = Math.round(TUBE_H * progress);
+            var y = TUBE_H - h;
+            fill.setAttribute('y', String(y));
+            fill.setAttribute('height', String(h));
+        }
+
+        /* Initialise fill at zero. */
+        setFill(0);
+
+        function dismiss() {
+            loader.classList.add('sk-loader-done');
+            /* After the CSS fade-out transition, hide from layout. */
+            loader.addEventListener('transitionend', function onEnd() {
+                loader.removeEventListener('transitionend', onEnd);
+                loader.hidden = true;
+            });
+        }
+
+        function animateFill(ts) {
+            if (!start) start = ts;
+            var elapsed  = ts - start;
+            var progress = Math.min(1, elapsed / Math.max(FILL_MS, 1));
+            /* Ease-out cubic for a satisfying ink-rush. */
+            var eased    = 1 - Math.pow(1 - progress, 3);
+            setFill(eased);
+
+            if (progress < 1) {
+                requestAnimationFrame(animateFill);
+            } else {
+                /* Hold briefly, then dismiss. */
+                setTimeout(dismiss, HOLD_MS);
+            }
+        }
+
+        function run() {
+            if (reduced) {
+                /* Skip animation entirely for reduced-motion preference. */
+                dismiss();
+            } else {
+                requestAnimationFrame(animateFill);
+            }
+        }
+
+        /* Start on DOMContentLoaded or immediately if already parsed. */
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', run);
+        } else {
+            run();
+        }
+    })();
+    </script>
 
     <script>
     /* Drawn scrollbar: hatched gauge tube on the right edge. The
