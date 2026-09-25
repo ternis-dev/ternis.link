@@ -57,6 +57,8 @@ return [
 
     'dashboard_host' => env('DOMAIN_DASHBOARD', 'dash.ternis.link'),
 
+    'admin_host' => env('DOMAIN_ADMIN', 'admin.ternis.link'),
+
     'public_host' => env('DOMAIN_PUBLIC', 'href.nz'),
 
     'business_host' => env('DOMAIN_BUSINESS', 'href.re'),

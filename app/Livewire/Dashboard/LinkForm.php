@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Services\LinkService;
+use App\Support\Activity;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -207,6 +209,11 @@ class LinkForm extends Component
 
         $this->createdSlug = $link->slug;
         $this->createdDomain = $domain->hostname;
+
+        Activity::record(ActivityLog::LINK_CREATED, $user, $link, [
+            'slug' => $link->slug,
+            'domain' => $domain->hostname,
+        ]);
 
         if ($this->modal) {
             $this->dispatch('link-created');

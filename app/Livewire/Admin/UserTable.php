@@ -3,8 +3,12 @@
 namespace App\Livewire\Admin;
 
 use App\Enums\UserRole;
+use App\Models\ActivityLog;
 use App\Models\Plan;
 use App\Models\User;
+use App\Support\Activity;
+use App\Support\DomainUrls;
+use App\Support\Notifier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -41,7 +45,29 @@ class UserTable extends Component
             abort(422, 'You cannot demote your own admin account.');
         }
 
+        $oldRole = $user->role instanceof UserRole ? $user->role->value : (string) $user->role;
         $user->update(['role' => $role]);
+
+        Activity::record(ActivityLog::ADMIN_USER_ROLE_CHANGED, auth()->user(), $user, [
+            'old_role' => $oldRole,
+            'new_role' => $role,
+        ], $user);
+
+        Notifier::security(
+            $user,
+            'Your account role changed',
+            ["Your ternis.link role changed from {$oldRole} to {$role}."],
+            DomainUrls::dashboard('/'),
+            'Open dashboard',
+        );
+
+        Notifier::admins(
+            "Role changed: {$user->email}",
+            [auth()->user()->email." changed {$user->email} from {$oldRole} to {$role}."],
+            DomainUrls::admin('/users'),
+            'Manage users',
+            auth()->user(),
+        );
     }
 
     public function updatePlan(string $userId, string $planId): void
@@ -50,7 +76,30 @@ class UserTable extends Component
 
         $plan = Plan::findOrFail($planId);
         $user = User::findOrFail($userId);
+
+        $oldPlan = $user->plan?->name ?? 'none';
         $user->update(['plan_id' => $plan->id]);
+
+        Activity::record(ActivityLog::ADMIN_USER_PLAN_CHANGED, auth()->user(), $user, [
+            'old_plan' => $oldPlan,
+            'new_plan' => $plan->name,
+        ], $user);
+
+        Notifier::security(
+            $user,
+            'Your plan changed',
+            ["Your ternis.link plan changed from {$oldPlan} to {$plan->name}."],
+            DomainUrls::dashboard('/'),
+            'Open dashboard',
+        );
+
+        Notifier::admins(
+            "Plan changed: {$user->email}",
+            [auth()->user()->email." changed {$user->email} from {$oldPlan} to {$plan->name}."],
+            DomainUrls::admin('/users'),
+            'Manage users',
+            auth()->user(),
+        );
     }
 
     public function render()

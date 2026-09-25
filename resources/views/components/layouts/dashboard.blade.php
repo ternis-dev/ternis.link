@@ -6,8 +6,12 @@ $nav = [
     ['route' => 'dashboard.links', 'match' => 'dashboard.links*', 'label' => 'Links', 'icon' => '<path d="M10 13a5 5 0 0 0 7.54.54l2.1-2.1a5 5 0 0 0-7.07-7.07l-1.06 1.06M14 11a5 5 0 0 0-7.54-.54l-2.1 2.1a5 5 0 0 0 7.07 7.07l1.06-1.06"/>'],
     ['route' => 'dashboard.api-keys', 'match' => 'dashboard.api-keys*', 'label' => 'API Keys', 'icon' => '<circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/>'],
     ['route' => 'dashboard.domains', 'match' => 'dashboard.domains*', 'label' => 'Domains', 'icon' => '<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-9-9h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/>'],
+    ['route' => 'dashboard.notifications', 'match' => 'dashboard.notifications*', 'label' => 'Notifications', 'badge' => 'unread', 'icon' => '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>'],
+    ['route' => 'dashboard.activity', 'match' => 'dashboard.activity*', 'label' => 'Activity', 'icon' => '<path d="M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>'],
     ['route' => 'dashboard.settings', 'match' => 'dashboard.settings*', 'label' => 'Settings', 'icon' => '<path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>'],
 ];
+
+$unreadCount = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0;
 
 if (auth()->check() && auth()->user()->isAdmin()) {
     $nav[] = ['route' => 'admin.dashboard', 'match' => 'admin.*', 'label' => 'Admin', 'icon' => '<path d="M12 3 4 6v5c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V6l-8-3Z"/>'];
@@ -40,6 +44,9 @@ $nav[0]['href'] = $homeHref;
                     >
                         <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $item['icon'] !!}</svg>
                         {{ $item['label'] }}
+                        @if (($item['badge'] ?? null) === 'unread' && $unreadCount > 0)
+                            <span class="ml-auto rounded-full bg-neutral-900 px-2 py-0.5 text-[11px] font-semibold leading-none text-white dark:bg-white dark:text-neutral-900">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                        @endif
                     </a>
                 @endforeach
             </div>
@@ -81,6 +88,9 @@ $nav[0]['href'] = $homeHref;
                         >
                             <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $item['icon'] !!}</svg>
                             {{ $item['label'] }}
+                            @if (($item['badge'] ?? null) === 'unread' && $unreadCount > 0)
+                                <span class="ml-auto rounded-full bg-neutral-900 px-2 py-0.5 text-[11px] font-semibold leading-none text-white dark:bg-white dark:text-neutral-900">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+                            @endif
                         </a>
                     @endforeach
                 </nav>

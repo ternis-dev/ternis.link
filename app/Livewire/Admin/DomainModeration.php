@@ -2,7 +2,11 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\ActivityLog;
 use App\Models\Domain;
+use App\Support\Activity;
+use App\Support\DomainUrls;
+use App\Support\Notifier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -56,6 +60,20 @@ class DomainModeration extends Component
         }
 
         $domain->update(['is_active' => false]);
+
+        Activity::record(ActivityLog::ADMIN_DOMAIN_DEACTIVATED, auth()->user(), $domain, [
+            'hostname' => $domain->hostname,
+        ]);
+
+        if ($domain->user) {
+            Notifier::security(
+                $domain->user,
+                'Your domain was deactivated: '.$domain->hostname,
+                ["The domain {$domain->hostname} was deactivated by an administrator. Links and analytics are preserved."],
+                DomainUrls::dashboard('/domains'),
+                'View your domains',
+            );
+        }
     }
 
     public function reactivate(string $domainId): void
@@ -71,6 +89,20 @@ class DomainModeration extends Component
         }
 
         $domain->update(['is_active' => true]);
+
+        Activity::record(ActivityLog::ADMIN_DOMAIN_REACTIVATED, auth()->user(), $domain, [
+            'hostname' => $domain->hostname,
+        ]);
+
+        if ($domain->user) {
+            Notifier::security(
+                $domain->user,
+                'Your domain was reactivated: '.$domain->hostname,
+                ["The domain {$domain->hostname} was reactivated by an administrator."],
+                DomainUrls::dashboard('/domains'),
+                'View your domains',
+            );
+        }
     }
 
     public function render()

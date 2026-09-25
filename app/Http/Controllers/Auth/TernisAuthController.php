@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Plan;
 use App\Models\User;
 use App\Services\TernisAuthService;
+use App\Support\Activity;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -130,6 +132,8 @@ class TernisAuthController extends Controller
         // Log in via Laravel session
         auth()->login($user);
 
+        Activity::record(ActivityLog::AUTH_LOGIN, $user, $user);
+
         return redirect()->intended(route('dashboard'));
     }
 
@@ -217,6 +221,8 @@ class TernisAuthController extends Controller
 
         auth()->login($user);
 
+        Activity::record(ActivityLog::AUTH_LOGIN, $user, $user, ['via' => 'demo']);
+
         return redirect()->route('dashboard');
     }
 
@@ -226,6 +232,12 @@ class TernisAuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = auth()->user();
+
+        if ($user) {
+            Activity::record(ActivityLog::AUTH_LOGOUT, $user, $user);
+        }
+
         auth()->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

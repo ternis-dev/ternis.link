@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreLinkRequest;
 use App\Http\Requests\UpdateLinkRequest;
+use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
+use App\Support\Activity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -68,6 +70,12 @@ class LinkController extends Controller
             tags: $request->validated('tags'),
         );
 
+        Activity::record(ActivityLog::LINK_CREATED, $user, $link, [
+            'slug' => $link->slug,
+            'domain' => $domain->hostname,
+            'via' => 'api',
+        ]);
+
         return response()->json($link->load('domain'), 201);
     }
 
@@ -94,6 +102,11 @@ class LinkController extends Controller
 
         $link = $this->linkService->update($link, $request->validated());
 
+        Activity::record(ActivityLog::LINK_UPDATED, $request->user(), $link, [
+            'slug' => $link->slug,
+            'via' => 'api',
+        ]);
+
         return response()->json($link->load('domain'));
     }
 
@@ -107,6 +120,11 @@ class LinkController extends Controller
         }
 
         $this->linkService->deactivate($link);
+
+        Activity::record(ActivityLog::LINK_DEACTIVATED, $request->user(), $link, [
+            'slug' => $link->slug,
+            'via' => 'api',
+        ]);
 
         return response()->json(null, 204);
     }

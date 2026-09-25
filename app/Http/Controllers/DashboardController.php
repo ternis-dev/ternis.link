@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Click;
 use App\Models\Link;
 use Illuminate\Http\Request;
@@ -159,5 +160,51 @@ class DashboardController extends Controller
     public function settings()
     {
         return view('dashboard.settings.index');
+    }
+
+    /**
+     * In-app notification inbox (database notifications, newest first).
+     */
+    public function notifications(Request $request)
+    {
+        $notifications = $request->user()->notifications()
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return view('dashboard.notifications.index', compact('notifications'));
+    }
+
+    public function markAllNotificationsRead(Request $request)
+    {
+        $request->user()->unreadNotifications->markAsRead();
+
+        return redirect()->route('dashboard.notifications');
+    }
+
+    public function markNotificationRead(Request $request, string $id)
+    {
+        $notification = $request->user()->notifications()->findOrFail($id);
+
+        if ($notification->read_at === null) {
+            $notification->markAsRead();
+        }
+
+        $url = $notification->data['action_url'] ?? null;
+
+        return $url ? redirect()->away($url) : redirect()->route('dashboard.notifications');
+    }
+
+    /**
+     * Personal activity history: actions the user performed plus
+     * actions others (admins, system) performed on their stuff.
+     */
+    public function activity(Request $request)
+    {
+        $entries = ActivityLog::visibleTo($request->user()->id)
+            ->with(['actor', 'subjectOwner'])
+            ->orderByDesc('created_at')
+            ->paginate(25);
+
+        return view('dashboard.activity.index', compact('entries'));
     }
 }

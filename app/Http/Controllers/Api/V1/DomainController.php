@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDomainRequest;
+use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Services\DomainService;
+use App\Support\Activity;
+use App\Support\DomainUrls;
+use App\Support\Notifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -42,6 +46,11 @@ class DomainController extends Controller
             $request->validated('hostname'),
         );
 
+        Activity::record(ActivityLog::DOMAIN_REGISTERED, $request->user(), $domain, [
+            'hostname' => $domain->hostname,
+            'via' => 'api',
+        ]);
+
         return response()->json($this->present($domain->fresh()), 201);
     }
 
@@ -63,6 +72,21 @@ class DomainController extends Controller
         $this->authorizeManage($request, $domain);
 
         if ($this->domains->verify($domain)) {
+            Activity::record(ActivityLog::DOMAIN_VERIFIED, $request->user(), $domain, [
+                'hostname' => $domain->hostname,
+                'via' => 'api',
+            ]);
+
+            if ($domain->user) {
+                Notifier::security(
+                    $domain->user,
+                    'Domain verified: '.$domain->hostname,
+                    ["Your domain {$domain->hostname} passed DNS verification and can now serve short links."],
+                    DomainUrls::dashboard('/domains'),
+                    'View your domains',
+                );
+            }
+
             return response()->json(['verified' => true, 'domain' => $domain->fresh()->loadCount('links')]);
         }
 
@@ -85,6 +109,21 @@ class DomainController extends Controller
         }
 
         $this->domains->deactivate($domain);
+
+        Activity::record(ActivityLog::DOMAIN_DEACTIVATED, $request->user(), $domain, [
+            'hostname' => $domain->hostname,
+            'via' => 'api',
+        ]);
+
+        if ($domain->user) {
+            Notifier::security(
+                $domain->user,
+                'Domain deactivated: '.$domain->hostname,
+                ["Your domain {$domain->hostname} was deactivated. Existing links and analytics are preserved."],
+                DomainUrls::dashboard('/domains'),
+                'View your domains',
+            );
+        }
 
         return response()->json(null, 204);
     }

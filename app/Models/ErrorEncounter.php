@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\IpHash;
+use App\Support\Notifier;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,13 +38,17 @@ class ErrorEncounter extends Model
     /**
      * Record an error encounter. Never throws — logging must not break
      * error rendering itself (e.g. when the database is down).
+     *
+     * Rendered 5xx responses additionally page the admins (throttled
+     * per exception + path in Notifier so an error storm notifies
+     * once per window, not once per exception).
      */
     public static function record(Throwable $e): void
     {
         try {
             $request = request();
 
-            static::create([
+            $encounter = static::create([
                 'http_code' => $e instanceof HttpExceptionInterface
                     ? $e->getStatusCode()
                     : (is_int($e->getCode()) && $e->getCode() >= 100 && $e->getCode() <= 599 ? $e->getCode() : 500),
@@ -56,6 +61,10 @@ class ErrorEncounter extends Model
                 'ip_hash' => IpHash::make($request->ip()),
                 'user_agent' => ($ua = $request->userAgent()) ? mb_substr($ua, 0, 512) : null,
             ]);
+
+            if ($encounter->http_code >= 500) {
+                Notifier::serverError($encounter);
+            }
         } catch (Throwable) {
             // Logging an error must never raise a new one.
         }

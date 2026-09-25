@@ -7,6 +7,7 @@
             <x-ui.button href="{{ route('admin.links') }}" size="sm">Moderate Links</x-ui.button>
             <x-ui.button href="{{ route('admin.users') }}" size="sm">Manage Users</x-ui.button>
             <x-ui.button href="{{ route('admin.domains') }}" size="sm">Moderate Domains</x-ui.button>
+            <x-ui.button href="{{ route('admin.activity') }}" size="sm">Audit Log</x-ui.button>
         </x-slot:actions>
     </x-ui.page-header>
 

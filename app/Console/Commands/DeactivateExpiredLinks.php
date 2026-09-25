@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ActivityLog;
 use App\Models\Link;
+use App\Support\Activity;
 use Illuminate\Console\Command;
 
 class DeactivateExpiredLinks extends Command
@@ -31,6 +33,12 @@ class DeactivateExpiredLinks extends Command
         }
 
         $this->info("Deactivated {$count} expired link(s).");
+
+        if ($count > 0) {
+            Activity::record(ActivityLog::SYSTEM_EXPIRED_LINKS_DEACTIVATED, null, null, [
+                'count' => $count,
+            ]);
+        }
 
         return self::SUCCESS;
     }

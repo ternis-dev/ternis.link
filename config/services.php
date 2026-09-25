@@ -45,6 +45,10 @@ return [
         'end_session' => env('TERNIS_AUTH_END_SESSION', false),
         'end_session_path' => env('TERNIS_AUTH_END_SESSION_PATH', '/oauth/logout'),
         'post_logout_redirect_uri' => env('TERNIS_AUTH_POST_LOGOUT_REDIRECT_URI'),
+        // Notification relay on the auth platform (push/email). Still
+        // in development: leave empty until the endpoint ships — the
+        // TernisAuthChannel then activates with no code changes.
+        'notify_endpoint' => env('TERNIS_AUTH_NOTIFY_ENDPOINT', ''),
     ],
 
     'turnstile' => [

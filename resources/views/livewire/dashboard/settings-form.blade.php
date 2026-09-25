@@ -45,6 +45,35 @@
             @error('theme') <p class="mt-2 text-xs font-medium" role="alert">{{ $message }}</p> @enderror
         </x-ui.card>
 
+        <x-ui.card title="Email Notifications">
+            <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Important events always appear in your in-app inbox. These toggles control whether you also get an email.</p>
+            <div class="space-y-3">
+                <label class="flex cursor-pointer items-start gap-3">
+                    <input type="checkbox" wire:model.live="notify_security_email" value="1" class="mt-1 accent-neutral-900 dark:accent-white">
+                    <span>
+                        <span class="block text-sm font-medium">Security events</span>
+                        <span class="block text-xs text-neutral-500 dark:text-neutral-400">API keys, domains, role or plan changes on your account.</span>
+                    </span>
+                </label>
+                @if (auth()->user()->isAdmin())
+                    <label class="flex cursor-pointer items-start gap-3">
+                        <input type="checkbox" wire:model.live="notify_admin_security_email" value="1" class="mt-1 accent-neutral-900 dark:accent-white">
+                        <span>
+                            <span class="block text-sm font-medium">Admin security notices</span>
+                            <span class="block text-xs text-neutral-500 dark:text-neutral-400">Privilege and plan changes performed by other admins.</span>
+                        </span>
+                    </label>
+                    <label class="flex cursor-pointer items-start gap-3">
+                        <input type="checkbox" wire:model.live="notify_server_error_email" value="1" class="mt-1 accent-neutral-900 dark:accent-white">
+                        <span>
+                            <span class="block text-sm font-medium">Server error alerts</span>
+                            <span class="block text-xs text-neutral-500 dark:text-neutral-400">One email per error type every 30 minutes when 5xx responses are rendered.</span>
+                        </span>
+                    </label>
+                @endif
+            </div>
+        </x-ui.card>
+
         <x-ui.button type="submit" variant="primary">Save Settings</x-ui.button>
     </form>
 </div>

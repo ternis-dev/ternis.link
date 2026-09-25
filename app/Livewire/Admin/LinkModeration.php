@@ -2,7 +2,11 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\ActivityLog;
 use App\Models\Link;
+use App\Support\Activity;
+use App\Support\DomainUrls;
+use App\Support\Notifier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -44,6 +48,20 @@ class LinkModeration extends Component
 
         $link = Link::findOrFail($linkId);
         $link->update(['is_active' => false]);
+
+        Activity::record(ActivityLog::ADMIN_LINK_DEACTIVATED, auth()->user(), $link, [
+            'slug' => $link->slug,
+        ]);
+
+        if ($link->user) {
+            Notifier::security(
+                $link->user,
+                'Your link was deactivated',
+                ["The link {$link->slug} was deactivated by an administrator. Existing analytics are preserved."],
+                DomainUrls::dashboard('/links'),
+                'View your links',
+            );
+        }
     }
 
     public function reactivate(string $linkId): void
@@ -52,6 +70,20 @@ class LinkModeration extends Component
 
         $link = Link::findOrFail($linkId);
         $link->update(['is_active' => true]);
+
+        Activity::record(ActivityLog::ADMIN_LINK_REACTIVATED, auth()->user(), $link, [
+            'slug' => $link->slug,
+        ]);
+
+        if ($link->user) {
+            Notifier::security(
+                $link->user,
+                'Your link was reactivated',
+                ["The link {$link->slug} was reactivated by an administrator."],
+                DomainUrls::dashboard('/links'),
+                'View your links',
+            );
+        }
     }
 
     public function render()

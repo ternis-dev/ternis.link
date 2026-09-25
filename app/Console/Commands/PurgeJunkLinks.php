@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ActivityLog;
 use App\Models\Link;
 use App\Services\JunkUrlDetector;
 use App\Services\LinkService;
+use App\Support\Activity;
 use Illuminate\Console\Command;
 
 /**
@@ -80,6 +82,10 @@ class PurgeJunkLinks extends Command
         }
 
         $this->info("Deactivated {$candidates->count()} junk link(s). Analytics preserved.");
+
+        Activity::record(ActivityLog::SYSTEM_JUNK_LINKS_PURGED, null, null, [
+            'count' => $candidates->count(),
+        ]);
 
         return self::SUCCESS;
     }

@@ -2,7 +2,11 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Models\ActivityLog;
 use App\Models\Link;
+use App\Support\Activity;
+use App\Support\DomainUrls;
+use App\Support\Notifier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -61,6 +65,25 @@ class LinkTable extends Component
             ? Link::findOrFail($linkId)
             : auth()->user()->links()->findOrFail($linkId);
         $link->update(['is_active' => false]);
+
+        Activity::record(ActivityLog::LINK_DEACTIVATED, auth()->user(), $link, [
+            'slug' => $link->slug,
+        ]);
+
+        // An admin deactivating someone else's link from here owes the
+        // owner an explanation in their inbox.
+        if ($link->user_id !== null && $link->user_id !== auth()->id()) {
+            $owner = $link->user;
+            if ($owner) {
+                Notifier::security(
+                    $owner,
+                    'Your link was deactivated',
+                    ["The link {$link->slug} was deactivated by an administrator."],
+                    DomainUrls::dashboard('/links'),
+                    'View your links',
+                );
+            }
+        }
     }
 
     public function render()

@@ -2,8 +2,12 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Services\DomainService;
+use App\Support\Activity;
+use App\Support\DomainUrls;
+use App\Support\Notifier;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -68,6 +72,10 @@ class DomainManager extends Component
 
         $this->claimedHostname = $domain->hostname;
         $this->subdomain = '';
+
+        Activity::record(ActivityLog::DOMAIN_CLAIMED, auth()->user(), $domain, [
+            'hostname' => $domain->hostname,
+        ]);
     }
 
     /**
@@ -95,6 +103,10 @@ class DomainManager extends Component
 
         $this->justCreatedId = $domain->id;
         $this->hostname = '';
+
+        Activity::record(ActivityLog::DOMAIN_REGISTERED, auth()->user(), $domain, [
+            'hostname' => $domain->hostname,
+        ]);
     }
 
     /**
@@ -115,7 +127,21 @@ class DomainManager extends Component
                 "verify.{$domainId}",
                 'Verification TXT record not found. Publish the record below, wait for DNS propagation, and retry.'
             );
+
+            return;
         }
+
+        Activity::record(ActivityLog::DOMAIN_VERIFIED, auth()->user(), $domain, [
+            'hostname' => $domain->hostname,
+        ]);
+
+        Notifier::security(
+            $domain->user ?? auth()->user(),
+            'Domain verified: '.$domain->hostname,
+            ["Your domain {$domain->hostname} passed DNS verification and can now serve short links."],
+            DomainUrls::dashboard('/domains'),
+            'View your domains',
+        );
     }
 
     /**
@@ -132,6 +158,20 @@ class DomainManager extends Component
         }
 
         $domains->deactivate($domain);
+
+        Activity::record(ActivityLog::DOMAIN_DEACTIVATED, auth()->user(), $domain, [
+            'hostname' => $domain->hostname,
+        ]);
+
+        $owner = $domain->user ?? auth()->user();
+
+        Notifier::security(
+            $owner,
+            'Domain deactivated: '.$domain->hostname,
+            ["Your domain {$domain->hostname} was deactivated. Existing links and analytics are preserved."],
+            DomainUrls::dashboard('/domains'),
+            'View your domains',
+        );
     }
 
     /**

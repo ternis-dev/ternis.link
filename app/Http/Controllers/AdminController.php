@@ -62,4 +62,12 @@ class AdminController extends Controller
     {
         return view('admin.domains');
     }
+
+    /**
+     * Audit log page (Livewire: Admin\ActivityLogTable).
+     */
+    public function activity()
+    {
+        return view('admin.activity');
+    }
 }

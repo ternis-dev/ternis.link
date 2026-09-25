@@ -197,6 +197,10 @@ Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::cla
     Route::get('/links/{link}/export', [DashboardController::class, 'exportClicks'])->name('dashboard.links.export');
     Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
     Route::get('/domains', [DashboardController::class, 'domains'])->name('dashboard.domains');
+    Route::get('/notifications', [DashboardController::class, 'notifications'])->name('dashboard.notifications');
+    Route::post('/notifications/read', [DashboardController::class, 'markAllNotificationsRead'])->name('dashboard.notifications.read-all');
+    Route::post('/notifications/{id}/read', [DashboardController::class, 'markNotificationRead'])->name('dashboard.notifications.read');
+    Route::get('/activity', [DashboardController::class, 'activity'])->name('dashboard.activity');
     Route::get('/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
 });
 
@@ -212,6 +216,7 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
     Route::get('/links', [AdminController::class, 'links'])->name('links');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::get('/domains', [AdminController::class, 'domains'])->name('domains');
+    Route::get('/activity', [AdminController::class, 'activity'])->name('activity');
 });
 
 /*

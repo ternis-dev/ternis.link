@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Models\ActivityLog;
 use App\Models\Link;
 use App\Services\LinkService;
+use App\Support\Activity;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -90,6 +92,10 @@ class LinkEditForm extends Component
 
         $this->syncFromModel();
         $this->saved = true;
+
+        Activity::record(ActivityLog::LINK_UPDATED, auth()->user(), $this->link, [
+            'slug' => $this->link->slug,
+        ]);
     }
 
     public function render()

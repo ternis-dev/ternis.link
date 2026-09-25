@@ -25,6 +25,9 @@ class User extends Authenticatable
         'plan_id',
         'nav_layout',
         'theme',
+        'notify_security_email',
+        'notify_admin_security_email',
+        'notify_server_error_email',
     ];
 
     public const NAV_LAYOUTS = ['side', 'top'];
@@ -38,6 +41,9 @@ class User extends Authenticatable
 
     protected $casts = [
         'role' => UserRole::class,
+        'notify_security_email' => 'boolean',
+        'notify_admin_security_email' => 'boolean',
+        'notify_server_error_email' => 'boolean',
     ];
 
     // No password, no remember_token — SSO only
