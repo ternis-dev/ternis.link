@@ -138,4 +138,18 @@ return [
 
     'ip_hash_pepper' => env('IP_HASH_PEPPER', ''),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Asset Commit Version
+    |--------------------------------------------------------------------------
+    |
+    | Short commit id appended to built CSS URLs as ?v=abc1234 so a served
+    | stylesheet is traceable to the commit it was built from and caches
+    | bust when a new build ships. Empty = read .git HEAD at runtime; set
+    | APP_COMMIT for deployments that ship without a .git directory.
+    |
+    */
+
+    'asset_commit' => env('APP_COMMIT', ''),
+
 ];

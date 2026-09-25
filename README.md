@@ -40,6 +40,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - Analytics charts via Chart.js (clicks-over-time bars, browser doughnut with server-rendered HTML legend), grayscale palettes that follow the active theme.
   - href.nz is a from-scratch hand-written sketchbook page (`landing-public.css` Vite entry + Caveat): kicker badge, scribble-marked headline, numbered sketch steps, taped form card, pinned notes, scissors cut-line — 30+ wobbly inline-SVG doodles on first paint, light-paper only.
   - Self-hosted fonts (`public/fonts/inter-var.woff2`, `space-grotesk-var.woff2`) + single Vite bundle; Cloudflare Turnstile is the only external script and is loaded only when its site key is configured.
+  - Built stylesheets are served with the short commit id in the URL (`/build/assets/app-<hash>.css?v=181242c`, `App\Support\CommitVersion`) so a deployed CSS file traces back to its commit and caches bust on every new build. Read from `.git` HEAD, overridable via `APP_COMMIT`.
   - Custom branded error pages (`resources/views/errors/404,403,419,429,500,503.blade.php`) for web requests; API/`expectsJson` requests still receive JSON.
   - Error encounters (`error_encounters` table): every rendered error response is logged with `http_code`, `error_message`, `exception_class`, `method`/`host`/`path`, `user_id`, SHA-256 `ip_hash`, and `user_agent`. Validation noise and health probes are skipped; logging never throws. SSO callback failures (stale/reused codes) redirect to login with a friendly message instead of 500ing.
 - **Deployment**:
