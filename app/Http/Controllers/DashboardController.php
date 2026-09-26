@@ -20,13 +20,13 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        $clicks = Click::whereIn('link_id', $user->links()->select('links.id'))
+        $clicks = Click::whereIn('link_id', $user->links()->notRemoved()->select('links.id'))
             ->where('is_direct_url', false);
 
         $stats = [
-            'total_links' => $user->links()->count(),
+            'total_links' => $user->links()->notRemoved()->count(),
             'total_clicks' => (clone $clicks)->count(),
-            'links_this_month' => $user->links()
+            'links_this_month' => $user->links()->notRemoved()
                 ->where('created_at', '>=', now()->startOfMonth())
                 ->count(),
             'clicks_today' => (clone $clicks)
@@ -61,7 +61,7 @@ class DashboardController extends Controller
      */
     public function showLink(string $link)
     {
-        $link = auth()->user()->links()->with('domain')->findOrFail($link);
+        $link = auth()->user()->links()->notRemoved()->with('domain')->findOrFail($link);
 
         $qrSvg = LinkQrCode::svgDataUri($link);
 
@@ -75,7 +75,7 @@ class DashboardController extends Controller
      */
     public function editLink(string $link)
     {
-        $link = auth()->user()->links()->with('domain')->findOrFail($link);
+        $link = auth()->user()->links()->notRemoved()->with('domain')->findOrFail($link);
 
         return view('dashboard.links.edit', compact('link'));
     }
@@ -89,7 +89,7 @@ class DashboardController extends Controller
     public function exportClicks(string $link)
     {
         $user = auth()->user();
-        $link = $user->links()->with('domain')->findOrFail($link);
+        $link = $user->links()->notRemoved()->with('domain')->findOrFail($link);
 
         $clicks = $link->clicks()
             ->where('is_direct_url', false)

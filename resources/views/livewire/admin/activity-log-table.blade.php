@@ -47,9 +47,9 @@
                         @elseif ($column === 'subject')
                             <td class="text-xs">{{ $entry->subject_label ?? '—' }}</td>
                         @elseif ($column === 'actor')
-                            <td class="text-xs text-neutral-500">{{ $entry->actor?->email ?? 'System' }}</td>
+                            <td class="tl-sensitive text-xs text-neutral-500" title="{{ $entry->actor?->email ?? 'System' }}">{{ $entry->actor?->email ?? 'System' }}</td>
                         @elseif ($column === 'owner')
-                            <td class="text-xs text-neutral-500">{{ $entry->subjectOwner?->email ?? '—' }}</td>
+                            <td class="tl-sensitive text-xs text-neutral-500" title="{{ $entry->subjectOwner?->email ?? '—' }}">{{ $entry->subjectOwner?->email ?? '—' }}</td>
                         @endif
                     @endforeach
                 </tr>

@@ -12,7 +12,7 @@ $nav = [
 $dashUrl = \App\Support\DomainUrls::dashboard('/');
 @endphp
 
-<x-layouts.app :title="$title">
+<x-layouts.app :title="$title" maxWidth="max-w-[1440px]">
     <div class="mb-6 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
         <div class="flex items-center gap-2.5">
             <span class="rounded-md bg-amber-500 px-2 py-0.5 text-[11px] font-bold tracking-widest text-white uppercase">Admin</span>

@@ -13,6 +13,7 @@
                 <option value="all">All statuses</option>
                 <option value="active">Active</option>
                 <option value="disabled">Disabled</option>
+                <option value="removed">Removed</option>
                 <option value="expired">Expired</option>
             </x-ui.select>
         </div>
@@ -73,14 +74,16 @@
                         @elseif ($column === 'domain')
                             <td><code>{{ $link->domain->hostname ?? '—' }}</code></td>
                         @elseif ($column === 'owner')
-                            <td class="text-xs text-neutral-500">
+                            <td class="tl-sensitive text-xs text-neutral-500" title="{{ $link->user?->email ?? 'Guest' }}">
                                 {{ $link->user?->email ?? 'Guest' }}
                             </td>
                         @elseif ($column === 'clicks')
                             <td class="font-bold">{{ number_format($link->click_count) }}</td>
                         @elseif ($column === 'status')
                             <td>
-                                @if ($link->is_active && !$link->isExpired())
+                                @if ($link->is_removed)
+                                    <x-ui.status state="removed" />
+                                @elseif ($link->is_active && !$link->isExpired())
                                     <x-ui.status state="active" />
                                 @elseif ($link->isExpired())
                                     <x-ui.status state="expired" />
@@ -91,11 +94,18 @@
                         @endif
                     @endforeach
                     <td>
-                        @if ($link->is_active)
-                            <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
+                        <div class="flex gap-2">
+                        @if ($link->is_removed)
+                            <x-ui.button wire:click="restore('{{ $link->id }}')" size="sm">Restore</x-ui.button>
                         @else
-                            <x-ui.button wire:click="reactivate('{{ $link->id }}')" size="sm">Reactivate</x-ui.button>
+                            @if ($link->is_active)
+                                <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
+                            @else
+                                <x-ui.button wire:click="reactivate('{{ $link->id }}')" size="sm">Reactivate</x-ui.button>
+                            @endif
+                            <x-ui.button wire:click="remove('{{ $link->id }}')" wire:confirm="Remove this link? It stops resolving everywhere but stays in stats." size="sm" variant="danger">Remove</x-ui.button>
                         @endif
+                        </div>
                     </td>
                 </tr>
             @empty

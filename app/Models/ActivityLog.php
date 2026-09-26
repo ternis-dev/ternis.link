@@ -37,6 +37,10 @@ class ActivityLog extends Model
 
     public const ADMIN_LINK_REACTIVATED = 'admin.link.reactivated';
 
+    public const ADMIN_LINK_REMOVED = 'admin.link.removed';
+
+    public const ADMIN_LINK_RESTORED = 'admin.link.restored';
+
     public const ADMIN_DOMAIN_DEACTIVATED = 'admin.domain.deactivated';
 
     public const ADMIN_DOMAIN_REACTIVATED = 'admin.domain.reactivated';

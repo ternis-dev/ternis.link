@@ -50,7 +50,7 @@
                         @if ($column === 'hostname')
                             <td><code>{{ $domain->hostname }}</code></td>
                         @elseif ($column === 'owner')
-                            <td class="text-xs text-neutral-500">
+                            <td class="tl-sensitive text-xs text-neutral-500" title="{{ $domain->user?->email ?? 'System' }}">
                                 {{ $domain->user?->email ?? 'System' }}
                             </td>
                         @elseif ($column === 'type')

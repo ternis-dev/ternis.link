@@ -69,6 +69,7 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/`, `/links`, `/users`, `/domains`, `/activity` on admin host | `admin.*` | `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain`, host-pinned | `AdminController` (system-wide; distinct layout `layouts.admin`) |
 | GET | `/admin{any?}` on admin host | — | `ensure.domain:admin`, no auth | Legacy 301 to root equivalents (`/admin/users` → `/users`) |
 | GET | `/legal/{slug}` `[a-z-]+` | `legal.show` | `ensure.domain:ternis,dashboard,admin` | Allowlist `terms,privacy` from `resources/legal/*.md` |
+| GET | `/stats`, `/stats/domains`, `/stats/links` | `stats.*` | `ensure.domain:ternis`, public (no auth) | Aggregate-only network stats (counts by day/domain, no PII); removed links stay counted |
 | GET | `/` | `home` | none (branches on `domain_type`) | dashboard → login/dashboard; admin → login/admin; api → 302 `/v{latest}/`; business → `landing.business`; public → `landing.public`; else `landing.index` |
 | GET | `/url/{url}` `.*` | `redirect.url` | `ensure.domain:public,business,ternis,partner`, public (no auth) | Preferred direct-URL redirect |
 | GET | `/go/{url}` `.*` | `redirect.go` | same | Alternative direct-URL redirect |

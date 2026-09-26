@@ -1,4 +1,4 @@
-@props(['state' => 'neutral']) {{-- active|verified|pending|expired|disabled|system --}}
+@props(['state' => 'neutral']) {{-- active|verified|pending|expired|disabled|removed|system --}}
 
 @php
 $labels = [
@@ -7,6 +7,7 @@ $labels = [
     'pending' => 'Pending DNS',
     'expired' => 'Expired',
     'disabled' => 'Disabled',
+    'removed' => 'Removed',
     'system' => 'System',
 ];
 @endphp

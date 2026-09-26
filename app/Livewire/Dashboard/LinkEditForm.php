@@ -109,7 +109,7 @@ class LinkEditForm extends Component
      */
     private function editableLink(string $linkId): Link
     {
-        return auth()->user()->links()->findOrFail($linkId);
+        return auth()->user()->links()->notRemoved()->findOrFail($linkId);
     }
 
     private function syncFromModel(): void

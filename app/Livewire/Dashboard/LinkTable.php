@@ -91,7 +91,7 @@ class LinkTable extends Component
         $sortBy = in_array($this->sortBy, self::SORTABLE, true) ? $this->sortBy : 'created_at';
         $sortDir = $this->sortDir === 'asc' ? 'asc' : 'desc';
 
-        $base = auth()->user()->links();
+        $base = auth()->user()->links()->notRemoved();
 
         $links = $base
             ->with(['domain', 'user'])

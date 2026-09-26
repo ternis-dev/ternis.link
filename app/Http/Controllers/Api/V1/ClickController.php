@@ -14,6 +14,10 @@ class ClickController extends Controller
      */
     public function index(Request $request, Link $link): JsonResponse
     {
+        if ($link->is_removed) {
+            abort(404);
+        }
+
         if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
             abort(403, 'You do not own this link.');
         }
@@ -34,6 +38,10 @@ class ClickController extends Controller
      */
     public function summary(Request $request, Link $link): JsonResponse
     {
+        if ($link->is_removed) {
+            abort(404);
+        }
+
         if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
             abort(403, 'You do not own this link.');
         }

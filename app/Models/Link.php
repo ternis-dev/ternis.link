@@ -25,6 +25,7 @@ class Link extends Model
         'creator_ip_encrypted',
         'click_count',
         'is_active',
+        'is_removed',
         'expires_at',
     ];
 
@@ -32,6 +33,7 @@ class Link extends Model
         'tags' => 'array',
         'creator_ip_encrypted' => 'encrypted',
         'is_active' => 'boolean',
+        'is_removed' => 'boolean',
         'expires_at' => 'datetime',
         'click_count' => 'integer',
     ];
@@ -94,7 +96,7 @@ class Link extends Model
 
     public function isAccessible(): bool
     {
-        return $this->is_active && ! $this->isExpired();
+        return $this->is_active && ! $this->is_removed && ! $this->isExpired();
     }
 
     /**
@@ -106,15 +108,24 @@ class Link extends Model
     }
 
     /**
-     * Scope: only active, non-expired links.
+     * Scope: only active, non-expired, non-removed links.
      */
     public function scopeAccessible(Builder $query): Builder
     {
         return $query
+            ->notRemoved()
             ->where('is_active', true)
             ->where(function (Builder $q) {
                 $q->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
             });
+    }
+
+    /**
+     * Scope: exclude admin-removed links (dashboards, API).
+     */
+    public function scopeNotRemoved(Builder $query): Builder
+    {
+        return $query->where('is_removed', false);
     }
 }

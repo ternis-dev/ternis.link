@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\UserRole;
 use App\Livewire\Admin\LinkModeration;
 use App\Livewire\Admin\UserTable;
+use App\Models\ActivityLog;
 use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
@@ -77,15 +78,33 @@ class AdminDashboardTest extends TestCase
 
     public function test_admin_can_view_links_and_users_pages(): void
     {
+        $link = Link::create([
+            'slug' => 'admin-blur-1',
+            'destination_url' => 'https://example.com/blur',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+        \App\Support\Activity::record(ActivityLog::ADMIN_LINK_DEACTIVATED, $this->admin, $link, ['slug' => $link->slug]);
+
         $this->actingAs($this->admin)
             ->get('http://admin.ternis.link/links')
             ->assertStatus(200)
-            ->assertSee('Link Moderation');
+            ->assertSee('Link Moderation')
+            ->assertSee('tl-sensitive', escape: false); // owner emails blurred until hover
 
         $this->actingAs($this->admin)
             ->get('http://admin.ternis.link/users')
             ->assertStatus(200)
-            ->assertSee('User Management');
+            ->assertSee('User Management')
+            ->assertSee(config('services.ternis_auth.avatar_base').'/', escape: false) // avatar CDN profile pictures
+            ->assertSee('.png?size=64', escape: false)
+            ->assertSee('tl-sensitive', escape: false);
+
+        $this->actingAs($this->admin)
+            ->get('http://admin.ternis.link/activity')
+            ->assertStatus(200)
+            ->assertSee('tl-sensitive', escape: false);
 
         $this->actingAs($this->admin)
             ->get('http://admin.ternis.link/domains')

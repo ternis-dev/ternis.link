@@ -138,6 +138,16 @@
         @apply min-w-[2px] flex-1 rounded-t bg-gradient-to-b from-neutral-700 to-neutral-300 dark:from-neutral-100 dark:to-neutral-700;
     }
 
+    /* Sensitive PII (emails) — blurred until hovered/focused. */
+    .tl-sensitive {
+        @apply blur-[5px] transition-[filter] duration-150 select-none;
+    }
+
+    .tl-sensitive:hover,
+    .tl-sensitive:focus-visible {
+        @apply blur-none select-text;
+    }
+
     /* Theme toggle icon swap. */
     .theme-toggle .icon-sun {
         @apply hidden dark:block;

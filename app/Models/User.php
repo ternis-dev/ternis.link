@@ -120,7 +120,8 @@ class User extends Authenticatable
 
     /**
      * Get the avatar URL with optional size parameter.
-     * Falls back to user.t-api.de which never returns broken images.
+     * Falls back to the Ternis avatar CDN (user.t-cdn.de) which never
+     * returns broken images (HTTP 200 fallback guarantee).
      */
     public function avatarUrl(int $size = 64): string
     {
@@ -128,7 +129,7 @@ class User extends Authenticatable
             return $this->avatar_url;
         }
 
-        $base = config('services.ternis_auth.avatar_base', 'https://user.t-api.de');
+        $base = config('services.ternis_auth.avatar_base', 'https://user.t-cdn.de');
 
         return "{$base}/{$this->sso_sub}.png?size={$size}";
     }

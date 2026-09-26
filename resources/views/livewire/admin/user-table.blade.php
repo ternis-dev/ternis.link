@@ -42,8 +42,13 @@
                     @foreach ($visibleColumns as $column)
                         @if ($column === 'user')
                             <td>
-                                <div class="font-semibold">{{ $user->name }}</div>
-                                <div class="text-xs text-neutral-500">{{ $user->email }}</div>
+                                <div class="flex items-center gap-2.5">
+                                    <img src="{{ $user->avatarUrl(64) }}" alt="{{ $user->name }}" width="32" height="32" loading="lazy" class="h-8 w-8 rounded-full border border-neutral-200 object-cover dark:border-neutral-700">
+                                    <div class="min-w-0">
+                                        <div class="font-semibold">{{ $user->name }}</div>
+                                        <div class="tl-sensitive truncate text-xs text-neutral-500" title="{{ $user->email }}">{{ $user->email }}</div>
+                                    </div>
+                                </div>
                             </td>
                         @elseif ($column === 'role')
                             <td>

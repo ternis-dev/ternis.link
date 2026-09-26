@@ -37,7 +37,7 @@
                     <tr>
                         <td class="font-semibold">{{ $link->slug }}</td>
                         <td><code>{{ $link->domain->hostname ?? '—' }}</code></td>
-                        <td class="text-xs text-neutral-500">{{ $link->user?->email ?? 'Guest' }}</td>
+                        <td class="tl-sensitive text-xs text-neutral-500" title="{{ $link->user?->email ?? 'Guest' }}">{{ $link->user?->email ?? 'Guest' }}</td>
                         <td class="font-bold">{{ number_format($link->click_count) }}</td>
                     </tr>
                 @empty

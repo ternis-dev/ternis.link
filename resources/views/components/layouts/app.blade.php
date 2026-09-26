@@ -1,3 +1,5 @@
+@props(['title' => 'ternis.link', 'maxWidth' => 'max-w-6xl'])
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +24,7 @@
 </head>
 <body class="flex min-h-screen flex-col">
     <header class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div class="mx-auto flex {{ $maxWidth }} items-center justify-between gap-4 px-4 py-3 sm:px-6">
             <a href="/" class="font-display text-xl font-bold tracking-tight">ternis<span class="text-neutral-400 dark:text-neutral-500">.link</span></a>
             <div class="flex items-center gap-2 sm:gap-3">
                 <button
@@ -53,7 +55,7 @@
         </div>
     </header>
 
-    <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+    <main class="mx-auto w-full {{ $maxWidth }} flex-1 px-4 py-8 sm:px-6">
         {{ $slot }}
     </main>
 

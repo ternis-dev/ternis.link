@@ -7,6 +7,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\RedirectController;
+use App\Http\Controllers\StatsController;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
@@ -237,6 +238,19 @@ Route::middleware(['ensure.domain:admin'])->domain((string) config('domains.admi
 
     return redirect('/'.ltrim($suffix, '/').$qs, 301);
 })->where('any', '.*');
+
+/*
+|----------------------------------------------------------------------
+| Public network stats (ternis.link/stats) — aggregate counts only,
+| no personal data, so no login needed. Ternis host only; every other
+| host 404s here. Removed links stay counted (nothing is deleted).
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:ternis'])->prefix('stats')->name('stats.')->group(function () {
+    Route::get('/', [StatsController::class, 'index'])->name('index');
+    Route::get('/domains', [StatsController::class, 'domains'])->name('domains');
+    Route::get('/links', [StatsController::class, 'links'])->name('links');
+});
 
 /*
 |----------------------------------------------------------------------

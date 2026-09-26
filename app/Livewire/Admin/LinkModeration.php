@@ -88,6 +88,55 @@ class LinkModeration extends Component
         }
     }
 
+    /**
+     * Remove a link from every surface (redirects, dashboards, API).
+     * The row — and its analytics — are preserved for stats and audit.
+     */
+    public function remove(string $linkId): void
+    {
+        $this->ensureAdmin();
+
+        $link = Link::findOrFail($linkId);
+        $link->update(['is_removed' => true]);
+        Link::forgetCachedSlug($link->domain_id, $link->slug);
+
+        Activity::record(ActivityLog::ADMIN_LINK_REMOVED, auth()->user(), $link, [
+            'slug' => $link->slug,
+        ]);
+
+        if ($link->user) {
+            Notifier::security(
+                $link->user,
+                'Your link was removed',
+                ["The link {$link->slug} was removed by an administrator. It no longer resolves, but its stats are preserved."],
+                DomainUrls::dashboard('/links'),
+                'View your links',
+            );
+        }
+    }
+
+    public function restore(string $linkId): void
+    {
+        $this->ensureAdmin();
+
+        $link = Link::findOrFail($linkId);
+        $link->update(['is_removed' => false]);
+
+        Activity::record(ActivityLog::ADMIN_LINK_RESTORED, auth()->user(), $link, [
+            'slug' => $link->slug,
+        ]);
+
+        if ($link->user) {
+            Notifier::security(
+                $link->user,
+                'Your link was restored',
+                ["The link {$link->slug} was restored by an administrator and resolves again."],
+                DomainUrls::dashboard('/links'),
+                'View your links',
+            );
+        }
+    }
+
     public function render()
     {
         $this->ensureAdmin();
@@ -102,7 +151,8 @@ class LinkModeration extends Component
                 });
             })
             ->when($this->status === 'active', fn ($q) => $q->where('is_active', true)->where(fn ($s) => $s->whereNull('expires_at')->orWhere('expires_at', '>', now())))
-            ->when($this->status === 'disabled', fn ($q) => $q->where('is_active', false))
+            ->when($this->status === 'disabled', fn ($q) => $q->where('is_active', false)->where('is_removed', false))
+            ->when($this->status === 'removed', fn ($q) => $q->where('is_removed', true))
             ->when($this->status === 'expired', fn ($q) => $q->whereNotNull('expires_at')->where('expires_at', '<=', now()))
             ->orderBy($this->sortBy, $this->sortDir)
             ->paginate(20);

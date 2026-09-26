@@ -33,7 +33,7 @@ class LinkController extends Controller
 
         $tag = strtolower(trim((string) $request->query('tag', '')));
 
-        $links = ($adminAll ? Link::query() : $user->links())
+        $links = ($adminAll ? Link::query() : $user->links())->notRemoved()
             ->with($adminAll ? ['domain', 'user'] : 'domain')
             ->when($tag !== '', fn ($query) => $query->where('tags', 'like', '%"'.$tag.'"%'))
             ->orderByDesc('created_at')
@@ -84,6 +84,10 @@ class LinkController extends Controller
      */
     public function show(Request $request, Link $link): JsonResponse
     {
+        if ($link->is_removed) {
+            abort(404);
+        }
+
         if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
             abort(403, 'You do not own this link.');
         }
@@ -96,6 +100,10 @@ class LinkController extends Controller
      */
     public function update(UpdateLinkRequest $request, Link $link): JsonResponse
     {
+        if ($link->is_removed) {
+            abort(404);
+        }
+
         if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
             abort(403, 'You do not own this link.');
         }
@@ -115,6 +123,10 @@ class LinkController extends Controller
      */
     public function destroy(Request $request, Link $link): JsonResponse
     {
+        if ($link->is_removed) {
+            abort(404);
+        }
+
         if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
             abort(403, 'You do not own this link.');
         }
