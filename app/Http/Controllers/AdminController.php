@@ -70,4 +70,12 @@ class AdminController extends Controller
     {
         return view('admin.activity');
     }
+
+    /**
+     * Error encounters page (Livewire: Admin\ErrorEncounterTable).
+     */
+    public function errors()
+    {
+        return view('admin.errors');
+    }
 }

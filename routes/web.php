@@ -226,6 +226,7 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
         Route::get('/users', [AdminController::class, 'users'])->name('users');
         Route::get('/domains', [AdminController::class, 'domains'])->name('domains');
         Route::get('/activity', [AdminController::class, 'activity'])->name('activity');
+        Route::get('/errors', [AdminController::class, 'errors'])->name('errors');
     });
 
 // Legacy /admin/* on the admin host → root equivalents (permanent).

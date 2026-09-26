@@ -66,7 +66,7 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/admin{any?}` on dashboard host | — | same group | 302 to admin host root equivalent, prefix stripped (`/admin/users` → `/users`) |
 | GET | `/` on dashboard host | `dashboard` | same group, host-pinned | Avoids colliding with landing `/` in the route collection |
 | GET | `/new`, `/links`, `/links/create`, `/links/{link}`, `/links/{link}/edit`, `/links/{link}/export`, `/api-keys`, `/domains`, `/notifications`, `/activity`, `/settings` | `dashboard.*` | same group, dashboard host only | `DashboardController` (strictly per-user; layout `layouts.dashboard`) |
-| GET | `/`, `/links`, `/users`, `/domains`, `/activity` on admin host | `admin.*` | `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain`, host-pinned | `AdminController` (system-wide; distinct layout `layouts.admin`) |
+| GET | `/`, `/links`, `/users`, `/domains`, `/activity`, `/errors` on admin host | `admin.*` | `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain`, host-pinned | `AdminController` (system-wide; distinct layout `layouts.admin`) |
 | GET | `/admin{any?}` on admin host | — | `ensure.domain:admin`, no auth | Legacy 301 to root equivalents (`/admin/users` → `/users`) |
 | GET | `/legal/{any}` `.*` | `legal.show` | in-handler branch (no ensure.domain) | ternis serves (allowlist `terms,privacy`); dashboard/admin 301 to `https://ternis.link/legal/*`; else 404 |
 | GET | `/legal/{any}` on dashboard/admin hosts | — | `ensure.domain:dashboard,admin` | 301 to `https://ternis.link/legal/*` (single canonical legal host) |
