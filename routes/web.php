@@ -87,6 +87,13 @@ $serveOrRedirect = function (string $method) use ($redirectToDashboard) {
         return app(TernisAuthController::class)->{$method}(request());
     }
 
+    // href.nz serves its own sketch-styled login card (the card links
+    // to the dashboard host where SSO actually runs). Every other
+    // short-link host keeps the plain 302.
+    if ($method === 'showLogin' && $type === 'public') {
+        return app(TernisAuthController::class)->{$method}(request());
+    }
+
     if (in_array($type, ['public', 'business', 'ternis', 'partner'], true)) {
         return $redirectToDashboard();
     }

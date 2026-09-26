@@ -93,12 +93,24 @@ class DomainHardeningTest extends TestCase
     public function test_login_and_auth_redirect_to_dashboard_host_from_public_host(): void
     {
         // OAuth must start+finish on the dashboard host (session + PKCE),
-        // so short-link hosts 302 there instead of 404ing.
-        $this->get('http://href.nz/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');
+        // so short-link hosts 302 there instead of 404ing — except
+        // href.nz/login, which serves its own sketch-styled card that
+        // links over to the dashboard SSO start.
+        $this->get('http://href.nz/login')
+            ->assertStatus(200)
+            ->assertSee('members', escape: false)
+            ->assertSee('Log in with Ternis Auth', escape: false)
+            ->assertSee('https://dash.ternis.link/login', escape: false)
+            ->assertSee('noindex, nofollow', escape: false);
         $this->get('http://href.nz/auth/redirect')->assertStatus(302)->assertRedirect('http://dash.ternis.link/auth/redirect');
         $this->get('http://ternis.link/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');
         $this->get('http://href.re/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');
         $this->get('http://dash.ternis.link/login')->assertStatus(200);
+    }
+
+    public function test_sketch_login_redirects_authed_users_to_dashboard(): void
+    {
+        $this->actingAs($this->user)->get('http://href.nz/login')->assertRedirect('http://dash.ternis.link');
     }
 
     public function test_redirects_404_on_api_and_dashboard_hosts(): void

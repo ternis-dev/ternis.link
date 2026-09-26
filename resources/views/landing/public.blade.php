@@ -99,7 +99,7 @@
                         <svg width="26" height="12" viewBox="0 0 28 14" fill="none" aria-hidden="true"><path d="M2 10 C 10 8, 18 7.5, 24 8.5 M24 8.5 L18.5 5 M24 8.5 L18.5 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </a>
                 @else
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="sk-login">
+                    <a href="{{ url('/login') }}" class="sk-login">
                         members log in
                         {{-- 1 · login arrow --}}
                         <svg width="26" height="12" viewBox="0 0 28 14" fill="none" aria-hidden="true"><path d="M2 10 C 10 8, 18 7.5, 24 8.5 M24 8.5 L18.5 5 M24 8.5 L18.5 12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -193,7 +193,7 @@
                 <svg class="dk" style="top: 10px; right: 12px;" width="24" height="30" viewBox="0 0 24 30" fill="none" aria-hidden="true"><path d="M12 3 C 8 3, 5 6.2, 5 10 c0 2.5 1.3 4.2 2.7 5.3 .7.6 1 1.1 1 2.2 h6.6 c0-1.1.3-1.6 1-2.2 C 17.7 14.2, 19 12.5, 19 10 C 19 6.2, 16 3, 12 3 Z M9.5 21.5 h5 M10.5 25 h3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <h2>members get more</h2>
                 <p>Guests get auto-made codes — picking your own is a members' perk.</p>
-                <p><a href="{{ \App\Support\DomainUrls::dashboard('/login') }}">Log in</a> for custom slugs, shorter links &amp; click stats.</p>
+                <p><a href="{{ url('/login') }}">Log in</a> for custom slugs, shorter links &amp; click stats.</p>
             </div>
             <div class="sk-note">
                 <span class="sk-pin" aria-hidden="true"></span>

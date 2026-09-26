@@ -22,11 +22,20 @@ class TernisAuthController extends Controller
 
     /**
      * Show login page with "Login with Ternis Auth" button.
+     *
+     * The public short-link host (href.nz) gets its own sketch-styled
+     * page in the landing's look; the SSO handshake itself still runs
+     * on the dashboard host (session + PKCE live there), so the page
+     * links over instead of starting OAuth locally.
      */
-    public function showLogin()
+    public function showLogin(Request $request)
     {
         if (auth()->check()) {
             return redirect()->route('dashboard');
+        }
+
+        if ($request->attributes->get('domain_type') === 'public') {
+            return view('auth.login-public');
         }
 
         return view('auth.login');
