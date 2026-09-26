@@ -129,7 +129,7 @@ class AnalyticsCleanupTest extends TestCase
             ->assertViewHas('stats', fn ($stats) => $stats['total_clicks'] === 2 && $stats['clicks_today'] === 2);
     }
 
-    public function test_dashboard_shows_direct_url_clicks_to_admins(): void
+    public function test_dashboard_hides_direct_url_clicks_from_everyone(): void
     {
         $admin = User::factory()->admin()->create();
         $link = $this->trackableLink($admin);
@@ -137,9 +137,11 @@ class AnalyticsCleanupTest extends TestCase
         Click::create(['link_id' => $link->id, 'is_direct_url' => false]);
         Click::create(['link_id' => $link->id, 'is_direct_url' => true]);
 
+        // Strict split: dash excludes direct-URL clicks for everyone
+        // (admins included); aggregates live on the admin host.
         $this->actingAs($admin)
             ->get('http://dash.ternis.link')
             ->assertStatus(200)
-            ->assertViewHas('stats', fn ($stats) => $stats['total_clicks'] === 2 && $stats['clicks_today'] === 2);
+            ->assertViewHas('stats', fn ($stats) => $stats['total_clicks'] === 1 && $stats['clicks_today'] === 1);
     }
 }

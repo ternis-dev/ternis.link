@@ -10,33 +10,14 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     /**
-     * Dashboard home — overview stats.
+     * Dashboard home — personal overview stats for the signed-in user.
      *
-     * Admins see system-wide stats across ALL links; regular users see
-     * their own links only. Direct-URL redirect clicks stay admin-only
-     * here too, matching the API and Livewire analytics visibility rules.
+     * System-wide stats live on the admin host (AdminController); this
+     * endpoint is strictly per-user, including for admins.
      */
     public function index(Request $request)
     {
         $user = $request->user();
-
-        if ($user->isAdmin()) {
-            $clicks = Click::query();
-            $links = Link::query();
-
-            $stats = [
-                'total_links' => (clone $links)->count(),
-                'total_clicks' => (clone $clicks)->count(),
-                'links_this_month' => (clone $links)
-                    ->where('created_at', '>=', now()->startOfMonth())
-                    ->count(),
-                'clicks_today' => (clone $clicks)
-                    ->where('created_at', '>=', now()->startOfDay())
-                    ->count(),
-            ];
-
-            return view('dashboard.index', compact('stats'));
-        }
 
         $clicks = Click::whereIn('link_id', $user->links()->select('links.id'))
             ->where('is_direct_url', false);
@@ -74,13 +55,12 @@ class DashboardController extends Controller
     /**
      * Link detail + analytics page (Livewire: LinkAnalytics).
      *
-     * Admins may open stats for ANY link; regular users only their own.
+     * Strictly per-user: admins manage other users' links from the
+     * admin host (Link Moderation), not from dash.ternis.link.
      */
     public function showLink(string $link)
     {
-        $link = auth()->user()->isAdmin()
-            ? Link::with(['domain', 'user'])->findOrFail($link)
-            : auth()->user()->links()->with('domain')->findOrFail($link);
+        $link = auth()->user()->links()->with('domain')->findOrFail($link);
 
         return view('dashboard.links.show', compact('link'));
     }
@@ -88,13 +68,11 @@ class DashboardController extends Controller
     /**
      * Link edit page (Livewire: LinkEditForm).
      *
-     * Admins may edit ANY link; regular users only their own.
+     * Strictly per-user (see showLink).
      */
     public function editLink(string $link)
     {
-        $link = auth()->user()->isAdmin()
-            ? Link::with(['domain', 'user'])->findOrFail($link)
-            : auth()->user()->links()->with('domain')->findOrFail($link);
+        $link = auth()->user()->links()->with('domain')->findOrFail($link);
 
         return view('dashboard.links.edit', compact('link'));
     }
@@ -102,18 +80,16 @@ class DashboardController extends Controller
     /**
      * Export a link's clicks as CSV.
      *
-     * Admins may export ANY link (including direct-URL rows); regular
-     * users only their own links (direct-URL rows excluded).
+     * Strictly per-user; direct-URL rows are excluded here (they stay
+     * visible only in admin-side aggregates).
      */
     public function exportClicks(string $link)
     {
         $user = auth()->user();
-        $link = $user->isAdmin()
-            ? Link::with('domain')->findOrFail($link)
-            : $user->links()->with('domain')->findOrFail($link);
+        $link = $user->links()->with('domain')->findOrFail($link);
 
         $clicks = $link->clicks()
-            ->when(! $user->isAdmin(), fn ($query) => $query->where('is_direct_url', false))
+            ->where('is_direct_url', false)
             ->orderBy('created_at')
             ->cursor();
 

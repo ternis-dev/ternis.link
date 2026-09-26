@@ -2,9 +2,6 @@
     <x-ui.page-header title="Dashboard">
         <x-slot:subtitle>
             Welcome back, {{ auth()->user()->name }} (Plan: <strong>{{ auth()->user()->plan?->name ?? 'free' }}</strong>)
-            @if (auth()->user()?->isAdmin())
-                · <strong>Admin view: stats across ALL links</strong>
-            @endif
         </x-slot:subtitle>
         <x-slot:actions>
             <x-ui.button variant="primary" x-data @click="$dispatch('open-link-creator')">+ Create Link</x-ui.button>

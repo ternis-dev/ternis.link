@@ -1,4 +1,4 @@
-<x-layouts.dashboard title="Admin Overview — ternis.link">
+<x-layouts.admin title="Admin Overview — ternis.link">
     <x-ui.page-header
         title="Admin Overview"
         subtitle="System-wide analytics and moderation. Admin host only."
@@ -35,7 +35,7 @@
             <tbody>
                 @forelse ($topLinks as $link)
                     <tr>
-                        <td class="font-semibold"><a href="{{ route('dashboard.links.show', $link->id) }}" class="underline-offset-2 hover:underline">{{ $link->slug }}</a></td>
+                        <td class="font-semibold">{{ $link->slug }}</td>
                         <td><code>{{ $link->domain->hostname ?? '—' }}</code></td>
                         <td class="text-xs text-neutral-500">{{ $link->user?->email ?? 'Guest' }}</td>
                         <td class="font-bold">{{ number_format($link->click_count) }}</td>
@@ -61,7 +61,7 @@
             <tbody>
                 @forelse ($recentLinks as $link)
                     <tr>
-                        <td class="font-semibold"><a href="{{ route('dashboard.links.show', $link->id) }}" class="underline-offset-2 hover:underline">{{ $link->slug }}</a></td>
+                        <td class="font-semibold">{{ $link->slug }}</td>
                         <td class="max-w-[320px] truncate text-neutral-500 dark:text-neutral-400">{{ $link->destination_url }}</td>
                         <td>
                             @if ($link->is_active && !$link->isExpired())
@@ -79,4 +79,4 @@
             </tbody>
         </x-ui.table>
     </x-ui.card>
-</x-layouts.dashboard>
+</x-layouts.admin>

@@ -139,21 +139,17 @@ class LinkEditTest extends TestCase
         $this->assertFalse($this->link->fresh()->is_active);
     }
 
-    public function test_admin_can_edit_foreign_link(): void
+    public function test_admin_cannot_edit_foreign_link_on_dashboard_host(): void
     {
         $admin = User::factory()->admin()->create();
 
+        // Strict split: cross-user edits live on the admin host,
+        // dash.ternis.link 404s instead of leaking existence.
         $this->actingAs($admin)
             ->get("http://dash.ternis.link/links/{$this->link->id}/edit")
-            ->assertStatus(200);
+            ->assertStatus(404);
 
-        Livewire::actingAs($admin)
-            ->test(LinkEditForm::class, ['link' => $this->link])
-            ->set('destination_url', 'https://example.com/admin-edit')
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertSame('https://example.com/admin-edit', $this->link->fresh()->destination_url);
+        $this->assertSame('https://example.com/original', $this->link->fresh()->destination_url);
     }
 
     public function test_api_rejects_junk_destination_on_update(): void

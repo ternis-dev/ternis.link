@@ -59,12 +59,12 @@ class RouteRestructureTest extends TestCase
         $this->actingAs($this->user)
             ->get('http://dash.ternis.link/admin/users?page=2')
             ->assertStatus(302)
-            ->assertRedirect('https://admin.ternis.link/users?page=2');
+            ->assertRedirect('http://admin.ternis.link/users?page=2');
 
         $this->actingAs($this->user)
             ->get('http://dash.ternis.link/admin')
             ->assertStatus(302)
-            ->assertRedirect('https://admin.ternis.link');
+            ->assertRedirect('http://admin.ternis.link');
     }
 
     public function test_new_alias_serves_create_page(): void

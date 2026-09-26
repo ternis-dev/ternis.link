@@ -39,13 +39,13 @@ class AdminDashboardTest extends TestCase
 
     public function test_guest_is_redirected_to_login_on_admin_host(): void
     {
-        $this->get('http://admin.ternis.link/admin')->assertRedirect('http://admin.ternis.link/login');
+        $this->get('http://admin.ternis.link/')->assertRedirect('http://admin.ternis.link/login');
     }
 
     public function test_non_admin_gets_forbidden_on_admin_host(): void
     {
         $this->actingAs($this->user)
-            ->get('http://admin.ternis.link/admin')
+            ->get('http://admin.ternis.link/')
             ->assertForbidden()
             ->assertSee('403', escape: false)
             ->assertSee('have access', escape: false);
@@ -65,9 +65,10 @@ class AdminDashboardTest extends TestCase
         Click::create(['link_id' => $link->id, 'is_direct_url' => true]);
 
         $this->actingAs($this->admin)
-            ->get('http://admin.ternis.link/admin')
+            ->get('http://admin.ternis.link/')
             ->assertStatus(200)
             ->assertSee('Admin Overview')
+            ->assertSee('Admin Console', escape: false)
             ->assertViewHas('stats', fn ($stats) => $stats['total_users'] === 2
                 && $stats['total_links'] === 1
                 && $stats['total_clicks'] === 2
@@ -77,14 +78,37 @@ class AdminDashboardTest extends TestCase
     public function test_admin_can_view_links_and_users_pages(): void
     {
         $this->actingAs($this->admin)
-            ->get('http://admin.ternis.link/admin/links')
+            ->get('http://admin.ternis.link/links')
             ->assertStatus(200)
             ->assertSee('Link Moderation');
 
         $this->actingAs($this->admin)
-            ->get('http://admin.ternis.link/admin/users')
+            ->get('http://admin.ternis.link/users')
             ->assertStatus(200)
             ->assertSee('User Management');
+
+        $this->actingAs($this->admin)
+            ->get('http://admin.ternis.link/domains')
+            ->assertStatus(200)
+            ->assertSee('Domain Moderation');
+
+        $this->actingAs($this->admin)
+            ->get('http://admin.ternis.link/activity')
+            ->assertStatus(200)
+            ->assertSee('Audit Log');
+    }
+
+    public function test_legacy_admin_prefix_redirects_to_root(): void
+    {
+        $this->actingAs($this->admin)
+            ->get('http://admin.ternis.link/admin')
+            ->assertStatus(301)
+            ->assertRedirect('http://admin.ternis.link');
+
+        $this->actingAs($this->admin)
+            ->get('http://admin.ternis.link/admin/users?page=2')
+            ->assertStatus(301)
+            ->assertRedirect('http://admin.ternis.link/users?page=2');
     }
 
     public function test_admin_routes_404_on_wrong_hosts(): void
@@ -92,7 +116,7 @@ class AdminDashboardTest extends TestCase
         // Dashboard host redirects into the admin area instead of 404ing.
         $this->actingAs($this->admin)
             ->get('http://dash.ternis.link/admin')
-            ->assertRedirect('https://admin.ternis.link');
+            ->assertRedirect('http://admin.ternis.link');
 
         // Public host must not serve the admin area either.
         $this->actingAs($this->admin)
@@ -100,11 +124,22 @@ class AdminDashboardTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_admin_root_redirects_to_admin_dashboard(): void
+    public function test_admin_console_serves_at_root(): void
     {
         $this->actingAs($this->admin)
             ->get('http://admin.ternis.link/')
-            ->assertRedirect(route('admin.dashboard'));
+            ->assertStatus(200)
+            ->assertSee('Admin Overview', escape: false);
+    }
+
+    public function test_dashboard_routes_404_on_admin_host(): void
+    {
+        // Strict split: user-only dashboard routes never serve on admin host.
+        // (/links, /domains, /activity exist on both hosts but render
+        // different consoles; these paths exist only on dash.)
+        foreach (['http://admin.ternis.link/api-keys', 'http://admin.ternis.link/settings', 'http://admin.ternis.link/new'] as $url) {
+            $this->actingAs($this->admin)->get($url)->assertNotFound();
+        }
     }
 
     public function test_link_moderation_can_deactivate_and_reactivate(): void

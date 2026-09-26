@@ -104,13 +104,12 @@ class LinkEditForm extends Component
     }
 
     /**
-     * Owner-or-admin lookup; anything else is a 404 (no existence leak).
+     * Owner-only lookup; anything else is a 404 (no existence leak).
+     * Cross-user edits happen on the admin host, never from dash.
      */
     private function editableLink(string $linkId): Link
     {
-        return auth()->user()->isAdmin()
-            ? Link::findOrFail($linkId)
-            : auth()->user()->links()->findOrFail($linkId);
+        return auth()->user()->links()->findOrFail($linkId);
     }
 
     private function syncFromModel(): void

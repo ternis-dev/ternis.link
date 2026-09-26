@@ -1,4 +1,4 @@
-<x-layouts.dashboard title="User Management — ternis.link">
+<x-layouts.admin title="User Management — ternis.link">
     <x-ui.page-header
         title="User Management"
         subtitle="Adjust roles and plans. You cannot demote your own admin account."
@@ -9,4 +9,4 @@
     <x-ui.card>
         <livewire:admin.user-table />
     </x-ui.card>
-</x-layouts.dashboard>
+</x-layouts.admin>

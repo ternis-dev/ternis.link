@@ -3,10 +3,7 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\ActivityLog;
-use App\Models\Link;
 use App\Support\Activity;
-use App\Support\DomainUrls;
-use App\Support\Notifier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -60,55 +57,31 @@ class LinkTable extends Component
 
     public function deactivate(string $linkId): void
     {
-        // Admins may deactivate ANY link; regular users only their own.
-        $link = auth()->user()->isAdmin()
-            ? Link::findOrFail($linkId)
-            : auth()->user()->links()->findOrFail($linkId);
+        // Strictly per-user: cross-user moderation happens on the
+        // admin host (Admin\LinkModeration), never from dash.
+        $link = auth()->user()->links()->findOrFail($linkId);
         $link->update(['is_active' => false]);
 
         Activity::record(ActivityLog::LINK_DEACTIVATED, auth()->user(), $link, [
             'slug' => $link->slug,
         ]);
-
-        // An admin deactivating someone else's link from here owes the
-        // owner an explanation in their inbox.
-        if ($link->user_id !== null && $link->user_id !== auth()->id()) {
-            $owner = $link->user;
-            if ($owner) {
-                Notifier::security(
-                    $owner,
-                    'Your link was deactivated',
-                    ["The link {$link->slug} was deactivated by an administrator."],
-                    DomainUrls::dashboard('/links'),
-                    'View your links',
-                );
-            }
-        }
     }
 
     public function render()
     {
-        $isAdmin = auth()->check() && auth()->user()->isAdmin();
         $sortBy = in_array($this->sortBy, self::SORTABLE, true) ? $this->sortBy : 'created_at';
         $sortDir = $this->sortDir === 'asc' ? 'asc' : 'desc';
 
-        $base = $isAdmin
-            ? Link::query()
-            : auth()->user()->links();
+        $base = auth()->user()->links();
 
         $links = $base
             ->with(['domain', 'user'])
-            ->when($this->search, function ($query) use ($isAdmin) {
-                $query->where(function ($q) use ($isAdmin) {
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
                     $q->where('slug', 'like', "%{$this->search}%")
                         ->orWhere('destination_url', 'like', "%{$this->search}%")
                         ->orWhere('description', 'like', "%{$this->search}%")
                         ->orWhere('tags', 'like', "%{$this->search}%");
-                    if ($isAdmin) {
-                        $q->orWhereHas('user', fn ($u) => $u
-                            ->where('email', 'like', "%{$this->search}%")
-                            ->orWhere('name', 'like', "%{$this->search}%"));
-                    }
                 });
             })
             ->when($this->tag, fn ($query) => $query->where('tags', 'like', '%"'.strtolower($this->tag).'"%'))

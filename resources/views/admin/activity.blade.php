@@ -1,4 +1,4 @@
-<x-layouts.dashboard title="Audit Log — ternis.link">
+<x-layouts.admin title="Audit Log — ternis.link">
     <x-ui.page-header
         title="Audit Log"
         subtitle="Every recorded user, admin and system action. Append-only."
@@ -9,4 +9,4 @@
     <x-ui.card>
         <livewire:admin.activity-log-table />
     </x-ui.card>
-</x-layouts.dashboard>
+</x-layouts.admin>

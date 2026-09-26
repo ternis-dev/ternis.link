@@ -1,4 +1,4 @@
-<x-layouts.dashboard title="Domain Moderation — ternis.link">
+<x-layouts.admin title="Domain Moderation — ternis.link">
     <x-ui.page-header
         title="Domain Moderation"
         subtitle="Disable abusive custom domains or reactivate false positives. System domains are protected. Links and analytics are preserved."
@@ -9,4 +9,4 @@
     <x-ui.card>
         <livewire:admin.domain-moderation />
     </x-ui.card>
-</x-layouts.dashboard>
+</x-layouts.admin>

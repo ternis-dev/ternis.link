@@ -49,14 +49,14 @@ class AdminDomainModerationTest extends TestCase
 
     public function test_guest_is_redirected_to_login(): void
     {
-        $this->get('http://admin.ternis.link/admin/domains')
+        $this->get('http://admin.ternis.link/domains')
             ->assertRedirect('http://admin.ternis.link/login');
     }
 
     public function test_non_admin_gets_forbidden(): void
     {
         $this->actingAs($this->user)
-            ->get('http://admin.ternis.link/admin/domains')
+            ->get('http://admin.ternis.link/domains')
             ->assertForbidden();
     }
 
@@ -65,7 +65,7 @@ class AdminDomainModerationTest extends TestCase
         $domain = $this->ownDomain($this->user, 'links.example.com', verified: true);
 
         $this->actingAs($this->admin)
-            ->get('http://admin.ternis.link/admin/domains')
+            ->get('http://admin.ternis.link/domains')
             ->assertStatus(200)
             ->assertSee('Domain Moderation')
             ->assertSee('href.nz')

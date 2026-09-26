@@ -44,7 +44,7 @@ class ErrorEncounterTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->get('http://admin.ternis.link/admin')
+            ->get('http://admin.ternis.link/')
             ->assertForbidden();
 
         $encounter = ErrorEncounter::where('http_code', 403)->firstOrFail();

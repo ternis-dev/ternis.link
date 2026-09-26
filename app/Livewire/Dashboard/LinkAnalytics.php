@@ -24,12 +24,11 @@ class LinkAnalytics extends Component
 
     public function render()
     {
+        // Dash analytics are strictly per-user: direct-URL redirect
+        // clicks are excluded for everyone (admins included).
         $baseQuery = $this->link->clicks()
-            ->where('created_at', '>=', now()->subDays($this->period)->startOfDay());
-
-        if (! auth()->user()->isAdmin()) {
-            $baseQuery->where('is_direct_url', false);
-        }
+            ->where('created_at', '>=', now()->subDays($this->period)->startOfDay())
+            ->where('is_direct_url', false);
 
         $totalClicks = (clone $baseQuery)->count();
         $uniqueVisitors = (clone $baseQuery)->distinct('ip_hash')->count('ip_hash');

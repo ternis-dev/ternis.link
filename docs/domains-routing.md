@@ -61,11 +61,12 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/auth/callback` | `auth.callback` | `throttle:10,1` + branch | code exchange; stale codes → login with message, not 500 |
 | POST | `/logout` | `logout` | branch | local logout + optional RP-initiated end-session |
 | GET | `/auth/demo` | `auth.demo` | local/testing only + branch | `demoLogin` |
-| GET | `/dashboard`, `/dashboard/{any}` | — | `ensure.domain:dashboard,admin` + `auth` + `refresh.sso` + `enforce.domain` | Legacy prefix: 301 to root URLs (localhost serves home) |
-| GET | `/admin{any?}` on dashboard host | — | same group | 302 to `https://admin.ternis.link` (no loop) |
+| GET | `/dashboard`, `/dashboard/{any}` | — | dashboard host only (+ `auth` + `refresh.sso` + `enforce.domain`) | Legacy prefix: 301 to root URLs (localhost serves home); admin host 404s |
+| GET | `/admin{any?}` on dashboard host | — | same group | 302 to admin host root equivalent, prefix stripped (`/admin/users` → `/users`) |
 | GET | `/` on dashboard host | `dashboard` | same group, host-pinned | Avoids colliding with landing `/` in the route collection |
-| GET | `/new`, `/links`, `/links/create`, `/links/{link}`, `/links/{link}/edit`, `/links/{link}/export`, `/api-keys`, `/domains`, `/settings` | `dashboard.*` | same group | `DashboardController` (ownership-scoped) |
-| GET | `/admin`, `/admin/links`, `/admin/users`, `/admin/domains` | `admin.*` | `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain`, prefix `admin` | `AdminController` |
+| GET | `/new`, `/links`, `/links/create`, `/links/{link}`, `/links/{link}/edit`, `/links/{link}/export`, `/api-keys`, `/domains`, `/notifications`, `/activity`, `/settings` | `dashboard.*` | same group, dashboard host only | `DashboardController` (strictly per-user; layout `layouts.dashboard`) |
+| GET | `/`, `/links`, `/users`, `/domains`, `/activity` on admin host | `admin.*` | `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain`, host-pinned | `AdminController` (system-wide; distinct layout `layouts.admin`) |
+| GET | `/admin{any?}` on admin host | — | `ensure.domain:admin`, no auth | Legacy 301 to root equivalents (`/admin/users` → `/users`) |
 | GET | `/legal/{slug}` `[a-z-]+` | `legal.show` | `ensure.domain:ternis,dashboard,admin` | Allowlist `terms,privacy` from `resources/legal/*.md` |
 | GET | `/` | `home` | none (branches on `domain_type`) | dashboard → login/dashboard; admin → login/admin; api → 302 `/v{latest}/`; business → `landing.business`; public → `landing.public`; else `landing.index` |
 | GET | `/url/{url}` `.*` | `redirect.url` | `ensure.domain:public,business,ternis,partner` + `enforce.domain` | Preferred direct-URL redirect |

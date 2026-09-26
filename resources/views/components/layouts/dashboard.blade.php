@@ -13,10 +13,6 @@ $nav = [
 
 $unreadCount = auth()->check() ? auth()->user()->unreadNotifications()->count() : 0;
 
-if (auth()->check() && auth()->user()->isAdmin()) {
-    $nav[] = ['route' => 'admin.dashboard', 'match' => 'admin.*', 'label' => 'Admin', 'icon' => '<path d="M12 3 4 6v5c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V6l-8-3Z"/>'];
-}
-
 $topNav = auth()->check() && auth()->user()->usesTopNav();
 
 // Dashboard home has no host-blind URL: the pinned route always

@@ -4,7 +4,7 @@
 
 - **Framework:** Laravel 13, PHP `^8.3` (`composer.json`)
 - **Frontend:** Blade + Livewire 4, Tailwind CSS v4 (`@tailwindcss/vite`), Chart.js 4
-- **Build:** Vite 8 (`vite.config.js` inputs: `resources/css/app.css`, `resources/css/landing-public.css`, `resources/js/app.js`)
+- **Build:** Vite 8 (`vite.config.js` inputs: `resources/css/app.css`, `resources/css/landing-public.css`, `resources/js/app.js`). Built stylesheets are emitted as `assets/app-<hash>.css?v=<short-sha>` — the commit stamp comes from `App\Support\CommitVersion` (`APP_COMMIT` config, else `.git` HEAD; no stamp when neither exists) and is added via `Vite::createAssetPathsUsing()` in `AppServiceProvider`. Vite dev server (`public/hot`) bypasses it.
 - **DB:** SQLite (local/testing) / PostgreSQL or MySQL (production); `database/database.sqlite` for dev
 - **Queue/Cache/Session:** `sync`/`database` locally, Redis in production (`.env.example`)
 - **Auth:** Ternis Auth SSO only (OAuth 2.0 + PKCE, `app/Services/TernisAuthService.php`) — no local passwords
@@ -27,7 +27,7 @@ app/
   Services/           LinkService, SlugGeneratorService, SlugResolverService, ClickTrackerService,
                       GeoIpService, DomainService, DomainVerificationService,
                       TernisAuthService, TurnstileService, JunkUrlDetector
-  Support/            IpHash, IpCapture, DomainUrls
+  Support/            IpHash, IpCapture, DomainUrls, CommitVersion (CSS `?v=<short-sha>` stamp)
 bootstrap/app.php     routing + global middleware + exception hook
 config/domains.php    host → domain_type map, wildcard roots, canonical hosts, auth_required
 config/privacy.php    IP_CAPTURE_ENABLED / IP_RETENTION_DAYS
@@ -48,9 +48,12 @@ routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips —
    - Auth routes (`/login`, `/auth/*`, `/logout`) branch **inside the handler** on `domain_type`:
      `dashboard,admin` serve; `public,business,ternis,partner` 302 to the dashboard host;
      else 404. (Laravel matches only the first route per URI, so per-host duplicates would shadow.)
-   - Dashboard routes require `ensure.domain:dashboard,admin` **before** `auth` (fail fast with 404
+   - Dashboard routes (dash host only) require `ensure.domain:dashboard` **before** `auth` (fail fast with 404
      instead of leaking route existence via login redirect), then `auth` + `refresh.sso` + `enforce.domain`.
-   - Admin routes require `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain` under `/admin`.
+     Strictly per-user; layout `layouts.dashboard`.
+   - Admin console routes (admin host root `/`, `/links`, `/users`, `/domains`, `/activity`) require
+     `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain`; distinct layout `layouts.admin`.
+     Legacy `/admin/*` 301s to the root equivalents.
    - Redirect routes require `ensure.domain:public,business,ternis,partner` + `enforce.domain`.
      The catch-all `/{input}` is **last** and excludes `v{number}` so `/v1` falls through to the API.
 4. **API versioning (`EnsureApiVersion`):** runs before auth on `/v1/*`; always sets

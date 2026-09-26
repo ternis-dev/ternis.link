@@ -125,7 +125,7 @@ class ActivityLogTest extends TestCase
         $admin = $this->userOnPlan('business', ['role' => UserRole::Admin]);
 
         $this->actingAs($admin)
-            ->get('http://admin.ternis.link/admin/activity')
+            ->get('http://admin.ternis.link/activity')
             ->assertOk()
             ->assertSee('Audit Log');
     }

@@ -106,11 +106,12 @@ if (app()->environment('local', 'testing')) {
 
 /*
 |----------------------------------------------------------------------
-| Dashboard routes (dash.ternis.link) — require SSO login.
+| Dashboard routes (dash.ternis.link ONLY) — require SSO login.
 | Served at the domain root (no /dashboard prefix): the hostname
 | already says dashboard. ensure.domain runs before auth so the wrong
 | host 404s instead of redirecting to login (fail fast, don't leak
-| route existence).
+| route existence). The admin host has its own console below and
+| never serves these routes.
 |----------------------------------------------------------------------
 */
 /*
@@ -118,12 +119,12 @@ if (app()->environment('local', 'testing')) {
 | /dashboard handling — host branching:
 | - On local dev (localhost, 127.0.0.1, ::1, testserver), serves the
 |   dashboard home (requiring auth).
-| - On dashboard/admin hosts (dash.ternis.link): legacy 301 redirect to
+| - On the dashboard host (dash.ternis.link): legacy 301 redirect to
 |   the root URLs.
 | - On ternis short-link hosts (ternis.link): 302 redirects to the
 |   dashboard host (dash.ternis.link).
-| - Elsewhere (e.g. href.nz, api host): 404 to avoid leaking or
-|   swallowing short link slugs.
+| - Elsewhere (admin host, href.nz, api host): 404 to avoid leaking
+|   or swallowing short link slugs.
 |----------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
@@ -139,7 +140,7 @@ Route::get('/dashboard', function () {
         return app(DashboardController::class)->index(request());
     }
 
-    if (in_array($type, ['dashboard', 'admin'], true)) {
+    if ($type === 'dashboard') {
         return redirect('/', 301);
     }
 
@@ -159,7 +160,7 @@ Route::get('/dashboard/{any}', function (string $any) {
     $query = request()->getQueryString();
     $qs = $query ? '?'.$query : '';
 
-    if (in_array($type, ['dashboard', 'admin'], true)) {
+    if ($type === 'dashboard') {
         return redirect('/'.$any.$qs, 301);
     }
 
@@ -172,15 +173,16 @@ Route::get('/dashboard/{any}', function (string $any) {
     abort(404);
 })->where('any', '.*');
 
-Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->group(function () {
+Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->group(function () {
 
     // /admin on the dashboard host belongs to the admin host. Pinned
-    // to the dashboard host so admin.ternis.link/admin/* still reaches
-    // the admin panel (no self-redirect loop).
+    // to the dashboard host; strips the legacy prefix so
+    // dash.ternis.link/admin/users → admin.ternis.link/users.
     Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))->get('/admin{any?}', function () {
+        $adminHost = (string) config('domains.admin_host', 'admin.ternis.link');
         $suffix = substr(request()->getRequestUri(), strlen('/admin'));
 
-        return redirect()->away('https://admin.ternis.link'.$suffix, 302);
+        return redirect()->away(request()->getScheme().'://'.$adminHost.$suffix, 302);
     })->where('any', '.*');
 
     // Dashboard home. Pinned to the dashboard host: a second host-blind
@@ -206,18 +208,34 @@ Route::middleware(['ensure.domain:dashboard,admin', 'auth', RefreshSsoToken::cla
 
 /*
 |----------------------------------------------------------------------
-| Admin routes (admin.ternis.link only) — require admin role.
-| ensure.domain 404s on any other host; EnforceDomainAccess then
-| 403s authenticated non-admins and redirects guests to login.
+| Admin console (admin.ternis.link ONLY) — require admin role.
+| Served at the domain root: / → overview, /links, /users, /domains,
+| /activity. ensure.domain 404s on any other host; EnforceDomainAccess
+| then 403s authenticated non-admins and redirects guests to login.
+| Legacy /admin/* URLs 301 to the root equivalents below.
 |----------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'index'])->name('dashboard');
-    Route::get('/links', [AdminController::class, 'links'])->name('links');
-    Route::get('/users', [AdminController::class, 'users'])->name('users');
-    Route::get('/domains', [AdminController::class, 'domains'])->name('domains');
-    Route::get('/activity', [AdminController::class, 'activity'])->name('activity');
-});
+Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
+    ->domain((string) config('domains.admin_host', 'admin.ternis.link'))
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+        Route::get('/links', [AdminController::class, 'links'])->name('links');
+        Route::get('/users', [AdminController::class, 'users'])->name('users');
+        Route::get('/domains', [AdminController::class, 'domains'])->name('domains');
+        Route::get('/activity', [AdminController::class, 'activity'])->name('activity');
+    });
+
+// Legacy /admin/* on the admin host → root equivalents (permanent).
+// Runs without auth so bookmarks keep working for signed-in admins;
+// guests still land on the canonical URL and hit the auth redirect.
+Route::middleware(['ensure.domain:admin'])->domain((string) config('domains.admin_host', 'admin.ternis.link'))->get('/admin{any?}', function () {
+    $suffix = substr(request()->getPathInfo(), strlen('/admin'));
+    $query = request()->getQueryString();
+    $qs = $query ? '?'.$query : '';
+
+    return redirect('/'.ltrim($suffix, '/').$qs, 301);
+})->where('any', '.*');
 
 /*
 |----------------------------------------------------------------------
