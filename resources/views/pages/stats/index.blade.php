@@ -19,10 +19,14 @@
     </div>
 
     <x-ui.card title="Links Created Per Day (last 30 days)" class="mb-6">
-        <canvas data-chart="clicks" data-chart-labels='@json($creationLabels)' data-chart-values='@json($creationValues)' class="h-56 w-full"></canvas>
+        <div class="relative h-56" role="img" aria-label="Links created per day for the last 30 days">
+            <canvas data-chart="clicks" data-chart-labels='@json($creationLabels)' data-chart-values='@json($creationValues)'></canvas>
+        </div>
     </x-ui.card>
 
     <x-ui.card title="Clicks Per Day (last 30 days)">
-        <canvas data-chart="clicks" data-chart-labels='@json($clickLabels)' data-chart-values='@json($clickValues)' class="h-56 w-full"></canvas>
+        <div class="relative h-56" role="img" aria-label="Clicks per day for the last 30 days">
+            <canvas data-chart="clicks" data-chart-labels='@json($clickLabels)' data-chart-values='@json($clickValues)'></canvas>
+        </div>
     </x-ui.card>
 </x-layouts.app>
