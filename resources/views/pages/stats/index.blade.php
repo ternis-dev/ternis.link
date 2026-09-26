@@ -1,4 +1,7 @@
 <x-layouts.app title="Network Stats — ternis.link">
+    <x-slot:head>
+        <link rel="alternate" type="text/markdown" title="Network Stats (Markdown)" href="{{ url('/pages/stats.md') }}">
+    </x-slot:head>
     <x-ui.page-header
         title="Network Stats"
         subtitle="Public, aggregate-only analytics for the whole ternis.link network. No personal data — counts and daily totals, nothing else."

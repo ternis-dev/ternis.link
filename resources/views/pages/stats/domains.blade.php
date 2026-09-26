@@ -1,4 +1,7 @@
 <x-layouts.app title="Links Per Domain — ternis.link stats">
+    <x-slot:head>
+        <link rel="alternate" type="text/markdown" title="Links Per Domain (Markdown)" href="{{ url('/pages/stats/domains.md') }}">
+    </x-slot:head>
     <x-ui.page-header
         title="Links Per Domain"
         subtitle="How the network splits across domains. Aggregate counts only."

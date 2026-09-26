@@ -8,6 +8,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\RedirectController;
+use App\Http\Controllers\SiteFilesController;
 use App\Http\Controllers\StatsController;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\RefreshSsoToken;
@@ -34,6 +35,20 @@ Route::get('/healthz', HealthController::class)
 */
 Route::middleware('throttle:60,1')->get('/altcha/challenge', [AltchaController::class, 'challenge'])
     ->name('altcha.challenge');
+
+/*
+|----------------------------------------------------------------------
+| Machine-readable site files — REAL routes, host-blind (crawlers and
+| agents fetch these per hostname). They must stay ABOVE the short-link
+| catch-all (/{input}) so /sitemap.xml etc. are never swallowed as
+| link slugs. Handled by SiteFilesController; .md twins for /pages/*
+| live with their ternis-only HTML originals further below.
+|----------------------------------------------------------------------
+*/
+Route::get('/robots.txt', [SiteFilesController::class, 'robots'])->name('site.robots');
+Route::get('/sitemap.xml', [SiteFilesController::class, 'sitemap'])->name('site.sitemap');
+Route::get('/llms.txt', [SiteFilesController::class, 'llms'])->name('site.llms');
+Route::get('/llms-full.txt', [SiteFilesController::class, 'llmsFull'])->name('site.llms-full');
 
 /*
 |--------------------------------------------------------------------------
@@ -266,6 +281,18 @@ Route::middleware(['ensure.domain:ternis'])->prefix('pages/stats')->name('pages.
     Route::get('/links', [StatsController::class, 'links'])->name('links');
 });
 
+/*
+|----------------------------------------------------------------------
+| Markdown twins of the stats pages (text/markdown, same aggregates,
+| no chrome). Same ternis-only pinning as the HTML originals.
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:ternis'])->group(function () {
+    Route::get('/pages/stats.md', [StatsController::class, 'indexMd'])->name('pages.stats.index-md');
+    Route::get('/pages/stats/domains.md', [StatsController::class, 'domainsMd'])->name('pages.stats.domains-md');
+    Route::get('/pages/stats/links.md', [StatsController::class, 'linksMd'])->name('pages.stats.links-md');
+});
+
 Route::middleware(['ensure.domain:ternis'])->get('/stats{any?}', function () {
     $suffix = substr(request()->getPathInfo(), strlen('/stats'));
     $query = request()->getQueryString();
@@ -287,6 +314,11 @@ Route::middleware(['ensure.domain:ternis'])->get('/stats{any?}', function () {
 Route::middleware(['ensure.domain:ternis'])->get('/pages/legal/{slug}', [PagesController::class, 'legal'])
     ->where('slug', '[a-z-]+')
     ->name('pages.legal');
+
+// Markdown twin of a legal page (serves the .md source verbatim).
+Route::middleware(['ensure.domain:ternis'])->get('/pages/legal/{slug}.md', [PagesController::class, 'legalMd'])
+    ->where('slug', '[a-z-]+')
+    ->name('pages.legal-md');
 
 Route::get('/legal/{any}', function (string $any) {
     $type = request()->attributes->get('domain_type');

@@ -1,4 +1,4 @@
-@props(['title' => 'ternis.link', 'maxWidth' => 'max-w-6xl'])
+@props(['title' => 'ternis.link', 'maxWidth' => 'max-w-6xl', 'head' => null])
 
 <!DOCTYPE html>
 <html lang="en">
@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'ternis.link' }}</title>
     <link rel="icon" href="{{ asset('favicon.ico') }}">
+    {!! $head !!}
     <script>
         // Paint order: explicit browser toggle > account preference > OS.
         window.tlThemeDefault = @json(auth()->user()?->theme ?? 'system');

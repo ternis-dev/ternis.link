@@ -63,7 +63,7 @@ class LegalTest extends TestCase
     public function test_unknown_legal_slug_404s(): void
     {
         $this->get('http://ternis.link/pages/legal/quests')->assertStatus(404);
-        $this->get('http://ternis.link/pages/legal/privacy.md')->assertStatus(404);
+        $this->get('http://ternis.link/pages/legal/quests.md')->assertStatus(404);
     }
 
     public function test_legal_pages_rejected_off_allowed_hosts(): void

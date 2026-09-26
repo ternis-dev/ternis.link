@@ -1,4 +1,7 @@
 <x-layouts.app :title="$title.' — ternis.link'">
+    <x-slot:head>
+        <link rel="alternate" type="text/markdown" title="{{ $title }} (Markdown)" href="{{ url('/pages/legal/'.$current.'.md') }}">
+    </x-slot:head>
     <div class="mx-auto max-w-2xl py-12">
         <nav aria-label="Legal" class="mb-6 flex flex-wrap gap-2 text-sm">
             @foreach ($pages as $slug => $label)

@@ -1,4 +1,7 @@
 <x-layouts.app title="Top Links — ternis.link stats">
+    <x-slot:head>
+        <link rel="alternate" type="text/markdown" title="Top Links (Markdown)" href="{{ url('/pages/stats/links.md') }}">
+    </x-slot:head>
     <x-ui.page-header
         title="Top Links"
         subtitle="Most-clicked short links across the network. Slugs are public; no owners, no destinations."

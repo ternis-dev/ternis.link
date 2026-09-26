@@ -2,63 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Click;
-use App\Models\Domain;
-use App\Models\Link;
-use Illuminate\Support\Facades\Cache;
+use App\Support\NetworkStats;
 
 /**
- * Public network stats on the ternis host (ternis.link/stats).
+ * Public network stats on the ternis host (ternis.link/pages/stats).
  *
- * DSGVO by design: every number here is an aggregate (counts grouped
- * by day or domain). No personal data — no IPs, no user agents, no
- * referrers, no per-user rows — ever leaves the database for these
- * pages. Raw rows are never deleted (only IP ciphertext is pruned
- * after 30 days), so all-time totals stay complete forever.
+ * Every page has a Markdown twin ({uri}.md, text/markdown) for
+ * crawlers, agents, and llms-full.txt — same aggregates, no chrome.
+ * See Privacy note on NetworkStats: aggregates only, no personal data.
  */
 class StatsController extends Controller
 {
+    public const MARKDOWN = 'text/markdown; charset=UTF-8';
+
     /**
      * Overview: all-time totals + creations/clicks per day (30d).
      */
     public function index()
     {
-        $stats = Cache::remember('stats:overview', 600, fn () => [
-            'total_links' => Link::count(),
-            'active_links' => Link::where('is_active', true)->where('is_removed', false)->count(),
-            'removed_links' => Link::where('is_removed', true)->count(),
-            'total_clicks' => Click::count(),
-            'links_today' => Link::where('created_at', '>=', now()->startOfDay())->count(),
-            'clicks_today' => Click::where('created_at', '>=', now()->startOfDay())->count(),
-        ]);
-
-        $days = $this->lastDays(30);
-
-        $creations = Cache::remember('stats:creations-30d', 600, function () {
-            return Link::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-                ->where('created_at', '>=', now()->subDays(29)->startOfDay())
-                ->groupByRaw('DATE(created_at)')
-                ->pluck('count', 'date')
-                ->map(fn ($count) => (int) $count)
-                ->all();
-        });
-
-        $clicks = Cache::remember('stats:clicks-30d', 600, function () {
-            return Click::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-                ->where('created_at', '>=', now()->subDays(29)->startOfDay())
-                ->groupByRaw('DATE(created_at)')
-                ->pluck('count', 'date')
-                ->map(fn ($count) => (int) $count)
-                ->all();
-        });
+        $creations = NetworkStats::creationsByDay(30);
+        $clicks = NetworkStats::clicksByDay(30);
 
         return view('pages.stats.index', [
-            'stats' => $stats,
-            'creationLabels' => $days->pluck('label'),
-            'creationValues' => $days->map(fn ($day) => (int) ($creations[$day['date']] ?? 0)),
-            'clickLabels' => $days->pluck('label'),
-            'clickValues' => $days->map(fn ($day) => (int) ($clicks[$day['date']] ?? 0)),
+            'stats' => NetworkStats::overview(),
+            'creationLabels' => collect($creations['labels']),
+            'creationValues' => collect($creations['values']),
+            'clickLabels' => collect($clicks['labels']),
+            'clickValues' => collect($clicks['values']),
         ]);
+    }
+
+    /**
+     * Markdown twin of the overview (GET /pages/stats.md).
+     */
+    public function indexMd()
+    {
+        $creations = NetworkStats::creationsByDay(30);
+        $clicks = NetworkStats::clicksByDay(30);
+
+        return response()->view('pages.stats.index-md', [
+            'stats' => NetworkStats::overview(),
+            'creationLabels' => $creations['labels'],
+            'creationValues' => $creations['values'],
+            'clickLabels' => $clicks['labels'],
+            'clickValues' => $clicks['values'],
+        ], 200, ['Content-Type' => self::MARKDOWN]);
     }
 
     /**
@@ -66,13 +54,19 @@ class StatsController extends Controller
      */
     public function domains()
     {
-        $domains = Cache::remember('stats:domains', 600, fn () => Domain::withCount('links')
-            ->withSum('links', 'click_count')
-            ->orderByDesc('links_count')
-            ->get()
-        );
+        return view('pages.stats.domains', [
+            'domains' => NetworkStats::domains(),
+        ]);
+    }
 
-        return view('pages.stats.domains', compact('domains'));
+    /**
+     * Markdown twin of the domain table (GET /pages/stats/domains.md).
+     */
+    public function domainsMd()
+    {
+        return response()->view('pages.stats.domains-md', [
+            'domains' => NetworkStats::domains(),
+        ], 200, ['Content-Type' => self::MARKDOWN]);
     }
 
     /**
@@ -80,29 +74,18 @@ class StatsController extends Controller
      */
     public function links()
     {
-        $links = Cache::remember('stats:links', 600, fn () => Link::with('domain')
-            ->orderByDesc('click_count')
-            ->limit(50)
-            ->get(['id', 'slug', 'domain_id', 'click_count', 'is_active', 'is_removed', 'created_at'])
-        );
-
-        return view('pages.stats.links', compact('links'));
+        return view('pages.stats.links', [
+            'links' => NetworkStats::topLinks(50),
+        ]);
     }
 
     /**
-     * Zero-filled last N days, oldest first.
-     *
-     * @return \Illuminate\Support\Collection<int, array{date: string, label: string}>
+     * Markdown twin of the top-links table (GET /pages/stats/links.md).
      */
-    private function lastDays(int $days)
+    public function linksMd()
     {
-        $out = collect();
-
-        for ($i = $days - 1; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $out->push(['date' => $date->format('Y-m-d'), 'label' => $date->format('M j')]);
-        }
-
-        return $out;
+        return response()->view('pages.stats.links-md', [
+            'links' => NetworkStats::topLinks(50),
+        ], 200, ['Content-Type' => self::MARKDOWN]);
     }
 }
