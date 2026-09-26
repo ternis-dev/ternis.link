@@ -2,7 +2,7 @@
     <x-ui.page-header
         title="Top Links"
         subtitle="Most-clicked short links across the network. Slugs are public; no owners, no destinations."
-        :backHref="route('stats.index')"
+        :backHref="route('pages.stats.index')"
         backLabel="Back to Stats Overview"
     />
 

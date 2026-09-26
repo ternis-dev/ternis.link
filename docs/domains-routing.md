@@ -70,7 +70,8 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/admin{any?}` on admin host | — | `ensure.domain:admin`, no auth | Legacy 301 to root equivalents (`/admin/users` → `/users`) |
 | GET | `/legal/{any}` `.*` | `legal.show` | in-handler branch (no ensure.domain) | ternis serves (allowlist `terms,privacy`); dashboard/admin 301 to `https://ternis.link/legal/*`; else 404 |
 | GET | `/legal/{any}` on dashboard/admin hosts | — | `ensure.domain:dashboard,admin` | 301 to `https://ternis.link/legal/*` (single canonical legal host) |
-| GET | `/stats`, `/stats/domains`, `/stats/links` | `stats.*` | `ensure.domain:ternis`, public (no auth) | Aggregate-only network stats (counts by day/domain, no PII); removed links stay counted |
+| GET | `/pages/stats`, `/pages/stats/domains`, `/pages/stats/links` | `pages.stats.*` | `ensure.domain:ternis`, public, nothing exportable | Aggregate-only network stats (counts by day/domain, no PII); removed links stay counted |
+| GET | `/stats{any?}` | — | `ensure.domain:ternis` | Legacy 301 to `/pages/stats/*` (the `/pages/` namespace never collides with shortlink slugs) |
 | GET | `/` | `home` | none (branches on `domain_type`) | dashboard → login/dashboard; admin → login/admin; api → 302 `/v{latest}/`; business → `landing.business`; public → `landing.public`; else `landing.index` |
 | GET | `/url/{url}` `.*` | `redirect.url` | `ensure.domain:public,business,ternis,partner`, public (no auth) | Preferred direct-URL redirect |
 | GET | `/go/{url}` `.*` | `redirect.go` | same | Alternative direct-URL redirect |

@@ -4,8 +4,8 @@
         subtitle="Public, aggregate-only analytics for the whole ternis.link network. No personal data — counts and daily totals, nothing else."
     >
         <x-slot:actions>
-            <x-ui.button href="{{ route('stats.domains') }}" size="sm">Per Domain</x-ui.button>
-            <x-ui.button href="{{ route('stats.links') }}" size="sm">Top Links</x-ui.button>
+            <x-ui.button href="{{ route('pages.stats.domains') }}" size="sm">Per Domain</x-ui.button>
+            <x-ui.button href="{{ route('pages.stats.links') }}" size="sm">Top Links</x-ui.button>
         </x-slot:actions>
     </x-ui.page-header>
 

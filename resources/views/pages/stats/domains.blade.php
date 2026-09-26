@@ -2,7 +2,7 @@
     <x-ui.page-header
         title="Links Per Domain"
         subtitle="How the network splits across domains. Aggregate counts only."
-        :backHref="route('stats.index')"
+        :backHref="route('pages.stats.index')"
         backLabel="Back to Stats Overview"
     />
 

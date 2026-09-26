@@ -52,7 +52,7 @@ class StatsController extends Controller
                 ->all();
         });
 
-        return view('stats.index', [
+        return view('pages.stats.index', [
             'stats' => $stats,
             'creationLabels' => $days->pluck('label'),
             'creationValues' => $days->map(fn ($day) => (int) ($creations[$day['date']] ?? 0)),
@@ -72,7 +72,7 @@ class StatsController extends Controller
             ->get()
         );
 
-        return view('stats.domains', compact('domains'));
+        return view('pages.stats.domains', compact('domains'));
     }
 
     /**
@@ -86,7 +86,7 @@ class StatsController extends Controller
             ->get(['id', 'slug', 'domain_id', 'click_count', 'is_active', 'is_removed', 'created_at'])
         );
 
-        return view('stats.links', compact('links'));
+        return view('pages.stats.links', compact('links'));
     }
 
     /**

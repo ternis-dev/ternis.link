@@ -252,16 +252,27 @@ Route::middleware(['ensure.domain:admin'])->domain((string) config('domains.admi
 
 /*
 |----------------------------------------------------------------------
-| Public network stats (ternis.link/stats) — aggregate counts only,
-| no personal data, so no login needed. Ternis host only; every other
-| host 404s here. Removed links stay counted (nothing is deleted).
+| Public network stats (ternis.link/pages/stats) — aggregate counts
+| only, no personal data, so no login needed and nothing is
+| exportable. The /pages/ namespace keeps app pages from ever
+| colliding with single-segment shortlink slugs. Ternis host only;
+| every other host 404s here. Removed links stay counted (nothing
+| is deleted). Legacy /stats/* URLs 301 to the new home.
 |----------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:ternis'])->prefix('stats')->name('stats.')->group(function () {
+Route::middleware(['ensure.domain:ternis'])->prefix('pages/stats')->name('pages.stats.')->group(function () {
     Route::get('/', [StatsController::class, 'index'])->name('index');
     Route::get('/domains', [StatsController::class, 'domains'])->name('domains');
     Route::get('/links', [StatsController::class, 'links'])->name('links');
 });
+
+Route::middleware(['ensure.domain:ternis'])->get('/stats{any?}', function () {
+    $suffix = substr(request()->getPathInfo(), strlen('/stats'));
+    $query = request()->getQueryString();
+    $qs = $query ? '?'.$query : '';
+
+    return redirect('/pages/stats'.rtrim($suffix, '/').$qs, 301);
+})->where('any', '.*');
 
 /*
 |----------------------------------------------------------------------
