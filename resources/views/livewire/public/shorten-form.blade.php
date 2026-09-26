@@ -201,10 +201,17 @@
                         x-data="{
                             widgetId: null,
                             loadTimer: null,
+                            loadAttempts: 0,
+                            loadFailed: false,
                             init() {
                                 var self = this;
                                 function renderWidget() {
                                     if (typeof turnstile === 'undefined') {
+                                        self.loadAttempts++;
+                                        if (self.loadAttempts > 50) {
+                                            self.loadFailed = true;
+                                            return;
+                                        }
                                         self.loadTimer = setTimeout(renderWidget, 100);
                                         return;
                                     }
@@ -250,6 +257,7 @@
                         x-on:reset-turnstile.window="reset()"
                     >
                         <div x-ref="cfContainer"></div>
+                        <p x-show="loadFailed" class="sk-hint" style="display: none;">The security challenge failed to load — an ad-blocker may be blocking it. Allow this site and reload the page.</p>
                     </div>
                 </div>
             @endif

@@ -22,7 +22,7 @@ class StorePublicLinkRequest extends FormRequest
             'domain_id' => ['nullable', 'exists:domains,id'],
             // Guests never get custom slugs — auto-generated 8-char only.
             'slug' => ['prohibited'],
-            'expires_at' => ['nullable', 'date', 'after:now'],
+            'expires_at' => ['nullable', 'date', 'after:now', 'before:'.now()->addYear()->toDateTimeString()],
         ];
     }
 
@@ -30,6 +30,7 @@ class StorePublicLinkRequest extends FormRequest
     {
         return [
             'slug.prohibited' => 'Custom slugs are for logged-in users only. Guests get an auto-generated link.',
+            'expires_at.before' => 'Guest links can live for at most a year.',
         ];
     }
 

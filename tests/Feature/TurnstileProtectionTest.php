@@ -50,24 +50,39 @@ class TurnstileProtectionTest extends TestCase
 
     public function test_partial_turnstile_configuration_fails_closed(): void
     {
-        $partialConfigurations = [
-            ['key' => 'test-site-key', 'secret' => null],
-            ['key' => null, 'secret' => 'test-secret-key'],
-        ];
+        // Site key without secret: the widget renders, but tokens can
+        // never verify — submissions fail without an outbound call.
+        config(['services.turnstile' => ['key' => 'test-site-key', 'secret' => null]]);
 
-        foreach ($partialConfigurations as $index => $configuration) {
-            config(['services.turnstile' => $configuration]);
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'https://example.com/partial-config-key')
+            ->set('turnstile_token', 'good-token')
+            ->call('create')
+            ->assertHasErrors(['turnstile_token' => 'Security check failed — please try again.']);
 
-            Livewire::test(ShortenForm::class)
-                ->set('destination_url', "https://example.com/partial-config-{$index}")
-                ->set('turnstile_token', 'good-token')
-                ->call('create')
-                ->assertHasErrors(['turnstile_token' => 'Security check failed — please try again.']);
+        $this->assertDatabaseMissing('links', [
+            'destination_url' => 'https://example.com/partial-config-key',
+        ]);
 
-            $this->assertDatabaseMissing('links', [
-                'destination_url' => "https://example.com/partial-config-{$index}",
-            ]);
-        }
+        Http::assertNothingSent();
+    }
+
+    public function test_secret_without_site_key_reports_unavailable_widget(): void
+    {
+        // Secret without site key: no challenge can render, so the
+        // error says so instead of asking for a missing widget.
+        config(['services.turnstile' => ['key' => null, 'secret' => 'test-secret-key']]);
+
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'https://example.com/partial-config-secret')
+            ->set('turnstile_token', 'good-token')
+            ->call('create')
+            ->assertHasErrors(['turnstile_token' => 'Security check is currently unavailable — please try again later.'])
+            ->assertSet('errorKind', 'security');
+
+        $this->assertDatabaseMissing('links', [
+            'destination_url' => 'https://example.com/partial-config-secret',
+        ]);
 
         Http::assertNothingSent();
     }
@@ -201,7 +216,7 @@ class TurnstileProtectionTest extends TestCase
             TurnstileService::VERIFY_URL => Http::response([
                 'success' => true,
                 'challenge_ts' => now()->toIso8601String(),
-                'hostname' => 'localhost',
+                'hostname' => 'href.nz',
                 'action' => TurnstileService::ACTION,
             ], 200),
         ]);

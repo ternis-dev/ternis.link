@@ -4,12 +4,14 @@ namespace App\Livewire\Public;
 
 use App\Enums\DomainType;
 use App\Exceptions\JunkUrlException;
+use App\Exceptions\UnsafeUrlException;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
 use App\Services\TurnstileService;
 use App\Support\IpHash;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -229,6 +231,17 @@ class ShortenForm extends Component
         }
 
         if ($turnstile->isEnabled()) {
+            if (! $turnstile->isWidgetAvailable()) {
+                // Misconfigured server (secret set, site key missing):
+                // no challenge can render, so say so instead of asking
+                // users to complete one. Still fail closed.
+                Log::warning('Turnstile enforced without a site key — guest submissions blocked until TURNSTILE_SITE_KEY is set.');
+                $this->addError('turnstile_token', 'Security check is currently unavailable — please try again later.');
+                $this->errorKind = 'security';
+
+                return;
+            }
+
             if (empty($this->turnstile_token)) {
                 $this->addError('turnstile_token', 'Please complete the security check.');
                 $this->errorKind = 'security';
@@ -276,6 +289,18 @@ class ShortenForm extends Component
                     }
                 }
                 $this->errorKind = 'junk';
+
+                return;
+            }
+
+            // Structurally unsafe targets (intranet, credentials, …).
+            if ($e instanceof UnsafeUrlException) {
+                foreach ($e->errors() as $field => $messages) {
+                    foreach ((array) $messages as $message) {
+                        $this->addError($field, $message);
+                    }
+                }
+                $this->errorKind = 'invalid';
 
                 return;
             }

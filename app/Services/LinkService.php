@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\JunkUrlException;
+use App\Exceptions\UnsafeUrlException;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -29,6 +30,12 @@ class LinkService
     public const GUEST_SLUG_LENGTH = 8;
 
     public const AUTHENTICATED_DEFAULT_SLUG_LENGTH = 6;
+
+    /**
+     * Guest links may not outlive a year — anonymous URLs with
+     * indefinite lifetimes are a phishing staple.
+     */
+    public const GUEST_MAX_EXPIRY_DAYS = 365;
 
     /**
      * Tag rules: lowercase slugs, max 10 per link.
@@ -98,6 +105,7 @@ class LinkService
     public function __construct(
         private SlugGeneratorService $slugGenerator,
         private JunkUrlDetector $junkUrls,
+        private UnsafeUrlValidator $unsafeUrls,
     ) {}
 
     /**
@@ -117,6 +125,7 @@ class LinkService
      *
      * @throws ValidationException On slug or daily-quota violations (HTTP 422).
      * @throws JunkUrlException On scanner-junk destinations (HTTP 422).
+     * @throws UnsafeUrlException On structurally unsafe guest destinations (HTTP 422).
      * @throws ThrottleRequestsException On per-minute rate-limit violations (HTTP 429).
      */
     public function create(
@@ -132,6 +141,18 @@ class LinkService
         ?string $creatorIp = null,
     ): Link {
         $destinationUrl = trim($destinationUrl);
+
+        // Guests additionally get structural safety checks (intranet /
+        // non-public targets, embedded credentials) plus a max lifetime.
+        // Safety runs before junk so intranet targets get the accurate
+        // "public website" message instead of the scanner-probe one.
+        if ($user === null) {
+            $this->unsafeUrls->rejectIfUnsafe($destinationUrl);
+
+            if ($expiresAt !== null && $expiresAt > new \DateTimeImmutable('+'.self::GUEST_MAX_EXPIRY_DAYS.' days')) {
+                throw UnsafeUrlException::forUrl($destinationUrl, 'expiry-too-far');
+            }
+        }
 
         // Scanner probes never become links — rejected before quota or
         // rate-limit state is touched, so junk can't burn anyone's budget.

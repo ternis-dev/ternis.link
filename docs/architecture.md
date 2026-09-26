@@ -77,7 +77,13 @@ routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips —
 8. **Guest bot protection:** when Turnstile is configured, the public Livewire form requires a
    single-use widget token and `TurnstileService` verifies it with Cloudflare Siteverify before
    link creation. Partial key configuration fails closed; the public JSON API remains throttled
-   but does not require a widget token.
+   but does not require a widget token. Enforcement needs both keys — a missing site key shows
+   an "unavailable" message (no invisible challenge), and a widget that never loads shows an
+   ad-blocker hint after ~5s.
+9. **Guest destination safety:** `UnsafeUrlValidator` (via `LinkService::create`, guests only)
+   rejects non-http(s) schemes, embedded credentials, non-public IP literals (v4/v6 incl.
+   mapped), localhost/intranet/dotless hosts, and expiries over a year out (`UnsafeUrlException`,
+   422). Logged-in users are exempt. No DNS resolution in the request path by design.
 
 ## Key services
 
@@ -92,6 +98,7 @@ routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips —
 | `TernisAuthService` | PKCE verifier/challenge, authorize + silent (`prompt=none`) URLs, code exchange, userinfo, `findOrCreateUser` (role mapping, default `free` plan, token store), `refreshAccessToken`, end-session URL |
 | `TurnstileService` | Cloudflare Siteverify client; fails closed on partial configuration, transport errors, invalid/expired/replayed tokens, oversized tokens, and action/hostname mismatches |
 | `JunkUrlDetector` | `isJunk` / `reasons` / `rejectIfJunk` (throws `JunkUrlException extends ValidationException`, 422) — scanner probes, localhost, private IPs |
+| `UnsafeUrlValidator` | Guest-only structural safety (`rejectIfUnsafe`, throws `UnsafeUrlException`, 422) — schemes, credentials, non-public IPs, intranet hosts; no DNS in request path |
 | `IpHash` / `IpCapture` (`app/Support`) | HMAC-SHA256 IP hash (`IP_HASH_PEPPER`, fallback plain SHA-256); encrypted capture gate (`IP_CAPTURE_ENABLED`) + retention (`IP_RETENTION_DAYS`, default 30) |
 | `DomainUrls` | `dashboard(path)` — absolute dashboard URL preserving scheme (avoids `route('login')` resolving against `APP_URL=href.nz` and 404ing) |
 

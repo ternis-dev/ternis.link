@@ -26,6 +26,18 @@ class TurnstileService
     }
 
     /**
+     * Can the frontend actually render a challenge? Only the site key
+     * matters for that. When enforcement is on but no widget can
+     * render (secret set, key missing), submissions fail with an
+     * "unavailable" message instead of asking users to complete a
+     * challenge that doesn't exist.
+     */
+    public function isWidgetAvailable(): bool
+    {
+        return trim((string) config('services.turnstile.key')) !== '';
+    }
+
+    /**
      * Verify a Turnstile response token with Cloudflare's Siteverify API.
      */
     public function verify(
