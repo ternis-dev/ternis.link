@@ -81,4 +81,46 @@ class RedirectTest extends TestCase
         $response->assertSee('for the domain', escape: false);
         $response->assertSee('href.nz', escape: false);
     }
+
+    public function test_guest_resolves_slug_on_business_host_without_login_bounce(): void
+    {
+        $domain = Domain::where('hostname', 'href.re')->first();
+        Link::create([
+            'slug' => 'vx0',
+            'destination_url' => 'https://example.com/business-target',
+            'domain_id' => $domain->id,
+            'is_active' => true,
+            'click_count' => 0,
+        ]);
+
+        $response = $this->get('http://href.re/vx0');
+
+        $response->assertStatus(302);
+        $response->assertRedirect('https://example.com/business-target');
+    }
+
+    public function test_unknown_slug_on_business_host_returns_404_not_login_redirect(): void
+    {
+        $response = $this->get('http://href.re/does-not-exist-xyz');
+
+        $response->assertStatus(404);
+        $response->assertSee('does-not-exist-xyz', escape: false);
+    }
+
+    public function test_guest_resolves_slug_on_ternis_host_without_login_bounce(): void
+    {
+        $domain = Domain::where('hostname', 'ternis.link')->first();
+        Link::create([
+            'slug' => 'fam0',
+            'destination_url' => 'https://example.com/family-target',
+            'domain_id' => $domain->id,
+            'is_active' => true,
+            'click_count' => 0,
+        ]);
+
+        $response = $this->get('http://ternis.link/fam0');
+
+        $response->assertStatus(302);
+        $response->assertRedirect('https://example.com/family-target');
+    }
 }

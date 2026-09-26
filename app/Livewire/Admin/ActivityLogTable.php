@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +10,7 @@ use Livewire\WithPagination;
 class ActivityLogTable extends Component
 {
     use WithPagination;
+    use WithTableColumns;
 
     public string $search = '';
 
@@ -49,7 +51,26 @@ class ActivityLogTable extends Component
                 ->distinct()
                 ->orderBy('action')
                 ->pluck('action'),
+            'availableColumns' => $this->availableColumns(),
+            'visibleColumns' => $visible = $this->visibleColumns(),
+            'columnCount' => count($visible),
         ]);
+    }
+
+    protected function tableKey(): string
+    {
+        return 'admin.activity';
+    }
+
+    protected function availableColumns(): array
+    {
+        return [
+            'when' => 'When',
+            'action' => 'Action',
+            'subject' => 'Subject',
+            'actor' => 'Actor',
+            'owner' => 'Owner',
+        ];
     }
 
     private function ensureAdmin(): void

@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Enums\UserRole;
+use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\Plan;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Livewire\WithPagination;
 class UserTable extends Component
 {
     use WithPagination;
+    use WithTableColumns;
 
     public string $search = '';
 
@@ -122,7 +124,26 @@ class UserTable extends Component
             'users' => $users,
             'roles' => UserRole::cases(),
             'plans' => Plan::orderBy('name')->get(),
+            'availableColumns' => $this->availableColumns(),
+            'visibleColumns' => $visible = $this->visibleColumns(),
+            'columnCount' => count($visible),
         ]);
+    }
+
+    protected function tableKey(): string
+    {
+        return 'admin.users';
+    }
+
+    protected function availableColumns(): array
+    {
+        return [
+            'user' => 'User',
+            'role' => 'Role',
+            'plan' => 'Plan',
+            'links' => 'Links',
+            'joined' => 'Joined',
+        ];
     }
 
     private function ensureAdmin(): void

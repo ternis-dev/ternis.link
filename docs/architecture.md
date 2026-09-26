@@ -54,7 +54,9 @@ routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips —
    - Admin console routes (admin host root `/`, `/links`, `/users`, `/domains`, `/activity`) require
      `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain`; distinct layout `layouts.admin`.
      Legacy `/admin/*` 301s to the root equivalents.
-   - Redirect routes require `ensure.domain:public,business,ternis,partner` + `enforce.domain`.
+   - Redirect routes require only `ensure.domain:public,business,ternis,partner` (no auth):
+     opening a short link is public on every redirect host. Login + role
+     gates apply to the dashboard/admin UI only.
      The catch-all `/{input}` is **last** and excludes `v{number}` so `/v1` falls through to the API.
 4. **API versioning (`EnsureApiVersion`):** runs before auth on `/v1/*`; always sets
    `API-Version` + `API-Latest-Version`; deprecated adds `Deprecation: true` + `Sunset`;

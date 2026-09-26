@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\Link;
 use App\Support\Activity;
@@ -13,6 +14,7 @@ use Livewire\WithPagination;
 class LinkModeration extends Component
 {
     use WithPagination;
+    use WithTableColumns;
 
     public string $search = '';
 
@@ -105,7 +107,29 @@ class LinkModeration extends Component
             ->orderBy($this->sortBy, $this->sortDir)
             ->paginate(20);
 
-        return view('livewire.admin.link-moderation', compact('links'));
+        return view('livewire.admin.link-moderation', [
+            'links' => $links,
+            'availableColumns' => $this->availableColumns(),
+            'visibleColumns' => $visible = $this->visibleColumns(),
+            'columnCount' => count($visible) + 1, // + fixed Actions column
+        ]);
+    }
+
+    protected function tableKey(): string
+    {
+        return 'admin.links';
+    }
+
+    protected function availableColumns(): array
+    {
+        return [
+            'slug' => 'Slug',
+            'destination' => 'Destination',
+            'domain' => 'Domain',
+            'owner' => 'Owner',
+            'clicks' => 'Clicks',
+            'status' => 'Status',
+        ];
     }
 
     private function ensureAdmin(): void

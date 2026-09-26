@@ -7,13 +7,16 @@
             placeholder="Search by hostname or owner email..."
             class="max-w-xs"
         />
-        <x-ui.select name="domain-status" wire:model.live="status" class="w-auto">
-            <option value="all">All domains</option>
-            <option value="system">System</option>
-            <option value="verified">Verified</option>
-            <option value="pending">Pending DNS</option>
-            <option value="disabled">Disabled</option>
-        </x-ui.select>
+        <div class="flex items-center gap-2">
+            @include('livewire.partials.column-customizer')
+            <x-ui.select name="domain-status" wire:model.live="status" class="w-auto">
+                <option value="all">All domains</option>
+                <option value="system">System</option>
+                <option value="verified">Verified</option>
+                <option value="pending">Pending DNS</option>
+                <option value="disabled">Disabled</option>
+            </x-ui.select>
+        </div>
     </div>
 
     @error('domain') <x-ui.alert tone="error" class="mb-4">{{ $message }}</x-ui.alert> @enderror
@@ -21,37 +24,53 @@
     <x-ui.table>
         <thead>
             <tr>
-                <th wire:click="sort('hostname')" class="sortable">
-                    Hostname
-                    @if ($sortBy === 'hostname') {{ $sortDir === 'asc' ? '↑' : '↓' }} @endif
-                </th>
-                <th>Owner</th>
-                <th>Type</th>
-                <th>Links</th>
-                <th>Status</th>
+                @foreach ($visibleColumns as $column)
+                    @if ($column === 'hostname')
+                        <th wire:click="sort('hostname')" class="sortable">
+                            Hostname
+                            @if ($sortBy === 'hostname') {{ $sortDir === 'asc' ? '↑' : '↓' }} @endif
+                        </th>
+                    @elseif ($column === 'owner')
+                        <th>Owner</th>
+                    @elseif ($column === 'type')
+                        <th>Type</th>
+                    @elseif ($column === 'links')
+                        <th>Links</th>
+                    @elseif ($column === 'status')
+                        <th>Status</th>
+                    @endif
+                @endforeach
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($domains as $domain)
                 <tr>
-                    <td><code>{{ $domain->hostname }}</code></td>
-                    <td class="text-xs text-neutral-500">
-                        {{ $domain->user?->email ?? 'System' }}
-                    </td>
-                    <td class="text-xs text-neutral-500">{{ $domain->type->value ?? $domain->type }}</td>
-                    <td class="font-bold">{{ number_format($domain->links_count) }}</td>
-                    <td>
-                        @if ($domain->isSystemDomain())
-                            <x-ui.status state="system" />
-                        @elseif (! $domain->is_active)
-                            <x-ui.status state="disabled" />
-                        @elseif ($domain->isVerified())
-                            <x-ui.status state="verified" />
-                        @else
-                            <x-ui.status state="pending" />
+                    @foreach ($visibleColumns as $column)
+                        @if ($column === 'hostname')
+                            <td><code>{{ $domain->hostname }}</code></td>
+                        @elseif ($column === 'owner')
+                            <td class="text-xs text-neutral-500">
+                                {{ $domain->user?->email ?? 'System' }}
+                            </td>
+                        @elseif ($column === 'type')
+                            <td class="text-xs text-neutral-500">{{ $domain->type->value ?? $domain->type }}</td>
+                        @elseif ($column === 'links')
+                            <td class="font-bold">{{ number_format($domain->links_count) }}</td>
+                        @elseif ($column === 'status')
+                            <td>
+                                @if ($domain->isSystemDomain())
+                                    <x-ui.status state="system" />
+                                @elseif (! $domain->is_active)
+                                    <x-ui.status state="disabled" />
+                                @elseif ($domain->isVerified())
+                                    <x-ui.status state="verified" />
+                                @else
+                                    <x-ui.status state="pending" />
+                                @endif
+                            </td>
                         @endif
-                    </td>
+                    @endforeach
                     <td>
                         @if ($domain->isSystemDomain())
                             <span class="text-xs text-neutral-500">Protected</span>
@@ -64,7 +83,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6"><x-ui.empty-state>No domains found.</x-ui.empty-state></td>
+                    <td colspan="{{ $columnCount }}"><x-ui.empty-state>No domains found.</x-ui.empty-state></td>
                 </tr>
             @endforelse
         </tbody>

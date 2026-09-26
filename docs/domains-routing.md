@@ -49,6 +49,7 @@ Reads `config('domains.auth_required.{type}')`:
 - `ternis` requires `admin|family|partner` else 403.
 - `business` requires admin else 403.
 - `public,api` pass through.
+- Short-link resolution (`/url`, `/go`, `/{slug}`) intentionally skips this middleware: opening a link is public on every redirect host.
 
 ## Route inventory (`routes/web.php`)
 
@@ -69,10 +70,10 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/admin{any?}` on admin host | — | `ensure.domain:admin`, no auth | Legacy 301 to root equivalents (`/admin/users` → `/users`) |
 | GET | `/legal/{slug}` `[a-z-]+` | `legal.show` | `ensure.domain:ternis,dashboard,admin` | Allowlist `terms,privacy` from `resources/legal/*.md` |
 | GET | `/` | `home` | none (branches on `domain_type`) | dashboard → login/dashboard; admin → login/admin; api → 302 `/v{latest}/`; business → `landing.business`; public → `landing.public`; else `landing.index` |
-| GET | `/url/{url}` `.*` | `redirect.url` | `ensure.domain:public,business,ternis,partner` + `enforce.domain` | Preferred direct-URL redirect |
+| GET | `/url/{url}` `.*` | `redirect.url` | `ensure.domain:public,business,ternis,partner`, public (no auth) | Preferred direct-URL redirect |
 | GET | `/go/{url}` `.*` | `redirect.go` | same | Alternative direct-URL redirect |
 | GET | `/preview/{input}` `.*` | `redirect.preview` | same (handler 404s except href.nz) | Above catch-all; sandbox preview |
-| GET | `/{input}` `^(?!v\d+$)[^/]+$` | `redirect.resolve` | same, **last** | Slug-vs-URL detect; `v{number}` reserved so `/v1` reaches the API |
+| GET | `/{input}` `^(?!v\d+$)[^/]+$` | `redirect.resolve` | same, **last** | Slug-vs-URL detect, public on all hosts; `v{number}` reserved so `/v1` reaches the API |
 
 Why auth branching lives inside the handler: Laravel matches only the **first**
 route per URI — duplicated per-host `/login` routes would shadow each other,

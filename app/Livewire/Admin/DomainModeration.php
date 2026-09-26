@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Support\Activity;
@@ -13,6 +14,7 @@ use Livewire\WithPagination;
 class DomainModeration extends Component
 {
     use WithPagination;
+    use WithTableColumns;
 
     public string $search = '';
 
@@ -123,7 +125,28 @@ class DomainModeration extends Component
             ->orderBy($this->sortBy, $this->sortDir)
             ->paginate(20);
 
-        return view('livewire.admin.domain-moderation', compact('domains'));
+        return view('livewire.admin.domain-moderation', [
+            'domains' => $domains,
+            'availableColumns' => $this->availableColumns(),
+            'visibleColumns' => $visible = $this->visibleColumns(),
+            'columnCount' => count($visible) + 1, // + fixed Actions column
+        ]);
+    }
+
+    protected function tableKey(): string
+    {
+        return 'admin.domains';
+    }
+
+    protected function availableColumns(): array
+    {
+        return [
+            'hostname' => 'Hostname',
+            'owner' => 'Owner',
+            'type' => 'Type',
+            'links' => 'Links',
+            'status' => 'Status',
+        ];
     }
 
     private function ensureAdmin(): void

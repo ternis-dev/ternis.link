@@ -28,6 +28,7 @@ class User extends Authenticatable
         'notify_security_email',
         'notify_admin_security_email',
         'notify_server_error_email',
+        'table_columns',
     ];
 
     public const NAV_LAYOUTS = ['side', 'top'];
@@ -44,6 +45,7 @@ class User extends Authenticatable
         'notify_security_email' => 'boolean',
         'notify_admin_security_email' => 'boolean',
         'notify_server_error_email' => 'boolean',
+        'table_columns' => 'array',
     ];
 
     // No password, no remember_token — SSO only

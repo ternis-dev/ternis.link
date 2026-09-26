@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Support\Activity;
 use Livewire\Component;
@@ -10,6 +11,7 @@ use Livewire\WithPagination;
 class LinkTable extends Component
 {
     use WithPagination;
+    use WithTableColumns;
 
     /**
      * Refresh when a link is created through the quick-create modal
@@ -30,6 +32,23 @@ class LinkTable extends Component
      * via the public Livewire properties).
      */
     private const SORTABLE = ['slug', 'click_count', 'created_at'];
+
+    protected function tableKey(): string
+    {
+        return 'dashboard.links';
+    }
+
+    protected function availableColumns(): array
+    {
+        return [
+            'slug' => 'Short Link',
+            'destination' => 'Destination URL',
+            'domain' => 'Domain',
+            'clicks' => 'Clicks',
+            'status' => 'Status',
+            'created' => 'Created',
+        ];
+    }
 
     public function updatingSearch(): void
     {
@@ -88,9 +107,14 @@ class LinkTable extends Component
             ->orderBy($sortBy, $sortDir)
             ->paginate(20);
 
+        $visibleColumns = $this->visibleColumns();
+
         return view('livewire.dashboard.link-table', [
             'links' => $links,
             'availableTags' => $this->availableTags($base),
+            'availableColumns' => $this->availableColumns(),
+            'visibleColumns' => $visibleColumns,
+            'columnCount' => count($visibleColumns) + 1, // + fixed Actions column
         ]);
     }
 

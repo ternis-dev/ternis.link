@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Click;
 use App\Models\Link;
+use App\Support\LinkQrCode;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -62,7 +63,9 @@ class DashboardController extends Controller
     {
         $link = auth()->user()->links()->with('domain')->findOrFail($link);
 
-        return view('dashboard.links.show', compact('link'));
+        $qrSvg = LinkQrCode::svgDataUri($link);
+
+        return view('dashboard.links.show', compact('link', 'qrSvg'));
     }
 
     /**
@@ -112,6 +115,22 @@ class DashboardController extends Controller
 
             fclose($out);
         }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * Download the link's QR code as PNG (encodes the public short
+     * URL). Strictly per-user, like all dashboard routes.
+     */
+    public function qrCode(string $link)
+    {
+        $link = auth()->user()->links()->with('domain')->findOrFail($link);
+
+        $filename = 'qr-'.$link->slug.'.png';
+
+        return response(LinkQrCode::png($link), 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 
     /**

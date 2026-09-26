@@ -197,6 +197,7 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
     Route::get('/links/{link}/edit', [DashboardController::class, 'editLink'])->name('dashboard.links.edit');
     Route::get('/links/{link}/export', [DashboardController::class, 'exportClicks'])->name('dashboard.links.export');
+    Route::get('/links/{link}/qr', [DashboardController::class, 'qrCode'])->name('dashboard.links.qr');
     Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
     Route::get('/domains', [DashboardController::class, 'domains'])->name('dashboard.domains');
     Route::get('/notifications', [DashboardController::class, 'notifications'])->name('dashboard.notifications');
@@ -292,9 +293,14 @@ Route::get('/', function () {
 | Redirect routes — short-link hosts only
 | (public, business, ternis, partner). API/dashboard/admin hosts 404
 | here so /{slug} probing can't run on the wrong domain.
+|
+| Resolution is PUBLIC on all four hosts: opening a short link never
+| requires login (guests on href.re/ternis.link used to bounce to the
+| dashboard login before the slug was even looked up). Login + role
+| gates stay on the dashboard/admin UI only.
 |----------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:public,business,ternis,partner', EnforceDomainAccess::class])->group(function () {
+Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(function () {
     // Direct URL redirects (preferred)
     Route::get('/url/{url}', [RedirectController::class, 'directUrl'])
         ->where('url', '.*')
