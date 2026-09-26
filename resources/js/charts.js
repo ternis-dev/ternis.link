@@ -6,6 +6,10 @@
  *           data-chart-labels='["Mon", ...]'
  *           data-chart-values='[3, 0, ...]'></canvas>
  *
+ * A bar chart may override the tooltip unit (default "click"/"clicks"):
+ *
+ *   <canvas data-chart="clicks" data-chart-unit="link" …></canvas>
+ *
  *   <canvas data-chart="browsers"
  *           data-chart-labels='["Chrome", ...]'
  *           data-chart-values='[12, 3]'></canvas>
@@ -84,6 +88,7 @@ function paintLegend(canvas, colors) {
 function buildClicksChart(canvas, dark) {
     const solid = dark ? '#fafafa' : '#171717';
     const soft = dark ? 'rgba(250,250,250,0.25)' : 'rgba(23,23,23,0.15)';
+    const unit = canvas.dataset.chartUnit ?? 'click';
 
     canvas._tlChart = new Chart(canvas, {
         type: 'bar',
@@ -106,7 +111,7 @@ function buildClicksChart(canvas, dark) {
                 tooltip: {
                     ...tooltipStyle(dark),
                     callbacks: {
-                        label: (ctx) => ` ${ctx.parsed.y} click${ctx.parsed.y === 1 ? '' : 's'}`,
+                        label: (ctx) => ` ${ctx.parsed.y} ${unit}${ctx.parsed.y === 1 ? '' : 's'}`,
                     },
                 },
             },

@@ -20,7 +20,7 @@
 
     <x-ui.card title="Links Created Per Day (last 30 days)" class="mb-6">
         <div class="relative h-56" role="img" aria-label="Links created per day for the last 30 days">
-            <canvas data-chart="clicks" data-chart-labels='@json($creationLabels)' data-chart-values='@json($creationValues)'></canvas>
+            <canvas data-chart="clicks" data-chart-unit="link" data-chart-labels='@json($creationLabels)' data-chart-values='@json($creationValues)'></canvas>
         </div>
     </x-ui.card>
 
