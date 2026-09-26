@@ -56,7 +56,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
    Turnstile widget for the public shortener host (`href.nz`) and set both
    `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`; partial configuration fails closed.
 2. **Install & migrate**: `composer install --no-dev`, `php artisan key:generate`,
-   `php artisan migrate --force`, `npm install && npm run build`.
+   `php artisan migrate --force`, `npm ci && npm run build`.
 3. **Queue worker** (async `RecordClick` analytics — do not stay on `sync`):
    run `php artisan queue:work --tries=3` under systemd/supervisor with restarts.
 4. **Scheduler** (daily `links:deactivate-expired` cleanup):
