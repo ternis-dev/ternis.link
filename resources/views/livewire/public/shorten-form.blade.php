@@ -204,15 +204,18 @@
                             loadTimer: null,
                             loadAttempts: 0,
                             loadFailed: false,
+                            cfNote: 'Loading security check…',
                             boot(component, rootEl) {
                                 var self = this;
                                 self.wire = component;
                                 var container = rootEl.querySelector('[data-cf-container]');
+                                var LOADING = 'Loading security check…';
                                 function renderWidget() {
                                     if (typeof turnstile === 'undefined') {
                                         self.loadAttempts++;
                                         if (self.loadAttempts > 50) {
                                             self.loadFailed = true;
+                                            self.cfNote = '';
                                             return;
                                         }
                                         self.loadTimer = setTimeout(renderWidget, 100);
@@ -220,26 +223,46 @@
                                     }
                                     if (self.widgetId !== null || ! container) return;
                                     turnstile.ready(function () {
-                                        self.widgetId = turnstile.render(container, {
-                                            sitekey: '{{ config('services.turnstile.key') }}',
-                                            action: '{{ \App\Services\TurnstileService::ACTION }}',
-                                            theme: 'light',
-                                            callback: function (token) {
-                                                self.wire.set('turnstile_token', token);
-                                            },
-                                            'expired-callback': function () {
-                                                self.wire.set('turnstile_token', null);
-                                            },
-                                            'timeout-callback': function () {
-                                                self.wire.set('turnstile_token', null);
-                                            },
-                                            'error-callback': function () {
-                                                self.wire.set('turnstile_token', null);
-                                            },
-                                            'unsupported-callback': function () {
-                                                self.wire.set('turnstile_token', null);
+                                        try {
+                                            self.widgetId = turnstile.render(container, {
+                                                sitekey: '{{ config('services.turnstile.key') }}',
+                                                action: '{{ \App\Services\TurnstileService::ACTION }}',
+                                                theme: 'light',
+                                                callback: function (token) {
+                                                    self.cfNote = '';
+                                                    self.wire.set('turnstile_token', token);
+                                                },
+                                                'expired-callback': function () {
+                                                    self.cfNote = 'The security challenge expired — please solve it again.';
+                                                    self.wire.set('turnstile_token', null);
+                                                },
+                                                'timeout-callback': function () {
+                                                    self.cfNote = 'The security challenge timed out — please try again.';
+                                                    self.wire.set('turnstile_token', null);
+                                                },
+                                                'error-callback': function () {
+                                                    self.cfNote = 'The security challenge failed to load — the site key may be wrong for this domain.';
+                                                    self.wire.set('turnstile_token', null);
+                                                },
+                                                'unsupported-callback': function () {
+                                                    self.cfNote = 'Your browser cannot display the security challenge — please update it and reload.';
+                                                    self.wire.set('turnstile_token', null);
+                                                }
+                                            });
+                                        } catch (e) {
+                                            self.cfNote = 'The security challenge failed to start — please reload the page.';
+                                            return;
+                                        }
+                                        // Invisible render (Invisible-type key or blocked
+                                        // frame): say so instead of showing nothing.
+                                        setTimeout(function () {
+                                            if (self.widgetId === null || self.cfNote !== LOADING) return;
+                                            if (container.offsetHeight < 10) {
+                                                self.cfNote = 'The security challenge is invisible — the site key may be set to “Invisible” or blocked for this domain.';
+                                            } else {
+                                                self.cfNote = '';
                                             }
-                                        });
+                                        }, 1500);
                                     });
                                 }
                                 renderWidget();
@@ -261,6 +284,7 @@
                         x-on:reset-turnstile.window="reset()"
                     >
                         <div data-cf-container></div>
+                        <p x-show="cfNote" x-text="cfNote" class="sk-hint" style="display: none;"></p>
                         <p x-show="loadFailed" class="sk-hint" style="display: none;">The security challenge failed to load — an ad-blocker may be blocking it. Allow this site and reload the page.</p>
                     </div>
                 </div>
