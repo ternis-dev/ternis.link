@@ -21,7 +21,7 @@ class LegalTest extends TestCase
     public function test_legal_pages_render_publicly(): void
     {
         foreach (['privacy' => 'Privacy Policy', 'terms' => 'Terms of Service'] as $slug => $title) {
-            $this->get("http://ternis.link/legal/{$slug}")
+            $this->get("http://ternis.link/pages/legal/{$slug}")
                 ->assertStatus(200)
                 ->assertSee($title, escape: false)
                 ->assertSee('Privacy Policy', escape: false)
@@ -32,46 +32,51 @@ class LegalTest extends TestCase
                 ->assertSee('https://ternis.dev/en/legal/imprint', escape: false);
         }
 
-        $this->get('http://ternis.link/legal/terms')
+        $this->get('http://ternis.link/pages/legal/terms')
             ->assertStatus(200)
             ->assertSee('without prior notice', escape: false);
     }
 
     public function test_imprint_redirects_to_central_legal_page(): void
     {
-        $this->get('http://ternis.link/legal/imprint')
+        $this->get('http://ternis.link/pages/legal/imprint')
             ->assertStatus(302)
             ->assertRedirect('https://ternis.dev/en/legal/imprint');
     }
 
-    public function test_legal_pages_redirect_to_canonical_host(): void
+    public function test_legacy_legal_prefix_redirects_to_pages(): void
     {
-        // ternis.link is the single canonical legal host; dashboard
-        // and admin hosts 301 there instead of serving duplicates.
+        $this->get('http://ternis.link/legal/privacy')
+            ->assertStatus(301)
+            ->assertRedirect('http://ternis.link/pages/legal/privacy');
+
+        // Dashboard/admin hosts redirect straight to the canonical URL.
         $this->get('http://dash.ternis.link/legal/privacy')
             ->assertStatus(301)
-            ->assertRedirect('https://ternis.link/legal/privacy');
+            ->assertRedirect('https://ternis.link/pages/legal/privacy');
 
         $this->get('http://admin.ternis.link/legal/terms?x=1')
             ->assertStatus(301)
-            ->assertRedirect('https://ternis.link/legal/terms?x=1');
+            ->assertRedirect('https://ternis.link/pages/legal/terms?x=1');
     }
 
     public function test_unknown_legal_slug_404s(): void
     {
-        $this->get('http://ternis.link/legal/quests')->assertStatus(404);
-        $this->get('http://ternis.link/legal/privacy.md')->assertStatus(404);
+        $this->get('http://ternis.link/pages/legal/quests')->assertStatus(404);
+        $this->get('http://ternis.link/pages/legal/privacy.md')->assertStatus(404);
     }
 
     public function test_legal_pages_rejected_off_allowed_hosts(): void
     {
         $this->get('http://href.nz/legal/privacy')->assertStatus(404);
+        $this->get('http://href.nz/pages/legal/privacy')->assertStatus(404);
+        $this->get('http://dash.ternis.link/pages/legal/privacy')->assertStatus(404);
     }
 
     public function test_landings_link_to_legal_pages(): void
     {
         $this->get('http://href.nz/')
             ->assertStatus(200)
-            ->assertSee('https://ternis.link/legal/privacy', escape: false);
+            ->assertSee('https://ternis.link/pages/legal/privacy', escape: false);
     }
 }

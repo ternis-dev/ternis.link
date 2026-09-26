@@ -71,8 +71,8 @@
         <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">
             href.re — official business shortener by <a href="https://ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">ternis.link</a> · 
             public links: <a href="https://href.nz" class="font-semibold underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">href.nz</a> · 
-            <a href="https://ternis.link/legal/privacy" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">privacy</a> · 
-            <a href="https://ternis.link/legal/terms" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">terms</a> · 
+            <a href="https://ternis.link/pages/legal/privacy" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">privacy</a> · 
+            <a href="https://ternis.link/pages/legal/terms" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">terms</a> · 
             <a href="https://ternis.dev/en/legal/imprint" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">imprint</a>
         </p>
     </footer>

@@ -223,7 +223,7 @@
 
         <footer class="sk-foot">
             sketched by ternis.link from <a href="https://ternis.dev">ternis.dev</a> · hosted on <a href="https://ternis.net">ternis.net</a> · official links on <a href="https://href.re">href.re</a>
-            · <a href="https://ternis.link/legal/privacy">privacy</a> · <a href="https://ternis.link/legal/terms">terms</a> · <a href="https://ternis.dev/en/legal/imprint">imprint</a>
+            · <a href="https://ternis.link/pages/legal/privacy">privacy</a> · <a href="https://ternis.link/pages/legal/terms">terms</a> · <a href="https://ternis.dev/en/legal/imprint">imprint</a>
             {{-- footer sparkle --}}
             <svg style="display:inline-block; vertical-align: -2px;" width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 4.8 2.1 6.9 7.5 7.5-5.4.6-6.8 2.7-7.5 7.5-.7-4.8-2.1-6.9-7.5-7.5 5.4-.6 6.8-2.7 7.5-7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
             {{-- footer heart --}}

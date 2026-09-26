@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Str;
 
 /**
- * GET /legal/{slug} — Markdown-driven legal pages (privacy, terms,
- * imprint). Source lives in resources/legal/*.md; only allowlisted
- * slugs render (no traversal, no arbitrary files).
+ * Static app pages under the /pages/ namespace (ternis.link only).
+ *
+ * GET /pages/legal/{slug} — Markdown-driven legal pages (privacy,
+ * terms, imprint). Source lives in resources/legal/*.md; only
+ * allowlisted slugs render (no traversal, no arbitrary files).
  */
-class LegalController extends Controller
+class PagesController extends Controller
 {
     /**
      * @var array<string, string> slug => page title (rendered locally)
@@ -27,7 +29,7 @@ class LegalController extends Controller
         'imprint' => 'https://ternis.dev/en/legal/imprint',
     ];
 
-    public function show(string $slug)
+    public function legal(string $slug)
     {
         if (isset(self::REDIRECTS[$slug])) {
             return redirect()->away(self::REDIRECTS[$slug], 302);

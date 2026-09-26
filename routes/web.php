@@ -5,7 +5,7 @@ use App\Http\Controllers\AltchaController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HealthController;
-use App\Http\Controllers\LegalController;
+use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\StatsController;
@@ -277,32 +277,32 @@ Route::middleware(['ensure.domain:ternis'])->get('/stats{any?}', function () {
 /*
 |----------------------------------------------------------------------
 | Legal pages — Markdown from resources/legal/*.md, allowlisted slugs.
-| Canonical home is ternis.link: the single route serves there, 301s
-| dashboard/admin hosts to the canonical host, and 404s everywhere
-| else. One definition (not per-host duplicates): Laravel only matches
+| Canonical home is ternis.link/pages/legal/{slug}: the route below
+| serves there; the legacy /legal/* route 301s (same host or
+| canonical host for dashboard/admin) and 404s everywhere else. One
+| legacy definition (not per-host duplicates): Laravel only matches
 | the FIRST route per URI, so host branching lives inside the handler.
 |----------------------------------------------------------------------
 */
+Route::middleware(['ensure.domain:ternis'])->get('/pages/legal/{slug}', [PagesController::class, 'legal'])
+    ->where('slug', '[a-z-]+')
+    ->name('pages.legal');
+
 Route::get('/legal/{any}', function (string $any) {
     $type = request()->attributes->get('domain_type');
+    $query = request()->getQueryString();
+    $qs = $query ? '?'.$query : '';
 
     if ($type === 'ternis') {
-        if (! preg_match('/^[a-z-]+$/', $any)) {
-            abort(404);
-        }
-
-        return app(LegalController::class)->show($any);
+        return redirect('/pages/legal/'.$any.$qs, 301);
     }
 
     if (in_array($type, ['dashboard', 'admin'], true)) {
-        $query = request()->getQueryString();
-        $qs = $query ? '?'.$query : '';
-
-        return redirect()->away('https://ternis.link/legal/'.$any.$qs, 301);
+        return redirect()->away('https://ternis.link/pages/legal/'.$any.$qs, 301);
     }
 
     abort(404);
-})->where('any', '.*')->name('legal.show');
+})->where('any', '.*');
 
 /*
 |----------------------------------------------------------------------

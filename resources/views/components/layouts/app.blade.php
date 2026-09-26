@@ -63,9 +63,9 @@
         <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">
             ternis.link — by <a href="https://ternis.dev" class="underline underline-offset-2">ternis.dev</a> · hosted on <a href="https://ternis.net" class="underline underline-offset-2">ternis.net</a>
             ·
-            <a href="https://ternis.link/legal/privacy" class="underline underline-offset-2">Privacy</a>
+            <a href="https://ternis.link/pages/legal/privacy" class="underline underline-offset-2">Privacy</a>
             ·
-            <a href="https://ternis.link/legal/terms" class="underline underline-offset-2">Terms</a>
+            <a href="https://ternis.link/pages/legal/terms" class="underline underline-offset-2">Terms</a>
             ·
             <a href="https://ternis.dev/en/legal/imprint" class="underline underline-offset-2">Imprint</a>
         </p>
