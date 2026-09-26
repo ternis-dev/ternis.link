@@ -252,6 +252,12 @@ class TurnstileProtectionTest extends TestCase
         $response->assertSee('rel="preconnect"', escape: false);
         $response->assertSee('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit', escape: false);
         $response->assertSee("action: '".TurnstileService::ACTION."'", escape: false);
+
+        // The Cloudflare callbacks run outside Alpine's evaluator, where
+        // the $wire magic doesn't resolve — the component handle must be
+        // captured explicitly or solved tokens never reach the server.
+        $response->assertSee('x-init="boot($wire, $el)"', escape: false);
+        $response->assertSee('data-cf-container', escape: false);
     }
 
     public function test_landing_page_omits_turnstile_script_when_key_not_configured(): void

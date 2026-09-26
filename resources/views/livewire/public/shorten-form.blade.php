@@ -199,12 +199,15 @@
                         wire:ignore
                         class="sk-turnstile"
                         x-data="{
+                            wire: null,
                             widgetId: null,
                             loadTimer: null,
                             loadAttempts: 0,
                             loadFailed: false,
-                            init() {
+                            boot(component, rootEl) {
                                 var self = this;
+                                self.wire = component;
+                                var container = rootEl.querySelector('[data-cf-container]');
                                 function renderWidget() {
                                     if (typeof turnstile === 'undefined') {
                                         self.loadAttempts++;
@@ -215,26 +218,26 @@
                                         self.loadTimer = setTimeout(renderWidget, 100);
                                         return;
                                     }
-                                    if (self.widgetId !== null) return;
+                                    if (self.widgetId !== null || ! container) return;
                                     turnstile.ready(function () {
-                                        self.widgetId = turnstile.render(self.$refs.cfContainer, {
+                                        self.widgetId = turnstile.render(container, {
                                             sitekey: '{{ config('services.turnstile.key') }}',
                                             action: '{{ \App\Services\TurnstileService::ACTION }}',
                                             theme: 'light',
                                             callback: function (token) {
-                                                $wire.set('turnstile_token', token);
+                                                self.wire.set('turnstile_token', token);
                                             },
                                             'expired-callback': function () {
-                                                $wire.set('turnstile_token', null);
+                                                self.wire.set('turnstile_token', null);
                                             },
                                             'timeout-callback': function () {
-                                                $wire.set('turnstile_token', null);
+                                                self.wire.set('turnstile_token', null);
                                             },
                                             'error-callback': function () {
-                                                $wire.set('turnstile_token', null);
+                                                self.wire.set('turnstile_token', null);
                                             },
                                             'unsupported-callback': function () {
-                                                $wire.set('turnstile_token', null);
+                                                self.wire.set('turnstile_token', null);
                                             }
                                         });
                                     });
@@ -254,9 +257,10 @@
                                 }
                             }
                         }"
+                        x-init="boot($wire, $el)"
                         x-on:reset-turnstile.window="reset()"
                     >
-                        <div x-ref="cfContainer"></div>
+                        <div data-cf-container></div>
                         <p x-show="loadFailed" class="sk-hint" style="display: none;">The security challenge failed to load — an ad-blocker may be blocking it. Allow this site and reload the page.</p>
                     </div>
                 </div>
