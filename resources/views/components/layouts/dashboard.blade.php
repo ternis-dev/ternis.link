@@ -24,7 +24,7 @@ $homeHref = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'te
 $nav[0]['href'] = $homeHref;
 @endphp
 
-<x-layouts.app :title="$title">
+<x-layouts.app :title="$title" maxWidth="max-w-[1440px]">
     @if ($topNav)
         <nav aria-label="Dashboard" data-nav="top" class="sticky top-4 z-30 mb-6 flex items-center justify-between gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
             <div class="flex items-center gap-1">
