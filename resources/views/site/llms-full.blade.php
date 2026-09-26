@@ -17,6 +17,12 @@
 - [Business shortener]({{ $hosts['business'] }}): official business links.
 - [Family & partners]({{ $hosts['ternis'] }}): landing page for family, relatives, and partners.
 
+## Collections
+
+- [Changelog]({{ $hosts['ternis'] }}/pages/changelog): every shipped change, newest first. ([Markdown]({{ $hosts['ternis'] }}/pages/changelog.md))
+- [News]({{ $hosts['ternis'] }}/pages/news): announcements from the network. ([Markdown]({{ $hosts['ternis'] }}/pages/news.md))
+- [Blog]({{ $hosts['ternis'] }}/pages/blog): notes on building a private-by-design shortener. ([Markdown]({{ $hosts['ternis'] }}/pages/blog.md))
+
 ## How it works
 
 - Slugs match `[a-zA-Z0-9_-]`; anything with dots, colons, or slashes is treated as a direct URL (`/url/{url}`, `/go/{url}`).

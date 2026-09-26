@@ -19,6 +19,12 @@ ternis.link shortens long URLs into memorable short links and counts every redir
 - [Business shortener]({{ $hosts['business'] }}): official business links.
 - [Family & partners]({{ $hosts['ternis'] }}): landing page for family, relatives, and partners.
 
+## Collections
+
+- [Changelog]({{ $hosts['ternis'] }}/pages/changelog): every shipped change, newest first. ([Markdown]({{ $hosts['ternis'] }}/pages/changelog.md))
+- [News]({{ $hosts['ternis'] }}/pages/news): announcements from the network. ([Markdown]({{ $hosts['ternis'] }}/pages/news.md))
+- [Blog]({{ $hosts['ternis'] }}/pages/blog): notes on building a private-by-design shortener. ([Markdown]({{ $hosts['ternis'] }}/pages/blog.md))
+
 ## API
 
 - [API v1]({{ $hosts['api'] }}/v1/): link CRUD, domains, click analytics. Authenticated with `Authorization: Bearer <api-key>` (keys start with `tl_`); public guest creation via `POST /v1/links/public` on system domains. Machine-readable contract: `docs/api-v1-openapi.yaml` in the repo.

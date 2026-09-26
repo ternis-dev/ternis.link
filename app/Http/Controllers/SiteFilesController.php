@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ContentCollection;
 use App\Support\NetworkStats;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -87,6 +88,17 @@ class SiteFilesController extends Controller
                     'loc' => $base."/pages/legal/{$slug}",
                     'lastmod' => is_file($path) ? date('Y-m-d', (int) filemtime($path)) : $today,
                 ];
+            }
+
+            foreach (array_keys(ContentCollection::COLLECTIONS) as $collection) {
+                $urls[] = ['loc' => $base."/pages/{$collection}", 'lastmod' => $today];
+
+                foreach (ContentCollection::entries($collection) as $entry) {
+                    $urls[] = [
+                        'loc' => $base."/pages/{$collection}/{$entry['slug']}",
+                        'lastmod' => $entry['date'],
+                    ];
+                }
             }
         }
 

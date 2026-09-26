@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AltchaController;
 use App\Http\Controllers\Auth\TernisAuthController;
+use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PagesController;
@@ -326,6 +327,29 @@ Route::middleware(['ensure.domain:ternis'])->get('/pages/legal/{slug}', [PagesCo
 Route::middleware(['ensure.domain:ternis'])->get('/pages/legal/{slug}.md', [PagesController::class, 'legalMd'])
     ->where('slug', '[a-z-]+')
     ->name('pages.legal-md');
+
+/*
+|----------------------------------------------------------------------
+| File-driven collections (changelog, news, blog) — index + entries,
+| HTML with text/markdown twins. Auto-discovered from
+| resources/content/{collection}/*.md. The {collection} constraint
+| doubles as the allowlist: unknown collections match no route (404).
+| Ternis host only, same pinning as the other /pages/* content.
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:ternis'])
+    ->where(['collection' => 'changelog|news|blog'])
+    ->name('pages.collection.')
+    ->group(function () {
+        Route::get('/pages/{collection}', [ContentController::class, 'index'])->name('index');
+        Route::get('/pages/{collection}.md', [ContentController::class, 'indexMd'])->name('index-md');
+        Route::get('/pages/{collection}/{slug}', [ContentController::class, 'show'])
+            ->where('slug', '[a-z0-9-]+')
+            ->name('show');
+        Route::get('/pages/{collection}/{slug}.md', [ContentController::class, 'showMd'])
+            ->where('slug', '[a-z0-9-]+')
+            ->name('show-md');
+    });
 
 Route::get('/legal/{any}', function (string $any) {
     $type = request()->attributes->get('domain_type');
