@@ -193,105 +193,33 @@
                 </div>
             @enderror
 
-            @if (config('services.turnstile.key'))
-                <div class="sk-turnstile-zone">
-                    <div
-                        wire:ignore
-                        class="sk-turnstile"
-                        x-data="{
-                            wire: null,
-                            widgetId: null,
-                            loadTimer: null,
-                            loadAttempts: 0,
-                            loadFailed: false,
-                            cfNote: 'Loading security check…',
-                            boot(component, rootEl) {
-                                var self = this;
-                                self.wire = component;
-                                var container = rootEl.querySelector('[data-cf-container]');
-                                var LOADING = 'Loading security check…';
-                                function renderWidget() {
-                                    if (typeof turnstile === 'undefined') {
-                                        self.loadAttempts++;
-                                        if (self.loadAttempts > 50) {
-                                            self.loadFailed = true;
-                                            self.cfNote = '';
-                                            return;
-                                        }
-                                        self.loadTimer = setTimeout(renderWidget, 100);
-                                        return;
-                                    }
-                                    if (self.widgetId !== null || ! container) return;
-                                    turnstile.ready(function () {
-                                        try {
-                                            self.widgetId = turnstile.render(container, {
-                                                sitekey: '{{ config('services.turnstile.key') }}',
-                                                action: '{{ \App\Services\TurnstileService::ACTION }}',
-                                                theme: 'light',
-                                                callback: function (token) {
-                                                    self.cfNote = '';
-                                                    self.wire.set('turnstile_token', token);
-                                                },
-                                                'expired-callback': function () {
-                                                    self.cfNote = 'The security challenge expired — please solve it again.';
-                                                    self.wire.set('turnstile_token', null);
-                                                },
-                                                'timeout-callback': function () {
-                                                    self.cfNote = 'The security challenge timed out — please try again.';
-                                                    self.wire.set('turnstile_token', null);
-                                                },
-                                                'error-callback': function () {
-                                                    self.cfNote = 'The security challenge failed to load — the site key may be wrong for this domain.';
-                                                    self.wire.set('turnstile_token', null);
-                                                },
-                                                'unsupported-callback': function () {
-                                                    self.cfNote = 'Your browser cannot display the security challenge — please update it and reload.';
-                                                    self.wire.set('turnstile_token', null);
-                                                }
-                                            });
-                                        } catch (e) {
-                                            self.cfNote = 'The security challenge failed to start — please reload the page.';
-                                            return;
-                                        }
-                                        // Invisible render (Invisible-type key or blocked
-                                        // frame): say so instead of showing nothing.
-                                        setTimeout(function () {
-                                            if (self.widgetId === null || self.cfNote !== LOADING) return;
-                                            if (container.offsetHeight < 10) {
-                                                self.cfNote = 'The security challenge is invisible — the site key may be set to “Invisible” or blocked for this domain.';
-                                            } else {
-                                                self.cfNote = '';
-                                            }
-                                        }, 1500);
-                                    });
-                                }
-                                renderWidget();
-                            },
-                            reset() {
-                                if (typeof turnstile !== 'undefined' && this.widgetId !== null) {
-                                    turnstile.reset(this.widgetId);
-                                }
-                            },
-                            destroy() {
-                                if (this.loadTimer !== null) clearTimeout(this.loadTimer);
-                                if (typeof turnstile !== 'undefined' && this.widgetId !== null) {
-                                    turnstile.remove(this.widgetId);
-                                    this.widgetId = null;
-                                }
+            <div class="sk-altcha-zone">
+                <div
+                    wire:ignore
+                    class="sk-altcha"
+                    x-data="{
+                        wire: null,
+                        boot(component, rootEl) {
+                            var self = this;
+                            self.wire = component;
+                            var widget = rootEl.querySelector('altcha-widget');
+                            if (widget) {
+                                widget.addEventListener('statechange', function (ev) {
+                                    var detail = ev && ev.detail ? ev.detail : {};
+                                    self.wire.set('altcha_payload', detail.payload ? detail.payload : null);
+                                });
                             }
-                        }"
-                        x-init="boot($wire, $el)"
-                        x-on:reset-turnstile.window="reset()"
-                    >
-                        <div data-cf-container></div>
-                        <p x-show="cfNote" x-text="cfNote" class="sk-hint" style="display: none;"></p>
-                        <p x-show="loadFailed" class="sk-hint" style="display: none;">The security challenge failed to load — an ad-blocker may be blocking it. Allow this site and reload the page.</p>
-                    </div>
+                        }
+                    }"
+                    x-init="boot($wire, $el)"
+                    x-on:reset-altcha.window="($el.querySelector('altcha-widget') || { reset: function () {} }).reset()"
+                >
+                    <altcha-widget challenge="/altcha/challenge" auto="onload" name="altcha"></altcha-widget>
                 </div>
-            @endif
+            </div>
 
-            @error('turnstile_token')
-                <div class="sk-oops" role="alert" id="public_turnstile_error">
+            @error('altcha_payload')
+                <div class="sk-oops" role="alert" id="public_altcha_error">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="M12 7.5V13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="16.4" r="1.3" fill="currentColor"/></svg>
                     <div>
                         <p class="sk-oops-title">Security check</p>

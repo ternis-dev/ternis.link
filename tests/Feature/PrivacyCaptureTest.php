@@ -13,10 +13,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Livewire\Livewire;
 use Tests\TestCase;
+use Tests\Concerns\SolvesAltcha;
 
 class PrivacyCaptureTest extends TestCase
 {
     use RefreshDatabase;
+    use SolvesAltcha;
 
     private Domain $publicDomain;
 
@@ -32,6 +34,7 @@ class PrivacyCaptureTest extends TestCase
     {
         Livewire::test(ShortenForm::class)
             ->set('destination_url', 'https://example.com/capture-me')
+            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertHasNoErrors();
 
@@ -52,6 +55,7 @@ class PrivacyCaptureTest extends TestCase
 
         Livewire::test(ShortenForm::class)
             ->set('destination_url', 'https://example.com/no-capture')
+            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertHasNoErrors();
 

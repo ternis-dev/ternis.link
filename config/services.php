@@ -51,9 +51,12 @@ return [
         'notify_endpoint' => env('TERNIS_AUTH_NOTIFY_ENDPOINT', ''),
     ],
 
-    'turnstile' => [
-        'key' => env('TURNSTILE_SITE_KEY'),
-        'secret' => env('TURNSTILE_SECRET_KEY'),
+    'altcha' => [
+        // Self-hosted proof-of-work for the guest form. Falls back to
+        // the app key so protection works with zero configuration;
+        // set ALTCHA_SECRET to isolate it.
+        'secret' => env('ALTCHA_SECRET'),
+        'cost' => env('ALTCHA_COST', 1000),
     ],
 
 ];

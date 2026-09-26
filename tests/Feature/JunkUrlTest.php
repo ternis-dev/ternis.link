@@ -14,10 +14,12 @@ use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
+use Tests\Concerns\SolvesAltcha;
 
 class JunkUrlTest extends TestCase
 {
     use RefreshDatabase;
+    use SolvesAltcha;
 
     private Domain $publicDomain;
 
@@ -33,6 +35,7 @@ class JunkUrlTest extends TestCase
     {
         Livewire::test(ShortenForm::class)
             ->set('destination_url', 'https://phpinfo.php')
+            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertHasErrors('destination_url')
             ->assertSet('errorKind', 'junk')
@@ -48,6 +51,7 @@ class JunkUrlTest extends TestCase
 
         Livewire::test(ShortenForm::class)
             ->set('destination_url', 'https://info.php.bak')
+            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertSet('errorKind', 'junk');
 

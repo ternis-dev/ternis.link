@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AltchaController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HealthController;
@@ -24,6 +25,15 @@ use Illuminate\Support\Facades\Route;
 Route::get('/healthz', HealthController::class)
     ->withoutMiddleware(ResolveDomain::class)
     ->name('healthz');
+
+/*
+|----------------------------------------------------------------------
+| Altcha PoW challenge dispenser (same origin, stateless, signed).
+| The guest widget fetches one per page load; throttled lightly.
+|----------------------------------------------------------------------
+*/
+Route::middleware('throttle:60,1')->get('/altcha/challenge', [AltchaController::class, 'challenge'])
+    ->name('altcha.challenge');
 
 /*
 |--------------------------------------------------------------------------

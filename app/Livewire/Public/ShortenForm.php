@@ -7,11 +7,10 @@ use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Services\AltchaService;
 use App\Services\LinkService;
-use App\Services\TurnstileService;
 use App\Support\IpHash;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -20,7 +19,7 @@ class ShortenForm extends Component
 {
     public string $destination_url = '';
 
-    public ?string $turnstile_token = null;
+    public ?string $altcha_payload = null;
 
     public ?string $shortUrl = null;
 
@@ -203,7 +202,7 @@ class ShortenForm extends Component
             ->first();
     }
 
-    public function create(LinkService $linkService, TurnstileService $turnstile): void
+    public function create(LinkService $linkService, AltchaService $altcha): void
     {
         $key = 'public-shorten:'.request()->ip();
 
@@ -230,41 +229,26 @@ class ShortenForm extends Component
             throw $e;
         }
 
-        if ($turnstile->isEnabled()) {
-            if (! $turnstile->isWidgetAvailable()) {
-                // Misconfigured server (secret set, site key missing):
-                // no challenge can render, so say so instead of asking
-                // users to complete one. Still fail closed.
-                Log::warning('Turnstile enforced without a site key — guest submissions blocked until TURNSTILE_SITE_KEY is set.');
-                $this->addError('turnstile_token', 'Security check is currently unavailable — please try again later.');
-                $this->errorKind = 'security';
+        // Self-hosted proof-of-work: no external requests, no keys to
+        // misconfigure. Solved payloads are single-use server-side.
+        if (empty($this->altcha_payload)) {
+            $this->addError('altcha_payload', 'Please complete the security check.');
+            $this->errorKind = 'security';
 
-                return;
-            }
-
-            if (empty($this->turnstile_token)) {
-                $this->addError('turnstile_token', 'Please complete the security check.');
-                $this->errorKind = 'security';
-
-                return;
-            }
-
-            if (! $turnstile->verify(
-                $this->turnstile_token,
-                request()->ip(),
-                expectedHostname: request()->getHost(),
-            )) {
-                $this->addError('turnstile_token', 'Security check failed — please try again.');
-                $this->errorKind = 'security';
-                $this->turnstile_token = null;
-                $this->dispatch('reset-turnstile');
-
-                return;
-            }
-
-            $this->turnstile_token = null;
-            $this->dispatch('reset-turnstile');
+            return;
         }
+
+        if (! $altcha->verify($this->altcha_payload)) {
+            $this->addError('altcha_payload', 'Security check failed — please try again.');
+            $this->errorKind = 'security';
+            $this->altcha_payload = null;
+            $this->dispatch('reset-altcha');
+
+            return;
+        }
+
+        $this->altcha_payload = null;
+        $this->dispatch('reset-altcha');
 
         $domain = $this->resolveDomain();
 
@@ -278,8 +262,9 @@ class ShortenForm extends Component
                 creatorIp: request()->ip(),
             );
         } catch (ValidationException $e) {
-            $this->turnstile_token = null;
-            $this->dispatch('reset-turnstile');
+            // The payload is already burned (single-use) — force a fresh one.
+            $this->altcha_payload = null;
+            $this->dispatch('reset-altcha');
 
             // Scanner junk gets its own notice card, not the quota one.
             if ($e instanceof JunkUrlException) {
@@ -321,8 +306,8 @@ class ShortenForm extends Component
 
             return;
         } catch (ThrottleRequestsException) {
-            $this->turnstile_token = null;
-            $this->dispatch('reset-turnstile');
+            $this->altcha_payload = null;
+            $this->dispatch('reset-altcha');
 
             $this->addError('destination_url', 'Too many tries in a row — wait a few seconds and try again.');
             $this->errorKind = 'throttle';
@@ -341,11 +326,11 @@ class ShortenForm extends Component
 
     public function resetForm(): void
     {
-        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'turnstile_token']);
+        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'altcha_payload']);
         $this->urlState = 'idle';
         $this->errorKind = 'idle';
         $this->resetValidation();
-        $this->dispatch('reset-turnstile');
+        $this->dispatch('reset-altcha');
     }
 
     /**

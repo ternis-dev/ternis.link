@@ -14,12 +14,8 @@
     <meta property="og:url" content="https://href.nz/">
     <meta name="twitter:card" content="summary">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
-    @vite(['resources/css/landing-public.css'])
+    @vite(['resources/css/landing-public.css', 'resources/js/landing-public.js'])
     @livewireStyles
-    @if (config('services.turnstile.key'))
-        <link rel="preconnect" href="https://challenges.cloudflare.com">
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-    @endif
 </head>
 <body class="sk-root">
 

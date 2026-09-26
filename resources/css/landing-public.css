@@ -524,6 +524,12 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     justify-content: flex-start;
 }
 
+.sk-altcha-zone {
+    margin: 0.9rem 0 0.2rem;
+    display: flex;
+    justify-content: flex-start;
+}
+
 .sk-turnstile {
     border-radius: 8px;
     overflow: hidden;

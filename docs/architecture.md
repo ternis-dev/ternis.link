@@ -26,12 +26,12 @@ app/
   Models/             User, Link, Domain, Click, ApiKey, ApiVersion, Plan, OAuthIdentity, ErrorEncounter
   Services/           LinkService, SlugGeneratorService, SlugResolverService, ClickTrackerService,
                       GeoIpService, DomainService, DomainVerificationService,
-                      TernisAuthService, TurnstileService, JunkUrlDetector
+                      TernisAuthService, AltchaService, JunkUrlDetector
   Support/            IpHash, IpCapture, DomainUrls, CommitVersion (CSS `?v=<short-sha>` stamp)
 bootstrap/app.php     routing + global middleware + exception hook
 config/domains.php    host → domain_type map, wildcard roots, canonical hosts, auth_required
 config/privacy.php    IP_CAPTURE_ENABLED / IP_RETENTION_DAYS
-config/services.php   ternis_auth (base_url, client_*, redirect_uri, scopes, avatar, end_session), turnstile (site key/secret)
+config/services.php   ternis_auth (base_url, client_*, redirect_uri, scopes, avatar, end_session), altcha (secret defaults to APP_KEY, cost)
 routes/web.php        healthz, auth shims, dashboard, admin, legal, landing, redirects
 routes/api/v1.php     /v1/* (mounted with prefix v1 in bootstrap/app.php)
 routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips — daily)
@@ -74,12 +74,11 @@ routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips —
 7. **Errors:** `withExceptions` renders JSON for `api/*`, `v1/*`, or `expectsJson`; otherwise
    branded `errors/{403,404,419,429,500,503}` views. Every rendered non-validation error
    (except `healthz`/`up`) is persisted via `ErrorEncounter::record()` — never throws.
-8. **Guest bot protection:** when Turnstile is configured, the public Livewire form requires a
-   single-use widget token and `TurnstileService` verifies it with Cloudflare Siteverify before
-   link creation. Partial key configuration fails closed; the public JSON API remains throttled
-   but does not require a widget token. Enforcement needs both keys — a missing site key shows
-   an "unavailable" message (no invisible challenge), and a widget that never loads shows an
-   ad-blocker hint after ~5s.
+8. **Guest bot protection:** self-hosted Altcha proof-of-work (`AltchaService`, always on,
+   zero external requests). The bundled `<altcha-widget>` (Vite entry `landing-public.js`)
+   solves a same-origin `/altcha/challenge` (HMAC-signed, 10-min expiry) in a worker; solved
+   payloads are single-use (cache-marked) and verified locally. The public JSON API remains
+   throttled but needs no proof (bot cost lives on the form).
 9. **Guest destination safety:** `UnsafeUrlValidator` (via `LinkService::create`, guests only)
    rejects non-http(s) schemes, embedded credentials, non-public IP literals (v4/v6 incl.
    mapped), localhost/intranet/dotless hosts, and expiries over a year out (`UnsafeUrlException`,
@@ -96,7 +95,7 @@ routes/console.php    scheduler (links:deactivate-expired, privacy:prune-ips —
 | `GeoIpService` | `lookup(request): [country_code, city]` |
 | `DomainService` / `DomainVerificationService` | Normalize/validate hostnames, reserved-host guard, `createForUser`, `claimSubdomain`, TXT `verify` + `instructions`, `deactivate` |
 | `TernisAuthService` | PKCE verifier/challenge, authorize + silent (`prompt=none`) URLs, code exchange, userinfo, `findOrCreateUser` (role mapping, default `free` plan, token store), `refreshAccessToken`, end-session URL |
-| `TurnstileService` | Cloudflare Siteverify client; fails closed on partial configuration, transport errors, invalid/expired/replayed tokens, oversized tokens, and action/hostname mismatches |
+| `AltchaService` | Self-hosted PoW: signed challenges, local verify (signature/expiry/re-derivation), single-use replay guard |
 | `JunkUrlDetector` | `isJunk` / `reasons` / `rejectIfJunk` (throws `JunkUrlException extends ValidationException`, 422) — scanner probes, localhost, private IPs |
 | `UnsafeUrlValidator` | Guest-only structural safety (`rejectIfUnsafe`, throws `UnsafeUrlException`, 422) — schemes, credentials, non-public IPs, intranet hosts; no DNS in request path |
 | `IpHash` / `IpCapture` (`app/Support`) | HMAC-SHA256 IP hash (`IP_HASH_PEPPER`, fallback plain SHA-256); encrypted capture gate (`IP_CAPTURE_ENABLED`) + retention (`IP_RETENTION_DAYS`, default 30) |
