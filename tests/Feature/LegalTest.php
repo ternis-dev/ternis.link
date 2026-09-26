@@ -44,9 +44,17 @@ class LegalTest extends TestCase
             ->assertRedirect('https://ternis.dev/en/legal/imprint');
     }
 
-    public function test_legal_pages_work_on_dashboard_host(): void
+    public function test_legal_pages_redirect_to_canonical_host(): void
     {
-        $this->get('http://dash.ternis.link/legal/privacy')->assertStatus(200);
+        // ternis.link is the single canonical legal host; dashboard
+        // and admin hosts 301 there instead of serving duplicates.
+        $this->get('http://dash.ternis.link/legal/privacy')
+            ->assertStatus(301)
+            ->assertRedirect('https://ternis.link/legal/privacy');
+
+        $this->get('http://admin.ternis.link/legal/terms?x=1')
+            ->assertStatus(301)
+            ->assertRedirect('https://ternis.link/legal/terms?x=1');
     }
 
     public function test_unknown_legal_slug_404s(): void

@@ -3,6 +3,6 @@ new docs.ternis.link
 allow admins to DIRECTLY DELETE links ... (softDelete)
 also: for stats all link creations have to be anyhow preserved ... (maybe: stats.ternis.link)
 
-add activity logs for users
+(DONE): add activity logs for users
 
-legal routes always use ternis.link/legal/{slug}
+DONE: legal routes always use ternis.link/legal/{slug}

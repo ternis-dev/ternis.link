@@ -255,13 +255,32 @@ Route::middleware(['ensure.domain:ternis'])->prefix('stats')->name('stats.')->gr
 /*
 |----------------------------------------------------------------------
 | Legal pages — Markdown from resources/legal/*.md, allowlisted slugs.
-| Public on the main, dashboard and admin hosts (no auth); 404
-| everywhere else via ensure.domain.
+| Canonical home is ternis.link: the single route serves there, 301s
+| dashboard/admin hosts to the canonical host, and 404s everywhere
+| else. One definition (not per-host duplicates): Laravel only matches
+| the FIRST route per URI, so host branching lives inside the handler.
 |----------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:ternis,dashboard,admin'])->get('/legal/{slug}', [LegalController::class, 'show'])
-    ->where('slug', '[a-z-]+')
-    ->name('legal.show');
+Route::get('/legal/{any}', function (string $any) {
+    $type = request()->attributes->get('domain_type');
+
+    if ($type === 'ternis') {
+        if (! preg_match('/^[a-z-]+$/', $any)) {
+            abort(404);
+        }
+
+        return app(LegalController::class)->show($any);
+    }
+
+    if (in_array($type, ['dashboard', 'admin'], true)) {
+        $query = request()->getQueryString();
+        $qs = $query ? '?'.$query : '';
+
+        return redirect()->away('https://ternis.link/legal/'.$any.$qs, 301);
+    }
+
+    abort(404);
+})->where('any', '.*')->name('legal.show');
 
 /*
 |----------------------------------------------------------------------
