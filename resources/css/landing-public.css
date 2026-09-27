@@ -175,6 +175,11 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     max-width: 560px;
 }
 
+.sk-error-hint {
+    margin-top: 0.5rem;
+    font-size: 0.93rem;
+}
+
 .sk-error-actions {
     display: flex;
     flex-wrap: wrap;
