@@ -840,11 +840,194 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
 }
 
 @media (max-width: 640px) {
-    .sk-notes { grid-template-columns: 1fr; }
-    .sk-input-row { flex-direction: column; }
-    .sk-btn { width: 100%; }
+    /* Touch devices get the native scrollbar; the custom rail takes
+     * valuable edge space and is awkward to drag with a finger. */
+    html {
+        scrollbar-width: auto;
+    }
+
+    html::-webkit-scrollbar,
+    body.sk-root::-webkit-scrollbar {
+        display: initial;
+        width: auto;
+    }
+
+    .sk-gauge {
+        display: none;
+    }
+
+    body.sk-root {
+        padding: 0 max(0.85rem, env(safe-area-inset-left)) max(2rem, env(safe-area-inset-bottom));
+        font-size: 1rem;
+    }
+
+    .sk-wrap {
+        width: 100%;
+    }
+
+    .sk-head {
+        align-items: flex-start;
+        padding: 1rem 0.1rem;
+    }
+
+    .sk-brand {
+        font-size: 2rem;
+    }
+
+    .sk-login {
+        max-width: 10rem;
+        text-align: right;
+        line-height: 1.2;
+    }
+
+    .sk-hero {
+        padding-top: 1.5rem;
+    }
+
+    .sk-title {
+        font-size: clamp(2.65rem, 14vw, 4rem);
+        overflow-wrap: anywhere;
+    }
+
+    .sk-sub {
+        max-width: 32rem;
+        font-size: 1rem;
+    }
+
+    .sk-steps {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.45rem;
+        margin-top: 1.5rem;
+    }
+
+    .sk-steps li {
+        justify-content: flex-start;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 2.9rem;
+        padding: 0.45rem 0.8rem;
+    }
+
+    .sk-step-arrow {
+        display: none;
+    }
+
+    .sk-form-zone {
+        margin-top: 1.75rem;
+    }
+
+    .sk-card {
+        padding: 1.2rem 0.9rem 1.1rem;
+        border-radius: 14px;
+    }
+
+    .sk-form-title {
+        font-size: 1.65rem;
+    }
+
+    .sk-form-head {
+        gap: 0.6rem;
+    }
+
+    .sk-meter {
+        max-width: 100%;
+        box-sizing: border-box;
+        transform: none;
+    }
+
+    .sk-meter-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sk-input-row {
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+
+    .sk-field input {
+        min-height: 3.1rem;
+        box-sizing: border-box;
+        padding-right: 5rem;
+    }
+
+    .sk-btn {
+        width: 100%;
+        min-height: 3.1rem;
+    }
+
+    .sk-result-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sk-result-actions > * {
+        justify-content: center;
+        min-height: 2.8rem;
+        box-sizing: border-box;
+    }
+
+    .sk-result-actions .sk-again {
+        grid-column: 1 / -1;
+    }
+
+    .sk-ticket-link {
+        font-size: 1.15rem;
+    }
+
+    .sk-tray-list li {
+        gap: 0.35rem;
+        padding-left: 0.55rem;
+    }
+
+    .sk-tray-list button,
+    .sk-tray-list a.sk-tray-qr {
+        min-height: 2.2rem;
+        padding-inline: 0.45rem;
+    }
+
+    .sk-tray-list a {
+        font-size: 0.95rem;
+    }
+
+    .sk-notes {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+        margin-top: 2rem;
+    }
+
+    .sk-note {
+        padding: 1rem 0.9rem 0.9rem;
+    }
+
+    .sk-cut {
+        margin-top: 2rem;
+    }
+
     .dk-hide-sm { display: none; }
-    .sk-card { padding: 1.25rem 1.1rem; }
+}
+
+@media (max-width: 380px) {
+    .sk-head {
+        gap: 0.5rem;
+    }
+
+    .sk-brand {
+        font-size: 1.8rem;
+    }
+
+    .sk-login {
+        font-size: 0.95rem;
+    }
+
+    .sk-meter-boxes {
+        display: none;
+    }
+
+    .sk-tray-list a {
+        max-width: 10rem;
+    }
 }
 
 /* --- form head + quota meter -------------------------------- */
