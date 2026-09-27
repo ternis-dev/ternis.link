@@ -139,6 +139,15 @@ class DomainHardeningTest extends TestCase
         $this->get('http://10.0.0.5/healthz')->assertStatus(200);
     }
 
+    public function test_public_errors_use_the_href_nz_sketch_view(): void
+    {
+        $this->get('http://href.nz/not-a-real-link')
+            ->assertStatus(404)
+            ->assertSee('class="sk-error"', escape: false)
+            ->assertSee('href.nz', escape: false)
+            ->assertDontSee('tl-theme', escape: false);
+    }
+
     public function test_openapi_doc_covers_host_pinned_routes(): void
     {
         $path = base_path('docs/api-v1-openapi.yaml');

@@ -1,5 +1,13 @@
 @props(['code' => '500', 'title' => 'Something went wrong'])
 
+@if (request()->attributes->get('domain_type') === 'public')
+<x-layouts.public-error :code="$code" :title="$title">
+    {{ $slot }}
+    @if (trim($actions ?? '') !== '')
+        <x-slot:actions>{{ $actions }}</x-slot:actions>
+    @endif
+</x-layouts.public-error>
+@else
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,3 +42,4 @@
     </main>
 </body>
 </html>
+@endif
