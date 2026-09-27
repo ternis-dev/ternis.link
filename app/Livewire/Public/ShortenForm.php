@@ -181,8 +181,10 @@ class ShortenForm extends Component
     }
 
     /**
-     * An existing active link for the same destination on this domain —
-     * no need to shorten twice.
+     * An existing active guest link for the same destination on this
+     * domain — no need to shorten twice. Authenticated links are excluded:
+     * showing them here would expose their analytics-bearing URL as a
+     * guest result.
      */
     public function getDuplicateProperty(): ?Link
     {
@@ -197,6 +199,7 @@ class ShortenForm extends Component
         }
 
         return Link::accessible()
+            ->whereNull('user_id')
             ->where('domain_id', $domain->id)
             ->where('destination_url', trim($this->destination_url))
             ->orderByDesc('created_at')

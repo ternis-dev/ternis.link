@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Public\ShortenForm;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\User;
 use App\Services\LinkService;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
@@ -283,6 +284,26 @@ class PublicShorteningTest extends TestCase
             ->set('destination_url', 'https://example.com/already-here')
             ->assertSee('Already shortened', escape: false)
             ->assertSee('href.nz/alreadyhere1');
+    }
+
+    public function test_authenticated_duplicate_is_not_shown_to_guests(): void
+    {
+        $user = User::factory()->create();
+
+        Link::create([
+            'slug' => 'memberlink1',
+            'destination_url' => 'https://example.com/member-only',
+            'domain_id' => $this->publicDomain->id,
+            'user_id' => $user->id,
+            'is_active' => true,
+        ]);
+
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'https://example.com/member-only')
+            ->assertDontSee('Already shortened', escape: false)
+            ->call('create')
+            ->assertHasNoErrors()
+            ->assertSet('shortUrl', fn ($value) => is_string($value) && str_starts_with($value, 'https://href.nz/'));
     }
 
     public function test_error_kinds_match_failure_reason(): void
