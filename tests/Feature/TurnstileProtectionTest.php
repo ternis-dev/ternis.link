@@ -251,6 +251,8 @@ class TurnstileProtectionTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('rel="preconnect"', escape: false);
         $response->assertSee('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit', escape: false);
+        $response->assertDontSee('api.js?render=explicit" async', escape: false);
+        $response->assertDontSee('api.js?render=explicit" defer', escape: false);
         $response->assertSee("action: '".TurnstileService::ACTION."'", escape: false);
 
         // The Cloudflare callbacks run outside Alpine's evaluator, where
