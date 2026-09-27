@@ -1,4 +1,4 @@
-<div class="sk-card tilt-l" data-sk-form>
+<div class="sk-card" data-sk-form>
     <span class="sk-tape" aria-hidden="true"></span>
     {{-- sparkles --}}
     <svg class="dk dk-faint dk-hide-sm" style="top: -14px; left: 18px;" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 4.8 2.1 6.9 7.5 7.5-5.4.6-6.8 2.7-7.5 7.5-.7-4.8-2.1-6.9-7.5-7.5 5.4-.6 6.8-2.7 7.5-7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
@@ -303,9 +303,17 @@
     @endif
 
     <div class="sk-tray" data-sk-tray hidden>
-        <p class="sk-tray-title">your recent links on this device</p>
-        <ul class="sk-tray-list" data-sk-recent></ul>
-        <button type="button" class="sk-tray-clear" data-sk-tray-clear>clear history</button>
+        <div class="sk-tray-head">
+            <p class="sk-tray-title">recent links on this device</p>
+            <button type="button" class="sk-tray-toggle" data-sk-tray-toggle aria-expanded="true" aria-controls="sk-recent-links">
+                hide
+            </button>
+        </div>
+        <div id="sk-recent-links" data-sk-tray-content>
+            <p class="sk-tray-empty" data-sk-tray-empty>No links shortened yet — your recent links will show up here.</p>
+            <ul class="sk-tray-list" data-sk-recent></ul>
+            <button type="button" class="sk-tray-clear" data-sk-tray-clear>clear history</button>
+        </div>
     </div>
 </div>
 
@@ -412,6 +420,7 @@
 
     /* --- recent-links tray (localStorage, this device only) --- */
     var TRAY_KEY = 'sk-recent-links';
+    var TRAY_COLLAPSED_KEY = 'sk-recent-links-collapsed';
     var TRAY_MAX = 5;
 
     function readTray() {
@@ -435,7 +444,9 @@
         if (!tray || !list) return;
 
         var items = readTray();
-        tray.hidden = items.length === 0;
+        tray.hidden = false;
+        var empty = tray.querySelector('[data-sk-tray-empty]');
+        if (empty) empty.hidden = items.length !== 0;
         list.innerHTML = '';
 
         items.forEach(function (item) {
@@ -457,6 +468,21 @@
             li.appendChild(copy);
             list.appendChild(li);
         });
+    }
+
+    function setTrayCollapsed(collapsed) {
+        var tray = document.querySelector('[data-sk-tray]');
+        var content = tray ? tray.querySelector('[data-sk-tray-content]') : null;
+        var toggle = tray ? tray.querySelector('[data-sk-tray-toggle]') : null;
+        if (!tray || !content || !toggle) return;
+
+        tray.classList.toggle('is-collapsed', collapsed);
+        content.hidden = collapsed;
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        toggle.textContent = collapsed ? 'show' : 'hide';
+        try {
+            localStorage.setItem(TRAY_COLLAPSED_KEY, collapsed ? '1' : '0');
+        } catch (e) { /* private mode */ }
     }
 
     function recordFromResult(scope) {
@@ -499,6 +525,10 @@
     }
 
     document.addEventListener('click', function (event) {
+        if (event.target.closest('[data-sk-tray-toggle]')) {
+            var tray = document.querySelector('[data-sk-tray]');
+            setTrayCollapsed(!tray || !tray.classList.contains('is-collapsed'));
+        }
         if (event.target.closest('[data-sk-tray-clear]')) {
             writeTray([]);
             paintTray();
@@ -506,6 +536,9 @@
     });
 
     paintTray();
+    try {
+        setTrayCollapsed(localStorage.getItem(TRAY_COLLAPSED_KEY) === '1');
+    } catch (e) { /* private mode */ }
     observe();
     document.addEventListener('livewire:navigated', function () {
         observed = false;

@@ -474,7 +474,7 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     border-radius: 12px;
     padding: 0.7rem 5.6rem 0.7rem 1rem;
     outline: none;
-    transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+    transition: background 0.12s ease, border-color 0.12s ease;
 }
 
 .sk-field input::placeholder { color: #a09a8b; }
@@ -483,7 +483,6 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
 .sk-field input:focus {
     border-color: var(--sk-ink);
     background: #fff;
-    box-shadow: 2px 3px 0 rgba(43, 43, 43, 0.25);
 }
 
 /* Keyboard focus: hand-sketched dashed outline + hard pen shadow. */
@@ -492,7 +491,6 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     background: #fff;
     outline: 2px dashed var(--sk-ink);
     outline-offset: 3px;
-    box-shadow: 3px 4px 0 rgba(43, 43, 43, 0.85);
 }
 
 .sk-field input:disabled {
@@ -507,13 +505,11 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
 
 .sk-field input.is-valid:focus {
     border-color: var(--sk-ok-border);
-    box-shadow: 2px 3px 0 rgba(47, 122, 61, 0.35);
 }
 
 .sk-field input.is-valid:focus-visible {
     outline: 2px dashed var(--sk-ok-border);
     outline-offset: 3px;
-    box-shadow: 3px 4px 0 rgba(47, 122, 61, 0.55);
 }
 
 /* Error state: red border + tint; outline reserved for keyboard focus. */
@@ -525,13 +521,11 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
 .sk-field input.is-error:focus {
     border-color: var(--sk-err-border);
     background: #fff;
-    box-shadow: 2px 3px 0 rgba(179, 54, 54, 0.35);
 }
 
 .sk-field input.is-error:focus-visible {
     outline: 2px dashed var(--sk-err-border);
     outline-offset: 3px;
-    box-shadow: 3px 4px 0 rgba(179, 54, 54, 0.55);
 }
 
 /* Inset icon buttons (paste / clear) live inside the field. */
@@ -555,14 +549,13 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     border-radius: 12px;
     padding: 0.65rem 1.4rem 0.8rem;
     cursor: pointer;
-    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.2);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    transition: background 0.12s ease, border-color 0.12s ease;
     white-space: nowrap;
 }
 
-.sk-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.2); }
-.sk-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2); }
-.sk-btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+.sk-btn:hover { background: var(--sk-soft); border-color: var(--sk-soft); }
+.sk-btn:active { background: var(--sk-ink); }
+.sk-btn:disabled { opacity: 0.6; cursor: wait; }
 
 .sk-btn:focus-visible {
     outline: 2px dashed var(--sk-ink);
@@ -989,12 +982,46 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     padding-top: 0.8rem;
 }
 
+.sk-tray-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
 .sk-tray-title {
     margin: 0 0 0.5rem;
     font-family: var(--font-hand);
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--sk-soft);
+}
+
+.sk-tray-toggle {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-hand);
+    font-size: 1.05rem;
+    color: var(--sk-soft);
+    background: transparent;
+    border: 1.5px dashed var(--sk-faint);
+    border-radius: 999px;
+    padding: 0.05rem 0.7rem 0.15rem;
+    cursor: pointer;
+}
+
+.sk-tray-toggle:hover {
+    color: var(--sk-ink);
+    border-color: var(--sk-ink);
+}
+
+.sk-tray-empty {
+    margin: 0;
+    color: var(--sk-soft);
+    font-size: 0.95rem;
+}
+
+.sk-tray.is-collapsed .sk-tray-title {
+    margin-bottom: 0;
 }
 
 .sk-tray-list {
