@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Str;
-
 /**
  * Developer docs on the docs host (docs.ternis.link): renders the
  * Markdown files from docs/*.md as HTML, each with a raw Markdown
@@ -38,9 +37,22 @@ class DocsController extends Controller
 
     public function show(string $slug)
     {
+        // Localhost dev: pinned dashboard routes never match, so a docs
+        // slug that doubles as a dashboard URI (/links) falls through
+        // here with the dashboard type. Delegate it (same pattern as
+        // the /new closure) instead of leaking the docs page onto the
+        // dashboard — every other dashboard-typed slug 404s below.
+        if ($slug === 'links' && request()->attributes->get('domain_type') === 'dashboard') {
+            if (! auth()->check()) {
+                return redirect('/login');
+            }
+
+            return app(DashboardController::class)->links();
+        }
+
         $page = $this->page($slug);
 
-        if ($page === null) {
+        if ($page === null || request()->attributes->get('domain_type') !== 'docs') {
             abort(404);
         }
 

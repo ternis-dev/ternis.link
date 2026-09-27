@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\DocsController;
+use App\Models\User;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -12,10 +14,13 @@ class DocsTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $user;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
+        $this->user = User::factory()->create();
     }
 
     public function test_docs_index_lists_pages(): void
@@ -67,5 +72,44 @@ class DocsTest extends TestCase
     public function test_docs_host_does_not_serve_short_links(): void
     {
         $this->get('http://docs.ternis.link/abc123')->assertNotFound();
+    }
+
+    public function test_docs_links_slug_renders_the_links_doc(): void
+    {
+        // Regression: dashboard /links (registered first) used to
+        // swallow this and bounce guests to a /login that 404s.
+        $this->get('http://docs.ternis.link/links')
+            ->assertOk()
+            ->assertSee('Links', escape: false);
+    }
+
+    public function test_every_docs_slug_resolves_on_the_docs_host(): void
+    {
+        // Collision guard: if a future docs slug ever matches an
+        // earlier exact route again, this fails instead of shipping a
+        // login-bounce or a 404.
+        foreach (array_keys(DocsController::PAGES) as $slug) {
+            $this->get("http://docs.ternis.link/{$slug}")->assertOk();
+        }
+    }
+
+    public function test_docs_slugs_do_not_leak_onto_the_dashboard_host(): void
+    {
+        $this->actingAs($this->user)
+            ->get('http://dash.ternis.link/architecture')
+            ->assertNotFound();
+    }
+
+    public function test_localhost_links_serves_the_dashboard(): void
+    {
+        // Pinned dashboard routes never match localhost, so the docs
+        // route delegates back (same pattern as /new).
+        $this->get('http://localhost/links')
+            ->assertRedirect('http://localhost/login');
+
+        $this->actingAs($this->user)
+            ->get('http://localhost/links')
+            ->assertOk()
+            ->assertSee('New Short Link', escape: false);
     }
 }

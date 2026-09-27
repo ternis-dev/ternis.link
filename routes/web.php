@@ -223,7 +223,12 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     // there (ResolveDomain maps localhost/new to the dashboard type).
     Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
         ->get('/new', [DashboardController::class, 'createLink'])->name('dashboard.new');
-    Route::get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
+    // /links is host-pinned like /new above: it would otherwise match
+    // first on the docs host (registered before docs /{slug}) and
+    // bounce guests to a /login that 404s there. Localhost dev falls
+    // through to the docs route's dashboard branch below.
+    Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
+        ->get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
     Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
     Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
     Route::get('/links/{link}/edit', [DashboardController::class, 'editLink'])->name('dashboard.links.edit');
@@ -373,20 +378,30 @@ Route::get('/legal/{any}', function (string $any) {
 | Every other host 404s here via ensure.domain.
 |----------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:docs'])->name('docs.')->group(function () {
+Route::name('docs.')->group(function () {
     // Host-pinned like the dashboard /: the host-blind landing / below
     // shares the method+URI and would otherwise evict this definition.
-    Route::domain((string) config('domains.docs_host', 'docs.ternis.link'))
+    Route::middleware(['ensure.domain:docs'])
+        ->domain((string) config('domains.docs_host', 'docs.ternis.link'))
         ->get('/', [DocsController::class, 'index'])->name('index');
-    Route::get('/api-v1-openapi.yaml', [DocsController::class, 'openapi'])->name('openapi');
+    Route::middleware(['ensure.domain:docs'])
+        ->get('/api-v1-openapi.yaml', [DocsController::class, 'openapi'])->name('openapi');
     // Slug allowlist (same pattern as /pages/{collection}): a greedy
     // {slug} here would shadow single-segment routes registered below
     // (/new, /{input}) on every other host before ensure.domain 404s.
+    // /{slug} (but not .md) also allows the dashboard type: pinned
+    // dashboard routes never match localhost dev, so /links (a docs
+    // slug AND a dashboard URI) falls through here with the dashboard
+    // type — the controller delegates those to the dashboard (see
+    // show()). Middleware is per-route (not grouped) so the dashboard
+    // allowance doesn't leak onto the other docs routes.
     $docSlugs = implode('|', array_keys(DocsController::PAGES));
-    Route::get('/{slug}.md', [DocsController::class, 'showMd'])
+    Route::middleware(['ensure.domain:docs'])
+        ->get('/{slug}.md', [DocsController::class, 'showMd'])
         ->where('slug', $docSlugs)
         ->name('show-md');
-    Route::get('/{slug}', [DocsController::class, 'show'])
+    Route::middleware(['ensure.domain:docs,dashboard'])
+        ->get('/{slug}', [DocsController::class, 'show'])
         ->where('slug', $docSlugs)
         ->name('show');
 });

@@ -78,7 +78,7 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/new` | `public.new` | in-handler branch | dashboard → create page (localhost dev; pinned `dashboard.new` serves the dashboard host); public → `landing.new` guest form; else 404 |
 | GET | `/` on docs host | `docs.index` | `ensure.domain:docs`, host-pinned | Docs home (pinned: host-blind landing `/` would evict it) |
 | GET | `/api-v1-openapi.yaml` | `docs.openapi` | `ensure.domain:docs` | Raw OpenAPI 3.1 (`docs/api-v1-openapi.yaml`) |
-| GET | `/{slug}`, `/{slug}.md` | `docs.show`, `docs.show-md` | `ensure.domain:docs`, slug allowlist | Renders `docs/*.md` as HTML + Markdown twin; unknown slugs 404 |
+| GET | `/{slug}`, `/{slug}.md` | `docs.show`, `docs.show-md` | `ensure.domain:docs` (`show` also `dashboard` for the `/links` localhost fallback), slug allowlist | Renders `docs/*.md` as HTML + Markdown twin; unknown slugs 404 |
 | GET | `/url/{url}` `.*` | `redirect.url` | `ensure.domain:public,business,ternis,partner`, public (no auth) | Preferred direct-URL redirect |
 | GET | `/go/{url}` `.*` | `redirect.go` | same | Alternative direct-URL redirect |
 | GET | `/preview/{input}` `.*` | `redirect.preview` | same (handler 404s except href.nz) | Above catch-all; sandbox preview |
