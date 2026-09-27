@@ -23,14 +23,13 @@ class ContentTest extends TestCase
         $body = $this->get('http://ternis.link/pages/changelog')->assertStatus(200)->getContent();
 
         $this->assertStringContainsString('Changelog', $body);
-        $this->assertStringContainsString('Self-hosted bot protection', $body);
-        $this->assertStringContainsString('/pages/changelog/self-hosted-bot-protection', $body);
+        $this->assertStringContainsString('sketch-login-for-href-nz', $body);
+        $this->assertStringContainsString('/pages/changelog/machine-readable-site-files', $body);
 
-        // Newest first: machine-readable files (later slug, same date)
-        // sorts before bot protection… entries share the seed date,
-        // so order falls back to slug descending.
+        // Newest first: entries share the seed date, so order falls
+        // back to slug descending.
         $this->assertTrue(
-            strpos($body, 'sketch-login-for-href-nz') < strpos($body, 'self-hosted-bot-protection')
+            strpos($body, 'sketch-login-for-href-nz') < strpos($body, 'machine-readable-site-files')
         );
 
         $this->get('http://ternis.link/pages/news')
@@ -54,7 +53,7 @@ class ContentTest extends TestCase
     public function test_collections_404_on_other_hosts(): void
     {
         $this->get('http://href.nz/pages/news')->assertNotFound();
-        $this->get('http://href.nz/pages/changelog/self-hosted-bot-protection')->assertNotFound();
+        $this->get('http://href.nz/pages/changelog/machine-readable-site-files')->assertNotFound();
         $this->get('http://dash.ternis.link/pages/blog')->assertNotFound();
     }
 
@@ -72,7 +71,7 @@ class ContentTest extends TestCase
             ->assertStatus(200)
             ->assertHeader('Content-Type', 'text/markdown; charset=UTF-8')
             ->assertSee('# Changelog', escape: false)
-            ->assertSee('/pages/changelog/self-hosted-bot-protection.md', escape: false);
+            ->assertSee('/pages/changelog/machine-readable-site-files.md', escape: false);
 
         $entry = $this->get('http://ternis.link/pages/news/public-network-stats.md')
             ->assertStatus(200)

@@ -12,12 +12,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
-use Tests\Concerns\SolvesAltcha;
 
 class GuestLinkSafetyTest extends TestCase
 {
     use RefreshDatabase;
-    use SolvesAltcha;
 
     protected function setUp(): void
     {
@@ -64,7 +62,6 @@ class GuestLinkSafetyTest extends TestCase
     {
         Livewire::test(ShortenForm::class)
             ->set('destination_url', $url)
-            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertHasErrors(['destination_url'])
             ->assertSet('errorKind', 'invalid')

@@ -14,12 +14,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
-use Tests\Concerns\SolvesAltcha;
 
 class PublicShorteningTest extends TestCase
 {
     use RefreshDatabase;
-    use SolvesAltcha;
 
     private Domain $publicDomain;
 
@@ -146,7 +144,6 @@ class PublicShorteningTest extends TestCase
     {
         Livewire::test(ShortenForm::class)
             ->set('destination_url', 'https://example.com/web-guest')
-            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertHasNoErrors()
             ->assertSet('shortUrl', fn ($value) => is_string($value) && str_starts_with($value, 'https://href.nz/'));
@@ -205,7 +202,6 @@ class PublicShorteningTest extends TestCase
         Livewire::test(ShortenForm::class)
             ->set('destination_url', 'https://example.com/state-reset')
             ->assertSet('urlState', 'valid')
-            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertHasNoErrors()
             ->assertSet('urlState', 'idle');
@@ -237,7 +233,6 @@ class PublicShorteningTest extends TestCase
 
         Livewire::test(ShortenForm::class)
             ->set('destination_url', 'https://example.com/over-quota')
-            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertSet('quotaExceeded', true)
             ->assertSet('errorKind', 'quota')
@@ -266,7 +261,6 @@ class PublicShorteningTest extends TestCase
         $test->call('applyFix')
             ->assertSet('destination_url', 'https://example.com/missing-scheme')
             ->assertSet('urlState', 'valid')
-            ->set('altcha_payload', $this->solvedAltchaPayload())
             ->call('create')
             ->assertHasNoErrors();
 
