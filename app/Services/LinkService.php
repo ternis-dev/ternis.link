@@ -34,6 +34,10 @@ class LinkService
 
     public const AUTHENTICATED_DEFAULT_SLUG_LENGTH = 6;
 
+    public const FREE_MIN_SLUG_LENGTH = 5;
+
+    public const FREE_MAX_SLUG_LENGTH = 9;
+
     /**
      * Guest links may not outlive a year — anonymous URLs with
      * indefinite lifetimes are a phishing staple.
@@ -179,9 +183,11 @@ class LinkService
         $minLength = $user?->plan?->min_slug_length ?? self::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         // Explicit length choice (dashboard picker) wins over the plan
         // default; clamped defensively so callers can't pass absurdities.
-        $generatedLength = $generatedLength !== null
-            ? max(1, min(64, $generatedLength))
-            : ($user === null ? self::GUEST_SLUG_LENGTH : $minLength);
+        $generatedLength = $user !== null && ! $user->isAdmin() && $user->plan?->name === 'free'
+            ? random_int(self::FREE_MIN_SLUG_LENGTH, self::FREE_MAX_SLUG_LENGTH)
+            : ($generatedLength !== null
+                ? max(1, min(64, $generatedLength))
+                : ($user === null ? self::GUEST_SLUG_LENGTH : $minLength));
 
         if (! $domain->is_active) {
             throw ValidationException::withMessages([

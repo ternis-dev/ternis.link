@@ -193,7 +193,8 @@ class PlanLimitsTest extends TestCase
         $response = $this->postJson('http://links.t-api.de/v1/links', $this->createLinkPayload($this->domain), $this->headersFor($user));
 
         $response->assertStatus(201);
-        $this->assertGreaterThanOrEqual(6, strlen($response->json('slug')));
+        $this->assertGreaterThanOrEqual(5, strlen($response->json('slug')));
+        $this->assertLessThanOrEqual(9, strlen($response->json('slug')));
     }
 
     public function test_livewire_form_rejects_duplicate_slug(): void
@@ -271,29 +272,22 @@ class PlanLimitsTest extends TestCase
         $this->assertDatabaseMissing('links', ['destination_url' => 'https://example.com/bad-length']);
     }
 
-    public function test_free_plan_can_choose_generated_slug_length_from_six_to_twelve(): void
+    public function test_free_plan_uses_random_generated_slug_length_from_five_to_nine(): void
     {
-        $user = $this->userOnPlan('free'); // min_slug_length = 6
+        $user = $this->userOnPlan('free'); // min_slug_length = 5
 
         $slug = Livewire::actingAs($user)
             ->test(LinkForm::class)
-            ->assertSee('Generated Slug Length', escape: false)
-            ->set('destination_url', 'https://example.com/free-length')
+            ->assertDontSee('Generated Slug Length', escape: false)
+            ->set('destination_url', 'https://example.com/free-random')
             ->set('domain_id', $this->domain->id)
             ->set('slug_length', 12)
             ->call('create')
             ->assertHasNoErrors()
             ->get('createdSlug');
 
-        $this->assertSame(12, strlen($slug));
-
-        Livewire::actingAs($user)
-            ->test(LinkForm::class)
-            ->set('destination_url', 'https://example.com/free-too-short')
-            ->set('domain_id', $this->domain->id)
-            ->set('slug_length', 13)
-            ->call('create')
-            ->assertHasErrors('slug_length');
+        $this->assertGreaterThanOrEqual(5, strlen($slug));
+        $this->assertLessThanOrEqual(9, strlen($slug));
     }
 
     public function test_custom_slug_wins_over_picked_length(): void
@@ -340,22 +334,18 @@ class PlanLimitsTest extends TestCase
         }
     }
 
-    public function test_api_applies_free_plan_slug_length_within_six_to_twelve(): void
+    public function test_api_ignores_free_plan_slug_length_choice(): void
     {
-        $user = $this->userOnPlan('free'); // min_slug_length = 6
+        $user = $this->userOnPlan('free'); // min_slug_length = 5
 
         $payload = $this->createLinkPayload($this->domain);
-        $payload['slug_length'] = 10;
+        $payload['slug_length'] = 12;
 
         $response = $this->postJson('http://links.t-api.de/v1/links', $payload, $this->headersFor($user));
 
         $response->assertStatus(201);
-        $this->assertSame(10, strlen($response->json('slug')));
-
-        $payload['slug_length'] = 13;
-        $this->postJson('http://links.t-api.de/v1/links', $payload, $this->headersFor($user))
-            ->assertStatus(422)
-            ->assertJsonValidationErrors('slug_length');
+        $this->assertGreaterThanOrEqual(5, strlen($response->json('slug')));
+        $this->assertLessThanOrEqual(9, strlen($response->json('slug')));
     }
 
     public function test_api_custom_slug_wins_over_slug_length(): void
