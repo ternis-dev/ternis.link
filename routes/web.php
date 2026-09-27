@@ -215,7 +215,13 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
         ->get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/new', [DashboardController::class, 'createLink'])->name('dashboard.new');
+    // /new is host-pinned like / above: the public /new route below
+    // shares the same method+URI and would otherwise evict this
+    // definition from the collection. Localhost dev never matches a
+    // pinned host, so the public closure serves the dashboard branch
+    // there (ResolveDomain maps localhost/new to the dashboard type).
+    Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
+        ->get('/new', [DashboardController::class, 'createLink'])->name('dashboard.new');
     Route::get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
     Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
     Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
@@ -397,7 +403,20 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/new', function () {
-    if (request()->attributes->get('domain_type') !== 'public') {
+    $type = request()->attributes->get('domain_type');
+
+    // Localhost dev: the dashboard /new above is host-pinned and never
+    // matches here — serve the create page directly (same pattern as
+    // the / route's dashboard branch).
+    if ($type === 'dashboard') {
+        if (! auth()->check()) {
+            return redirect('/login');
+        }
+
+        return app(DashboardController::class)->createLink();
+    }
+
+    if ($type !== 'public') {
         abort(404);
     }
 

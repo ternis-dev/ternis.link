@@ -65,7 +65,8 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/dashboard`, `/dashboard/{any}` | — | dashboard host only (+ `auth` + `refresh.sso` + `enforce.domain`) | Legacy prefix: 301 to root URLs (localhost serves home); admin host 404s |
 | GET | `/admin{any?}` on dashboard host | — | same group | 302 to admin host root equivalent, prefix stripped (`/admin/users` → `/users`) |
 | GET | `/` on dashboard host | `dashboard` | same group, host-pinned | Avoids colliding with landing `/` in the route collection |
-| GET | `/new`, `/links`, `/links/create`, `/links/{link}`, `/links/{link}/edit`, `/links/{link}/export`, `/api-keys`, `/domains`, `/notifications`, `/activity`, `/settings` | `dashboard.*` | same group, dashboard host only | `DashboardController` (strictly per-user; layout `layouts.dashboard`) |
+| GET | `/new` on dashboard host | `dashboard.new` | same group, host-pinned | Same method+URI as public `/new` would evict it from the collection (like `/` above); localhost falls through to the public closure's dashboard branch |
+| GET | `/links`, `/links/create`, `/links/{link}`, `/links/{link}/edit`, `/links/{link}/export`, `/api-keys`, `/domains`, `/notifications`, `/activity`, `/settings` | `dashboard.*` | same group, dashboard host only | `DashboardController` (strictly per-user; layout `layouts.dashboard`) |
 | GET | `/`, `/links`, `/users`, `/domains`, `/activity`, `/errors` on admin host | `admin.*` | `ensure.domain:admin` + `auth` + `refresh.sso` + `enforce.domain`, host-pinned | `AdminController` (system-wide; distinct layout `layouts.admin`) |
 | GET | `/admin{any?}` on admin host | — | `ensure.domain:admin`, no auth | Legacy 301 to root equivalents (`/admin/users` → `/users`) |
 | GET | `/pages/legal/{slug}` `[a-z-]+` | `pages.legal` | `ensure.domain:ternis` | Canonical app page; allowlist `terms,privacy` from `resources/legal/*.md` |
@@ -73,6 +74,7 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/pages/stats`, `/pages/stats/domains`, `/pages/stats/links` | `pages.stats.*` | `ensure.domain:ternis`, public, nothing exportable | Aggregate-only network stats (counts by day/domain, no PII); removed links stay counted |
 | GET | `/stats{any?}` | — | `ensure.domain:ternis` | Legacy 301 to `/pages/stats/*` (the `/pages/` namespace never collides with shortlink slugs) |
 | GET | `/` | `home` | none (branches on `domain_type`) | dashboard → login/dashboard; admin → login/admin; api → 302 `/v{latest}/`; business → `landing.business`; public → `landing.public`; else `landing.index` |
+| GET | `/new` | `public.new` | in-handler branch | dashboard → create page (localhost dev; pinned `dashboard.new` serves the dashboard host); public → `landing.new` guest form; else 404 |
 | GET | `/url/{url}` `.*` | `redirect.url` | `ensure.domain:public,business,ternis,partner`, public (no auth) | Preferred direct-URL redirect |
 | GET | `/go/{url}` `.*` | `redirect.go` | same | Alternative direct-URL redirect |
 | GET | `/preview/{input}` `.*` | `redirect.preview` | same (handler 404s except href.nz) | Above catch-all; sandbox preview |
