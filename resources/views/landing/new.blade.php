@@ -19,7 +19,7 @@
     <a class="sk-skip" href="#new-link">Skip to the link form</a>
 
     <div class="sk-wrap sk-new-wrap">
-        <header class="sk-head">
+        <header class="sk-head sk-new-head">
             <a href="/" class="sk-brand" aria-label="href.nz home">href<span>.nz</span></a>
             <nav aria-label="Account">
                 @auth
@@ -30,18 +30,27 @@
             </nav>
         </header>
 
-        <main>
+        <main class="sk-new-main">
             <section class="sk-new-intro" aria-labelledby="new-title">
-                <span class="sk-kicker">new short link</span>
-                <h1 class="sk-title" id="new-title">make something
+                <h1 class="sk-title sk-new-title" id="new-title">make something
                     <span class="sk-u">short.</span>
                 </h1>
-                <p class="sk-sub">Drop in a destination and we’ll make a tidy href.nz link.
-                    <a href="{{ url('/login') }}">Log in</a> first for custom slugs, shorter links and click stats — or continue as a guest.</p>
+                <p class="sk-sub">Drop in a destination and we’ll make a tidy href.nz link.</p>
             </section>
 
+            @guest
+                <p class="sk-new-login" role="note">
+                    Member? <a href="{{ url('/login') }}">Log in</a> for custom slugs, shorter links &amp; click stats —
+                    or continue as a guest below.
+                </p>
+            @else
+                <p class="sk-new-login" role="note">
+                    Signed in — links you make here land in your <a href="{{ \App\Support\DomainUrls::dashboard('/') }}">dashboard</a> with stats.
+                </p>
+            @endguest
+
             <section class="sk-form-zone sk-new-form-zone" id="new-link" aria-label="Create a short link">
-                <livewire:public.shorten-form :compact="true" />
+                <livewire:public.shorten-form :compact="true" :minimal="true" />
             </section>
 
             <p class="sk-new-back"><a href="/">← back to the full shortener</a></p>

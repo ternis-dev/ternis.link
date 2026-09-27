@@ -1696,6 +1696,101 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
 .sk-form-zone > .dk { animation: none; }
 
 /* ==========================================================
+ * /new — clean standalone form. Same paper/ink/hand-lettered
+ * theme as the landing page, minus the chrome: no preloader,
+ * gauge, steps, notes or doodles. Narrow column, slim login
+ * strip, flat card.
+ * ========================================================== */
+.sk-new-wrap {
+    max-width: 40rem;
+}
+
+.sk-new-head {
+    padding-bottom: 0.5rem;
+}
+
+.sk-new-main {
+    padding-bottom: 1rem;
+}
+
+.sk-new-intro {
+    max-width: 34rem;
+    margin: 2.5rem auto 0;
+    text-align: center;
+}
+
+.sk-new-title {
+    font-size: clamp(2.4rem, 7vw, 3.4rem);
+    margin-top: 0;
+}
+
+/* Slim login nudge: guests are asked to log in, but the form
+ * below always works without an account. */
+.sk-new-login {
+    max-width: 36rem;
+    margin: 1.25rem auto 0;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--sk-soft);
+    background: var(--sk-card);
+    border: 1.5px dashed #b9b2a1;
+    border-radius: 12px;
+}
+
+.sk-new-login a {
+    color: var(--sk-ink);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.sk-new-form-zone {
+    max-width: 36rem;
+    margin: 1.25rem auto 0;
+}
+
+/* Flat card: no tilt, no tape, no doodles, calm shadow. */
+.sk-card-minimal {
+    border-radius: 14px;
+    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.08);
+    transform: none;
+}
+
+.sk-card-minimal .sk-tape,
+.sk-card-minimal .dk {
+    display: none;
+}
+
+.sk-card-minimal .sk-form-head {
+    display: block;
+}
+
+.sk-card-minimal .sk-form-title {
+    font-size: 1.6rem;
+}
+
+.sk-card-minimal .sk-form-sub {
+    font-size: 0.93rem;
+    margin-bottom: 0.9rem;
+}
+
+.sk-card-minimal .sk-hint {
+    font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+    .sk-new-intro {
+        margin-top: 1.5rem;
+    }
+
+    .sk-new-login {
+        font-size: 0.9rem;
+    }
+}
+
+/* ==========================================================
  * REDUCED-MOTION overrides
  * ========================================================== */
 @media (prefers-reduced-motion: reduce) {

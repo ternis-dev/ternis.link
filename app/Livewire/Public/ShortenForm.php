@@ -20,6 +20,9 @@ class ShortenForm extends Component
 {
     public bool $compact = false;
 
+    /** Clean mode for /new: hides meter, previews, tray and doodles. */
+    public bool $minimal = false;
+
     public string $destination_url = '';
 
     public ?string $turnstile_token = null;

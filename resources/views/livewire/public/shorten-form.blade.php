@@ -1,15 +1,20 @@
-<div class="sk-card{{ $compact ? ' sk-card-compact' : '' }}" data-sk-form>
+<div class="sk-card{{ ($compact || $minimal) ? ' sk-card-compact' : '' }}{{ $minimal ? ' sk-card-minimal' : '' }}" data-sk-form>
+    @if (! $minimal)
     <span class="sk-tape" aria-hidden="true"></span>
     {{-- sparkles --}}
     <svg class="dk dk-faint dk-hide-sm" style="top: -14px; left: 18px;" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 4.8 2.1 6.9 7.5 7.5-5.4.6-6.8 2.7-7.5 7.5-.7-4.8-2.1-6.9-7.5-7.5 5.4-.6 6.8-2.7 7.5-7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
     <svg class="dk dk-faint dk-hide-sm" style="top: -8px; right: 30px;" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 4.8 2.1 6.9 7.5 7.5-5.4.6-6.8 2.7-7.5 7.5-.7-4.8-2.1-6.9-7.5-7.5 5.4-.6 6.8-2.7 7.5-7.5Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
+    @endif
 
     <div class="sk-form-head">
         <h2 class="sk-form-title">
+            @if (! $minimal)
             {{-- link --}}
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Shorten a link — no account needed
+            @endif
+            Shorten a link{{ $minimal ? '' : ' — no account needed' }}
         </h2>
+        @if (! $minimal)
         <div class="sk-meter" title="Guest links left today">
             <span class="sk-meter-boxes" aria-hidden="true">
                 @for ($i = 0; $i < 10; $i++)
@@ -18,13 +23,16 @@
             </span>
             <span class="sk-meter-text">{{ $this->quotaLeft }} of {{ \App\Services\LinkService::ANONYMOUS_DAILY_LIMIT }} free links left today</span>
         </div>
+        @endif
     </div>
-    <p class="sk-form-sub">Paste any long URL. Guests get an auto-generated 8-character link on this domain.</p>
+    <p class="sk-form-sub">{{ $minimal ? 'Paste a destination — guests welcome, members get more.' : 'Paste any long URL. Guests get an auto-generated 8-character link on this domain.' }}</p>
 
     @if ($shortUrl)
         <div class="sk-ticket" role="status" aria-live="polite">
+            @if (! $minimal)
             {{-- dotted ring --}}
             <svg class="dk" style="top: -22px; right: 8px;" width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="24" r="15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="4 5"/><path d="M24 13.5c.5 3.4 1.5 4.9 5.3 5.3-3.8.4-4.8 1.9-5.3 5.3-.5-3.4-1.5-4.9-5.3-5.3 3.8-.4 4.8-1.9 5.3-5.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            @endif
             <p class="sk-result-kicker">
                 {{-- check --}}
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="m8.2 12.3 2.5 2.5 5.1-5.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -120,6 +128,7 @@
                     </span>
                 </button>
             </div>
+            @if (! $minimal)
             <p class="sk-focus-note" aria-hidden="true">
                 @if ($urlState === 'valid')
                     Looks good — hit Shorten when you’re ready.
@@ -129,6 +138,7 @@
                     Paste the full link, starting with https://
                 @endif
             </p>
+            @endif
             @if ($this->fixablePreview)
                 <div class="sk-fix" aria-live="polite">
                     <span class="sk-fix-text">
@@ -156,16 +166,20 @@
                     </div>
                 </div>
             @endif
-            @if ($this->normalizedPreview)
+            @if (! $minimal && $this->normalizedPreview)
                 <div class="sk-preview" aria-live="polite">
                     <p class="sk-preview-will">You’re shortening <span title="{{ $this->normalizedPreview }}">{{ \Illuminate\Support\Str::limit($this->normalizedPreview, 64) }}</span></p>
                     <p class="sk-preview-get">You’ll get <strong>{{ $this->previewHost }}/••••••••</strong></p>
                 </div>
             @endif
             <p class="sk-hint" id="public_destination_hint">
-                <span class="sk-count" aria-hidden="true">{{ $this->charCount }} / {{ \App\Services\LinkService::PUBLIC_MAX_URL_LENGTH }}</span>
-                Include <code>https://</code>. Guests get auto-made codes —
-                <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" style="color: inherit; font-weight: 600;">log in</a> for custom slugs, shorter links &amp; click stats.
+                @if ($minimal)
+                    Include <code>https://</code> — guests welcome, no account needed.
+                @else
+                    <span class="sk-count" aria-hidden="true">{{ $this->charCount }} / {{ \App\Services\LinkService::PUBLIC_MAX_URL_LENGTH }}</span>
+                    Include <code>https://</code>. Guests get auto-made codes —
+                    <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" style="color: inherit; font-weight: 600;">log in</a> for custom slugs, shorter links &amp; click stats.
+                @endif
             </p>
             @error('destination_url')
                 <div class="sk-oops" role="alert" id="public_destination_error">
@@ -303,6 +317,7 @@
         </form>
     @endif
 
+    @if (! $minimal)
     <div class="sk-tray" data-sk-tray hidden>
         <div class="sk-tray-head">
             <p class="sk-tray-title">recent links on this device</p>
@@ -316,6 +331,7 @@
             <button type="button" class="sk-tray-clear" data-sk-tray-clear>clear history</button>
         </div>
     </div>
+    @endif
 </div>
 
 <script>
