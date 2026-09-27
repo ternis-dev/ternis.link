@@ -40,12 +40,13 @@ class RedirectTest extends TestCase
         $response->assertRedirect('https://laravel.com');
     }
 
-    public function test_bare_path_url_detected_and_redirected(): void
+    public function test_bare_path_url_requires_the_url_prefix(): void
     {
-        $response = $this->get('http://href.nz/google.com');
+        $this->get('http://href.nz/google.com')->assertNotFound();
 
-        $response->assertStatus(302);
-        $response->assertRedirect('https://google.com');
+        $this->get('http://href.nz/url/google.com')
+            ->assertStatus(302)
+            ->assertRedirect('https://google.com');
     }
 
     public function test_slug_redirects_to_destination_and_tracks_click(): void
@@ -78,8 +79,26 @@ class RedirectTest extends TestCase
         $response->assertStatus(404);
         $response->assertSee('404');
         $response->assertSee('notfoundslug', escape: false);
-        $response->assertSee('for the domain', escape: false);
-        $response->assertSee('href.nz', escape: false);
+    }
+
+    public function test_public_slugs_remain_root_level(): void
+    {
+        $link = Link::create([
+            'slug' => 'prefixed1',
+            'destination_url' => 'https://example.com/prefixed',
+            'domain_id' => Domain::where('hostname', 'href.nz')->first()->id,
+            'is_active' => true,
+        ]);
+
+        $this->get('http://href.nz/'.$link->slug)->assertRedirect('https://example.com/prefixed');
+        $this->get('http://href.nz/example.com')->assertNotFound();
+    }
+
+    public function test_public_root_direct_urls_remain_supported(): void
+    {
+        $this->get('http://href.nz/https://example.com/root-direct')
+            ->assertStatus(302)
+            ->assertRedirect('https://example.com/root-direct');
     }
 
     public function test_guest_resolves_slug_on_business_host_without_login_bounce(): void

@@ -425,14 +425,18 @@ Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(funct
         ->where('input', '.*')
         ->name('redirect.preview');
 
-    // Slug or URL detection — MUST be last (catch-all).
-    // Version prefixes (v1, v2, …) are reserved so single-segment API
-    // roots (/v1, /v1/) fall through to routes/api/v*.php instead of
-    // being treated as slugs. Web routes load before API routes, so
-    // without this the API version root would 404 via ensure.domain.
-    // NOTE: /login and /auth/* are registered above, so they win over
-    // this catch-all on short-link hosts (redirect shims, not slugs).
-    Route::get('/{input}', [RedirectController::class, 'resolve'])
-        ->where('input', '^(?!v\d+$)[^/]+$')
+    // Root-level direct URL redirects remain supported for href.nz:
+    // href.nz/https://example.com/path. Other direct URLs must use the
+    // explicit /url/{url} form so short links are not confused with
+    // arbitrary hostnames.
+    Route::middleware('ensure.domain:public')->get('/{url}', [RedirectController::class, 'directUrl'])
+        ->where('url', 'https?://.*')
+        ->name('redirect.root-url');
+
+    // Short-link slugs remain root-level URLs (href.nz/abc123). Restrict
+    // this route to slug characters so href.nz/example.com cannot be
+    // mistaken for an implicit direct URL.
+    Route::middleware('ensure.domain:public,business,ternis,partner')->get('/{input}', [RedirectController::class, 'resolve'])
+        ->where('input', '^(?!v\d+$)[a-zA-Z0-9_-]+$')
         ->name('redirect.resolve');
 });
