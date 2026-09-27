@@ -57,6 +57,31 @@ class ApiV1Test extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_public_qr_code_endpoint_supports_svg_and_png_without_authentication(): void
+    {
+        $this->get('http://links.t-api.de/v1/qr?url=https%3A%2F%2Fexample.com')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/svg+xml')
+            ->assertSee('<svg', false);
+
+        $png = $this->get('http://links.t-api.de/v1/qr?url=https%3A%2F%2Fexample.com&format=png');
+
+        $png->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+        $this->assertStringStartsWith("\x89PNG", $png->getContent());
+    }
+
+    public function test_public_qr_code_endpoint_validates_url_and_format(): void
+    {
+        $this->getJson('http://links.t-api.de/v1/qr?url=javascript%3Aalert(1)')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['url']);
+
+        $this->getJson('http://links.t-api.de/v1/qr?url=https%3A%2F%2Fexample.com&format=gif')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['format']);
+    }
+
     public function test_create_link_via_api(): void
     {
         $response = $this->postJson('http://links.t-api.de/v1/links', [

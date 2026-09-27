@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\ClickController;
 use App\Http\Controllers\Api\V1\DomainController;
 use App\Http\Controllers\Api\V1\LinkController;
 use App\Http\Controllers\Api\V1\PublicLinkController;
+use App\Http\Controllers\Api\V1\PublicQrCodeController;
 use App\Http\Controllers\Api\V1\VersionController;
 use App\Http\Middleware\AuthenticateApi;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,7 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', 'throttle:api'])
 
 // Public: anonymous link creation (IP-throttled, no auth).
 Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', 'throttle:10,1'])->post('links/public', [PublicLinkController::class, 'store']);
+Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', 'throttle:10,1'])->get('qr', PublicQrCodeController::class);
 
 Route::middleware(['ensure.domain:api', 'ensure.api-version:1', AuthenticateApi::class, 'throttle:api'])->group(function () {
     // Links CRUD

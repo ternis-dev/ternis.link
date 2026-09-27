@@ -113,6 +113,33 @@ paths:
         '429': { description: Per-minute throttle exceeded (Retry-After + X-RateLimit-*) }
         '404': { description: Wrong host for this endpoint }
         '410': { description: Version retired — see GET / for latest_version }
+  /qr:
+    get:
+      summary: Generate a QR code for a URL (public)
+      description: |
+        Generates a QR code without authentication. SVG is returned by default;
+        use `format=png` for a PNG image. Only HTTP and HTTPS URLs are accepted.
+        Hosts: `links.t-api.de` and public short-link hosts.
+      security: []
+      parameters:
+        - name: url
+          in: query
+          required: true
+          schema: { type: string, format: uri, maxLength: 2048 }
+        - name: format
+          in: query
+          required: false
+          schema: { type: string, enum: [svg, png], default: svg }
+      responses:
+        '200':
+          description: QR code image
+          content:
+            image/svg+xml: { schema: { type: string } }
+            image/png: { schema: { type: string, format: binary } }
+        '422': { description: Invalid URL or unsupported format }
+        '429': { description: Per-minute throttle exceeded }
+        '404': { description: Wrong host }
+        '410': { description: Version retired — see GET / for latest_version }
   /links:
     get:
       summary: List links (admins see all, users see own)

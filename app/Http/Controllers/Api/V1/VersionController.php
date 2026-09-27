@@ -27,6 +27,7 @@ class VersionController extends Controller
             'endpoints' => [
                 'links' => '/v1/links',
                 'links_public' => '/v1/links/public',
+                'qr_public' => '/v1/qr?url=https%3A%2F%2Fexample.com',
                 'domains' => '/v1/domains',
             ],
             'docs' => 'docs/api-v1-openapi.yaml',
