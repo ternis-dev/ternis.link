@@ -41,7 +41,7 @@ class ShortenForm extends Component
     protected function rules(): array
     {
         return [
-            'destination_url' => ['required', 'url', 'max:2048'],
+            'destination_url' => ['required', 'url', 'max:'.LinkService::PUBLIC_MAX_URL_LENGTH],
         ];
     }
 
@@ -73,7 +73,7 @@ class ShortenForm extends Component
             return;
         }
 
-        $valid = strlen($value) <= 2048 && filter_var($value, FILTER_VALIDATE_URL) !== false;
+        $valid = strlen($value) <= LinkService::PUBLIC_MAX_URL_LENGTH && filter_var($value, FILTER_VALIDATE_URL) !== false;
         $this->urlState = $valid ? 'valid' : 'invalid';
 
         if ($valid) {
@@ -96,7 +96,7 @@ class ShortenForm extends Component
     }
 
     /**
-     * Trimmed input length for the 2048-char counter.
+     * Trimmed input length for the public URL counter.
      */
     public function getCharCountProperty(): int
     {
@@ -155,7 +155,7 @@ class ShortenForm extends Component
             $fixed = 'https://'.ltrim($value, '/');
         }
 
-        if (strlen($fixed) > 2048 || ! filter_var($fixed, FILTER_VALIDATE_URL)) {
+        if (strlen($fixed) > LinkService::PUBLIC_MAX_URL_LENGTH || ! filter_var($fixed, FILTER_VALIDATE_URL)) {
             return null;
         }
 

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\DomainType;
 use App\Models\Domain;
+use App\Services\LinkService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePublicLinkRequest extends FormRequest
@@ -18,7 +19,7 @@ class StorePublicLinkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'destination_url' => ['required', 'url', 'max:2048'],
+            'destination_url' => ['required', 'url', 'max:'.LinkService::PUBLIC_MAX_URL_LENGTH],
             'domain_id' => ['nullable', 'exists:domains,id'],
             // Guests never get custom slugs — auto-generated 8-char only.
             'slug' => ['prohibited'],

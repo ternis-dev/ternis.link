@@ -215,7 +215,7 @@ class PublicShorteningTest extends TestCase
             ->set('destination_url', $url)
             ->assertSee('You’re shortening', escape: false)
             ->assertSee('href.nz/••••••••', escape: false)
-            ->assertSee(strlen($url).' / 2048');
+            ->assertSee(strlen($url).' / '.LinkService::PUBLIC_MAX_URL_LENGTH);
     }
 
     public function test_quota_error_flags_oops_card_with_login_nudge(): void
@@ -289,7 +289,7 @@ class PublicShorteningTest extends TestCase
     {
         // Too long.
         Livewire::test(ShortenForm::class)
-            ->set('destination_url', 'https://example.com/'.str_repeat('a', 2048))
+            ->set('destination_url', 'https://example.com/'.str_repeat('a', LinkService::PUBLIC_MAX_URL_LENGTH))
             ->call('create')
             ->assertSet('errorKind', 'too_long')
             ->assertSee('That link is too long', escape: false);

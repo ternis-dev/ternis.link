@@ -43,6 +43,11 @@ class Plan extends Model
         return $this->slug_length_choice;
     }
 
+    public function maxGeneratedSlugLength(): int
+    {
+        return $this->name === 'free' ? 12 : 64;
+    }
+
     public function hasUnlimitedLinks(): bool
     {
         return $this->max_links_per_day === null;

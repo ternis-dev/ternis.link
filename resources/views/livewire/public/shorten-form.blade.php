@@ -51,6 +51,7 @@
                     Open link
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4.5h5.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 4.5 11 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19.5 13.5V18a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2H11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
                 </a>
+                <a href="{{ url('/v1/qr?url='.urlencode($shortUrl).'&format=png') }}" target="_blank" rel="noopener" class="sk-open">QR code</a>
                 <button type="button" wire:click="resetForm" class="sk-again">
                     {{-- refresh --}}
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 1 2.2 5.3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4.5 17.5v-4h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -92,7 +93,7 @@
                         autocapitalize="off"
                         spellcheck="false"
                         inputmode="url"
-                        maxlength="2048"
+                        maxlength="{{ \App\Services\LinkService::PUBLIC_MAX_URL_LENGTH }}"
                         aria-describedby="public_destination_hint{{ $errors->has('destination_url') ? ' public_destination_error' : '' }}"
                         @if ($errors->has('destination_url')) aria-invalid="true" @endif
                         @class(['is-error' => $errors->has('destination_url'), 'is-valid' => $urlState === 'valid' && ! $errors->has('destination_url')])
@@ -162,7 +163,7 @@
                 </div>
             @endif
             <p class="sk-hint" id="public_destination_hint">
-                <span class="sk-count" aria-hidden="true">{{ $this->charCount }} / 2048</span>
+                <span class="sk-count" aria-hidden="true">{{ $this->charCount }} / {{ \App\Services\LinkService::PUBLIC_MAX_URL_LENGTH }}</span>
                 Include <code>https://</code>. Guests get auto-made codes —
                 <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" style="color: inherit; font-weight: 600;">log in</a> for custom slugs, shorter links &amp; click stats.
             </p>
@@ -405,7 +406,7 @@
                 var text = await navigator.clipboard.readText();
                 /* Grab the first URL when clipboard holds prose. */
                 var found = (text || '').match(/https?:\/\/[^\s<>"']+/);
-                input.value = (found ? found[0] : (text || '').trim()).slice(0, 2048);
+                input.value = (found ? found[0] : (text || '').trim()).slice(0, {{ \App\Services\LinkService::PUBLIC_MAX_URL_LENGTH }});
                 input.dispatchEvent(new Event('input', { bubbles: true }));
                 input.focus();
             } catch (e) {
@@ -464,8 +465,16 @@
             copy.setAttribute('aria-label', 'Copy ' + item.short);
             copy.textContent = 'copy';
 
+            var qr = document.createElement('a');
+            qr.className = 'sk-tray-qr';
+            qr.href = '/v1/qr?url=' + encodeURIComponent(item.short) + '&format=png';
+            qr.target = '_blank';
+            qr.rel = 'noopener';
+            qr.textContent = 'qr';
+
             li.appendChild(link);
             li.appendChild(copy);
+            li.appendChild(qr);
             list.appendChild(li);
         });
     }

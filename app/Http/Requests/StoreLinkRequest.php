@@ -81,7 +81,9 @@ class StoreLinkRequest extends FormRequest
 
         $planMin = $this->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
 
-        return [max(3, $planMin), 64];
+        $max = $this->user()?->plan?->maxGeneratedSlugLength() ?? 64;
+
+        return [max(3, $planMin), $max];
     }
 
     public function withValidator($validator): void

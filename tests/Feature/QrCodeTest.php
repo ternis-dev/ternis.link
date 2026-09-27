@@ -77,4 +77,11 @@ class QrCodeTest extends TestCase
         $this->get("http://dash.ternis.link/links/{$this->link->id}/qr")
             ->assertRedirect('http://dash.ternis.link/login');
     }
+
+    public function test_public_host_can_generate_qr_for_a_free_link(): void
+    {
+        $this->get('http://href.nz/v1/qr?url='.urlencode('https://href.nz/qrtest1').'&format=png')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+    }
 }

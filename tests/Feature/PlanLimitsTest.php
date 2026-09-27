@@ -271,21 +271,29 @@ class PlanLimitsTest extends TestCase
         $this->assertDatabaseMissing('links', ['destination_url' => 'https://example.com/bad-length']);
     }
 
-    public function test_free_plan_has_no_picker_and_ignores_tampered_length(): void
+    public function test_free_plan_can_choose_generated_slug_length_from_six_to_twelve(): void
     {
-        $user = $this->userOnPlan('free'); // min_slug_length = 6, no length choice
+        $user = $this->userOnPlan('free'); // min_slug_length = 6
 
         $slug = Livewire::actingAs($user)
             ->test(LinkForm::class)
-            ->assertDontSee('Generated Slug Length', escape: false)
-            ->set('destination_url', 'https://example.com/tampered')
+            ->assertSee('Generated Slug Length', escape: false)
+            ->set('destination_url', 'https://example.com/free-length')
             ->set('domain_id', $this->domain->id)
-            ->set('slug_length', 32)
+            ->set('slug_length', 12)
             ->call('create')
             ->assertHasNoErrors()
             ->get('createdSlug');
 
-        $this->assertSame(6, strlen($slug));
+        $this->assertSame(12, strlen($slug));
+
+        Livewire::actingAs($user)
+            ->test(LinkForm::class)
+            ->set('destination_url', 'https://example.com/free-too-short')
+            ->set('domain_id', $this->domain->id)
+            ->set('slug_length', 13)
+            ->call('create')
+            ->assertHasErrors('slug_length');
     }
 
     public function test_custom_slug_wins_over_picked_length(): void
@@ -332,17 +340,22 @@ class PlanLimitsTest extends TestCase
         }
     }
 
-    public function test_api_ignores_slug_length_for_ineligible_users(): void
+    public function test_api_applies_free_plan_slug_length_within_six_to_twelve(): void
     {
-        $user = $this->userOnPlan('free'); // min_slug_length = 6, no length choice
+        $user = $this->userOnPlan('free'); // min_slug_length = 6
 
         $payload = $this->createLinkPayload($this->domain);
-        $payload['slug_length'] = 32;
+        $payload['slug_length'] = 10;
 
         $response = $this->postJson('http://links.t-api.de/v1/links', $payload, $this->headersFor($user));
 
         $response->assertStatus(201);
-        $this->assertSame(6, strlen($response->json('slug')));
+        $this->assertSame(10, strlen($response->json('slug')));
+
+        $payload['slug_length'] = 13;
+        $this->postJson('http://links.t-api.de/v1/links', $payload, $this->headersFor($user))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('slug_length');
     }
 
     public function test_api_custom_slug_wins_over_slug_length(): void

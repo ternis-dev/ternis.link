@@ -22,6 +22,9 @@ class LinkService
      */
     public const ANONYMOUS_DAILY_LIMIT = 50;
 
+    /** Public destinations stay below common proxy/browser URL limits. */
+    public const PUBLIC_MAX_URL_LENGTH = 1024;
+
     /**
      * Guest links are always auto-generated — custom slugs are reserved
      * for logged-in users. Guests get an 8-char slug, logged-in users

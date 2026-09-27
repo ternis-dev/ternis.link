@@ -1060,6 +1060,13 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
 
 .sk-tray-list a:hover { text-decoration: underline; }
 
+.sk-tray-list a.sk-tray-qr {
+    flex: 0 0 auto;
+    font-family: var(--font-hand);
+    font-size: 1.05rem;
+    color: var(--sk-soft);
+}
+
 .sk-tray-list button {
     font-family: var(--font-hand);
     font-size: 1.05rem;

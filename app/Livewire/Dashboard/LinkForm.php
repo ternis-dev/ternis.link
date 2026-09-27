@@ -133,7 +133,9 @@ class LinkForm extends Component
 
         $planMin = auth()->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
 
-        return [max(self::MIN_GENERATED_LENGTH, $planMin), self::MAX_GENERATED_LENGTH];
+        $max = auth()->user()?->plan?->maxGeneratedSlugLength() ?? self::MAX_GENERATED_LENGTH;
+
+        return [max(self::MIN_GENERATED_LENGTH, $planMin), $max];
     }
 
     public function mount(): void
