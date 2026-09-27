@@ -396,6 +396,14 @@ Route::get('/', function () {
     return view('landing.index');
 })->name('home');
 
+Route::get('/new', function () {
+    if (request()->attributes->get('domain_type') !== 'public') {
+        abort(404);
+    }
+
+    return view('landing.new');
+})->name('public.new');
+
 /*
 |----------------------------------------------------------------------
 | Redirect routes — short-link hosts only

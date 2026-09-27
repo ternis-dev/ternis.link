@@ -360,6 +360,60 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     margin-top: 2.25rem;
 }
 
+.sk-new-wrap {
+    max-width: 54rem;
+}
+
+.sk-new-intro {
+    max-width: 42rem;
+    margin: 4.5rem auto 0;
+    text-align: center;
+}
+
+.sk-new-intro .sk-title {
+    margin-top: 0.6rem;
+}
+
+.sk-new-intro .sk-sub {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sk-new-intro .sk-sub a,
+.sk-new-back a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.sk-new-form-zone {
+    max-width: 44rem;
+    margin: 2.5rem auto 0;
+}
+
+.sk-card-compact {
+    box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.08);
+    transform: none;
+}
+
+.sk-card-compact .dk {
+    display: none;
+}
+
+.sk-new-back {
+    margin: 1.6rem auto 0;
+    max-width: 44rem;
+    font-size: 0.95rem;
+    color: var(--sk-soft);
+    text-align: center;
+}
+
+.sk-new-back a {
+    color: inherit;
+}
+
 .sk-card {
     position: relative;
     background: var(--sk-card);

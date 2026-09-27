@@ -18,6 +18,8 @@ use Livewire\Component;
 
 class ShortenForm extends Component
 {
+    public bool $compact = false;
+
     public string $destination_url = '';
 
     public ?string $turnstile_token = null;

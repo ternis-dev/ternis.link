@@ -167,6 +167,21 @@ class PublicShorteningTest extends TestCase
         $response->assertSee('Shorten a link', escape: false);
     }
 
+    public function test_new_page_shows_clean_guest_form_on_public_domain(): void
+    {
+        $response = $this->get('http://href.nz/new');
+
+        $response->assertOk()
+            ->assertSee('make something', escape: false)
+            ->assertSee('continue as a guest', escape: false)
+            ->assertSee('Shorten a link', escape: false);
+    }
+
+    public function test_new_page_is_not_available_on_other_domains(): void
+    {
+        $this->get('http://href.re/new')->assertNotFound();
+    }
+
     public function test_form_tracks_live_url_state(): void
     {
         Livewire::test(ShortenForm::class)

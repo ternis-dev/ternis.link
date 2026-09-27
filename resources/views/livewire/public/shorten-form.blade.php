@@ -1,4 +1,4 @@
-<div class="sk-card" data-sk-form>
+<div class="sk-card{{ $compact ? ' sk-card-compact' : '' }}" data-sk-form>
     <span class="sk-tape" aria-hidden="true"></span>
     {{-- sparkles --}}
     <svg class="dk dk-faint dk-hide-sm" style="top: -14px; left: 18px;" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 4.8 2.1 6.9 7.5 7.5-5.4.6-6.8 2.7-7.5 7.5-.7-4.8-2.1-6.9-7.5-7.5 5.4-.6 6.8-2.7 7.5-7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
