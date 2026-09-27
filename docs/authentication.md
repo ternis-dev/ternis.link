@@ -1,74 +1,44 @@
-# Authentication
+# Accounts & API keys
 
-SSO-only. There are no local passwords and no local registration.
-Source: `app/Http/Controllers/Auth/TernisAuthController.php`,
-`app/Services/TernisAuthService.php`, `app/Http/Middleware/RefreshSsoToken.php`,
-`app/Http/Middleware/AuthenticateApi.php`, `config/services.php`, `config/auth.php`.
+## Sign in without a password
 
-## Web SSO (OAuth 2.0 + PKCE)
+There are no local passwords and no registration forms. Signing in is one button — **Log in with Ternis Auth** — which hands you over to Ternis Auth, verifies you, and brings you back to your dashboard. If your session expires, you simply sign in again.
 
-Config (`config/services.php` → env):
-`TERNIS_AUTH_BASE_URL` (default `https://auth.ternis.net`), `TERNIS_AUTH_CLIENT_ID`,
-`TERNIS_AUTH_CLIENT_SECRET`, `TERNIS_AUTH_REDIRECT_URI`
-(default `https://dash.ternis.link/auth/callback`),
-`TERNIS_AUTH_SCOPES` (`openid profile email ternis:sso ternis:member ternis:customer ternis:partner`),
-`TERNIS_AVATAR_BASE_URL` (`https://user.t-api.de`),
-`TERNIS_AUTH_END_SESSION` + `end_session_path` (`/oauth/logout`) + `post_logout_redirect_uri`.
+Members get custom slugs, shorter links, QR codes, click stats, custom domains, and API keys. Guests keep the free shortener with nothing to manage.
 
-Flow (`TernisAuthService` + `TernisAuthController`):
-1. `GET /auth/redirect` — generates PKCE verifier (64 random chars) + S256 challenge
-   (`generateCodeVerifier` / `generateCodeChallenge`), stores `state` + verifier in session,
-   redirects to `{base}/oauth/authorize?response_type=code&...&code_challenge...`.
-2. `GET /auth/callback` — validates `state`, exchanges `code` + verifier at
-   `{base}/oauth/token` (`exchangeCode`), fetches `{base}/oauth/userinfo` (`getUserInfo`),
-   then `findOrCreateUser(tokenData, userInfo)`.
-3. `findOrCreateUser` — `User::updateOrCreate(['sso_sub' => sub])` with
-   `name/email/picture→avatar_url/user_type→sso_user_type`, `role = mapRole(userInfo)`;
-   new users without a plan get `free`. Stores/updates `oauth_identities`
-   (`access_token`, `refresh_token`, `token_expires_at`, `sso_claims`, `claims_synced_at`).
-4. Stale/reused codes redirect to login with a friendly message instead of 500ing.
-5. `GET /auth/silent` — same authorize URL plus `prompt=none` for iframe SSO checks
-   (returns a code immediately when an SSO session exists, else `?error=login_required`).
-6. `POST /logout` — local logout + optional RP-initiated logout at
-   `getEndSessionUrl()` when `TERNIS_AUTH_END_SESSION=true`.
-7. `GET /auth/demo` — **local/testing only** (`demoLogin`).
+Your login session lives on `dash.ternis.link`. That's why signing in from `href.nz` briefly takes you there and back — browsers don't share sessions across domains, so the hop is the feature, not a bug.
 
-OAuth entry points are `throttle:10,1`. The flow must start **and** finish on the
-dashboard host (session + PKCE live there; cookies can't cross `href.nz ↔ ternis.link`),
-hence the `/login` + `/auth/*` redirect shims in `routes/web.php` (short-link hosts 302
-to `config/domains.dashboard_host`, scheme-preserving).
+## Roles
 
-Session guard: `config/auth.php` default `web` (session), provider `eloquent:User`.
-No `remember_token` (SSO). `RefreshSsoToken` (`refresh.sso`) runs on dashboard/admin
-routes: when `oauthIdentity->isTokenExpired()`, it calls `refreshAccessToken()`
-(refresh grant → fresh userinfo → `syncUserFromClaims`); on failure it logs out,
-invalidates the session, and redirects to `/login`. Demo users (no identity) pass through.
+Your role decides which corners of the network you can use: regular members get the dashboard, family and partners get the `ternis.link` areas, and admins additionally get the admin console and business areas. If you open something above your role, you'll get a plain "no access" page pointing you back.
 
-## Roles (`app/Enums/UserRole.php`, `TernisAuthService::mapRole`)
+## API keys
 
-| SSO claims | Local `role` |
-|------------|--------------|
-| `user_type=ternis_member` + `ternis_member.member_badge ∈ {ternis-core, ternis-admin}` | `admin` |
-| `user_type=ternis_member` (other badges) | `family` |
-| `user_type=partner` or non-empty `ternis_partner` | `partner` |
-| everything else | `user` |
+API keys let scripts and apps act as you. Create one in the dashboard under API keys: you see the full key **once** — it starts with `tl_` — after that only a masked prefix (`tl_abc1****`) is shown. Only a hash of the key is stored, so a leaked database can't leak your keys. Revoke a key the moment you don't need it anymore.
 
-Synced on every login and every token refresh. Helpers on `User`:
-`isAdmin()`, `isPartner()`, `isFamily()`, `avatarUrl(size=64)` → `user.t-api.de/{sso_sub}.png`,
-`usesTopNav()` (`nav_layout`), theme preference.
+Use the key as a Bearer token against `https://links.t-api.de/v1`:
 
-`EnforceDomainAccess` then gates hosts: `admin` host requires `isAdmin` (else 403);
-`ternis` host requires `admin|family|partner`; `business` host requires admin;
-guests on gated hosts go to same-host `/login`.
+```bash
+curl https://links.t-api.de/v1/links \
+  -H "Authorization: Bearer tl_your_key_here"
+```
 
-## API auth (`AuthenticateApi`, alias `auth.api`)
+Create a link with a custom slug:
 
-Bearer token, two accepted forms:
-- `tl_*` API key — looked up by SHA-256 `key_hash` (`ApiKey::hashToken` + `verifyToken` +
-  `isValid`: not revoked/expired), `touchLastUsed()` on success. Only the `key_prefix`
-  (8 chars) is ever displayed again; plaintext is shown once at creation.
-- SSO access token — validated via `TernisAuthService::getUserInfo`, cached 5 min
-  (`sso_token:{sha256}`), resolved to `User by sso_sub`.
+```bash
+curl -X POST https://links.t-api.de/v1/links \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"destination_url": "https://example.com/very-long-page", "slug": "my-launch"}'
+```
 
-Failures return `401 { message }` JSON. Authenticated `/v1/*` is `links.t-api.de`-only
-(`ensure.domain:api` runs before `auth.api`).
+No account and just scripting something quick? `POST /v1/links/public` creates guest links without any key — same rules as the [href.nz form](https://href.nz): auto-generated slugs, fair-use limits.
+
+## API conventions
+
+- **Versioning:** every response carries `API-Version` and `API-Latest-Version` headers. The path version (`/v1/`) is what you code against.
+- **Errors** are JSON: `{ "message": "…" }`, or `{ "message": "…", "errors": { … } }` for validation problems. Over the rate limit you get `429` with a `Retry-After` header — back off and retry.
+- **Deleting** a link via `DELETE /v1/links/{link}` deactivates it: it stops resolving, its stats stay.
+- The full contract is [OpenAPI 3.1](/api-v1-openapi.yaml).
+
+Click analytics for your own links live at `GET /v1/links/{link}/clicks` (rows) and `GET /v1/links/{link}/clicks/summary` (aggregates) — the same numbers the dashboard charts are drawn from.

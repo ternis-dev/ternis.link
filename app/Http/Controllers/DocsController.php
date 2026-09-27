@@ -25,12 +25,24 @@ class DocsController extends Controller
         'links' => 'links.md',
     ];
 
+    /**
+     * One-line, user-facing summaries for the index cards.
+     */
+    public const DESCRIPTIONS = [
+        'readme' => 'What ternis.link is and where everything lives.',
+        'architecture' => 'How a link goes from paste to redirect to stats.',
+        'authentication' => 'Sign in without a password, plus API keys.',
+        'domains-routing' => 'Which host does what, plus custom domains.',
+        'links' => 'Shorten links, custom slugs, QR codes, clicks.',
+    ];
+
     public function index()
     {
         return view('docs.index', [
             'pages' => collect(self::PAGES)->map(fn ($file, $slug) => [
                 'slug' => $slug,
                 'title' => $this->title($slug, $file),
+                'description' => self::DESCRIPTIONS[$slug] ?? '',
             ])->values(),
         ]);
     }
@@ -130,6 +142,7 @@ class DocsController extends Controller
         return collect(self::PAGES)->map(fn ($file, $slug) => [
             'slug' => $slug,
             'title' => $this->title($slug, $file),
+            'description' => self::DESCRIPTIONS[$slug] ?? '',
         ])->values()->all();
     }
 

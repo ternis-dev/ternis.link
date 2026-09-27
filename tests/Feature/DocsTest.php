@@ -27,16 +27,17 @@ class DocsTest extends TestCase
     {
         $this->get('http://docs.ternis.link/')
             ->assertOk()
-            ->assertSee('How this network fits together', escape: false)
+            ->assertSee('Shorten links, use the API', escape: false)
             ->assertSee('/architecture', escape: false)
-            ->assertSee('/api-v1-openapi.yaml', escape: false);
+            ->assertSee('/api-v1-openapi.yaml', escape: false)
+            ->assertDontSee('crawlers and agents', escape: false);
     }
 
     public function test_docs_show_renders_markdown_as_html(): void
     {
         $this->get('http://docs.ternis.link/architecture')
             ->assertOk()
-            ->assertSee('Architecture', escape: false)
+            ->assertSee('How it works', escape: false)
             ->assertSee('text/markdown', escape: false); // alternate link to the .md twin
     }
 
@@ -46,7 +47,7 @@ class DocsTest extends TestCase
 
         $response->assertOk();
         $this->assertStringStartsWith('text/markdown', $response->headers->get('Content-Type'));
-        $this->assertStringContainsString('# Architecture', $response->getContent());
+        $this->assertStringContainsString('# How it works', $response->getContent());
     }
 
     public function test_docs_unknown_slug_404s(): void
