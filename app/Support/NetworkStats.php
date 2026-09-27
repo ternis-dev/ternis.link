@@ -138,6 +138,8 @@ class NetworkStats
     /**
      * Links + clicks per domain, most links first (cached 10 minutes).
      * Tombstoned links stay counted against their original hostname.
+     * Visibility (platform vs. own domains) is decided per request in
+     * StatsController — this query stays shared and cacheable.
      */
     public static function domains(): Collection
     {
@@ -160,18 +162,6 @@ class NetworkStats
 
             return $domains->sortByDesc('links_count')->values();
         });
-    }
-
-    /**
-     * User-added domains only: claimed subdomains and registered
-     * hostnames — not the built-in system domains. This is what the
-     * per-domain stats page shows. (Named for who added them, not
-     * "public": in this codebase "public domain" already means the
-     * built-in guest hosts like href.nz.)
-     */
-    public static function userDomains(): Collection
-    {
-        return self::domains()->whereNotNull('user_id')->values();
     }
 
     /**

@@ -50,12 +50,14 @@ class StatsController extends Controller
     }
 
     /**
-     * Links per domain — user-added (custom) domains only, full table.
+     * Links per domain — platform domains for everyone, plus the
+     * signed-in user's own custom domains. Other users' hostnames are
+     * never listed publicly.
      */
     public function domains()
     {
         return view('pages.stats.domains', [
-            'domains' => NetworkStats::userDomains(),
+            'domains' => $this->visibleDomains(),
         ]);
     }
 
@@ -65,7 +67,21 @@ class StatsController extends Controller
     public function domainsMd()
     {
         return response()->view('pages.stats.domains-md', [
-            'domains' => NetworkStats::userDomains(),
+            'domains' => $this->visibleDomains(),
         ], 200, ['Content-Type' => self::MARKDOWN]);
+    }
+
+    /**
+     * Built-in system domains plus the current user's own. Auth state
+     * is request-specific, so this filters outside the shared cached
+     * query in NetworkStats::domains().
+     */
+    private function visibleDomains()
+    {
+        $userId = auth()->id();
+
+        return NetworkStats::domains()
+            ->filter(fn ($domain) => $domain->user_id === null || $domain->user_id === $userId)
+            ->values();
     }
 }

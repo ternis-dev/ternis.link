@@ -125,7 +125,8 @@ class SiteFilesTest extends TestCase
             ->assertStatus(200)
             ->assertSee('| Domain | Links | Clicks |', escape: false);
 
-        $this->assertStringNotContainsString('| href.nz |', $domains->getContent());
+        // Platform rows are public; user hostnames never leak here.
+        $this->assertStringContainsString('| href.nz |', $domains->getContent());
 
         // The public Top Links page is gone (leaderboards distort
         // member analytics) — HTML and Markdown both 404.

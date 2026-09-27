@@ -9,7 +9,7 @@
         backLabel="Back to Stats Overview"
     />
 
-    <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Custom domains only — hostnames added by users. Built-in system domains (like <code>href.nz</code>) are excluded here, but their traffic still counts toward the totals on the overview.</p>
+    <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Platform domains are listed for everyone; your own custom domains appear here once you're signed in. Other users' hostnames are never shown. System traffic is included in the totals on the overview.</p>
 
     <x-ui.card>
         <x-ui.table>

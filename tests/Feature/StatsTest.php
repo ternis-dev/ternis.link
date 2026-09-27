@@ -54,7 +54,7 @@ class StatsTest extends TestCase
         $this->get('http://ternis.link/pages/stats/domains')
             ->assertStatus(200)
             ->assertSee('Links Per Domain', escape: false)
-            ->assertSee('Custom domains only', escape: false);
+            ->assertSee('never shown', escape: false);
     }
 
     public function test_top_links_page_is_gone(): void
@@ -69,7 +69,7 @@ class StatsTest extends TestCase
             ->assertRedirect('http://ternis.link/pages/stats');
     }
 
-    public function test_domains_page_lists_only_public_user_domains(): void
+    public function test_domains_page_shows_platform_and_own_domains_only(): void
     {
         $custom = Domain::create([
             'hostname' => 'go.example.com',
@@ -88,18 +88,37 @@ class StatsTest extends TestCase
             'click_count' => 3,
         ]);
 
+        $stranger = User::factory()->create();
+
+        // Guests see platform domains, never another user's hostname.
         $this->get('http://ternis.link/pages/stats/domains')
             ->assertStatus(200)
-            ->assertSee('go.example.com', escape: false)
-            ->assertSee('Custom domains only', escape: false)
+            ->assertSee('href.nz', escape: false)
+            ->assertDontSee('go.example.com')
+            ->assertSee('never shown', escape: false)
             ->assertViewHas('domains', fn ($domains) => $domains->isNotEmpty()
-                && $domains->every(fn ($domain) => $domain->user_id !== null));
+                && $domains->every(fn ($domain) => $domain->user_id === null));
+
+        // Owners see their own custom domain next to the platform ones.
+        $this->actingAs($this->user)
+            ->get('http://ternis.link/pages/stats/domains')
+            ->assertStatus(200)
+            ->assertSee('href.nz', escape: false)
+            ->assertSee('go.example.com', escape: false)
+            ->assertViewHas('domains', fn ($domains) => $domains->contains('hostname', 'go.example.com'));
+
+        // Strangers still don't.
+        $this->actingAs($stranger)
+            ->get('http://ternis.link/pages/stats/domains')
+            ->assertStatus(200)
+            ->assertSee('href.nz', escape: false)
+            ->assertDontSee('go.example.com');
 
         $this->get('http://ternis.link/pages/stats/domains.md')
             ->assertStatus(200)
-            ->assertSee('| go.example.com |', escape: false)
-            ->assertDontSee('| href.nz |', escape: false)
-            ->assertSee('Custom domains only', escape: false);
+            ->assertSee('| href.nz |', escape: false)
+            ->assertDontSee('go.example.com')
+            ->assertSee('never shown', escape: false);
     }
 
     public function test_stats_leak_no_personal_data(): void
