@@ -7,10 +7,12 @@ use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
+use App\Support\NetworkStats;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class StatsTest extends TestCase
@@ -67,6 +69,16 @@ class StatsTest extends TestCase
         $this->get('http://ternis.link/stats/links')
             ->assertStatus(301)
             ->assertRedirect('http://ternis.link/pages/stats');
+    }
+
+    public function test_domains_survive_a_poisoned_stats_cache(): void
+    {
+        Cache::put('stats:domains:v2', 'not-attribute-rows', 600);
+
+        $domains = NetworkStats::domains();
+
+        $this->assertContainsOnlyInstancesOf(Domain::class, $domains);
+        $this->assertTrue($domains->contains('hostname', 'href.nz'));
     }
 
     public function test_domains_page_shows_platform_and_own_domains_only(): void

@@ -6,9 +6,9 @@ use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\LinkTombstone;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-
 /**
  * Cached aggregate network stats for the public ternis.link pages
  * (HTML + Markdown twins) and machine-readable files (llms-full.txt).
@@ -140,28 +140,53 @@ class NetworkStats
      * Tombstoned links stay counted against their original hostname.
      * Visibility (platform vs. own domains) is decided per request in
      * StatsController — this query stays shared and cacheable.
+     *
+     * The cache holds plain attribute arrays, rehydrated via
+     * Domain::hydrate() on every read: a cached Eloquent graph
+     * unserializes as __PHP_Incomplete_Class when writer and reader
+     * run different releases, which fatals the return type. Arrays
+     * can't break that way.
      */
     public static function domains(): Collection
     {
-        return Cache::remember('stats:domains', 600, function () {
-            $domains = Domain::withCount('links')
-                ->withSum('links', 'click_count')
-                ->orderByDesc('links_count')
-                ->get();
+        $rows = Cache::get('stats:domains:v2');
 
-            $tombstones = LinkTombstone::selectRaw('domain_hostname, COUNT(*) as links, SUM(click_count) as clicks')
-                ->groupBy('domain_hostname')
-                ->get()
-                ->keyBy('domain_hostname');
+        if (! is_array($rows)) {
+            // Anything that isn't attribute rows (e.g. a payload cached
+            // by another release) is discarded and rebuilt transparently
+            // instead of fataling the return type on unserialize.
+            Cache::forget('stats:domains:v2');
+            $rows = self::buildDomainRows();
+            Cache::put('stats:domains:v2', $rows, 600);
+        }
 
-            foreach ($domains as $domain) {
-                $tomb = $tombstones->get($domain->hostname);
-                $domain->links_count += (int) ($tomb?->links ?? 0);
-                $domain->links_sum_click_count = ($domain->links_sum_click_count ?? 0) + (int) ($tomb?->clicks ?? 0);
-            }
+        return Domain::hydrate($rows);
+    }
 
-            return $domains->sortByDesc('links_count')->values();
-        });
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private static function buildDomainRows(): array
+    {
+        $domains = Domain::withCount('links')
+            ->withSum('links', 'click_count')
+            ->orderByDesc('links_count')
+            ->get();
+
+        $tombstones = LinkTombstone::selectRaw('domain_hostname, COUNT(*) as links, SUM(click_count) as clicks')
+            ->groupBy('domain_hostname')
+            ->get()
+            ->keyBy('domain_hostname');
+
+        foreach ($domains as $domain) {
+            $tomb = $tombstones->get($domain->hostname);
+            $domain->links_count += (int) ($tomb?->links ?? 0);
+            $domain->links_sum_click_count = ($domain->links_sum_click_count ?? 0) + (int) ($tomb?->clicks ?? 0);
+        }
+
+        return $domains->sortByDesc('links_count')->values()
+            ->map(fn (Domain $domain) => Arr::except($domain->getAttributes(), ['verification_token']))
+            ->all();
     }
 
     /**
@@ -170,7 +195,7 @@ class NetworkStats
      */
     public static function flush(): void
     {
-        foreach (['stats:overview', 'stats:creations-30d', 'stats:clicks-30d', 'stats:domains'] as $key) {
+        foreach (['stats:overview', 'stats:creations-30d', 'stats:clicks-30d', 'stats:domains', 'stats:domains:v2'] as $key) {
             Cache::forget($key);
         }
     }
