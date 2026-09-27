@@ -68,24 +68,4 @@ class StatsController extends Controller
             'domains' => NetworkStats::publicDomains(),
         ], 200, ['Content-Type' => self::MARKDOWN]);
     }
-
-    /**
-     * Most-clicked links — public slugs only, no owners, no targets.
-     */
-    public function links()
-    {
-        return view('pages.stats.links', [
-            'links' => NetworkStats::topLinks(50),
-        ]);
-    }
-
-    /**
-     * Markdown twin of the top-links table (GET /pages/stats/links.md).
-     */
-    public function linksMd()
-    {
-        return response()->view('pages.stats.links-md', [
-            'links' => NetworkStats::topLinks(50),
-        ], 200, ['Content-Type' => self::MARKDOWN]);
-    }
 }

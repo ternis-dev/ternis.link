@@ -80,7 +80,6 @@ class SiteFilesController extends Controller
         if ($type === 'ternis') {
             $urls[] = ['loc' => $base.'/pages/stats', 'lastmod' => $today];
             $urls[] = ['loc' => $base.'/pages/stats/domains', 'lastmod' => $today];
-            $urls[] = ['loc' => $base.'/pages/stats/links', 'lastmod' => $today];
 
             foreach (PagesController::PAGES as $slug => $title) {
                 $path = resource_path("legal/{$slug}.md");

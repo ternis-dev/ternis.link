@@ -55,11 +55,18 @@ class StatsTest extends TestCase
             ->assertStatus(200)
             ->assertSee('Links Per Domain', escape: false)
             ->assertSee('Only public domains', escape: false);
+    }
 
-        $this->get('http://ternis.link/pages/stats/links')
-            ->assertStatus(200)
-            ->assertSee('Top Links', escape: false)
-            ->assertSee('statlink1', escape: false);
+    public function test_top_links_page_is_gone(): void
+    {
+        // Per-link leaderboards distort the analytics members rely on.
+        $this->get('http://ternis.link/pages/stats/links')->assertNotFound();
+        $this->get('http://ternis.link/pages/stats/links.md')->assertNotFound();
+
+        // Old bookmarks land on the overview instead of a 404.
+        $this->get('http://ternis.link/stats/links')
+            ->assertStatus(301)
+            ->assertRedirect('http://ternis.link/pages/stats');
     }
 
     public function test_domains_page_lists_only_public_user_domains(): void
@@ -97,7 +104,7 @@ class StatsTest extends TestCase
 
     public function test_stats_leak_no_personal_data(): void
     {
-        foreach (['http://ternis.link/pages/stats', 'http://ternis.link/pages/stats/domains', 'http://ternis.link/pages/stats/links'] as $url) {
+        foreach (['http://ternis.link/pages/stats', 'http://ternis.link/pages/stats/domains'] as $url) {
             $response = $this->get($url)->assertStatus(200);
             $response->assertDontSee($this->user->email, escape: false);
             $response->assertDontSee('secret.example', escape: false);
@@ -116,11 +123,6 @@ class StatsTest extends TestCase
             ->assertViewHas('stats', fn ($stats) => $stats['total_links'] === 1
                 && $stats['removed_links'] === 1
                 && $stats['total_clicks'] === 1);
-
-        $this->get('http://ternis.link/pages/stats/links')
-            ->assertStatus(200)
-            ->assertSee('statlink1', escape: false)
-            ->assertSee('Removed', escape: false);
     }
 
     public function test_stats_404_on_other_hosts(): void

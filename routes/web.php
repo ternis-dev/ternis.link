@@ -288,7 +288,6 @@ Route::middleware(['ensure.domain:admin'])->domain((string) config('domains.admi
 Route::middleware(['ensure.domain:ternis'])->prefix('pages/stats')->name('pages.stats.')->group(function () {
     Route::get('/', [StatsController::class, 'index'])->name('index');
     Route::get('/domains', [StatsController::class, 'domains'])->name('domains');
-    Route::get('/links', [StatsController::class, 'links'])->name('links');
 });
 
 /*
@@ -300,13 +299,19 @@ Route::middleware(['ensure.domain:ternis'])->prefix('pages/stats')->name('pages.
 Route::middleware(['ensure.domain:ternis'])->group(function () {
     Route::get('/pages/stats.md', [StatsController::class, 'indexMd'])->name('pages.stats.index-md');
     Route::get('/pages/stats/domains.md', [StatsController::class, 'domainsMd'])->name('pages.stats.domains-md');
-    Route::get('/pages/stats/links.md', [StatsController::class, 'linksMd'])->name('pages.stats.links-md');
 });
 
 Route::middleware(['ensure.domain:ternis'])->get('/stats{any?}', function () {
     $suffix = substr(request()->getPathInfo(), strlen('/stats'));
     $query = request()->getQueryString();
     $qs = $query ? '?'.$query : '';
+
+    // The public Top Links page was removed (per-link leaderboards
+    // distort the analytics members rely on) — old bookmarks land on
+    // the overview instead of a 404.
+    if (rtrim($suffix, '/') === '/links') {
+        return redirect('/pages/stats'.$qs, 301);
+    }
 
     return redirect('/pages/stats'.rtrim($suffix, '/').$qs, 301);
 })->where('any', '.*');
@@ -442,7 +447,7 @@ Route::get('/', function () {
         return view('landing.public');
     }
 
-    return view('landing.index');
+    return view('landing.index', ['stats' => \App\Support\NetworkStats::overview()]);
 })->name('home');
 
 Route::get('/new', function () {

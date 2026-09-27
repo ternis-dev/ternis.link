@@ -8,7 +8,6 @@
     >
         <x-slot:actions>
             <x-ui.button href="{{ route('pages.stats.domains') }}" size="sm">Per Domain</x-ui.button>
-            <x-ui.button href="{{ route('pages.stats.links') }}" size="sm">Top Links</x-ui.button>
         </x-slot:actions>
     </x-ui.page-header>
 

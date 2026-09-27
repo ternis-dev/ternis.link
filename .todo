@@ -2,7 +2,7 @@ DONE: n dash.ternis.link admins also ownly see their own links
 DONE: new docs.ternis.link (DocsController renders docs/*.md as HTML + .md twins + raw OpenAPI yaml; map + Caddy + ensure.domain:docs; llms.txt points at it)
 DONE: allow admins to DIRECTLY DELETE links (hard delete via LinkModeration, removed-first; tombstone preserves aggregates, no softDelete needed)
 DONE: for stats-reasons all link creations are preserved (link_tombstones merged into NetworkStats; clicks cascade, aggregates survive)
-(DELETED LINKS STAY OUT OF topLinks — no slug/target to show; totals + per-day + per-domain stay complete)
+(DELETED LINKS HAVE NO PUBLIC LEADERBOARD — the Top Links page was removed so leaderboards can't distort member analytics; totals + per-day + per-domain stay complete)
 
 (DONE): add activity logs for users
 

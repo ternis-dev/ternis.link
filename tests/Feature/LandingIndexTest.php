@@ -42,4 +42,21 @@ class LandingIndexTest extends TestCase
             ->assertStatus(200)
             ->assertSee('https://href.nz', escape: false);
     }
+
+    public function test_ternis_landing_links_stats_and_docs(): void
+    {
+        $this->get('http://ternis.link/')
+            ->assertStatus(200)
+            ->assertSee('/pages/stats', escape: false)
+            ->assertSee('https://docs.ternis.link', escape: false);
+    }
+
+    public function test_ternis_landing_shows_live_network_numbers(): void
+    {
+        $this->get('http://ternis.link/')
+            ->assertStatus(200)
+            ->assertSee('Live from the network', escape: false)
+            ->assertSee('short links created', escape: false)
+            ->assertSee('redirects counted', escape: false);
+    }
 }

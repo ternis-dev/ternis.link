@@ -172,26 +172,12 @@ class NetworkStats
     }
 
     /**
-     * Most-clicked links — public slugs only, no owners, no targets
-     * (cached 10 minutes). Tombstones carry no slug and never surface
-     * here; their clicks live on in the totals above.
-     */
-    public static function topLinks(int $limit = 50): Collection
-    {
-        return Cache::remember('stats:links', 600, fn () => Link::with('domain')
-            ->orderByDesc('click_count')
-            ->limit($limit)
-            ->get(['id', 'slug', 'domain_id', 'click_count', 'is_active', 'is_removed', 'created_at'])
-        );
-    }
-
-    /**
      * Drop every cached aggregate (called after hard deletes so the
      * preserved tombstone counts show up immediately).
      */
     public static function flush(): void
     {
-        foreach (['stats:overview', 'stats:creations-30d', 'stats:clicks-30d', 'stats:domains', 'stats:links'] as $key) {
+        foreach (['stats:overview', 'stats:creations-30d', 'stats:clicks-30d', 'stats:domains'] as $key) {
             Cache::forget($key);
         }
     }

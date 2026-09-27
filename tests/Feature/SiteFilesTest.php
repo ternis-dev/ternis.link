@@ -67,7 +67,7 @@ class SiteFilesTest extends TestCase
         $this->assertStringContainsString('<loc>http://ternis.link/</loc>', $body);
         $this->assertStringContainsString('<loc>http://ternis.link/pages/stats</loc>', $body);
         $this->assertStringContainsString('<loc>http://ternis.link/pages/stats/domains</loc>', $body);
-        $this->assertStringContainsString('<loc>http://ternis.link/pages/stats/links</loc>', $body);
+        $this->assertStringNotContainsString('pages/stats/links', $body);
         $this->assertStringContainsString('<loc>http://ternis.link/pages/legal/privacy</loc>', $body);
         $this->assertStringContainsString('<loc>http://ternis.link/pages/legal/terms</loc>', $body);
         // Redirects (imprint) are not canonical URLs and stay out.
@@ -123,15 +123,16 @@ class SiteFilesTest extends TestCase
     {
         $domains = $this->get('http://ternis.link/pages/stats/domains.md')
             ->assertStatus(200)
-            ->assertSee('| Domain | Links | Clicks |', escape: false)
-            ->assertSee('href.nz', escape: false);
+            ->assertSee('| Domain | Links | Clicks |', escape: false);
 
-        $this->get('http://ternis.link/pages/stats/links.md')
-            ->assertStatus(200)
-            ->assertSee('| Short Link | Clicks | Status | Created |', escape: false)
-            ->assertSee('href.nz/sitelink1', escape: false);
+        $this->assertStringNotContainsString('| href.nz |', $domains->getContent());
 
-        foreach ([$domains->getContent(), $this->get('http://ternis.link/pages/stats/links.md')->getContent()] as $body) {
+        // The public Top Links page is gone (leaderboards distort
+        // member analytics) — HTML and Markdown both 404.
+        $this->get('http://ternis.link/pages/stats/links')->assertNotFound();
+        $this->get('http://ternis.link/pages/stats/links.md')->assertNotFound();
+
+        foreach ([$domains->getContent()] as $body) {
             $this->assertStringNotContainsString('secret.example', $body);
             $this->assertStringNotContainsString('SecretAgent', $body);
             $this->assertStringNotContainsString('https://example.com/site', $body);
@@ -143,7 +144,6 @@ class SiteFilesTest extends TestCase
         $this->get('http://href.nz/pages/stats.md')->assertNotFound();
         $this->get('http://dash.ternis.link/pages/stats.md')->assertNotFound();
         $this->get('http://href.nz/pages/stats/domains.md')->assertNotFound();
-        $this->get('http://href.nz/pages/stats/links.md')->assertNotFound();
     }
 
     public function test_legal_markdown_serves_source_verbatim(): void

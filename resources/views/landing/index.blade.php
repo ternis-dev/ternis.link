@@ -14,6 +14,11 @@
             @endauth
             <x-ui.button href="#how-it-works" variant="secondary" size="lg">How it works</x-ui.button>
         </div>
+        <p class="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
+            <a href="{{ url('/pages/stats') }}" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">Live network stats</a>
+            <span aria-hidden="true" class="mx-1">·</span>
+            <a href="https://docs.ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">Developer docs</a>
+        </p>
 
         <div class="mt-16 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
             <x-ui.card>
@@ -78,6 +83,27 @@
                 <div class="font-display text-lg font-bold">Partners</div>
                 <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Branded short links on infrastructure you can trust, with API access for your own tooling.</p>
             </x-ui.card>
+        </div>
+
+        <div class="mt-12 w-full rounded-xl border border-neutral-200 bg-white p-5 text-left dark:border-neutral-800 dark:bg-neutral-900">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <span class="font-display text-lg font-bold">Live from the network</span>
+                <a href="{{ url('/pages/stats') }}" class="text-sm text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">All stats →</a>
+            </div>
+            <dl class="mt-3 grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <dd class="font-display text-2xl font-bold tracking-tight">{{ number_format($stats['total_links'] ?? 0) }}</dd>
+                    <dt class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">short links created</dt>
+                </div>
+                <div>
+                    <dd class="font-display text-2xl font-bold tracking-tight">{{ number_format($stats['total_clicks'] ?? 0) }}</dd>
+                    <dt class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">redirects counted</dt>
+                </div>
+                <div>
+                    <dd class="font-display text-2xl font-bold tracking-tight">{{ number_format($stats['links_today'] ?? 0) }}</dd>
+                    <dt class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">created today</dt>
+                </div>
+            </dl>
         </div>
 
         <p class="mt-10 text-sm text-neutral-500 dark:text-neutral-400">
