@@ -30,7 +30,19 @@ class LinkQrCode
             margin: 10,
         );
 
-        return (new SvgWriter())->write($qr)->getDataUri();
+        return (new SvgWriter)->write($qr)->getDataUri();
+    }
+
+    public static function svg(Link $link): string
+    {
+        $qr = new QrCode(
+            data: static::shortUrl($link),
+            errorCorrectionLevel: ErrorCorrectionLevel::Medium,
+            size: 300,
+            margin: 10,
+        );
+
+        return (new SvgWriter)->write($qr)->getString();
     }
 
     public static function png(Link $link, int $size = 600): string
@@ -42,6 +54,6 @@ class LinkQrCode
             margin: 10,
         );
 
-        return (new PngWriter())->write($qr)->getString();
+        return (new PngWriter)->write($qr)->getString();
     }
 }

@@ -10,8 +10,10 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
 use App\Support\Activity;
+use App\Support\LinkQrCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class LinkController extends Controller
 {
@@ -96,6 +98,38 @@ class LinkController extends Controller
     }
 
     /**
+     * GET /v1/links/{link}/qr — Return a QR code for a link.
+     *
+     * SVG is the default format; PNG can be requested with ?format=png.
+     */
+    public function qr(Request $request, Link $link): Response
+    {
+        $this->authorizeQrAccess($request, $link);
+
+        $format = strtolower((string) $request->query('format', 'svg'));
+
+        if (! in_array($format, ['svg', 'png'], true)) {
+            return response()->json([
+                'message' => 'The format must be svg or png.',
+            ], 422);
+        }
+
+        $link->load('domain');
+
+        if ($format === 'png') {
+            return response(LinkQrCode::png($link), 200, [
+                'Content-Type' => 'image/png',
+                'Content-Disposition' => 'inline; filename="qr-'.$link->slug.'.png"',
+            ]);
+        }
+
+        return response(LinkQrCode::svg($link), 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Content-Disposition' => 'inline; filename="qr-'.$link->slug.'.svg"',
+        ]);
+    }
+
+    /**
      * PUT /v1/links/{link} — Update a link.
      */
     public function update(UpdateLinkRequest $request, Link $link): JsonResponse
@@ -139,5 +173,16 @@ class LinkController extends Controller
         ]);
 
         return response()->json(null, 204);
+    }
+
+    private function authorizeQrAccess(Request $request, Link $link): void
+    {
+        if ($link->is_removed) {
+            abort(404);
+        }
+
+        if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
+            abort(403, 'You do not own this link.');
+        }
     }
 }

@@ -214,6 +214,26 @@ paths:
       responses:
         '200': { description: Paginated clicks }
         '403': { description: Not the owner }
+  /links/{link}/qr:
+    parameters:
+      - { name: link, in: path, required: true, schema: { type: string, description: ULID } }
+    get:
+      summary: Return a link QR code
+      description: SVG is returned by default; use `format=png` for a PNG image.
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema: { type: string, enum: [svg, png], default: svg }
+      responses:
+        '200':
+          description: QR code image
+          content:
+            image/svg+xml: { schema: { type: string } }
+            image/png: { schema: { type: string, format: binary } }
+        '403': { description: Not the owner }
+        '404': { description: Unknown link or wrong host }
+        '422': { description: Unsupported format }
   /links/{link}/clicks/summary:
     parameters:
       - { name: link, in: path, required: true, schema: { type: string, description: ULID } }

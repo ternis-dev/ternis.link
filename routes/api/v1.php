@@ -29,6 +29,7 @@ Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', 'throttle
 
 Route::middleware(['ensure.domain:api', 'ensure.api-version:1', AuthenticateApi::class, 'throttle:api'])->group(function () {
     // Links CRUD
+    Route::get('links/{link}/qr', [LinkController::class, 'qr']);
     Route::apiResource('links', LinkController::class);
 
     // Custom domains

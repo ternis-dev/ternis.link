@@ -97,6 +97,46 @@ class ApiV1Test extends TestCase
         $response->assertJsonFragment(['slug' => 'showme123']);
     }
 
+    public function test_qr_code_via_api_supports_svg_and_png(): void
+    {
+        $link = Link::create([
+            'slug' => 'qr-api-test',
+            'destination_url' => 'https://example.com',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        $headers = ['Authorization' => "Bearer {$this->rawApiKey}"];
+
+        $this->get("http://links.t-api.de/v1/links/{$link->id}/qr", $headers)
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/svg+xml')
+            ->assertSee('<svg', false);
+
+        $png = $this->get("http://links.t-api.de/v1/links/{$link->id}/qr?format=png", $headers);
+
+        $png->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+        $this->assertStringStartsWith("\x89PNG", $png->getContent());
+    }
+
+    public function test_qr_code_via_api_rejects_unknown_format(): void
+    {
+        $link = Link::create([
+            'slug' => 'qr-api-format',
+            'destination_url' => 'https://example.com',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        $this->getJson("http://links.t-api.de/v1/links/{$link->id}/qr?format=gif", [
+            'Authorization' => "Bearer {$this->rawApiKey}",
+        ])->assertStatus(422)
+            ->assertJson(['message' => 'The format must be svg or png.']);
+    }
+
     public function test_update_link_via_api(): void
     {
         $link = Link::create([
