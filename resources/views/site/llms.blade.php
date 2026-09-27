@@ -29,6 +29,11 @@ ternis.link shortens long URLs into memorable short links and counts every redir
 
 - [API v1]({{ $hosts['api'] }}/v1/): link CRUD, domains, click analytics. Authenticated with `Authorization: Bearer <api-key>` (keys start with `tl_`); public guest creation via `POST /v1/links/public` on system domains. Machine-readable contract: `docs/api-v1-openapi.yaml` in the repo.
 
+## Developer docs
+
+- [Docs home]({{ $hosts['docs'] }}/): architecture, authentication, domains & routing, links — rendered from the repo `docs/`, no login.
+- [OpenAPI yaml]({{ $hosts['docs'] }}/api-v1-openapi.yaml): the v1 contract, served raw.
+
 ## Dashboards (login required)
 
 - [User dashboard]({{ $hosts['dashboard'] }}): manage links, domains, API keys, analytics.

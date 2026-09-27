@@ -65,3 +65,11 @@ dash.ternis.link, admin.ternis.link {
     file_server
     encode gzip
 }
+
+# Developer documentation
+docs.ternis.link {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}

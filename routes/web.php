@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocsController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
@@ -362,6 +363,33 @@ Route::get('/legal/{any}', function (string $any) {
 
     abort(404);
 })->where('any', '.*');
+
+/*
+|----------------------------------------------------------------------
+| Developer docs (docs.ternis.link ONLY) — renders docs/*.md as HTML
+| with raw Markdown twins, no login. Registered ABOVE the landing home
+| and the short-link catch-all: the host-blind `/` would otherwise
+| serve the landing, and `/{input}` would swallow doc slugs.
+| Every other host 404s here via ensure.domain.
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:docs'])->name('docs.')->group(function () {
+    // Host-pinned like the dashboard /: the host-blind landing / below
+    // shares the method+URI and would otherwise evict this definition.
+    Route::domain((string) config('domains.docs_host', 'docs.ternis.link'))
+        ->get('/', [DocsController::class, 'index'])->name('index');
+    Route::get('/api-v1-openapi.yaml', [DocsController::class, 'openapi'])->name('openapi');
+    // Slug allowlist (same pattern as /pages/{collection}): a greedy
+    // {slug} here would shadow single-segment routes registered below
+    // (/new, /{input}) on every other host before ensure.domain 404s.
+    $docSlugs = implode('|', array_keys(DocsController::PAGES));
+    Route::get('/{slug}.md', [DocsController::class, 'showMd'])
+        ->where('slug', $docSlugs)
+        ->name('show-md');
+    Route::get('/{slug}', [DocsController::class, 'show'])
+        ->where('slug', $docSlugs)
+        ->name('show');
+});
 
 /*
 |----------------------------------------------------------------------

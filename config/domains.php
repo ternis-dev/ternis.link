@@ -29,6 +29,8 @@ return [
         'links.t-api.de' => 'api',
         'dash.ternis.link' => 'dashboard',
         'admin.ternis.link' => 'admin',
+        // Developer documentation
+        'docs.ternis.link' => 'docs',
     ],
 
     /*
@@ -58,6 +60,8 @@ return [
     'dashboard_host' => env('DOMAIN_DASHBOARD', 'dash.ternis.link'),
 
     'admin_host' => env('DOMAIN_ADMIN', 'admin.ternis.link'),
+
+    'docs_host' => env('DOMAIN_DOCS', 'docs.ternis.link'),
 
     'public_host' => env('DOMAIN_PUBLIC', 'href.nz'),
 

@@ -49,7 +49,7 @@ Base: `{{ $hosts['api'] }}/v1/`. Auth: `Authorization: Bearer <api-key>` (keys s
 - `POST /v1/domains/{domain}/verify` — verify DNS TXT ownership.
 - `DELETE /v1/domains/{domain}` — remove a domain.
 
-Machine-readable contract: `docs/api-v1-openapi.yaml` in the repo.
+Machine-readable contract: `docs/api-v1-openapi.yaml` in the repo, served raw at `{{ $hosts['docs'] }}/api-v1-openapi.yaml`. Rendered developer docs (architecture, authentication, routing): `{{ $hosts['docs'] }}/`.
 
 ## Dashboards (login required)
 

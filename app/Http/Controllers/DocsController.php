@@ -1,0 +1,138 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Support\Str;
+
+/**
+ * Developer docs on the docs host (docs.ternis.link): renders the
+ * Markdown files from docs/*.md as HTML, each with a raw Markdown
+ * twin ({uri}.md) for crawlers and agents. No login, no chrome —
+ * same file-driven pattern as /pages/* content, but the source of
+ * truth stays the repo docs so code and documentation cannot drift.
+ */
+class DocsController extends Controller
+{
+    public const MARKDOWN = 'text/markdown; charset=UTF-8';
+
+    /**
+     * Slug → source file allowlist. Unknown slugs match no page (404).
+     */
+    public const PAGES = [
+        'readme' => 'README.md',
+        'architecture' => 'architecture.md',
+        'authentication' => 'authentication.md',
+        'domains-routing' => 'domains-routing.md',
+        'links' => 'links.md',
+    ];
+
+    public function index()
+    {
+        return view('docs.index', [
+            'pages' => collect(self::PAGES)->map(fn ($file, $slug) => [
+                'slug' => $slug,
+                'title' => $this->title($slug, $file),
+            ])->values(),
+        ]);
+    }
+
+    public function show(string $slug)
+    {
+        $page = $this->page($slug);
+
+        if ($page === null) {
+            abort(404);
+        }
+
+        return view('docs.show', [
+            'slug' => $slug,
+            'title' => $page['title'],
+            'html' => Str::markdown($page['body']),
+            'pages' => $this->nav(),
+        ]);
+    }
+
+    public function showMd(string $slug)
+    {
+        $page = $this->page($slug);
+
+        if ($page === null) {
+            abort(404);
+        }
+
+        return response($page['raw'], 200, ['Content-Type' => self::MARKDOWN]);
+    }
+
+    /**
+     * Raw OpenAPI 3.1 document (source: docs/api-v1-openapi.yaml).
+     */
+    public function openapi()
+    {
+        $path = base_path('docs/api-v1-openapi.yaml');
+
+        if (! is_file($path)) {
+            abort(404);
+        }
+
+        $contents = file_get_contents($path);
+
+        if ($contents === false) {
+            abort(500);
+        }
+
+        return response($contents, 200, ['Content-Type' => 'application/yaml']);
+    }
+
+    /**
+     * @return array{title: string, body: string, raw: string}|null
+     */
+    private function page(string $slug): ?array
+    {
+        $file = self::PAGES[$slug] ?? null;
+
+        if ($file === null) {
+            return null;
+        }
+
+        $path = base_path('docs/'.$file);
+
+        if (! is_file($path)) {
+            return null;
+        }
+
+        $raw = file_get_contents($path);
+
+        if ($raw === false) {
+            abort(500);
+        }
+
+        return [
+            'title' => $this->title($slug, $file),
+            'body' => $raw,
+            'raw' => $raw,
+        ];
+    }
+
+    private function nav(): array
+    {
+        return collect(self::PAGES)->map(fn ($file, $slug) => [
+            'slug' => $slug,
+            'title' => $this->title($slug, $file),
+        ])->values()->all();
+    }
+
+    private function title(string $slug, string $file): string
+    {
+        $path = base_path('docs/'.$file);
+
+        if (is_file($path)) {
+            foreach (explode("\n", file_get_contents($path) ?: '') as $line) {
+                if (str_starts_with($line, '# ')) {
+                    return trim(substr($line, 2));
+                }
+            }
+        }
+
+        return Str::headline($slug);
+    }
+}

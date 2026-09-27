@@ -14,6 +14,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - `go.ternis.net`, `go.ternis.dev`, `go.ternis.org`, `go.ternis.eu`: Go-style vanity redirects.
   - `dash.ternis.link`: User dashboard with live management & insights.
   - `admin.ternis.link`: Admin dashboard with system overview, link moderation, and user/plan management.
+  - `docs.ternis.link`: Developer docs rendering `docs/*.md` as HTML (plus `.md` twins and raw OpenAPI yaml, no login).
   - `links.t-api.de`: Dedicated API domain (`/v1`, `/` → latest version).
   - `api.ternis.link`: Permanent redirect to `links.t-api.de`.
   - Frontend assets and fonts are local: single Vite bundle + `public/fonts/*.woff2` (Inter + Space Grotesk). The only deliberate third-party runtime is the Cloudflare Turnstile bot check on protected public forms.

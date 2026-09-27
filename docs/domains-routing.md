@@ -17,6 +17,7 @@ Source files: `config/domains.php`, `app/Http/Middleware/ResolveDomain.php`,
 | `api.ternis.link` | — | Permanent redirect to `links.t-api.de` (handled in `ResolveDomain`) |
 | `dash.ternis.link` | `dashboard` | User dashboard |
 | `admin.ternis.link` | `admin` | Admin panel |
+| `docs.ternis.link` | `docs` | Developer docs (renders `docs/*.md` as HTML + `.md` twins, no login) |
 | Custom partner hostnames (`domains` table) | `partner` | Verified custom domains |
 | `*.ternis.link`, `*.href.re`, `*.href.nz` (`wildcard_roots`) | looked up in `domains` table, else 404 | Subdomain claims |
 
@@ -75,6 +76,9 @@ Reads `config('domains.auth_required.{type}')`:
 | GET | `/stats{any?}` | — | `ensure.domain:ternis` | Legacy 301 to `/pages/stats/*` (the `/pages/` namespace never collides with shortlink slugs) |
 | GET | `/` | `home` | none (branches on `domain_type`) | dashboard → login/dashboard; admin → login/admin; api → 302 `/v{latest}/`; business → `landing.business`; public → `landing.public`; else `landing.index` |
 | GET | `/new` | `public.new` | in-handler branch | dashboard → create page (localhost dev; pinned `dashboard.new` serves the dashboard host); public → `landing.new` guest form; else 404 |
+| GET | `/` on docs host | `docs.index` | `ensure.domain:docs`, host-pinned | Docs home (pinned: host-blind landing `/` would evict it) |
+| GET | `/api-v1-openapi.yaml` | `docs.openapi` | `ensure.domain:docs` | Raw OpenAPI 3.1 (`docs/api-v1-openapi.yaml`) |
+| GET | `/{slug}`, `/{slug}.md` | `docs.show`, `docs.show-md` | `ensure.domain:docs`, slug allowlist | Renders `docs/*.md` as HTML + Markdown twin; unknown slugs 404 |
 | GET | `/url/{url}` `.*` | `redirect.url` | `ensure.domain:public,business,ternis,partner`, public (no auth) | Preferred direct-URL redirect |
 | GET | `/go/{url}` `.*` | `redirect.go` | same | Alternative direct-URL redirect |
 | GET | `/preview/{input}` `.*` | `redirect.preview` | same (handler 404s except href.nz) | Above catch-all; sandbox preview |

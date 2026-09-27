@@ -147,6 +147,7 @@ class SiteFilesController extends Controller
                 'ternis' => 'https://ternis.link',
                 'dashboard' => $host('dashboard_host', 'dash.ternis.link'),
                 'admin' => $host('admin_host', 'admin.ternis.link'),
+                'docs' => $host('docs_host', 'docs.ternis.link'),
                 'api' => 'https://links.t-api.de',
             ],
             'pages' => PagesController::PAGES,
