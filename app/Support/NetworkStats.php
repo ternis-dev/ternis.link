@@ -163,10 +163,13 @@ class NetworkStats
     }
 
     /**
-     * Public domains only: hostnames added by users, not the built-in
-     * system domains. This is what the per-domain stats page shows.
+     * User-added domains only: claimed subdomains and registered
+     * hostnames — not the built-in system domains. This is what the
+     * per-domain stats page shows. (Named for who added them, not
+     * "public": in this codebase "public domain" already means the
+     * built-in guest hosts like href.nz.)
      */
-    public static function publicDomains(): Collection
+    public static function userDomains(): Collection
     {
         return self::domains()->whereNotNull('user_id')->values();
     }

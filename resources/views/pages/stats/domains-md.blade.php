@@ -1,6 +1,6 @@
 # Links Per Domain
 
-> How the network splits across domains. Aggregate counts only. Only public domains are listed here — hostnames added by users; built-in system domains (like `href.nz`) are excluded, but their traffic is included in the totals on the overview. [HTML version]({{ url('/pages/stats/domains') }}) · [Overview]({{ url('/pages/stats.md') }})
+> How the network splits across domains. Aggregate counts only. Custom domains only — hostnames added by users; built-in system domains (like `href.nz`) are excluded here, but their traffic still counts toward the totals on the overview. [HTML version]({{ url('/pages/stats/domains') }}) · [Overview]({{ url('/pages/stats.md') }})
 
 | Domain | Links | Clicks |
 |---|---:|---:|

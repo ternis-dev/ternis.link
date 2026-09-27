@@ -54,7 +54,7 @@ class StatsTest extends TestCase
         $this->get('http://ternis.link/pages/stats/domains')
             ->assertStatus(200)
             ->assertSee('Links Per Domain', escape: false)
-            ->assertSee('Only public domains', escape: false);
+            ->assertSee('Custom domains only', escape: false);
     }
 
     public function test_top_links_page_is_gone(): void
@@ -91,7 +91,7 @@ class StatsTest extends TestCase
         $this->get('http://ternis.link/pages/stats/domains')
             ->assertStatus(200)
             ->assertSee('go.example.com', escape: false)
-            ->assertSee('Only public domains', escape: false)
+            ->assertSee('Custom domains only', escape: false)
             ->assertViewHas('domains', fn ($domains) => $domains->isNotEmpty()
                 && $domains->every(fn ($domain) => $domain->user_id !== null));
 
@@ -99,7 +99,7 @@ class StatsTest extends TestCase
             ->assertStatus(200)
             ->assertSee('| go.example.com |', escape: false)
             ->assertDontSee('| href.nz |', escape: false)
-            ->assertSee('Only public domains', escape: false);
+            ->assertSee('Custom domains only', escape: false);
     }
 
     public function test_stats_leak_no_personal_data(): void
