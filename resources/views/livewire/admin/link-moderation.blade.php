@@ -97,6 +97,7 @@
                         <div class="flex gap-2">
                         @if ($link->is_removed)
                             <x-ui.button wire:click="restore('{{ $link->id }}')" size="sm">Restore</x-ui.button>
+                            <x-ui.button wire:click="delete('{{ $link->id }}')" wire:confirm="Permanently delete this link? The row and its click details are destroyed — only anonymized aggregates survive in stats." size="sm" variant="danger">Delete</x-ui.button>
                         @else
                             @if ($link->is_active)
                                 <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
@@ -119,4 +120,8 @@
     <div class="mt-6">
         {{ $links->links() }}
     </div>
+
+    @error('delete')
+        <x-ui.alert tone="error" class="mt-4">{{ $message }}</x-ui.alert>
+    @enderror
 </div>

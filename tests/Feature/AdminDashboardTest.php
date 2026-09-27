@@ -9,8 +9,10 @@ use App\Models\ActivityLog;
 use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\LinkTombstone;
 use App\Models\Plan;
 use App\Models\User;
+use App\Support\NetworkStats;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -199,6 +201,107 @@ class AdminDashboardTest extends TestCase
             ->assertForbidden();
 
         $this->assertTrue($link->fresh()->is_active);
+    }
+
+    public function test_link_moderation_can_delete_removed_link_and_preserves_stats(): void
+    {
+        $link = Link::create([
+            'slug' => 'delete-me',
+            'destination_url' => 'https://example.com/delete-me',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => false,
+            'is_removed' => true,
+            'click_count' => 5,
+        ]);
+
+        foreach ([0, 0, 0, 1, 1] as $daysAgo) {
+            $click = Click::create(['link_id' => $link->id, 'is_direct_url' => false]);
+            $click->created_at = now()->subDays($daysAgo);
+            $click->save();
+        }
+
+        $today = now()->format('Y-m-d');
+        $yesterday = now()->subDay()->format('Y-m-d');
+
+        $before = NetworkStats::overview();
+        $beforeCreations = NetworkStats::creationsByDay(30);
+        $beforeClicks = NetworkStats::clicksByDay(30);
+        $beforeDomain = NetworkStats::domains()->firstWhere('hostname', 'href.nz');
+
+        Livewire::actingAs($this->admin)
+            ->test(LinkModeration::class)
+            ->call('delete', $link->id)
+            ->assertHasNoErrors();
+
+        // Row + click details are gone …
+        $this->assertDatabaseMissing('links', ['id' => $link->id]);
+        $this->assertSame(0, Click::where('link_id', $link->id)->count());
+
+        // … but the tombstone keeps the aggregates …
+        $this->assertDatabaseHas('link_tombstones', [
+            'domain_hostname' => 'href.nz',
+            'click_count' => 5,
+        ]);
+        $tombstone = LinkTombstone::first();
+        $this->assertSame($today, $tombstone->created_day->format('Y-m-d'));
+        $this->assertSame(3, (int) ($tombstone->clicks_by_day[$today] ?? 0));
+        $this->assertSame(2, (int) ($tombstone->clicks_by_day[$yesterday] ?? 0));
+
+        // … so every stat survives the hard delete.
+        $after = NetworkStats::overview();
+        $this->assertSame($before['total_links'], $after['total_links']);
+        $this->assertSame($before['total_clicks'], $after['total_clicks']);
+        $this->assertSame($before['links_today'], $after['links_today']);
+        $this->assertSame($before['clicks_today'], $after['clicks_today']);
+        $this->assertSame($beforeCreations['values'], NetworkStats::creationsByDay(30)['values']);
+        $this->assertSame($beforeClicks['values'], NetworkStats::clicksByDay(30)['values']);
+
+        $afterDomain = NetworkStats::domains()->firstWhere('hostname', 'href.nz');
+        $this->assertSame($beforeDomain->links_count, $afterDomain->links_count);
+        $this->assertSame($beforeDomain->links_sum_click_count, $afterDomain->links_sum_click_count);
+
+        $this->assertDatabaseHas('activity_logs', [
+            'action' => ActivityLog::ADMIN_LINK_DELETED,
+            'subject_label' => 'delete-me',
+        ]);
+    }
+
+    public function test_link_moderation_refuses_to_delete_active_link(): void
+    {
+        $link = Link::create([
+            'slug' => 'keep-me',
+            'destination_url' => 'https://example.com/keep-me',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(LinkModeration::class)
+            ->call('delete', $link->id)
+            ->assertHasErrors('delete');
+
+        $this->assertDatabaseHas('links', ['id' => $link->id]);
+        $this->assertSame(0, LinkTombstone::count());
+    }
+
+    public function test_link_moderation_delete_blocks_non_admins(): void
+    {
+        $link = Link::create([
+            'slug' => 'no-delete',
+            'destination_url' => 'https://example.com/no-delete',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => false,
+            'is_removed' => true,
+        ]);
+
+        Livewire::actingAs($this->user)
+            ->test(LinkModeration::class)
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('links', ['id' => $link->id]);
     }
 
     public function test_user_table_can_change_role_and_plan(): void

@@ -1,10 +1,11 @@
 DONE: n dash.ternis.link admins also ownly see their own links
 new docs.ternis.link
-allow admins to DIRECTLY DELETE links ... (softDelete!?)
-also: for stats-reasons all link creations have to be anyhow preserved ... (maybe: stats.ternis.link)
+DONE: allow admins to DIRECTLY DELETE links (hard delete via LinkModeration, removed-first; tombstone preserves aggregates, no softDelete needed)
+DONE: for stats-reasons all link creations are preserved (link_tombstones merged into NetworkStats; clicks cascade, aggregates survive)
+(DELETED LINKS STAY OUT OF topLinks — no slug/target to show; totals + per-day + per-domain stay complete)
 
 (DONE): add activity logs for users
 
 DONE: legal routes always use ternis.link/legal/{slug}
 
-there should also be every /url/ view be logged (if not done already) (and also stats for that)
+DONE: every /url/ view is logged (RedirectController::directUrl tracks is_direct_url clicks; covered by RedirectTest; counted in admin + network stats)

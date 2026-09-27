@@ -5,8 +5,10 @@ namespace App\Livewire\Admin;
 use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\Link;
+use App\Models\LinkTombstone;
 use App\Support\Activity;
 use App\Support\DomainUrls;
+use App\Support\NetworkStats;
 use App\Support\Notifier;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -131,6 +133,47 @@ class LinkModeration extends Component
                 $link->user,
                 'Your link was restored',
                 ["The link {$link->slug} was restored by an administrator and resolves again."],
+                DomainUrls::dashboard('/links'),
+                'View your links',
+            );
+        }
+    }
+
+    /**
+     * Permanently delete a removed link: the row and its click details
+     * (IPs, referrers, user agents) are destroyed via cascade. A
+     * tombstone preserves the aggregates first so every creation stays
+     * counted in stats. Only removed links qualify — removal is the
+     * reversible first step, deletion the deliberate second one.
+     */
+    public function delete(string $linkId): void
+    {
+        $this->ensureAdmin();
+
+        $link = Link::with('domain')->findOrFail($linkId);
+
+        if (! $link->is_removed) {
+            $this->addError('delete', 'Remove the link first — permanent deletion is only available for removed links.');
+
+            return;
+        }
+
+        $slug = $link->slug;
+        $owner = $link->user;
+
+        Activity::record(ActivityLog::ADMIN_LINK_DELETED, auth()->user(), $link, [
+            'slug' => $slug,
+        ]);
+
+        LinkTombstone::snapshot($link);
+        $link->delete();
+        NetworkStats::flush();
+
+        if ($owner) {
+            Notifier::security(
+                $owner,
+                'Your link was permanently deleted',
+                ["The link {$slug} was permanently deleted by an administrator. Its stats survive in anonymized aggregates."],
                 DomainUrls::dashboard('/links'),
                 'View your links',
             );
