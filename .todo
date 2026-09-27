@@ -1,8 +1,10 @@
-on dash.ternis.link admins also ownly see their own links
+DONE: n dash.ternis.link admins also ownly see their own links
 new docs.ternis.link
-allow admins to DIRECTLY DELETE links ... (softDelete)
-also: for stats all link creations have to be anyhow preserved ... (maybe: stats.ternis.link)
+allow admins to DIRECTLY DELETE links ... (softDelete!?)
+also: for stats-reasons all link creations have to be anyhow preserved ... (maybe: stats.ternis.link)
 
 (DONE): add activity logs for users
 
 DONE: legal routes always use ternis.link/legal/{slug}
+
+there should also be every /url/ view be logged (if not done already) (and also stats for that)
