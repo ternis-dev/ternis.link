@@ -9,6 +9,8 @@
         backLabel="Back to Stats Overview"
     />
 
+    <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Only public domains are listed here — hostnames added by users. Built-in system domains (like <code>href.nz</code>) are excluded, but their traffic is included in the totals on the overview.</p>
+
     <x-ui.card>
         <x-ui.table>
             <thead>

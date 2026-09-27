@@ -50,12 +50,12 @@ class StatsController extends Controller
     }
 
     /**
-     * Links per domain — full table.
+     * Links per domain — public (user-added) domains only, full table.
      */
     public function domains()
     {
         return view('pages.stats.domains', [
-            'domains' => NetworkStats::domains(),
+            'domains' => NetworkStats::publicDomains(),
         ]);
     }
 
@@ -65,7 +65,7 @@ class StatsController extends Controller
     public function domainsMd()
     {
         return response()->view('pages.stats.domains-md', [
-            'domains' => NetworkStats::domains(),
+            'domains' => NetworkStats::publicDomains(),
         ], 200, ['Content-Type' => self::MARKDOWN]);
     }
 

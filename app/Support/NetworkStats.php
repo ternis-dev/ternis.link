@@ -163,6 +163,15 @@ class NetworkStats
     }
 
     /**
+     * Public domains only: hostnames added by users, not the built-in
+     * system domains. This is what the per-domain stats page shows.
+     */
+    public static function publicDomains(): Collection
+    {
+        return self::domains()->whereNotNull('user_id')->values();
+    }
+
+    /**
      * Most-clicked links — public slugs only, no owners, no targets
      * (cached 10 minutes). Tombstones carry no slug and never surface
      * here; their clicks live on in the totals above.

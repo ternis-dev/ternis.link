@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\DomainType;
 use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
@@ -53,12 +54,45 @@ class StatsTest extends TestCase
         $this->get('http://ternis.link/pages/stats/domains')
             ->assertStatus(200)
             ->assertSee('Links Per Domain', escape: false)
-            ->assertSee('href.nz', escape: false);
+            ->assertSee('Only public domains', escape: false);
 
         $this->get('http://ternis.link/pages/stats/links')
             ->assertStatus(200)
             ->assertSee('Top Links', escape: false)
             ->assertSee('statlink1', escape: false);
+    }
+
+    public function test_domains_page_lists_only_public_user_domains(): void
+    {
+        $custom = Domain::create([
+            'hostname' => 'go.example.com',
+            'user_id' => $this->user->id,
+            'type' => DomainType::Partner,
+            'is_active' => true,
+            'verified_at' => now(),
+        ]);
+
+        Link::create([
+            'slug' => 'custom1',
+            'destination_url' => 'https://example.com/custom',
+            'domain_id' => $custom->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+            'click_count' => 3,
+        ]);
+
+        $this->get('http://ternis.link/pages/stats/domains')
+            ->assertStatus(200)
+            ->assertSee('go.example.com', escape: false)
+            ->assertSee('Only public domains', escape: false)
+            ->assertViewHas('domains', fn ($domains) => $domains->isNotEmpty()
+                && $domains->every(fn ($domain) => $domain->user_id !== null));
+
+        $this->get('http://ternis.link/pages/stats/domains.md')
+            ->assertStatus(200)
+            ->assertSee('| go.example.com |', escape: false)
+            ->assertDontSee('| href.nz |', escape: false)
+            ->assertSee('Only public domains', escape: false);
     }
 
     public function test_stats_leak_no_personal_data(): void
