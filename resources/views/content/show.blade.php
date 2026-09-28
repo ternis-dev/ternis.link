@@ -22,6 +22,19 @@
             <p class="mt-3 text-lg text-neutral-500 dark:text-neutral-400">{{ $entry['description'] }}</p>
         @endif
 
+        @if ($toc !== [])
+            <nav aria-label="On this page" class="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm dark:border-neutral-800 dark:bg-neutral-900">
+                <p class="text-xs font-semibold tracking-wide text-neutral-500 uppercase dark:text-neutral-400">On this page</p>
+                <ul class="mt-2 space-y-1">
+                    @foreach ($toc as $item)
+                        <li>
+                            <a href="#{{ $item['id'] }}" class="text-neutral-600 underline-offset-4 hover:text-neutral-900 hover:underline dark:text-neutral-400 dark:hover:text-white">{{ $item['title'] }}</a>
+                        </li>
+                    @endforeach
+                </ul>
+            </nav>
+        @endif
+
         <article class="legal-prose mt-6">
             {!! $html !!}
         </article>

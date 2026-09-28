@@ -18,6 +18,7 @@ DONE: blog shortcuts (/blog + /blogs 301 to /pages/blog, subpaths+query preserve
 DONE: sitemap SEO (changefreq+priority everywhere; docs-host sitemap lists all guides with filemtime lastmod; docs robots now Allow:/ so it can be read); 3 more posts (guest guide, custom domains, API automation) — 7 total
 DONE: self-host post rewritten around first-party SSO (auth.ternis.net); 3 more posts (expiry, preview sandbox, browser extension) — 10 total, all claims verified
 DONE: dated collection URLs (Jekyll-style /pages/blog/2026-09-28-slug for blog+news+changelog; undated 301 incl. twins; shortcut resolves straight to canonical; index/twins/sitemap/prev-next use canonicals)
+DONE: blog UI/UX (featured latest-post card + hoverable cards on index; auto TOC with anchored h2s on long entries; legal pages untouched)
 
 Desktop-Application (starting with MacOS)
 

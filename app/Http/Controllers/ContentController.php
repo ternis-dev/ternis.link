@@ -55,12 +55,25 @@ class ContentController extends Controller
         }
 
         $neighbors = $this->neighbors($collection, $entry['slug']);
+        $toc = $this->tableOfContents($entry['body']);
+        $html = Str::markdown($entry['body']);
+
+        // Anchor every h2 in document order so the TOC links land.
+        foreach ($toc as $item) {
+            $html = preg_replace(
+                '/<h2>/',
+                '<h2 id="'.e($item['id']).'">',
+                $html,
+                1
+            );
+        }
 
         return view('content.show', [
             'collection' => $collection,
             'meta' => $meta,
             'entry' => $entry,
-            'html' => Str::markdown($entry['body']),
+            'html' => $html,
+            'toc' => $toc,
             'readingTime' => max(1, (int) round(str_word_count(strip_tags($entry['body'])) / 200)),
             'newer' => $neighbors['newer'],
             'older' => $neighbors['older'],
@@ -95,6 +108,43 @@ class ContentController extends Controller
         $query = request()->getQueryString();
 
         return url('/pages/'.$collection.'/'.$canonical).($query ? '?'.$query : '');
+    }
+
+    /**
+     * Table of contents from ## headings (needs 2+ to be useful).
+     * Duplicate titles get suffixed ids, mirroring common renderers.
+     *
+     * @return list<array{title: string, id: string}>
+     */
+    private function tableOfContents(string $body): array
+    {
+        $toc = [];
+        $seen = [];
+
+        foreach (explode("\n", $body) as $line) {
+            if (! str_starts_with($line, '## ')) {
+                continue;
+            }
+
+            $title = trim(substr($line, 3));
+
+            if ($title === '') {
+                continue;
+            }
+
+            $id = Str::slug($title);
+
+            if (isset($seen[$id])) {
+                $seen[$id]++;
+                $id .= '-'.$seen[$id];
+            } else {
+                $seen[$id] = 1;
+            }
+
+            $toc[] = ['title' => $title, 'id' => $id];
+        }
+
+        return count($toc) >= 2 ? $toc : [];
     }
 
     /**
