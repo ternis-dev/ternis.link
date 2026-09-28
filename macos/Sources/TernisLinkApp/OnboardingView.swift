@@ -38,9 +38,26 @@ struct OnboardingView: View {
 
             Divider()
 
-            Button("Sign In with Ternis Auth") { signInWithSSO() }
-                .buttonStyle(.bordered)
-                .disabled(busy)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Single sign-on").font(.headline)
+                Button("Sign In with Ternis Auth") { signInWithSSO() }
+                    .buttonStyle(.bordered)
+                    .disabled(busy)
+                Text("One-time setup: register this app at your provider as a public client (PKCE, grants: authorization_code + refresh_token) with this redirect URI:")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Text(AppConfig.ssoRedirectURI)
+                        .font(.caption)
+                        .monospaced()
+                        .textSelection(.enabled)
+                    Button("Copy") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(AppConfig.ssoRedirectURI, forType: .string)
+                    }
+                    .buttonStyle(.borderless)
+                }
+            }
 
             if busy { ProgressView().controlSize(.small) }
             if let errorMessage {
@@ -73,6 +90,15 @@ struct OnboardingView: View {
                 try await session.signInWithSSO(tokens: tokens)
             } catch SSOAuthorizer.Failure.cancelled {
                 // User dismissed the browser — stay put, no error.
+            } catch let failure as SSOAuthorizer.Failure {
+                switch failure {
+                case .cancelled:
+                    break
+                case .callback(let message), .tokenExchange(let message):
+                    self.errorMessage = message
+                case .noRefreshToken:
+                    self.errorMessage = "SSO sign-in failed — try again or use an API key."
+                }
             } catch {
                 self.errorMessage = "SSO sign-in failed — try again or use an API key."
             }

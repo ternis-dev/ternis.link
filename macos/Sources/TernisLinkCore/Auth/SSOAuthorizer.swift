@@ -94,8 +94,9 @@ public final class SSOAuthorizer: NSObject, Sendable {
         request.httpBody = components.percentEncodedQuery?.data(using: .utf8)
 
         let (data, response) = try await session.data(for: request)
-        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-            throw Failure.tokenExchange("The sign-in session expired.")
+        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard status == 200 else {
+            throw Failure.tokenExchange("The sign-in session expired (provider said \(status)).")
         }
         return try decodeTokens(from: data, fallbackRefresh: refreshToken)
     }
@@ -117,8 +118,9 @@ public final class SSOAuthorizer: NSObject, Sendable {
         request.httpBody = components.percentEncodedQuery?.data(using: .utf8)
 
         let (data, response) = try await session.data(for: request)
-        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-            throw Failure.tokenExchange("Could not complete sign-in.")
+        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard status == 200 else {
+            throw Failure.tokenExchange("The provider refused the sign-in (said \(status) — is this app's client registered with that redirect URI?).")
         }
         return try decodeTokens(from: data, fallbackRefresh: nil)
     }
