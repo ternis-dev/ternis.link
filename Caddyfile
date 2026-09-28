@@ -13,6 +13,14 @@ href.nz, *.href.nz {
     encode gzip
 }
 
+# Public link shortener, German-language
+meinlink.at, *.meinlink.at {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
 # Business link shortener
 href.re, *.href.re {
     root * /var/www/ternis-link/public

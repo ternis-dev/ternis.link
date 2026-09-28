@@ -35,6 +35,10 @@ class TernisAuthController extends Controller
         }
 
         if ($request->attributes->get('domain_type') === 'public') {
+            if (\App\Support\PublicHost::isMeinlink($request->getHost())) {
+                return view('auth.login-meinlink');
+            }
+
             return view('auth.login-public');
         }
 

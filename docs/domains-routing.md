@@ -6,7 +6,8 @@ Every host in the network does exactly one job. Pick the right one and the app b
 
 | Host | For | Login? |
 |------|-----|--------|
-| `href.nz` | Shortening links as a guest. The only place that works without an account. | Optional |
+| `href.nz` | Shortening links as a guest, in English. | Optional |
+| `meinlink.at` | Shortening links as a guest, in German — same rules, own design. | Optional |
 | `href.re` | Official business links. No guest form. | Required |
 | `ternis.link` | Family, relatives, partners. Public network stats live here too. | Required |
 | `dash.ternis.link` | Your dashboard: links, stats, domains, API keys. | Required |
@@ -25,7 +26,7 @@ Members can shorten links on their own hostnames (availability depends on the pl
 3. **Verify** — the app checks the record and activates the domain.
 4. Shorten links on it like anywhere else. Removing the domain later doesn't break already-created links' stats, but new links can't use it.
 
-Custom domains you own are verified against you; system domains (`href.nz`, `href.re`, …) are reserved and can't be claimed.
+Custom domains you own are verified against you; system domains (`href.nz`, `meinlink.at`, `href.re`, …) are reserved and can't be claimed.
 
 ## Short links vs. app pages
 

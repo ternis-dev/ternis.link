@@ -13,6 +13,7 @@ class DomainSeeder extends Seeder
         $domains = [
             // Public domains
             ['hostname' => 'href.nz',          'type' => DomainType::Public],
+            ['hostname' => 'meinlink.at',      'type' => DomainType::Public],
             // Business domains
             ['hostname' => 'href.re',          'type' => DomainType::Business],
             // Ternis family domains

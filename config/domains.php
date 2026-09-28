@@ -12,6 +12,8 @@ return [
     'map' => [
         // Public link shortener
         'href.nz' => 'public',
+        // Public link shortener, German-language (own landing + theme)
+        'meinlink.at' => 'public',
         // Business (ternis official)
         'href.re' => 'business',
         // Ternis family/partners
@@ -45,6 +47,7 @@ return [
         'ternis.link',
         'href.re',
         'href.nz',
+        'meinlink.at',
     ],
 
     /*
@@ -64,6 +67,8 @@ return [
     'docs_host' => env('DOMAIN_DOCS', 'docs.ternis.link'),
 
     'public_host' => env('DOMAIN_PUBLIC', 'href.nz'),
+
+    'meinlink_host' => env('DOMAIN_MEINLINK', 'meinlink.at'),
 
     'business_host' => env('DOMAIN_BUSINESS', 'href.re'),
 

@@ -1,10 +1,19 @@
 @if (request()->attributes->get('domain_type') === 'public')
-    <x-layouts.public-error code="404" title="Link not found.">
-        The short link <strong>{{ $slug }}</strong> for the domain <strong>{{ $domain ?? request()->getHost() }}</strong> wasn’t found, is inactive, or has expired.
-        <x-slot:actions>
-            <x-ui.button href="/" variant="primary">Back to shortener</x-ui.button>
-        </x-slot:actions>
-    </x-layouts.public-error>
+    @if (\App\Support\PublicHost::isMeinlink())
+        <x-layouts.public-error-meinlink code="404" title="Link nicht gefunden.">
+            Der Kurzlink <strong>{{ $slug }}</strong> für die Domain <strong>{{ $domain ?? request()->getHost() }}</strong> wurde nicht gefunden, ist inaktiv oder abgelaufen.
+            <x-slot:actions>
+                <x-ui.button href="/" variant="primary">Zurück zum Kürzer</x-ui.button>
+            </x-slot:actions>
+        </x-layouts.public-error-meinlink>
+    @else
+        <x-layouts.public-error code="404" title="Link not found.">
+            The short link <strong>{{ $slug }}</strong> for the domain <strong>{{ $domain ?? request()->getHost() }}</strong> wasn’t found, is inactive, or has expired.
+            <x-slot:actions>
+                <x-ui.button href="/" variant="primary">Back to shortener</x-ui.button>
+            </x-slot:actions>
+        </x-layouts.public-error>
+    @endif
 @else
     <x-layouts.app title="Link Not Found — ternis.link">
         <div class="mx-auto flex max-w-xl flex-col items-center py-16 text-center">

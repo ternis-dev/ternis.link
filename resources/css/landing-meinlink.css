@@ -1,0 +1,72 @@
+@import './landing-public.css';
+
+/* ==========================================================
+ * meinlink.at — "Berg-Skizze" theme
+ * Same sketchbook system as href.nz (hand lettering, paper,
+ * wobbly borders, tape and pins), but with Austrian-red ink
+ * for primary actions and flourishes, plus alpine doodles in
+ * the views. Loaded INSTEAD of landing-public.css — never both.
+ * ========================================================== */
+
+.ml-root {
+    --ml-red: #b02a30;
+    --ml-red-dark: #8c1f25;
+    --ml-red-soft: #f9ecec;
+}
+
+/* Primary buttons print in red ink. */
+.ml-root .sk-btn {
+    background: var(--ml-red);
+    border-color: var(--ml-red);
+}
+
+.ml-root .sk-btn:hover { background: var(--ml-red-dark); border-color: var(--ml-red-dark); }
+.ml-root .sk-btn:active { background: var(--ml-red); }
+
+.ml-root .sk-btn:focus-visible {
+    outline: 2px dashed var(--ml-red);
+    outline-offset: 3px;
+}
+
+/* Headline flourishes (underline, circle) in red ink. */
+.ml-root .sk-u > svg,
+.ml-root .sk-o > svg {
+    color: var(--ml-red);
+}
+
+/* Kicker badge gets the red shadow. */
+.ml-root .sk-kicker {
+    box-shadow: 2px 2px 0 rgba(176, 42, 48, 0.35);
+}
+
+/* Login link underlines red on hover. */
+.ml-root .sk-login:hover { border-bottom-color: var(--ml-red); }
+
+/* Fix-it button matches primary actions. */
+.ml-root .sk-fix-btn {
+    background: var(--ml-red);
+    border-color: var(--ml-red);
+}
+
+.ml-root .sk-fix-btn:hover { box-shadow: 2px 3px 0 rgba(176, 42, 48, 0.35); }
+
+/* Error-page actions: first button red, second paper. */
+.ml-root .sk-error-actions a {
+    background: var(--ml-red);
+    border-color: var(--ml-red);
+}
+
+.ml-root .sk-error-actions a:not(:first-child) {
+    color: var(--sk-ink);
+    background: var(--sk-card);
+}
+
+.ml-root .sk-error-actions a:focus-visible {
+    outline: 3px dashed var(--ml-red);
+    outline-offset: 3px;
+}
+
+/* Alpine doodle accents (mountains, edelweiss) print red. */
+.ml-dk-red { color: var(--ml-red); }
+
+/* Success states stay green everywhere — red means action. */

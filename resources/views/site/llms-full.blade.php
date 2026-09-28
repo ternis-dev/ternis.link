@@ -13,6 +13,7 @@
 - [{{ ucfirst($slug) }}]({{ $url }}): canonical legal page on ternis.dev (external).
 @endforeach
 - [Public shortener]({{ $hosts['public'] }}): guest link shortening with a hand-drawn sketchbook landing page.
+- [Austrian shortener](https://meinlink.at): guest link shortening in German, same rules, own red-sketch theme.
 - [Business shortener]({{ $hosts['business'] }}): official business links.
 - [Family & partners]({{ $hosts['ternis'] }}): landing page for family, relatives, and partners.
 

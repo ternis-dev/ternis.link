@@ -444,6 +444,12 @@ Route::get('/', function () {
         return view('landing.business');
     }
     if ($type === 'public') {
+        // meinlink.at shares every public rule but gets its own German
+        // landing page and theme (see landing-meinlink.css).
+        if (\App\Support\PublicHost::isMeinlink()) {
+            return view('landing.meinlink');
+        }
+
         return view('landing.public');
     }
 
@@ -466,6 +472,10 @@ Route::get('/new', function () {
 
     if ($type !== 'public') {
         abort(404);
+    }
+
+    if (\App\Support\PublicHost::isMeinlink()) {
+        return view('landing.new-meinlink');
     }
 
     return view('landing.new');
