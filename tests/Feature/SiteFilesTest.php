@@ -82,6 +82,34 @@ class SiteFilesTest extends TestCase
         $this->assertStringNotContainsString('/pages/', $body);
     }
 
+    public function test_sitemap_carries_changefreq_and_priority(): void
+    {
+        $body = $this->get('http://ternis.link/sitemap.xml')->assertStatus(200)->getContent();
+
+        $this->assertStringContainsString('<changefreq>daily</changefreq><priority>1.0</priority>', $body);
+        $this->assertStringContainsString('<changefreq>monthly</changefreq><priority>0.6</priority>', $body);
+        $this->assertStringContainsString('<changefreq>yearly</changefreq><priority>0.3</priority>', $body);
+    }
+
+    public function test_sitemap_on_docs_host_lists_guides(): void
+    {
+        $body = $this->get('http://docs.ternis.link/sitemap.xml')->assertStatus(200)->getContent();
+
+        $this->assertStringContainsString('<loc>http://docs.ternis.link/</loc>', $body);
+        $this->assertStringContainsString('<loc>http://docs.ternis.link/api</loc>', $body);
+        $this->assertStringContainsString('<loc>http://docs.ternis.link/authentication</loc>', $body);
+        $this->assertStringNotContainsString('ternis.link/pages/', $body);
+    }
+
+    public function test_robots_allows_crawling_on_docs_host(): void
+    {
+        $body = $this->get('http://docs.ternis.link/robots.txt')->assertStatus(200)->getContent();
+
+        $this->assertStringContainsString('Allow: /', $body);
+        $this->assertStringContainsString('Sitemap: http://docs.ternis.link/sitemap.xml', $body);
+        $this->assertStringNotContainsString('Disallow: /', $body);
+    }
+
     public function test_llms_txt_points_at_full_and_markdown_twins(): void
     {
         $response = $this->get('http://ternis.link/llms.txt')->assertStatus(200);

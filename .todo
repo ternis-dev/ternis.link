@@ -15,6 +15,7 @@ DONE: API guide (docs/api.md rendered at docs.ternis.link/api + .md twin; allowl
 DONE: FAQ section on ternis.link landing (6 Q&As from single $faqs source, hero anchor, FAQPage JSON-LD validated; LandingIndexTest coverage; subdomain answer fixed: inner circle — family/partners/admins only)
 DONE: blog SEO push (3 new posts: QR codes, custom slugs, what-we-count; auto-indexed + sitemap + twins; ContentTest iterates every entry)
 DONE: blog shortcuts (/blog + /blogs 301 to /pages/blog, subpaths+query preserved, slug-safe, host-pinned); self-host post corrected (Turnstile exception, no payment rails); posts expanded 3x (claims verified); entry layout upgraded (lede, reading time, BlogPosting JSON-LD, prev/next)
+DONE: sitemap SEO (changefreq+priority everywhere; docs-host sitemap lists all guides with filemtime lastmod; docs robots now Allow:/ so it can be read); 3 more posts (guest guide, custom domains, API automation) — 7 total
 
 Desktop-Application (starting with MacOS)
 

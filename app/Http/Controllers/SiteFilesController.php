@@ -38,8 +38,22 @@ class SiteFilesController extends Controller
         $type = $request->attributes->get('domain_type');
 
         // App surfaces (dashboard, admin, API, unknown): nothing to crawl.
-        if (! in_array($type, ['public', 'business', 'ternis', 'partner'], true)) {
+        if (! in_array($type, ['public', 'business', 'ternis', 'partner', 'docs'], true)) {
             return response("User-agent: *\nDisallow: /\n", 200, ['Content-Type' => self::PLAIN]);
+        }
+
+        // Docs host: every route is public documentation (allowlisted
+        // slugs + raw yaml, unknown slugs 404), so the whole host is
+        // crawlable — otherwise the docs sitemap could never be read.
+        if ($type === 'docs') {
+            $lines = [
+                'User-agent: *',
+                'Allow: /',
+                'Sitemap: '.$request->getSchemeAndHttpHost().'/sitemap.xml',
+                '',
+            ];
+
+            return response(implode("\n", $lines), 200, ['Content-Type' => self::PLAIN]);
         }
 
         // Short-link hosts: the homepage (and /pages/ on the ternis
@@ -74,32 +88,65 @@ class SiteFilesController extends Controller
         $base = $request->getSchemeAndHttpHost();
         $today = now()->toDateString();
 
-        $urls = [['loc' => $base.'/', 'lastmod' => $today]];
+        $urls = [[
+            'loc' => $base.'/',
+            'lastmod' => $today,
+            'changefreq' => 'daily',
+            'priority' => '1.0',
+        ]];
 
         // /pages/* exists on the ternis host only — a sitemap must
-        // never link off-host, so other hosts list just their homepage.
+        // never link off-host, so each host lists only its own pages.
         if ($type === 'ternis') {
-            $urls[] = ['loc' => $base.'/pages/stats', 'lastmod' => $today];
-            $urls[] = ['loc' => $base.'/pages/stats/domains', 'lastmod' => $today];
-            $urls[] = ['loc' => $base.'/pages/extension', 'lastmod' => $today];
+            foreach (['/pages/stats', '/pages/stats/domains', '/pages/extension'] as $path) {
+                $urls[] = [
+                    'loc' => $base.$path,
+                    'lastmod' => $today,
+                    'changefreq' => 'weekly',
+                    'priority' => '0.8',
+                ];
+            }
 
             foreach (PagesController::PAGES as $slug => $title) {
                 $path = resource_path("legal/{$slug}.md");
                 $urls[] = [
                     'loc' => $base."/pages/legal/{$slug}",
                     'lastmod' => is_file($path) ? date('Y-m-d', (int) filemtime($path)) : $today,
+                    'changefreq' => 'yearly',
+                    'priority' => '0.3',
                 ];
             }
 
             foreach (array_keys(ContentCollection::COLLECTIONS) as $collection) {
-                $urls[] = ['loc' => $base."/pages/{$collection}", 'lastmod' => $today];
+                $urls[] = [
+                    'loc' => $base."/pages/{$collection}",
+                    'lastmod' => $today,
+                    'changefreq' => 'weekly',
+                    'priority' => '0.8',
+                ];
 
                 foreach (ContentCollection::entries($collection) as $entry) {
                     $urls[] = [
                         'loc' => $base."/pages/{$collection}/{$entry['slug']}",
                         'lastmod' => $entry['date'],
+                        'changefreq' => 'monthly',
+                        'priority' => '0.6',
                     ];
                 }
+            }
+        }
+
+        // Docs guides live on the docs host only — previously no
+        // sitemap listed them at all.
+        if ($type === 'docs') {
+            foreach (DocsController::PAGES as $slug => $file) {
+                $path = base_path('docs/'.$file);
+                $urls[] = [
+                    'loc' => $base."/{$slug}",
+                    'lastmod' => is_file($path) ? date('Y-m-d', (int) filemtime($path)) : $today,
+                    'changefreq' => 'monthly',
+                    'priority' => '0.6',
+                ];
             }
         }
 
@@ -107,7 +154,12 @@ class SiteFilesController extends Controller
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
 
         foreach ($urls as $url) {
-            $xml .= '  <url><loc>'.e($url['loc']).'</loc><lastmod>'.$url['lastmod'].'</lastmod></url>'."\n";
+            $xml .= '  <url>'
+                .'<loc>'.e($url['loc']).'</loc>'
+                .'<lastmod>'.$url['lastmod'].'</lastmod>'
+                .'<changefreq>'.$url['changefreq'].'</changefreq>'
+                .'<priority>'.$url['priority'].'</priority>'
+                .'</url>'."\n";
         }
 
         $xml .= '</urlset>';
