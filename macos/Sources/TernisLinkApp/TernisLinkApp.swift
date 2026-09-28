@@ -1,13 +1,19 @@
 import SwiftUI
 import TernisLinkCore
 
-/// M0 entry point: a regular dashboard application (dock icon, main window —
-/// deliberately NOT a menu-bar app). M2 fills the sidebar features.
+/// Regular dashboard application (dock icon, main window — not a menu-bar
+/// app). Root switches between onboarding and the workspace by sign-in state.
 @main
 struct TernisLinkApp: App {
+    @State private var session = SessionStore()
+    @State private var hotkeys = HotKeyManager()
+
     var body: some Scene {
         WindowGroup {
-            DashboardHomeView()
+            RootView()
+                .environment(session)
+                .task { await session.refresh() }
+                .onAppear { hotkeys.register() }
         }
 
         Settings {
@@ -16,40 +22,44 @@ struct TernisLinkApp: App {
     }
 }
 
+struct RootView: View {
+    @Environment(SessionStore.self) private var session
+
+    var body: some View {
+        switch session.state {
+        case .checking:
+            ProgressView().padding().frame(minWidth: 320, minHeight: 200)
+        case .signedOut:
+            OnboardingView()
+        case .signedIn:
+            DashboardHomeView()
+        }
+    }
+}
+
 struct DashboardHomeView: View {
-    @State private var status = "Checking…"
+    @Environment(SessionStore.self) private var session
 
     var body: some View {
         NavigationSplitView {
             List {
                 Section("Workspace") {
-                    Label("Links", systemImage: "link")
-                    Label("API Keys", systemImage: "key")
-                    Label("Domains", systemImage: "globe")
+                    Label("New Link", systemImage: "link")
+                    Label("Links", systemImage: "list.bullet").foregroundStyle(.secondary)
+                    Label("API Keys", systemImage: "key").foregroundStyle(.secondary)
+                    Label("Domains", systemImage: "globe").foregroundStyle(.secondary)
                 }
                 Section("Insights") {
-                    Label("Activity", systemImage: "clock")
-                    Label("Notifications", systemImage: "bell")
+                    Label("Activity", systemImage: "clock").foregroundStyle(.secondary)
+                    Label("Notifications", systemImage: "bell").foregroundStyle(.secondary)
                 }
             }
             .listStyle(.sidebar)
             .disabled(true)
             .navigationTitle("ternis.link")
         } detail: {
-            VStack(spacing: 8) {
-                Text("ternis.link for Mac").font(.headline)
-                Text(status).font(.caption).foregroundStyle(.secondary)
-                Text("Sidebar features land in M2 — this shell proves the app target.")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-            .padding()
-            .frame(minWidth: 320, minHeight: 200)
-        }
-        .task {
-            let auth = AuthManager()
-            let signedIn = await auth.isSignedIn
-            status = signedIn ? "Signed in ✓" : "Not signed in — M1 adds onboarding."
+            QuickShortenView()
+                .frame(minWidth: 480, minHeight: 520)
         }
     }
 }

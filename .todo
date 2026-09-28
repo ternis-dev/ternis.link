@@ -16,7 +16,8 @@ DONE: Chrome-Extension + download-page (extension/ MV3: popup/menu/omnibox, gues
 
 IN PROGRESS: macOS app (native SwiftUI · key+SSO · notarized DMG; plan FINAL: .plans/20260928T175229_macos-app-plan.md)
 DONE(macOS): M0 scaffold — macos/ SwiftPM package, APIClient + auth/Keychain + SSO loopback-design (custom scheme), swift build + 9 tests green
-TODO(macOS): M1 onboarding (key paste + SSO) + quick-shortener (window + hotkey) + history
+DONE(macOS): M1 onboarding (key paste + SSO) + quick-shortener (window + hotkey) + history
+TODO(macOS): M2 main window — links list/detail/create, analytics charts, QR
 TODO(macOS): menu-bar quick-shorten + global hotkey
 TODO(macOS): main window — links, analytics, QR, API keys, domains, notifications, activity, settings
 TODO(macOS): auth story (API key vs SSO OAuth w/ loopback) + Keychain storage

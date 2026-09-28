@@ -27,6 +27,9 @@ Open the folder in Xcode for Previews and archiving (full Xcode required).
 
 - `Sources/TernisLinkCore` — testable library: `APIClient`, `LinksAPI`,
   `Auth/` (`Credential`, `AuthManager`, `SSOAuthorizer`, `PKCE`,
-  `KeychainStore`), models, typed `APIError`.
-- `Sources/TernisLinkApp` — `@main` App: MenuBarExtra + status window (M0).
-- `Tests/` — swift-testing suites for PKCE vectors, error mapping, models.
+  `KeychainStore`), `Persistence/HistoryStore`, models, typed `APIError`.
+- `Sources/TernisLinkApp` — `@main` App: onboarding (key + SSO),
+  dashboard shell, quick-shortener (clipboard prefill, domain picker,
+  QR preview, history), `⌃⌥⌘L` global hotkey, Settings stub.
+- `Tests/` — swift-testing suites for PKCE vectors, error mapping, models,
+  auth validation, history persistence.

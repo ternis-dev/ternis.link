@@ -71,11 +71,36 @@ import Testing
     #expect(Credential.apiKey("tl_abc").bearerIfFresh == "tl_abc")
 }
 
-@Test func shortURLBuildsFromDomainAndSlug() {
+@Test func invalidAPIKeyThrowsBeforeKeychain() async {
+    await #expect(throws: AuthManager.SignInError.self) {
+        try await AuthManager().signInWithAPIKey("not-a-key")
+    }
+}
+
+@Test @MainActor func historyRoundTripsAndCaps() {
+    let dir = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+    try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: dir) }
+
+    let store = HistoryStore(directory: dir)
+    #expect(store.entries.isEmpty)
+    store.add(shortUrl: "https://href.nz/abc", destination: "https://example.com")
+    #expect(store.entries.count == 1)
+    #expect(store.entries.first?.shortUrl == "https://href.nz/abc")
+
+    // Reload from disk.
+    let reloaded = HistoryStore(directory: dir)
+    #expect(reloaded.entries.count == 1)
+
+    reloaded.clear()
+    #expect(reloaded.entries.isEmpty)
+}
+
+@Test func shortUrlBuildsFromDomainAndSlug() {
     let json = """
         {"id":"01J","slug":"abc123","destination_url":"https://example.com",\
         "domain":{"id":"02D","hostname":"href.nz"}}
         """.data(using: .utf8)!
     let link = try! JSONDecoder.api.decode(APILink.self, from: json)
-    #expect(link.shortURL?.absoluteString == "https://href.nz/abc123")
+    #expect(link.shortUrl?.absoluteString == "https://href.nz/abc123")
 }

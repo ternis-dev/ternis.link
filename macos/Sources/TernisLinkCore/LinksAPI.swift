@@ -39,11 +39,11 @@ public struct LinksAPI: Sendable {
     }
 
     /// QR PNG bytes for a short URL (public endpoint, no auth needed).
-    public func qrPNG(for shortURL: URL) async throws -> Data {
+    public func qrPNG(for shortUrl: URL) async throws -> Data {
         let (data, http) = try await client.raw(
             path: "/qr",
             query: [
-                URLQueryItem(name: "url", value: shortURL.absoluteString),
+                URLQueryItem(name: "url", value: shortUrl.absoluteString),
                 URLQueryItem(name: "format", value: "png"),
             ],
             token: nil

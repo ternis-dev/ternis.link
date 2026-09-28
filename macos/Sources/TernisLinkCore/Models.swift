@@ -42,7 +42,7 @@ public struct APILink: Codable, Sendable, Identifiable, Hashable {
     public let expiresAt: Date?
     public let domain: APIDomain?
 
-    public var shortURL: URL? {
+    public var shortUrl: URL? {
         guard let host = domain?.hostname else { return nil }
         return URL(string: "https://\(host)/\(slug)")
     }
