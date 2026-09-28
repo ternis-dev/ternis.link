@@ -42,3 +42,5 @@ No account and just scripting something quick? `POST /v1/links/public` creates g
 - The full contract is [OpenAPI 3.1](/api-v1-openapi.yaml).
 
 Click analytics for your own links live at `GET /v1/links/{link}/clicks` (rows) and `GET /v1/links/{link}/clicks/summary` (aggregates) — the same numbers the dashboard charts are drawn from.
+
+The complete reference — domains, API keys, notifications, activity, settings, QR codes — with copy-paste examples lives in the [API guide](./api).

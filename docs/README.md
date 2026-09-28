@@ -24,6 +24,7 @@ No account is needed to start: anyone can shorten links as a guest on [href.nz](
 | [Links & URLs](./links) | Guest and member shortening, custom slugs, QR codes, direct links, expiry. |
 | [Accounts & API keys](./authentication) | Password-free sign-in, what members get, using the API. |
 | [Domains](./domains-routing) | Which host does what, plus your own custom domains. |
+| [API guide](./api) | Every endpoint with copy-paste examples. |
 
 ## For developers
 

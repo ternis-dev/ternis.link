@@ -1,0 +1,155 @@
+# API guide
+
+Everything the dashboard does is available over HTTPS at `https://links.t-api.de/v1` — the macOS app and the browser extension are thin clients on this same API. Authenticated endpoints live on that host only; requests on other hosts return `404` before auth runs.
+
+The machine-readable contract is [OpenAPI 3.1](/api-v1-openapi.yaml). This guide is the human version, with copy-paste examples.
+
+## Authentication
+
+Pass a personal API key (starts with `tl_`, created under [API keys](https://dash.ternis.link/api-keys) in the dashboard) or a Ternis Auth SSO access token as a Bearer token:
+
+```bash
+curl https://links.t-api.de/v1/links \
+  -H "Authorization: Bearer tl_your_key_here"
+```
+
+Keys are stored as hashes — the full key is shown **once** at creation. Revoke keys you no longer use, via the dashboard or `DELETE /v1/api-keys/{key}` below.
+
+Check compatibility first: `GET /v1/` is public (no auth) and reports the active version:
+
+```bash
+curl https://links.t-api.de/v1/
+# {"version":1,"status":"active","latest_version":1,...}
+```
+
+## Conventions
+
+- **Versioning:** every response carries `API-Version` and `API-Latest-Version` headers. Deprecated versions add `Deprecation: true` plus `Sunset`; retired versions answer `410` with `{ message, version, latest_version }`.
+- **Errors** are `{ "message": "…" }`, or `{ "message": "…", "errors": { … } }` for validation failures. Rate limits answer `429` with a `Retry-After` header — back off and retry.
+- **Pagination:** list endpoints return Laravel paginators (`data`, `current_page`, `last_page`, `total`).
+- **IDs** are ULID strings. Timestamps are ISO-8601.
+
+## Links
+
+```bash
+# List your links (admins see everything; ?scope=mine restricts to own; ?tag= filters)
+curl "https://links.t-api.de/v1/links?tag=launch" \
+  -H "Authorization: Bearer tl_your_key_here"
+
+# Create (custom slug optional; plan minimum length applies; domains must be verified)
+curl -X POST https://links.t-api.de/v1/links \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"destination_url": "https://example.com/very-long-page", "domain_id": "<ulid>", "slug": "my-launch", "tags": ["launch"]}'
+
+# Show / update / deactivate (deleting stops resolution; stats stay)
+curl https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
+curl -X PUT https://links.t-api.de/v1/links/<ulid> \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Launch page"}'
+curl -X DELETE https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
+```
+
+No account and just scripting something quick? `POST /v1/links/public` creates guest links without any key — auto-generated slugs, fair-use limits, public system domains only:
+
+```bash
+curl -X POST https://links.t-api.de/v1/links/public \
+  -H "Content-Type: application/json" \
+  -d '{"destination_url": "https://example.com/quick-share"}'
+```
+
+## Click analytics
+
+```bash
+# Raw click rows (paginated)
+curl https://links.t-api.de/v1/links/<ulid>/clicks -H "Authorization: Bearer tl_your_key_here"
+
+# Aggregates: totals, unique visitors, top referrers/countries, per-day counts
+curl https://links.t-api.de/v1/links/<ulid>/clicks/summary -H "Authorization: Bearer tl_your_key_here"
+```
+
+These are the same numbers the dashboard charts are drawn from.
+
+## QR codes
+
+```bash
+# Any public URL, no auth (SVG default, ?format=png for PNG)
+curl "https://links.t-api.de/v1/qr?url=https%3A%2F%2Fexample.com&format=png"
+
+# QR for one of your links (auth; encodes the short URL)
+curl "https://links.t-api.de/v1/links/<ulid>/qr?format=png" \
+  -H "Authorization: Bearer tl_your_key_here"
+```
+
+## Domains
+
+```bash
+# Active system domains plus your own
+curl https://links.t-api.de/v1/domains -H "Authorization: Bearer tl_your_key_here"
+
+# Register a custom hostname (eligible plans only; starts unverified)
+curl -X POST https://links.t-api.de/v1/domains \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"hostname": "links.example.com"}'
+# → 201 with DNS TXT verification instructions until verified
+
+# Publish the TXT record, then verify (200 {verified:true} or 422 {verified:false})
+curl -X POST https://links.t-api.de/v1/domains/<ulid>/verify \
+  -H "Authorization: Bearer tl_your_key_here"
+
+# Deactivate your domain (links and analytics are preserved)
+curl -X DELETE https://links.t-api.de/v1/domains/<ulid> -H "Authorization: Bearer tl_your_key_here"
+```
+
+## API keys
+
+```bash
+# List your keys (newest first; digests are never exposed)
+curl https://links.t-api.de/v1/api-keys -H "Authorization: Bearer tl_your_key_here"
+
+# Create — the raw token comes back as api_key exactly once
+curl -X POST https://links.t-api.de/v1/api-keys \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ci-runner"}'
+
+# Revoke
+curl -X DELETE https://links.t-api.de/v1/api-keys/<ulid> -H "Authorization: Bearer tl_your_key_here"
+```
+
+## Notifications
+
+Your in-app inbox (security events, moderation decisions), newest first:
+
+```bash
+curl https://links.t-api.de/v1/notifications -H "Authorization: Bearer tl_your_key_here"
+
+# Mark one read, or everything at once
+curl -X POST https://links.t-api.de/v1/notifications/<id>/read \
+  -H "Authorization: Bearer tl_your_key_here"
+curl -X POST https://links.t-api.de/v1/notifications/read \
+  -H "Authorization: Bearer tl_your_key_here"
+```
+
+## Activity
+
+Your personal history — actions you performed plus actions others (admins, system) performed on your stuff:
+
+```bash
+curl https://links.t-api.de/v1/activity -H "Authorization: Bearer tl_your_key_here"
+```
+
+## Settings
+
+Theme/layout plus email notification preferences (same rules as the dashboard settings form):
+
+```bash
+curl https://links.t-api.de/v1/settings -H "Authorization: Bearer tl_your_key_here"
+
+curl -X PATCH https://links.t-api.de/v1/settings \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"theme": "dark", "nav_layout": "top", "notify_security_email": true}'
+```

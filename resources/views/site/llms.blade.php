@@ -32,7 +32,7 @@ ternis.link shortens long URLs into memorable short links and counts every redir
 
 ## Developer docs
 
-- [Docs home]({{ $hosts['docs'] }}/): architecture, authentication, domains & routing, links — rendered from the repo `docs/`, no login.
+- [Docs home]({{ $hosts['docs'] }}/): architecture, authentication, domains & routing, links, API guide — rendered from the repo `docs/`, no login.
 - [OpenAPI yaml]({{ $hosts['docs'] }}/api-v1-openapi.yaml): the v1 contract, served raw.
 
 ## Dashboards (login required)

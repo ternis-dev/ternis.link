@@ -84,6 +84,20 @@ class DocsTest extends TestCase
             ->assertSee('Links', escape: false);
     }
 
+    public function test_docs_api_guide_renders_with_twin(): void
+    {
+        $this->get('http://docs.ternis.link/api')
+            ->assertOk()
+            ->assertSee('API guide', escape: false)
+            ->assertSee('/v1/api-keys', escape: false)
+            ->assertSee('/v1/notifications', escape: false);
+
+        $response = $this->get('http://docs.ternis.link/api.md');
+        $response->assertOk();
+        $this->assertStringStartsWith('text/markdown', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('# API guide', $response->getContent());
+    }
+
     public function test_every_docs_slug_resolves_on_the_docs_host(): void
     {
         // Collision guard: if a future docs slug ever matches an

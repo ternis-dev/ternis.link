@@ -24,6 +24,7 @@ class DocsController extends Controller
         'domains-routing' => 'domains-routing.md',
         'links' => 'links.md',
         'extension' => 'extension.md',
+        'api' => 'api.md',
     ];
 
     /**
@@ -36,6 +37,7 @@ class DocsController extends Controller
         'domains-routing' => 'Which host does what, plus custom domains.',
         'links' => 'Shorten links, custom slugs, QR codes, clicks.',
         'extension' => 'Shorten any tab: popup, menu, omnibox.',
+        'api' => 'Every endpoint with copy-paste curl examples.',
     ];
 
     public function index()
