@@ -107,6 +107,16 @@
 }
 
 @layer components {
+    /* Hide scrollbars while keeping scrollability (dashboard/admin navs). */
+    .no-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
     /* Data tables — semantic <table> markup stays unstyled in Blade. */
     .ui-table {
         @apply w-full border-collapse text-sm;

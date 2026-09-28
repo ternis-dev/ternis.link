@@ -26,7 +26,7 @@ $nav[0]['href'] = $homeHref;
 
 <x-layouts.app :title="$title" maxWidth="max-w-[1440px]">
     @if ($topNav)
-        <nav aria-label="Dashboard" data-nav="top" class="sticky top-4 z-30 mb-6 flex items-center justify-between gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
+        <nav aria-label="Dashboard" data-nav="top" class="no-scrollbar sticky top-4 z-30 mb-6 flex items-center justify-between gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-800 dark:bg-neutral-900">
             <div class="flex items-center gap-1">
                 @foreach ($nav as $item)
                     <a
@@ -62,7 +62,7 @@ $nav[0]['href'] = $homeHref;
     @else
         <div class="flex flex-col gap-6 lg:flex-row">
             <aside class="lg:w-60 lg:shrink-0">
-                <nav aria-label="Dashboard" data-nav="side" class="flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 lg:sticky lg:top-6 lg:flex-col dark:border-neutral-800 dark:bg-neutral-900">
+                <nav aria-label="Dashboard" data-nav="side" class="no-scrollbar flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 lg:sticky lg:top-6 lg:flex-col dark:border-neutral-800 dark:bg-neutral-900">
                     <button
                         type="button"
                         x-data

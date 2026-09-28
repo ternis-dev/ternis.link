@@ -24,7 +24,7 @@ $dashUrl = \App\Support\DomainUrls::dashboard('/');
 
     <div class="flex flex-col gap-6 lg:flex-row">
         <aside class="lg:w-60 lg:shrink-0">
-            <nav aria-label="Admin" data-nav="admin-side" class="flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 lg:sticky lg:top-6 lg:flex-col dark:border-neutral-800 dark:bg-neutral-900">
+            <nav aria-label="Admin" data-nav="admin-side" class="no-scrollbar flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 lg:sticky lg:top-6 lg:flex-col dark:border-neutral-800 dark:bg-neutral-900">
                 @foreach ($nav as $item)
                     <a
                         href="{{ route($item['route']) }}"
