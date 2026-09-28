@@ -9,3 +9,5 @@ DONE: for stats-reasons all link creations are preserved (link_tombstones merged
 DONE: legal routes always use ternis.link/legal/{slug}
 
 DONE: every /url/ view is logged (RedirectController::directUrl tracks is_direct_url clicks; covered by RedirectTest; counted in admin + network stats)
+
+Desktop-Application (starting with MacOS)
