@@ -78,7 +78,7 @@
 
         <footer class="ml-foot">
             Amt für kurze Links · Dienststelle meinlink.at · <a href="https://ternis.link/pages/legal/privacy">Datenschutz</a> ·
-            <a href="https://ternis.link/pages/legal/terms">AGB</a> · <a href="https://ternis.dev/en/legal/imprint">Impressum</a>
+            <a href="https://ternis.link/pages/legal/terms">AGB</a> · <a href="https://ternis.dev/de/legal/imprint">Impressum</a>
         </footer>
     </div>
 

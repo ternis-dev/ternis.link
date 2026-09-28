@@ -129,6 +129,11 @@ return [
     | storage. By default, no PHP classes will be unserialized from your
     | cache to prevent gadget chain attacks if your APP_KEY is leaked.
     |
+    | CONSEQUENCE: never cache Eloquent models (or any objects) — they
+    | come back as __PHP_Incomplete_Class and fatal the caller. Cache
+    | scalars and plain arrays only (see EnsureApiVersion,
+    | NetworkStats::domains). This bit us on /v1/qr and /pages/stats.
+    |
     */
 
     'serializable_classes' => false,

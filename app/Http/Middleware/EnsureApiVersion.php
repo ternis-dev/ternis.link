@@ -24,10 +24,23 @@ class EnsureApiVersion
     {
         $version = (int) $version;
 
-        $record = Cache::remember(
-            "api_version:{$version}",
+        // Scalars only: config cache.serializable_classes=false means
+        // cached Eloquent models come back as __PHP_Incomplete_Class.
+        $meta = Cache::remember(
+            "api_version:{$version}:meta",
             60,
-            fn () => ApiVersion::where('version', $version)->first()
+            function () use ($version) {
+                $record = ApiVersion::where('version', $version)->first();
+
+                if (! $record) {
+                    return null;
+                }
+
+                return [
+                    'status' => $record->status->value,
+                    'sunset' => $record->deprecated_at?->copy()->endOfDay()->toRfc7231String(),
+                ];
+            }
         );
 
         $latest = Cache::remember(
@@ -36,7 +49,7 @@ class EnsureApiVersion
             fn () => ApiVersion::latestVersion()
         );
 
-        if ($record && $record->status === ApiVersionStatus::Retired) {
+        if ($meta !== null && $meta['status'] === ApiVersionStatus::Retired->value) {
             return response()->json([
                 'message' => "API v{$version} is retired. Please migrate to v{$latest}.",
                 'version' => $version,
@@ -53,14 +66,11 @@ class EnsureApiVersion
         $response->headers->set('API-Version', (string) $version);
         $response->headers->set('API-Latest-Version', (string) $latest);
 
-        if ($record && $record->status === ApiVersionStatus::Deprecated) {
+        if ($meta !== null && $meta['status'] === ApiVersionStatus::Deprecated->value) {
             $response->headers->set('Deprecation', 'true');
 
-            if ($record->deprecated_at) {
-                $response->headers->set(
-                    'Sunset',
-                    $record->deprecated_at->copy()->endOfDay()->toRfc7231String()
-                );
+            if (! empty($meta['sunset'])) {
+                $response->headers->set('Sunset', $meta['sunset']);
             }
         }
 

@@ -84,4 +84,20 @@ class QrCodeTest extends TestCase
             ->assertStatus(200)
             ->assertHeader('Content-Type', 'image/png');
     }
+
+    public function test_repeated_qr_requests_stay_healthy_on_warm_cache(): void
+    {
+        // Regression: the version middleware used to cache an Eloquent
+        // model, which unserializes as __PHP_Incomplete_Class (cache
+        // serializable_classes=false), so every second request 500d.
+        // The database store round-trips through real serialization,
+        // unlike the array store — that's what makes this catch it.
+        config()->set('cache.default', 'database');
+
+        $url = 'http://links.t-api.de/v1/qr?url='.urlencode('https://example.com');
+
+        $this->get($url)->assertStatus(200)->assertHeader('Content-Type', 'image/svg+xml');
+        $this->get($url)->assertStatus(200)->assertHeader('Content-Type', 'image/svg+xml');
+        $this->get($url.'&format=png')->assertStatus(200)->assertHeader('Content-Type', 'image/png');
+    }
 }
