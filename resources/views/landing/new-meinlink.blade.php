@@ -15,48 +15,48 @@
         <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
     @endif
 </head>
-<body class="sk-root ml-root sk-new-page">
-    <a class="sk-skip" href="#new-link">Zum Link-Formular springen</a>
+<body class="ml-board">
+    <a class="ml-skip" href="#new-link">Zum Automaten springen</a>
 
-    <div class="sk-wrap sk-new-wrap">
-        <header class="sk-head sk-new-head">
-            <a href="/" class="sk-brand" aria-label="meinlink.at Startseite">meinlink<span>.at</span></a>
-            <nav aria-label="Konto">
-                @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="sk-login">Dashboard öffnen <span aria-hidden="true">→</span></a>
-                @else
-                    <a href="{{ url('/login') }}" class="sk-login">Mitglieder-Login <span aria-hidden="true">→</span></a>
-                @endauth
-            </nav>
+    <div class="ml-wrap ml-narrow">
+        <header class="ml-top">
+            <a href="/" class="ml-brand" aria-label="meinlink.at Startseite">MEINLINK<b>.AT</b> ▮</a>
+            <div class="ml-top-right">
+                <nav aria-label="Konto">
+                    @auth
+                        <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="ml-login">Dashboard öffnen →</a>
+                    @else
+                        <a href="{{ url('/login') }}" class="ml-login">Mitglieder-Login →</a>
+                    @endauth
+                </nav>
+            </div>
         </header>
 
-        <main class="sk-new-main">
-            <section class="sk-new-intro" aria-labelledby="new-title">
-                <h1 class="sk-title sk-new-title" id="new-title">mach etwas
-                    <span class="sk-u">kurz.</span>
-                </h1>
-                <p class="sk-sub">Füg ein Ziel ein und wir machen einen ordentlichen meinlink.at-Link daraus.</p>
+        <main>
+            <section class="ml-hero" style="padding-top: 2rem;">
+                <span class="ml-kicker">Neuer Kurzlink</span>
+                <h1 class="ml-title" id="new-title">Nächste <span class="amber">Abfahrt.</span></h1>
+                <p class="ml-sub">Ziel eingeben, Kurzlink erhalten.</p>
             </section>
 
             @guest
-                <p class="sk-new-login" role="note">
-                    Mitglied? <a href="{{ url('/login') }}">Log dich ein</a> für eigene Kürzel, kürzere Links &amp; Klick-Statistiken —
-                    oder mach als Gast weiter.
-                </p>
+                <div class="ml-notice" role="note" style="margin-top: 1.25rem;">
+                    <p>Mitglied? <a href="{{ url('/login') }}">Log dich ein</a> für eigene Kürzel, kürzere Links &amp; Statistiken — oder fahr als Gast weiter.</p>
+                </div>
             @else
-                <p class="sk-new-login" role="note">
-                    Angemeldet — deine Links landen mit Statistik im <a href="{{ \App\Support\DomainUrls::dashboard('/') }}">Dashboard</a>.
-                </p>
+                <div class="ml-notice" role="note" style="margin-top: 1.25rem;">
+                    <p>Angemeldet — deine Links landen mit Statistik im <a href="{{ \App\Support\DomainUrls::dashboard('/') }}">Dashboard</a>.</p>
+                </div>
             @endguest
 
-            <section class="sk-form-zone sk-new-form-zone" id="new-link" aria-label="Kurzlink erstellen">
-                <livewire:public.shorten-form :compact="true" :minimal="true" locale="de" />
+            <section class="ml-board-zone" id="new-link" aria-label="Kurzlink erstellen">
+                <livewire:public.shorten-form :compact="true" :minimal="true" locale="de" theme="board" />
             </section>
 
-            <p class="sk-new-back"><a href="/">← zurück zum vollen Kürzer</a></p>
+            <p class="ml-new-back"><a href="/">← zurück zum Automaten</a></p>
         </main>
 
-        <footer class="sk-foot">
+        <footer class="ml-foot">
             meinlink.at · <a href="https://ternis.link/pages/legal/privacy">Datenschutz</a> ·
             <a href="https://ternis.link/pages/legal/terms">AGB</a>
         </footer>

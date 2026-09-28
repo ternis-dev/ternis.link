@@ -23,6 +23,12 @@ class ShortenForm extends Component
     /** Clean mode for /new: hides meter, previews, tray and doodles. */
     public bool $minimal = false;
 
+    /**
+     * Template variant: sketch (href.nz) or board (meinlink.at). Same
+     * state and actions — only the markup differs.
+     */
+    public string $theme = 'sketch';
+
     /** Form language: en (href.nz) or de (meinlink.at). */
     public string $locale = 'en';
 
@@ -93,6 +99,7 @@ class ShortenForm extends Component
         'label.destination' => ['en' => 'Destination URL', 'de' => 'Ziel-URL'],
         'state.valid' => ['en' => 'Looks good', 'de' => 'Sieht gut aus'],
         'state.invalid' => ['en' => 'Check the URL', 'de' => 'URL prüfen'],
+        'state.ready' => ['en' => 'Ready', 'de' => 'Bereit'],
         'input.placeholder' => [
             'en' => 'https://example.com/very-long-url…',
             'de' => 'https://beispiel.de/sehr-lange-url…',
@@ -565,6 +572,8 @@ class ShortenForm extends Component
 
     public function render()
     {
-        return view('livewire.public.shorten-form');
+        return view($this->theme === 'board'
+            ? 'livewire.public.shorten-form-board'
+            : 'livewire.public.shorten-form');
     }
 }

@@ -1,72 +1,831 @@
-@import './landing-public.css';
-
 /* ==========================================================
- * meinlink.at — "Berg-Skizze" theme
- * Same sketchbook system as href.nz (hand lettering, paper,
- * wobbly borders, tape and pins), but with Austrian-red ink
- * for primary actions and flourishes, plus alpine doodles in
- * the views. Loaded INSTEAD of landing-public.css — never both.
+ * meinlink.at — "Abfahrtstafel" theme
+ * A railway departure board: near-black panels, amber LED type,
+ * monospace throughout, hairline rows. Self-contained — shares
+ * nothing with the sketchbook theme except the Livewire form
+ * state (the board template is its own markup).
  * ========================================================== */
 
-.ml-root {
-    --ml-red: #b02a30;
-    --ml-red-dark: #8c1f25;
-    --ml-red-soft: #f9ecec;
+.ml-board {
+    --ml-bg: #101014;
+    --ml-panel: #17171d;
+    --ml-panel-2: #1e1e26;
+    --ml-line: #2b2b35;
+    --ml-amber: #ffb000;
+    --ml-amber-dim: #9a7420;
+    --ml-amber-glow: rgba(255, 176, 0, 0.4);
+    --ml-paper: #f2efe6;
+    --ml-muted: #8e8e9a;
+    --ml-green: #3ddc84;
+    --ml-red: #ff5d5d;
+    --ml-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --ml-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Primary buttons print in red ink. */
-.ml-root .sk-btn {
-    background: var(--ml-red);
+body.ml-board {
+    margin: 0;
+    min-height: 100vh;
+    padding: 0 1rem 3rem;
+    font-family: var(--ml-sans);
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ml-paper);
+    background:
+        repeating-linear-gradient(transparent, transparent 3px, rgba(255, 255, 255, 0.012) 3px, rgba(255, 255, 255, 0.012) 4px),
+        radial-gradient(900px 320px at 50% -100px, rgba(255, 176, 0, 0.07), transparent 70%),
+        var(--ml-bg);
+}
+
+body.ml-board ::selection {
+    background: var(--ml-amber);
+    color: #000;
+}
+
+.ml-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.ml-narrow {
+    max-width: 560px;
+}
+
+/* --- skip link -------------------------------------------- */
+.ml-skip {
+    position: absolute;
+    left: 1rem;
+    top: -4rem;
+    z-index: 50;
+    font-family: var(--ml-mono);
+    font-size: 0.85rem;
+    background: var(--ml-amber);
+    color: #000;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: top 0.15s ease;
+}
+
+.ml-skip:focus {
+    top: 1rem;
+    color: #000;
+}
+
+/* --- top bar ------------------------------------------------ */
+.ml-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 0.25rem;
+    border-bottom: 1px solid var(--ml-line);
+}
+
+.ml-brand {
+    font-family: var(--ml-mono);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--ml-paper);
+    text-decoration: none;
+}
+
+.ml-brand b {
+    color: var(--ml-amber);
+    font-weight: 700;
+}
+
+.ml-top-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.ml-clock {
+    font-family: var(--ml-mono);
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ml-amber);
+    text-shadow: 0 0 8px var(--ml-amber-glow);
+}
+
+.ml-login {
+    font-family: var(--ml-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    color: var(--ml-paper);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+}
+
+.ml-login:hover {
+    color: var(--ml-amber);
+    border-bottom-color: var(--ml-amber);
+}
+
+/* --- hero --------------------------------------------------- */
+.ml-hero {
+    text-align: left;
+    padding: 2.75rem 0.25rem 0;
+}
+
+.ml-kicker {
+    display: inline-block;
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: #000;
+    background: var(--ml-amber);
+    border-radius: 4px;
+    padding: 0.3em 0.9em;
+}
+
+.ml-title {
+    font-family: var(--ml-mono);
+    font-weight: 700;
+    font-size: clamp(2rem, 6.5vw, 3.1rem);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 1rem 0 0.75rem;
+    color: var(--ml-paper);
+}
+
+.ml-title .amber {
+    color: var(--ml-amber);
+    text-shadow: 0 0 14px var(--ml-amber-glow);
+}
+
+.ml-sub {
+    max-width: 36rem;
+    margin: 0;
+    color: var(--ml-muted);
+    font-size: 1rem;
+}
+
+.ml-sub code {
+    font-family: var(--ml-mono);
+    color: var(--ml-paper);
+    font-size: 0.92em;
+}
+
+.ml-steps {
+    list-style: none;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    font-family: var(--ml-mono);
+    font-size: 0.82rem;
+    color: var(--ml-muted);
+}
+
+.ml-steps li {
+    border: 1px solid var(--ml-line);
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    background: var(--ml-panel);
+}
+
+.ml-steps .n {
+    color: var(--ml-amber);
+    font-weight: 700;
+    margin-right: 0.45rem;
+}
+
+/* --- the board (form card) ---------------------------------- */
+.ml-board-zone {
+    margin-top: 2rem;
+}
+
+.ml-panel {
+    background: var(--ml-panel);
+    border: 1px solid var(--ml-line);
+    border-radius: 10px;
+    padding: 1.25rem 1.25rem 1.1rem;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.ml-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--ml-line);
+    margin-bottom: 1rem;
+}
+
+.ml-panel-title {
+    font-family: var(--ml-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--ml-paper);
+    margin: 0;
+}
+
+.ml-status {
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+}
+
+.ml-status.is-idle { color: var(--ml-muted); }
+.ml-status.is-valid { color: var(--ml-green); }
+.ml-status.is-invalid { color: var(--ml-red); }
+
+.ml-status .dot {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: currentColor;
+    margin-right: 0.45em;
+    vertical-align: baseline;
+}
+
+.ml-status.is-valid .dot { box-shadow: 0 0 8px currentColor; }
+
+.ml-field-label {
+    display: block;
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    color: var(--ml-muted);
+    margin-bottom: 0.5rem;
+}
+
+.ml-input-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: stretch;
+}
+
+.ml-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+}
+
+.ml-input-wrap input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    font-family: var(--ml-mono);
+    font-size: 1rem;
+    color: var(--ml-amber);
+    caret-color: var(--ml-amber);
+    text-shadow: 0 0 10px var(--ml-amber-glow);
+    background: #0b0b0f;
+    border: 1px solid var(--ml-line);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    outline: none;
+    transition: border-color 0.12s ease;
+}
+
+.ml-input-wrap input::placeholder {
+    color: #4a4a55;
+    text-shadow: none;
+}
+
+.ml-input-wrap input:focus {
+    border-color: var(--ml-amber-dim);
+}
+
+.ml-input-wrap input.is-valid {
+    border-color: var(--ml-green);
+}
+
+.ml-input-wrap input.is-error {
     border-color: var(--ml-red);
+    color: var(--ml-red);
+    text-shadow: 0 0 10px rgba(255, 93, 93, 0.4);
 }
 
-.ml-root .sk-btn:hover { background: var(--ml-red-dark); border-color: var(--ml-red-dark); }
-.ml-root .sk-btn:active { background: var(--ml-red); }
+.ml-btn {
+    font-family: var(--ml-mono);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #000;
+    background: var(--ml-amber);
+    border: 1px solid var(--ml-amber);
+    border-radius: 8px;
+    padding: 0.7rem 1.5rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: filter 0.12s ease;
+}
 
-.ml-root .sk-btn:focus-visible {
-    outline: 2px dashed var(--ml-red);
+.ml-btn:hover { filter: brightness(1.1); }
+.ml-btn:active { filter: brightness(0.92); }
+.ml-btn:disabled { opacity: 0.55; cursor: wait; }
+
+.ml-btn:focus-visible,
+.ml-ghost-btn:focus-visible,
+.ml-input-wrap input:focus-visible {
+    outline: 2px dashed var(--ml-amber);
     outline-offset: 3px;
 }
 
-/* Headline flourishes (underline, circle) in red ink. */
-.ml-root .sk-u > svg,
-.ml-root .sk-o > svg {
+.ml-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: 0.7rem 0 0;
+    font-family: var(--ml-mono);
+    font-size: 0.76rem;
+    color: var(--ml-muted);
+}
+
+.ml-meta code {
+    color: var(--ml-paper);
+}
+
+.ml-quota {
+    letter-spacing: 0.04em;
+}
+
+.ml-quota strong {
+    color: var(--ml-amber);
+    font-weight: 700;
+}
+
+.ml-hint a {
+    color: var(--ml-amber);
+}
+
+/* --- notices (fix / duplicate / error) ---------------------- */
+.ml-notice {
+    margin-top: 0.8rem;
+    border: 1px solid var(--ml-line);
+    border-left: 3px solid var(--ml-amber);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    background: var(--ml-panel-2);
+    font-size: 0.88rem;
+    color: var(--ml-paper);
+}
+
+.ml-notice p { margin: 0; }
+.ml-notice p + p { margin-top: 0.3rem; }
+
+.ml-notice .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.ml-notice strong { color: var(--ml-amber); }
+
+.ml-notice.is-error {
+    border-left-color: var(--ml-red);
+}
+
+.ml-notice.is-error .ml-notice-title {
     color: var(--ml-red);
 }
 
-/* Kicker badge gets the red shadow. */
-.ml-root .sk-kicker {
-    box-shadow: 2px 2px 0 rgba(176, 42, 48, 0.35);
+.ml-notice.is-ok {
+    border-left-color: var(--ml-green);
 }
 
-/* Login link underlines red on hover. */
-.ml-root .sk-login:hover { border-bottom-color: var(--ml-red); }
-
-/* Fix-it button matches primary actions. */
-.ml-root .sk-fix-btn {
-    background: var(--ml-red);
-    border-color: var(--ml-red);
+.ml-notice.is-ok .ml-notice-title {
+    color: var(--ml-green);
 }
 
-.ml-root .sk-fix-btn:hover { box-shadow: 2px 3px 0 rgba(176, 42, 48, 0.35); }
-
-/* Error-page actions: first button red, second paper. */
-.ml-root .sk-error-actions a {
-    background: var(--ml-red);
-    border-color: var(--ml-red);
+.ml-notice-title {
+    font-family: var(--ml-mono);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin: 0 0 0.25rem;
 }
 
-.ml-root .sk-error-actions a:not(:first-child) {
-    color: var(--sk-ink);
-    background: var(--sk-card);
+.ml-notice-msg {
+    color: var(--ml-muted);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
 }
 
-.ml-root .sk-error-actions a:focus-visible {
-    outline: 3px dashed var(--ml-red);
+.ml-notice a {
+    color: var(--ml-amber);
+}
+
+.ml-ghost-btn {
+    font-family: var(--ml-mono);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ml-amber);
+    background: transparent;
+    border: 1px solid var(--ml-amber-dim);
+    border-radius: 6px;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ml-ghost-btn:hover {
+    border-color: var(--ml-amber);
+    background: rgba(255, 176, 0, 0.08);
+}
+
+/* --- result departure row ----------------------------------- */
+.ml-departure {
+    margin-top: 1rem;
+    border: 1px solid var(--ml-amber-dim);
+    border-radius: 8px;
+    background: #0b0b0f;
+    padding: 1rem 1.1rem;
+    animation: ml-arrive 0.3s ease-out;
+}
+
+@keyframes ml-arrive {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ml-departure-kicker {
+    margin: 0;
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--ml-green);
+}
+
+.ml-departure-kicker .dot {
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+    margin-right: 0.5em;
+}
+
+.ml-departure-link {
+    display: block;
+    font-family: var(--ml-mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ml-amber);
+    text-shadow: 0 0 12px var(--ml-amber-glow);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 0.4rem;
+    text-decoration: none;
+}
+
+.ml-departure-link:hover { text-decoration: underline; }
+
+.ml-departure-from {
+    margin: 0.35rem 0 0;
+    font-size: 0.8rem;
+    color: var(--ml-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ml-departure-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.ml-departure-actions .ml-ghost-btn {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.ml-copied-note {
+    margin: 0.5rem 0 0;
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    color: var(--ml-green);
+}
+
+/* --- turnstile ------------------------------------------------ */
+.ml-turnstile-zone {
+    margin-top: 0.9rem;
+    display: flex;
+}
+
+.ml-turnstile {
+    border-radius: 8px;
+    overflow: hidden;
+    filter: invert(0.92) hue-rotate(180deg);
+}
+
+/* --- info rows ------------------------------------------------ */
+.ml-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.ml-info-card {
+    background: var(--ml-panel);
+    border: 1px solid var(--ml-line);
+    border-radius: 10px;
+    padding: 1rem 1rem 0.9rem;
+    font-size: 0.88rem;
+    color: var(--ml-muted);
+}
+
+.ml-info-card h2 {
+    font-family: var(--ml-mono);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--ml-paper);
+    margin: 0 0 0.4rem;
+}
+
+.ml-info-card h2 .amber { color: var(--ml-amber); }
+.ml-info-card p { margin: 0 0 0.45rem; }
+.ml-info-card p:last-child { margin-bottom: 0; }
+.ml-info-card a { color: var(--ml-amber); }
+
+/* --- ticker --------------------------------------------------- */
+.ml-ticker {
+    margin-top: 2rem;
+    border-top: 1px solid var(--ml-line);
+    border-bottom: 1px solid var(--ml-line);
+    padding: 0.7rem 0.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-family: var(--ml-mono);
+    font-size: 0.8rem;
+    color: var(--ml-muted);
+}
+
+.ml-ticker strong {
+    color: var(--ml-amber);
+    font-variant-numeric: tabular-nums;
+}
+
+.ml-ticker a {
+    color: var(--ml-amber);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+.ml-ticker a:hover { border-bottom-color: var(--ml-amber); }
+
+/* --- device tray (shared markup, board look) -------------------- */
+.ml-tray {
+    margin-top: 1rem;
+    border-top: 1px solid var(--ml-line);
+    padding-top: 0.8rem;
+}
+
+.ml-tray .sk-tray-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.ml-tray .sk-tray-title {
+    margin: 0 0 0.5rem;
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    color: var(--ml-muted);
+}
+
+.ml-tray .sk-tray-toggle {
+    margin: 0 0 0.5rem;
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    color: var(--ml-muted);
+    background: transparent;
+    border: 1px solid var(--ml-line);
+    border-radius: 6px;
+    padding: 0.15rem 0.7rem;
+    cursor: pointer;
+}
+
+.ml-tray .sk-tray-toggle:hover {
+    color: var(--ml-amber);
+    border-color: var(--ml-amber-dim);
+}
+
+.ml-tray .sk-tray-empty {
+    margin: 0;
+    color: var(--ml-muted);
+    font-size: 0.85rem;
+}
+
+.ml-tray .sk-tray-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.ml-tray .sk-tray-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #0b0b0f;
+    border: 1px solid var(--ml-line);
+    border-radius: 8px;
+    padding: 0.35rem 0.6rem 0.45rem 0.8rem;
+}
+
+.ml-tray .sk-tray-list a {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--ml-mono);
+    font-size: 0.9rem;
+    color: var(--ml-amber);
+    text-decoration: none;
+}
+
+.ml-tray .sk-tray-list a:hover { text-decoration: underline; }
+
+.ml-tray .sk-tray-list a.sk-tray-qr {
+    flex: 0 0 auto;
+    color: var(--ml-muted);
+}
+
+.ml-tray .sk-tray-list button {
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    color: var(--ml-muted);
+    background: transparent;
+    border: 1px solid var(--ml-line);
+    border-radius: 6px;
+    padding: 0.15rem 0.6rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.ml-tray .sk-tray-list button:hover { color: var(--ml-amber); border-color: var(--ml-amber-dim); }
+
+.ml-tray .sk-tray-clear {
+    margin-top: 0.6rem;
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    color: var(--ml-muted);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* --- footer --------------------------------------------------- */
+.ml-foot {
+    margin: 1.5rem 0 0;
+    text-align: center;
+    font-family: var(--ml-mono);
+    font-size: 0.76rem;
+    color: var(--ml-muted);
+}
+
+.ml-foot a { color: var(--ml-paper); }
+
+/* --- error board ---------------------------------------------- */
+.ml-error {
+    margin: 2.5rem 0 0;
+}
+
+.ml-error-code {
+    font-family: var(--ml-mono);
+    font-size: clamp(4rem, 16vw, 7rem);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ml-amber);
+    text-shadow: 0 0 24px var(--ml-amber-glow);
+    margin: 0.75rem 0 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.ml-error-title {
+    font-family: var(--ml-mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0.5rem 0 0;
+    color: var(--ml-paper);
+}
+
+.ml-error-msg {
+    color: var(--ml-muted);
+    max-width: 34rem;
+}
+
+.ml-error-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 1.4rem;
+    flex-wrap: wrap;
+}
+
+/* Action links come from shared x-ui buttons — style every anchor
+ * as a board button: first departs amber, the rest ghost. */
+.ml-error-actions a {
+    font-family: var(--ml-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #000;
+    background: var(--ml-amber);
+    border: 1px solid var(--ml-amber);
+    border-radius: 8px;
+    padding: 0.6rem 1.3rem;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.ml-error-actions a:hover { filter: brightness(1.1); }
+
+.ml-error-actions a:not(:first-child) {
+    color: var(--ml-amber);
+    background: transparent;
+    border-color: var(--ml-amber-dim);
+}
+
+.ml-error-actions a:not(:first-child):hover {
+    border-color: var(--ml-amber);
+    background: rgba(255, 176, 0, 0.08);
+    filter: none;
+}
+
+.ml-new-back {
+    margin: 1.25rem 0 0;
+    font-family: var(--ml-mono);
+    font-size: 0.82rem;
+    color: var(--ml-muted);
+    text-align: center;
+}
+
+.ml-new-back a { color: var(--ml-amber); }
+
+/* --- login card ------------------------------------------------ */
+.ml-login-card {
+    margin-top: 1.75rem;
+}
+
+/* --- focus ------------------------------------------------------ */
+.ml-board a:focus-visible,
+.ml-board button:focus-visible {
+    outline: 2px dashed var(--ml-amber);
     outline-offset: 3px;
 }
 
-/* Alpine doodle accents (mountains, edelweiss) print red. */
-.ml-dk-red { color: var(--ml-red); }
+@media (max-width: 640px) {
+    body.ml-board {
+        padding: 0 0.85rem 2rem;
+    }
 
-/* Success states stay green everywhere — red means action. */
+    .ml-input-row {
+        flex-direction: column;
+    }
+
+    .ml-btn {
+        width: 100%;
+    }
+
+    .ml-info {
+        grid-template-columns: 1fr;
+        margin-top: 1.5rem;
+    }
+
+    .ml-clock { display: none; }
+
+    .ml-departure-link {
+        font-size: 1.15rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ml-departure { animation: none; }
+}

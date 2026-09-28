@@ -32,11 +32,13 @@ class MeinlinkTest extends TestCase
     {
         $this->get('http://meinlink.at/')
             ->assertOk()
-            ->assertSee('lange Links rein', escape: false)
-            ->assertSee('meinlink<span>.at</span>', escape: false)
-            ->assertSee('ml-root', escape: false)
+            ->assertSee('Wohin darf', escape: false)
+            ->assertSee('MEINLINK', escape: false)
+            ->assertSee('ml-board', escape: false)
+            ->assertSee('Abfahrtsanzeige', escape: false)
             ->assertSee('Link kürzen', escape: false)
-            ->assertDontSee('long links go in', escape: false);
+            ->assertDontSee('long links go in', escape: false)
+            ->assertDontSee('sk-root', escape: false);
     }
 
     public function test_hrefnz_landing_is_untouched(): void
@@ -45,15 +47,15 @@ class MeinlinkTest extends TestCase
             ->assertOk()
             ->assertSee('long links go in', escape: false)
             ->assertSee('href<span>.nz</span>', escape: false)
-            ->assertDontSee('ml-root', escape: false)
-            ->assertDontSee('lange Links rein', escape: false);
+            ->assertDontSee('ml-board', escape: false)
+            ->assertDontSee('Wohin darf', escape: false);
     }
 
     public function test_meinlink_new_page_is_german(): void
     {
         $this->get('http://meinlink.at/new')
             ->assertOk()
-            ->assertSee('mach etwas', escape: false)
+            ->assertSee('Nächste', escape: false)
             ->assertSee('als Gast weiter', escape: false)
             ->assertSee('Link kürzen', escape: false);
     }
@@ -62,16 +64,16 @@ class MeinlinkTest extends TestCase
     {
         $this->get('http://meinlink.at/login')
             ->assertOk()
-            ->assertSee('Mitglieder-Login', escape: false)
+            ->assertSee('Dienstausweis', escape: false)
             ->assertSee('Mit Ternis Auth einloggen', escape: false);
     }
 
-    public function test_meinlink_errors_are_german_sketch(): void
+    public function test_meinlink_errors_are_german_board(): void
     {
         $this->get('http://meinlink.at/not-a-real-link')
             ->assertStatus(404)
-            ->assertSee('class="sk-error"', escape: false)
-            ->assertSee('verlorener Link', escape: false)
+            ->assertSee('class="ml-error"', escape: false)
+            ->assertSee('Zug verpasst', escape: false)
             ->assertSee('meinlink.at', escape: false)
             ->assertDontSee('tl-theme', escape: false);
     }
