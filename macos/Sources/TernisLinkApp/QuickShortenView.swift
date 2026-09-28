@@ -42,6 +42,9 @@ struct QuickShortenView: View {
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 200)
             }
+            if session.domains.isEmpty, let domainsError = session.domainsError {
+                Text(domainsError).font(.callout).foregroundStyle(.orange)
+            }
 
             HStack {
                 Button("Shorten") { shorten() }

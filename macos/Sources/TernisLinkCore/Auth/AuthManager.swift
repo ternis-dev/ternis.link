@@ -58,5 +58,6 @@ public actor AuthManager {
 
     public enum SignInError: Error {
         case invalidKey
+        case rejected
     }
 }

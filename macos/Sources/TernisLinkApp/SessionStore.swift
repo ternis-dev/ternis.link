@@ -16,6 +16,7 @@ final class SessionStore {
     private(set) var domains: [APIDomain] = []
     var selectedDomainID: String?
     private(set) var serverWarning: String?
+    private(set) var domainsError: String?
 
     let history = HistoryStore()
     let auth = AuthManager()
@@ -32,8 +33,23 @@ final class SessionStore {
     }
 
     func signInWithAPIKey(_ key: String) async throws {
-        try await auth.signInWithAPIKey(key)
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("tl_"), trimmed.count > 4 else {
+            throw AuthManager.SignInError.invalidKey
+        }
+        // Verify against the server BEFORE saving: a typo'd or revoked key
+        // must fail here with a clear message, not "sign in" and then get
+        // kicked out on the first real call.
+        do {
+            _ = try await api.listDomains(token: trimmed)
+        } catch APIError.unauthorized {
+            throw AuthManager.SignInError.rejected
+        } catch {
+            throw error
+        }
+        try await auth.signInWithAPIKey(trimmed)
         state = .signedIn
+        domainsError = nil
         await loadDomains()
     }
 
@@ -47,6 +63,7 @@ final class SessionStore {
         try? await auth.signOut()
         domains = []
         selectedDomainID = nil
+        domainsError = nil
         state = .signedOut
     }
 
@@ -80,6 +97,7 @@ final class SessionStore {
         do {
             let page = try await api.listDomains(token: token)
             domains = page.data
+            domainsError = nil
             if selectedDomainID == nil {
                 selectedDomainID = UserDefaults.standard.string(forKey: "lastDomainID")
                     .flatMap { id in page.data.contains(where: { $0.id == id }) ? id : nil }
@@ -88,8 +106,10 @@ final class SessionStore {
             }
         } catch APIError.unauthorized {
             await signOut()
+        } catch let apiError as APIError {
+            domainsError = apiError.userMessage
         } catch {
-            // Domains stay empty; the shorten form surfaces APIError.userMessage.
+            domainsError = "Could not reach ternis.link."
         }
     }
 

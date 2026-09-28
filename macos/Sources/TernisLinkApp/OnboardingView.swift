@@ -74,8 +74,14 @@ struct OnboardingView: View {
         Task {
             do {
                 try await session.signInWithAPIKey(apiKey)
+            } catch AuthManager.SignInError.invalidKey {
+                self.errorMessage = "That key doesn't look right — keys start with tl_. Check for a copy-paste slip."
+            } catch AuthManager.SignInError.rejected {
+                self.errorMessage = "The server rejected this key — it may be revoked or mistyped. Create a fresh one and try again."
+            } catch let apiError as APIError {
+                self.errorMessage = apiError.userMessage
             } catch {
-                self.errorMessage = "That key doesn't look right — keys start with tl_."
+                self.errorMessage = "Could not reach ternis.link — check your connection."
             }
             busy = false
         }
