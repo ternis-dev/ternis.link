@@ -155,6 +155,52 @@ class AnalyticsPolishTest extends TestCase
             ->assertStatus(404);
     }
 
+    public function test_average_per_day_caps_at_link_age(): void
+    {
+        // The reported case: created yesterday, 4 clicks → 2/day,
+        // not 4/30 (0.1).
+        $this->link->created_at = now()->subDay();
+        $this->link->save();
+
+        for ($i = 0; $i < 4; $i++) {
+            $this->recordClick();
+        }
+
+        $test = Livewire::actingAs($this->user)
+            ->test(LinkAnalytics::class, ['link' => $this->link->fresh()]);
+
+        $this->assertSame(4, $test->viewData('totalClicks'));
+        $this->assertSame(2.0, $test->viewData('averagePerDay'));
+    }
+
+    public function test_average_per_day_respects_window_and_today(): void
+    {
+        // Created today: divide by 1, never by zero.
+        for ($i = 0; $i < 3; $i++) {
+            $this->recordClick();
+        }
+
+        $test = Livewire::actingAs($this->user)
+            ->test(LinkAnalytics::class, ['link' => $this->link]);
+
+        $this->assertSame(3.0, $test->viewData('averagePerDay'));
+
+        // Old link, short window: the window still caps the divisor.
+        $this->link->created_at = now()->subDays(60);
+        $this->link->save();
+
+        Click::query()->delete();
+        $this->recordClick(['created_at' => now()->subDays(2)]);
+        $this->recordClick(['created_at' => now()->subDays(1)]);
+
+        $test = Livewire::actingAs($this->user)
+            ->test(LinkAnalytics::class, ['link' => $this->link->fresh()]);
+        $test->call('setPeriod', 7);
+
+        $this->assertSame(2, $test->viewData('totalClicks'));
+        $this->assertSame(round(2 / 7, 1), $test->viewData('averagePerDay'));
+    }
+
     public function test_browser_family_classification(): void
     {
         $this->assertSame('Chrome', LinkAnalytics::browserFamily('Mozilla/5.0 Chrome/120.0 Safari/537.36'));

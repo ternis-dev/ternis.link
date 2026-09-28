@@ -59,7 +59,7 @@ class LinkAnalytics extends Component
         return view('livewire.dashboard.link-analytics', [
             'totalClicks' => $totalClicks,
             'uniqueVisitors' => $uniqueVisitors,
-            'averagePerDay' => $this->period > 0 ? round($totalClicks / $this->period, 1) : 0,
+            'averagePerDay' => round($totalClicks / $this->averageDivisor(), 1),
             'peakDay' => $clicksByDay->sortByDesc('count')->first(),
             'maxDailyClicks' => max(1, (int) $clicksByDay->max('count')),
             'topReferrers' => $topReferrers,
@@ -68,6 +68,18 @@ class LinkAnalytics extends Component
             'clicksByDay' => $clicksByDay,
             'recentClicks' => $recentClicks,
         ]);
+    }
+
+    /**
+     * Days to average over: the selected window, capped at the link's
+     * age (a 2-day-old link with 4 clicks averages 2/day, not 4/30).
+     * Minimum 1 so links created today divide by today, never by zero.
+     */
+    private function averageDivisor(): int
+    {
+        $ageDays = $this->link->created_at->diffInDays(now()) + 1;
+
+        return max(1, min($this->period, $ageDays));
     }
 
     /**
