@@ -125,6 +125,7 @@ overages are `429` with `Retry-After`.
 | ---- | ---- |
 | `/` (`app/`, `routes/`, `resources/`) | Laravel web app (shortener, dashboards, API, docs) |
 | `/extension` | Chrome extension (MV3 popup, options, background, icons) — see `extension/README.md` |
+| `/macos` | macOS app (SwiftPM: `TernisLinkCore` lib + `TernisLinkApp`) — see `macos/README.md` |
 | `/docs/extension.md` | Extension user + API notes, rendered at `docs.ternis.link/extension` |
 | `ExtensionController` + `resources/views/pages/extension/*` | Download page at `ternis.link/pages/extension` (+ `.md` twin, `/version` JSON, `/download` zip) |
 

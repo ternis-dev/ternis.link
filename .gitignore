@@ -19,6 +19,7 @@
 /node_modules
 /public/build
 /public/extension/*.zip
+/macos/.build
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
