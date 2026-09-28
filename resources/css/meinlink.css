@@ -1,3 +1,38 @@
-/* ==========================================================
- * meinlink.at
- * ========================================================== */
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-var.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-var.woff2') format('woff2');
+}
+
+/* Custom modern touches for meinlink.at */
+.ml-glow {
+    box-shadow: 0 0 50px -12px rgba(225, 29, 72, 0.25);
+}
+
+.ml-gradient-text {
+    background: linear-gradient(135deg, #18181b 0%, #71717a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

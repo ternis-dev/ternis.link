@@ -2,13 +2,13 @@
 
 @php
 [$kicker, $hint] = match ((string) $code) {
-    '404' => ['Aktenzeichen unbekannt', 'Vorgänge unterscheiden Groß- und Kleinschreibung — prüf die Schreibweise, oder der Vorgang wurde aussortiert bzw. ist abgelaufen.'],
-    '403' => ['Keine Berechtigung', 'Dieser Schalter braucht ein angemeldetes Mitglied — log dich ein und versuch es erneut.'],
-    '419' => ['Sitzung abgelaufen', 'Deine Sitzung ist abgelaufen, während das Formular offen war — lad neu und versuch es erneut.'],
-    '429' => ['Bitte hinten anstellen', 'Zu viele Anträge auf einmal — wart einen Moment und versuch es erneut. Gäste haben 10 pro Minute.'],
-    '500' => ['Hausgemacht', 'Bei uns ist etwas kaputtgegangen und wir haben es zu Protokoll genommen — versuch es gleich nochmal.'],
-    '503' => ['Wartungsarbeiten', 'Wartung oder Neustart — Anträge sind gleich wieder möglich.'],
-    default => ['Störungsmeldung', null],
+    '404' => ['Link nicht gefunden', 'Der aufgerufene Kurzlink existiert nicht, wurde deaktiviert oder ist abgelaufen. Bitte prüfe die Schreibweise.'],
+    '403' => ['Zugriff verweigert', 'Für diese Seite oder Aktion ist eine Anmeldung erforderlich. Bitte melde dich mit deinem Konto an.'],
+    '419' => ['Sitzung abgelaufen', 'Deine Sitzung ist abgelaufen. Bitte lade die Seite neu und versuche es erneut.'],
+    '429' => ['Zu viele Anfragen', 'Bitte warte einen kurzen Moment, bevor du eine neue Anfrage sendest.'],
+    '500' => ['Serverfehler', 'Es ist ein unerwarteter Fehler aufgetreten. Unser Team wurde informiert.'],
+    '503' => ['Wartungsarbeiten', 'Wir führen aktuell geplante Wartungsarbeiten durch. In Kürze ist meinlink.at wieder erreichbar.'],
+    default => ['Hinweis', null],
 };
 @endphp
 
@@ -19,42 +19,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $code }} — {{ $title }} · meinlink.at</title>
     <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#dc2626">
     <link rel="canonical" href="https://meinlink.at{{ request()->getPathInfo() }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
-    @vite(['resources/css/landing-meinlink.css'])
-</head>
-<body class="ml-board">
-    <a class="ml-skip" href="#error-content">Zur Störungsmeldung springen</a>
 
-    <div class="ml-wrap ml-narrow">
-        <header class="ml-top">
-            <a href="/" class="ml-brand" aria-label="meinlink.at Startseite">meinlink.at<small>Amt für kurze Links</small></a>
-            <div class="ml-top-right">
-                <nav aria-label="Zurück">
-                    <a href="/" class="ml-login">← zurück zum Formular</a>
-                </nav>
-            </div>
+    @vite(['resources/css/meinlink.css'])
+</head>
+<body class="min-h-screen bg-zinc-50 font-sans text-zinc-900 antialiased selection:bg-red-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-100">
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute -top-40 left-1/2 -translate-x-1/2 h-[450px] w-[700px] rounded-full bg-gradient-to-b from-red-500/10 via-rose-500/5 to-transparent blur-3xl"></div>
+    </div>
+
+    <div class="mx-auto flex min-h-screen max-w-xl flex-col justify-between px-4 py-8 sm:px-6">
+        <header class="flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
+                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-600 font-display text-sm font-black text-white shadow-sm">m</span>
+                <span>meinlink<span class="text-red-600">.at</span></span>
+            </a>
+
+            <nav aria-label="Navigation">
+                <a href="/" class="text-sm font-medium text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                    ← Zurück zur Startseite
+                </a>
+            </nav>
         </header>
 
-        <main id="error-content" class="ml-error" tabindex="-1">
-            <span class="ml-kicker">{{ $kicker }}</span>
-            <p class="ml-error-code">{{ $code }}<span class="dot">.</span></p>
-            <h1 class="ml-error-title">{{ $title }}</h1>
-            <p class="ml-sub ml-error-msg" style="margin-top: 0.6rem;">{{ $slot }}</p>
+        <main id="error-content" class="my-auto py-10 text-center" tabindex="-1">
+            <span class="inline-flex items-center rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-300">
+                {{ $kicker }}
+            </span>
+
+            <p class="mt-4 font-display text-6xl font-black tracking-tight text-zinc-900 sm:text-7xl dark:text-zinc-50">
+                {{ $code }}<span class="text-red-600">.</span>
+            </p>
+
+            <h1 class="mt-2 text-xl font-bold tracking-tight text-zinc-800 sm:text-2xl dark:text-zinc-200">
+                {{ $title }}
+            </h1>
+
+            <div class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                {{ $slot }}
+            </div>
+
             @if ($hint)
-                <p class="ml-sub ml-error-msg" style="margin-top: 0.4rem;">{{ $hint }}</p>
+                <p class="mx-auto mt-2 max-w-md text-xs text-zinc-500 dark:text-zinc-400">
+                    {{ $hint }}
+                </p>
             @endif
 
             @if (trim($actions ?? '') !== '')
-                <div class="ml-error-actions" aria-label="Aktionen">{{ $actions }}</div>
+                <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    {{ $actions }}
+                </div>
+            @else
+                <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    <a href="/" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-500 active:scale-[0.98]">
+                        Zur Startseite
+                    </a>
+                    <a href="/new" class="inline-flex items-center rounded-xl border border-zinc-200 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                        Neuen Link erstellen
+                    </a>
+                </div>
             @endif
-
-            <p class="ml-new-back">oder <a href="/new">einfach einen neuen Antrag stellen</a></p>
         </main>
 
-        <footer class="ml-foot">
-            Amt für kurze Links · Dienststelle meinlink.at · <a href="https://ternis.link/pages/legal/privacy">Datenschutz</a> ·
-            <a href="https://ternis.link/pages/legal/terms">AGB</a>
+        <footer class="border-t border-zinc-200/80 pt-6 text-center text-xs text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+            <div class="flex flex-wrap items-center justify-center gap-4">
+                <span>meinlink.at</span>
+                <span>·</span>
+                <a href="https://ternis.link/pages/legal/privacy" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Datenschutz</a>
+                <span>·</span>
+                <a href="https://ternis.link/pages/legal/terms" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">AGB</a>
+                <span>·</span>
+                <a href="https://ternis.dev/de/legal/imprint" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Impressum</a>
+            </div>
         </footer>
     </div>
 </body>

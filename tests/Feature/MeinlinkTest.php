@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Meinlink\ShortenForm as MeinlinkShortenForm;
 use App\Livewire\Public\ShortenForm;
 use App\Models\Domain;
 use App\Models\Link;
@@ -32,11 +33,13 @@ class MeinlinkTest extends TestCase
     {
         $this->get('http://meinlink.at/')
             ->assertOk()
-            ->assertSee('Gekürzt.', escape: false)
-            ->assertSee('Amt für kurze Links', escape: false)
-            ->assertSee('ml-board', escape: false)
-            ->assertSee('Formular LK-8', escape: false)
-            ->assertSee('Link kürzen', escape: false)
+            ->assertSee('meinlink.at', escape: false)
+            ->assertSee('Lange URLs einfach', escape: false)
+            ->assertSee('kurz gemacht', escape: false)
+            ->assertSee('Kürzen', escape: false)
+            ->assertDontSee('Amt für kurze Links', escape: false)
+            ->assertDontSee('ml-board', escape: false)
+            ->assertDontSee('Formular LK-8', escape: false)
             ->assertDontSee('long links go in', escape: false)
             ->assertDontSee('sk-root', escape: false);
     }
@@ -48,63 +51,76 @@ class MeinlinkTest extends TestCase
             ->assertSee('long links go in', escape: false)
             ->assertSee('href<span>.nz</span>', escape: false)
             ->assertDontSee('ml-board', escape: false)
-            ->assertDontSee('Wohin darf', escape: false);
+            ->assertDontSee('meinlink', escape: false);
     }
 
     public function test_meinlink_new_page_is_german(): void
     {
         $this->get('http://meinlink.at/new')
             ->assertOk()
-            ->assertSee('Vorgang.', escape: false)
-            ->assertSee('als Gast', escape: false)
-            ->assertSee('Link kürzen', escape: false);
+            ->assertSee('Neuen Link erstellen', escape: false)
+            ->assertSee('Kürzen', escape: false)
+            ->assertDontSee('Formular LK-8', escape: false)
+            ->assertDontSee('ml-board', escape: false);
     }
 
     public function test_meinlink_login_is_german(): void
     {
         $this->get('http://meinlink.at/login')
             ->assertOk()
-            ->assertSee('ausweisen.', escape: false)
-            ->assertSee('Mit Ternis Auth anmelden', escape: false);
+            ->assertSee('Mitglieder-Login', escape: false)
+            ->assertSee('Mit Ternis Auth anmelden', escape: false)
+            ->assertDontSee('Amt für kurze Links', escape: false)
+            ->assertDontSee('ml-board', escape: false);
     }
 
-    public function test_meinlink_errors_are_german_board(): void
+    public function test_meinlink_errors_are_german(): void
     {
         $this->get('http://meinlink.at/not-a-real-link')
             ->assertStatus(404)
-            ->assertSee('class="ml-error"', escape: false)
-            ->assertSee('Aktenzeichen unbekannt', escape: false)
+            ->assertSee('Link nicht gefunden', escape: false)
             ->assertSee('meinlink.at', escape: false)
+            ->assertDontSee('Aktenzeichen unbekannt', escape: false)
+            ->assertDontSee('ml-error', escape: false)
             ->assertDontSee('tl-theme', escape: false);
     }
 
-    public function test_form_speaks_german_in_german_mode(): void
+    public function test_meinlink_form_validates_in_german(): void
     {
-        $html = Livewire::test(ShortenForm::class, ['locale' => 'de'])
-            ->set('destination_url', 'https://example.com/gut')
-            ->html();
-
-        foreach (['Link kürzen', 'Ziel-URL', 'Antrag einreichen', 'kein Konto nötig', 'Sieht gut aus'] as $needle) {
-            $this->assertStringContainsString($needle, $html);
-        }
-    }
-
-    public function test_form_stays_english_by_default(): void
-    {
-        $html = Livewire::test(ShortenForm::class)->html();
-
-        foreach (['Shorten a link', 'Destination URL', 'no account needed'] as $needle) {
-            $this->assertStringContainsString($needle, $html);
-        }
-    }
-
-    public function test_german_form_validates_in_german(): void
-    {
-        Livewire::test(ShortenForm::class, ['locale' => 'de'])
-            ->set('destination_url', 'nope')
+        Livewire::test(MeinlinkShortenForm::class)
+            ->set('destination_url', 'invalid-url')
             ->call('create')
             ->assertHasErrors('destination_url')
             ->assertSee('sieht nicht nach einer gültigen URL aus', escape: false);
+    }
+
+    public function test_meinlink_form_creates_links_on_meinlink_domain(): void
+    {
+        $component = Livewire::test(MeinlinkShortenForm::class)
+            ->set('destination_url', 'https://example.com/meinlink-ziel')
+            ->call('create')
+            ->assertHasNoErrors()
+            ->assertSet('urlState', 'idle');
+
+        $shortUrl = $component->get('shortUrl');
+        $this->assertNotNull($shortUrl);
+        $this->assertStringStartsWith('https://meinlink.at/', $shortUrl);
+
+        $this->assertDatabaseHas('links', [
+            'destination_url' => 'https://example.com/meinlink-ziel',
+        ]);
+    }
+
+    public function test_meinlink_form_smart_fix(): void
+    {
+        $component = Livewire::test(MeinlinkShortenForm::class)
+            ->set('destination_url', 'beispiel.at/seite');
+
+        $this->assertSame('https://beispiel.at/seite', $component->get('fixablePreview'));
+
+        $component->call('applyFix')
+            ->assertSet('destination_url', 'https://beispiel.at/seite')
+            ->assertSet('urlState', 'valid');
     }
 
     public function test_meinlink_short_links_resolve(): void
@@ -123,14 +139,23 @@ class MeinlinkTest extends TestCase
             ->assertRedirect('https://example.com/ziel');
     }
 
-    public function test_german_form_creates_links(): void
+    public function test_form_speaks_german_in_german_mode(): void
     {
-        Livewire::test(ShortenForm::class, ['locale' => 'de'])
-            ->set('destination_url', 'https://example.com/deutsch')
-            ->call('create')
-            ->assertHasNoErrors()
-            ->assertSet('urlState', 'idle');
+        $html = Livewire::test(ShortenForm::class, ['locale' => 'de'])
+            ->set('destination_url', 'https://example.com/gut')
+            ->html();
 
-        $this->assertDatabaseHas('links', ['destination_url' => 'https://example.com/deutsch']);
+        foreach (['Link kürzen', 'Ziel-URL', 'kein Konto nötig', 'Sieht gut aus'] as $needle) {
+            $this->assertStringContainsString($needle, $html);
+        }
+    }
+
+    public function test_form_stays_english_by_default(): void
+    {
+        $html = Livewire::test(ShortenForm::class)->html();
+
+        foreach (['Shorten a link', 'Destination URL', 'no account needed'] as $needle) {
+            $this->assertStringContainsString($needle, $html);
+        }
     }
 }

@@ -573,8 +573,6 @@ class ShortenForm extends Component
 
     public function render()
     {
-        return view($this->theme === 'board'
-            ? 'livewire.public.shorten-form-board'
-            : 'livewire.public.shorten-form');
+        return view('livewire.public.shorten-form');
     }
 }

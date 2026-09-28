@@ -446,7 +446,7 @@ Route::get('/', function () {
     }
     if ($type === 'public') {
         // meinlink.at shares every public rule but gets its own German
-        // landing page and theme (see landing-meinlink.css).
+        // landing page and theme (see meinlink.css).
         if (\App\Support\PublicHost::isMeinlink()) {
             return view('landing.meinlink');
         }
