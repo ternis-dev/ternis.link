@@ -38,14 +38,19 @@ struct RootView: View {
 }
 
 struct DashboardHomeView: View {
-    @Environment(SessionStore.self) private var session
+    enum SidebarSection: Hashable {
+        case newLink
+        case links
+    }
+
+    @State private var selection: SidebarSection? = .newLink
 
     var body: some View {
         NavigationSplitView {
-            List {
+            List(selection: $selection) {
                 Section("Workspace") {
-                    Label("New Link", systemImage: "link")
-                    Label("Links", systemImage: "list.bullet").foregroundStyle(.secondary)
+                    Label("New Link", systemImage: "plus.circle").tag(SidebarSection.newLink)
+                    Label("Links", systemImage: "list.bullet").tag(SidebarSection.links)
                     Label("API Keys", systemImage: "key").foregroundStyle(.secondary)
                     Label("Domains", systemImage: "globe").foregroundStyle(.secondary)
                 }
@@ -55,11 +60,16 @@ struct DashboardHomeView: View {
                 }
             }
             .listStyle(.sidebar)
-            .disabled(true)
             .navigationTitle("ternis.link")
         } detail: {
-            QuickShortenView()
-                .frame(minWidth: 480, minHeight: 520)
+            switch selection ?? .newLink {
+            case .newLink:
+                QuickShortenView()
+                    .frame(minWidth: 480, minHeight: 520)
+            case .links:
+                LinksView()
+                    .frame(minWidth: 560, minHeight: 520)
+            }
         }
     }
 }

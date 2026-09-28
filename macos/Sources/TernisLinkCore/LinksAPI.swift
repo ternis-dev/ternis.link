@@ -18,8 +18,12 @@ public struct LinksAPI: Sendable {
 
     // MARK: - Links
 
-    public func listLinks(page: Int = 1, token: String) async throws -> Paged<APILink> {
-        try await client.get("/links?page=\(page)", token: token)
+    public func listLinks(page: Int = 1, tag: String? = nil, token: String) async throws -> Paged<APILink> {
+        var path = "/links?page=\(page)"
+        if let tag, !tag.isEmpty {
+            path += "&tag=\(tag.lowercased())"
+        }
+        return try await client.get(path, token: token)
     }
 
     public func createLink(_ request: CreateLinkRequest, token: String) async throws -> APILink {
@@ -31,7 +35,7 @@ public struct LinksAPI: Sendable {
     }
 
     public func deleteLink(id: String, token: String) async throws {
-        let _: EmptyResponse = try await client.send(path: "/links/\(id)", method: "DELETE", token: token, body: nil as Data?)
+        try await client.sendNoContent(path: "/links/\(id)", method: "DELETE", token: token)
     }
 
     public func clickSummary(linkID: String, token: String) async throws -> ClickSummary {
@@ -78,5 +82,3 @@ public struct LinksAPI: Sendable {
         return domain
     }
 }
-
-struct EmptyResponse: Decodable {}

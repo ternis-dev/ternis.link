@@ -67,6 +67,15 @@ final class SessionStore {
         state = .signedOut
     }
 
+    /// Bearer token for views, signing out when the credential is dead.
+    func bearer() async -> String? {
+        guard let token = await auth.bearer() else {
+            await signOut()
+            return nil
+        }
+        return token
+    }
+
     func shorten(destination: String, slug: String?) async throws -> APILink {
         guard let token = await auth.bearer() else {
             await signOut()

@@ -104,3 +104,35 @@ import Testing
     let link = try! JSONDecoder.api.decode(APILink.self, from: json)
     #expect(link.shortUrl?.absoluteString == "https://href.nz/abc123")
 }
+
+@Test func linksPageDecodesWithClickCounts() {
+    let json = """
+        {"data":[{"id":"01J","slug":"abc","destination_url":"https://example.com",\
+        "description":"Docs","tags":["docs"],"is_active":true,"click_count":42,\
+        "created_at":"2026-09-20T10:00:00.000000Z",\
+        "domain":{"id":"02D","hostname":"href.nz"}}],\
+        "current_page":1,"last_page":3,"total":55}
+        """.data(using: .utf8)!
+    let page = try! JSONDecoder.api.decode(Paged<APILink>.self, from: json)
+    #expect(page.total == 55)
+    #expect(page.lastPage == 3)
+    #expect(page.data.first?.clickCount == 42)
+    #expect(page.data.first?.tags == ["docs"])
+    #expect(page.data.first?.createdAt != nil)
+}
+
+@Test func clickSummaryDecodesAllBreakdowns() {
+    let json = """
+        {"total_clicks":100,"unique_visitors":70,\
+        "top_referrers":[{"referrer":"https://news.example","count":40}],\
+        "top_countries":[{"country_code":"DE","count":60}],\
+        "clicks_by_day":[{"date":"2026-09-27","count":30},{"date":"2026-09-28","count":70}]}
+        """.data(using: .utf8)!
+    let summary = try! JSONDecoder.api.decode(ClickSummary.self, from: json)
+    #expect(summary.totalClicks == 100)
+    #expect(summary.topReferrers.first?.label == "https://news.example")
+    #expect(summary.topCountries.first?.label == "DE")
+    #expect(summary.clicksByDay.count == 2)
+    #expect(summary.clicksByDay.last?.day != nil)
+    #expect(DayCount(date: "not-a-date", count: 1).day == nil)
+}

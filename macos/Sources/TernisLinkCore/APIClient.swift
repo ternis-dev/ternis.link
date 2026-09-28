@@ -63,8 +63,29 @@ public struct APIClient: Sendable {
         }
     }
 
-    public func raw(path: String, query: [URLQueryItem], token: String?) async throws -> (Data, HTTPURLResponse) {
-        var url = baseURL.appending(path: path)
+    /// For endpoints answering 204/empty bodies (DELETE): success is the
+    /// status code, there is nothing to decode.
+    public func sendNoContent(path: String, method: String, token: String) async throws {
+        var request = URLRequest(url: baseURL.appending(path: path))
+        request.httpMethod = method
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            throw APIError.network(error)
+        }
+
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let headers = (response as? HTTPURLResponse)?.allHeaderFields ?? [:]
+            throw Self.mapError(status: status, headers: headers, data: data)
+        }
+    }
+
+    public func raw(path: String, query: [URLQueryItem], token: String?) async throws -> (Data, HTTPURLResponse) {        var url = baseURL.appending(path: path)
         if !query.isEmpty {
             url = url.appending(queryItems: query)
         }

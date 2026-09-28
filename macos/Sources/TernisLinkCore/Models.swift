@@ -6,7 +6,24 @@ extension JSONDecoder {
     static var api: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
+        // Laravel serializes datetimes with fractional seconds
+        // (2026-09-20T10:00:00.000000Z), which .iso8601 chokes on.
+        // Formatters are created per call: ISO8601DateFormatter is not
+        // Sendable, so no shared static under Swift 6.
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let string = try container.decode(String.self)
+            let fractional = ISO8601DateFormatter()
+            fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = fractional.date(from: string)
+                ?? ISO8601DateFormatter().date(from: string) {
+                return date
+            }
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Expected ISO8601 date, got \(string)."
+            )
+        }
         return decoder
     }
 }
@@ -39,7 +56,9 @@ public struct APILink: Codable, Sendable, Identifiable, Hashable {
     public let description: String?
     public let tags: [String]?
     public let isActive: Bool?
+    public let clickCount: Int?
     public let expiresAt: Date?
+    public let createdAt: Date?
     public let domain: APIDomain?
 
     public var shortUrl: URL? {
@@ -58,6 +77,49 @@ public struct Paged<T: Codable & Sendable>: Codable, Sendable {
 public struct ClickSummary: Codable, Sendable {
     public let totalClicks: Int
     public let uniqueVisitors: Int
+    public let topReferrers: [CountedItem]
+    public let topCountries: [CountedItem]
+    public let clicksByDay: [DayCount]
+}
+
+/// `{referrer,count}` or `{country_code,count}` row — label picks whichever
+/// key the endpoint returned.
+public struct CountedItem: Codable, Sendable {
+    public let label: String
+    public let count: Int
+
+    enum Keys: String, CodingKey {
+        case referrer, countryCode, count
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Keys.self)
+        label = try container.decodeIfPresent(String.self, forKey: .referrer)
+            ?? container.decodeIfPresent(String.self, forKey: .countryCode)
+            ?? "—"
+        count = try container.decode(Int.self, forKey: .count)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: Keys.self)
+        try container.encode(label, forKey: .referrer)
+        try container.encode(count, forKey: .count)
+    }
+}
+
+public struct DayCount: Codable, Sendable {
+    public let date: String
+    public let count: Int
+
+    static let formatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter
+    }()
+
+    public var day: Date? { Self.formatter.date(from: date) }
 }
 
 // MARK: - Version metadata (GET /v1/)
