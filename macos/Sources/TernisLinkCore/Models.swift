@@ -2,6 +2,46 @@ import Foundation
 
 // MARK: - Shared decoding
 
+/// Lenient JSON value for loosely-typed payloads (activity metadata).
+public enum JSONValue: Codable, Sendable, Hashable {
+    case string(String)
+    case int(Int)
+    case double(Double)
+    case bool(Bool)
+    case null
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() { self = .null; return }
+        if let value = try? container.decode(Bool.self) { self = .bool(value); return }
+        if let value = try? container.decode(Int.self) { self = .int(value); return }
+        if let value = try? container.decode(Double.self) { self = .double(value); return }
+        if let value = try? container.decode(String.self) { self = .string(value); return }
+        self = .null
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .string(let value): try container.encode(value)
+        case .int(let value): try container.encode(value)
+        case .double(let value): try container.encode(value)
+        case .bool(let value): try container.encode(value)
+        case .null: try container.encodeNil()
+        }
+    }
+
+    public var stringValue: String {
+        switch self {
+        case .string(let value): return value
+        case .int(let value): return String(value)
+        case .double(let value): return String(value)
+        case .bool(let value): return value ? "true" : "false"
+        case .null: return "—"
+        }
+    }
+}
+
 extension JSONDecoder {
     static var api: JSONDecoder {
         let decoder = JSONDecoder()
@@ -128,6 +168,101 @@ public struct VersionMetadata: Codable, Sendable {
     public let version: Int
     public let status: String
     public let latestVersion: Int
+}
+
+// MARK: - API keys (GET/POST/DELETE /v1/api-keys)
+
+public struct APIKey: Codable, Sendable, Identifiable, Hashable {
+    public let id: String
+    public let name: String
+    public let keyPrefix: String
+    public let apiVersion: Int?
+    public let lastUsedAt: Date?
+    public let expiresAt: Date?
+    public let revokedAt: Date?
+    public let createdAt: Date?
+
+    /// Present only in the POST response (raw token, shown once).
+    public let apiKey: String?
+
+    public var isRevoked: Bool { revokedAt != nil }
+    public var displayName: String { "\(name) (\(keyPrefix)…)" }
+}
+
+// MARK: - Notifications (GET /v1/notifications)
+
+public struct NotificationPayload: Codable, Sendable, Hashable {
+    public let title: String?
+    public let lines: [String]?
+    public let actionUrl: String?
+    public let actionLabel: String?
+
+    public var body: String { lines?.joined(separator: "\n") ?? "" }
+}
+
+public struct AppNotification: Codable, Sendable, Identifiable, Hashable {
+    public let id: String
+    public let type: String?
+    public let data: NotificationPayload?
+    public let readAt: Date?
+    public let createdAt: Date?
+
+    public var isUnread: Bool { readAt == nil }
+    public var title: String { data?.title ?? type ?? "Notification" }
+}
+
+// MARK: - Activity (GET /v1/activity)
+
+public struct ActivityActor: Codable, Sendable, Hashable {
+    public let id: String?
+    public let name: String?
+    public let email: String?
+}
+
+public struct ActivityEntry: Codable, Sendable, Identifiable, Hashable {
+    public let id: String
+    public let actorId: String?
+    public let action: String
+    public let subjectType: String?
+    public let subjectId: String?
+    public let subjectLabel: String?
+    public let metadata: [String: JSONValue]?
+    public let createdAt: Date?
+    public let actor: ActivityActor?
+
+    public var actorName: String { actor?.name ?? "System" }
+}
+
+// MARK: - Settings (GET/PATCH /v1/settings)
+
+public struct UserSettings: Codable, Sendable {
+    public var navLayout: String
+    public var theme: String
+    public var notifySecurityEmail: Bool
+    public var notifyAdminSecurityEmail: Bool
+    public var notifyServerErrorEmail: Bool
+}
+
+public struct SettingsPatch: Codable, Sendable {
+    public var navLayout: String?
+    public var theme: String?
+    public var notifySecurityEmail: Bool?
+    public var notifyAdminSecurityEmail: Bool?
+    public var notifyServerErrorEmail: Bool?
+
+    public init(
+        navLayout: String? = nil,
+        theme: String? = nil,
+        notifySecurityEmail: Bool? = nil,
+        notifyAdminSecurityEmail: Bool? = nil,
+        notifyServerErrorEmail: Bool? = nil
+    ) {
+        self.navLayout = navLayout
+        self.theme = theme
+        self.notifySecurityEmail = notifySecurityEmail
+        self.notifyAdminSecurityEmail = notifyAdminSecurityEmail
+        self.notifyServerErrorEmail = notifyServerErrorEmail
+    }
 }
 
 // MARK: - Auth

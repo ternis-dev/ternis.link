@@ -162,6 +162,7 @@ All feature and unit tests cover:
 - Ternis Auth OAuth PKCE authorization redirect & user provisioning callback
 - Direct URL redirects (`/url/{url}`, `/go/{url}`) & bare path redirects
 - API v1 CRUD endpoints, Bearer API key authentication, and click analytics
+- Account API (`GET/POST/DELETE /v1/api-keys` with copy-once raw token, `GET /v1/notifications` + mark read, `GET /v1/activity`, `GET/PATCH /v1/settings`)
 - Dashboard analytics polish (7/30/90-day period filter, Chart.js clicks-over-time chart, referrer/country/browser breakdowns with shares, CSV export)
 - Livewire dashboard link table, link creation form, settings form (nav layout + theme), and API key manager
 - Dashboard domain manager (custom hostname registration, DNS TXT instructions, verification, removal; plan-gated, tamper-proof scoping)

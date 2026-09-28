@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\V1\ActivityController;
+use App\Http\Controllers\Api\V1\ApiKeyController;
 use App\Http\Controllers\Api\V1\ClickController;
 use App\Http\Controllers\Api\V1\DomainController;
 use App\Http\Controllers\Api\V1\LinkController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PublicLinkController;
 use App\Http\Controllers\Api\V1\PublicQrCodeController;
+use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\VersionController;
 use App\Http\Middleware\AuthenticateApi;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +44,23 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', AuthenticateApi:
     Route::get('domains/{domain}', [DomainController::class, 'show']);
     Route::post('domains/{domain}/verify', [DomainController::class, 'verify']);
     Route::delete('domains/{domain}', [DomainController::class, 'destroy']);
+
+    // API keys (raw token returned once on create, never stored)
+    Route::get('api-keys', [ApiKeyController::class, 'index']);
+    Route::post('api-keys', [ApiKeyController::class, 'store']);
+    Route::delete('api-keys/{apiKey}', [ApiKeyController::class, 'destroy']);
+
+    // Notifications inbox (database notifications, newest first)
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::post('notifications/read', [NotificationController::class, 'markAllRead']);
+    Route::post('notifications/{id}/read', [NotificationController::class, 'markRead']);
+
+    // Personal activity history
+    Route::get('activity', [ActivityController::class, 'index']);
+
+    // Theme/layout + email notification preferences
+    Route::get('settings', [SettingsController::class, 'show']);
+    Route::patch('settings', [SettingsController::class, 'update']);
 
     // Click analytics
     Route::get('links/{link}/clicks', [ClickController::class, 'index']);

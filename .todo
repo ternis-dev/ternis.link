@@ -19,6 +19,9 @@ DONE(macOS): M0 scaffold — macos/ SwiftPM package, APIClient + auth/Keychain +
 DONE(macOS): M1 onboarding (key paste + SSO) + quick-shortener (window + hotkey) + history
 DONE(macOS): M2 main window — links list/detail/create, analytics charts, QR
 TODO(macOS): M3 keys, domains (+verify), notifications, activity, settings
+DONE(macOS): M3 server API — GET/POST/DELETE /v1/api-keys (raw token once), GET/POST /v1/notifications (+read), GET /v1/activity, GET/PATCH /v1/settings (AccountApiTest, 6 tests) + OpenAPI
+DONE(macOS): M3 app UI — ApiKeys/Domains/Notifications/Activity views + real Settings (⌘1…⌘6 sidebar), AccountAPI client, 5 new Swift tests (18 green)
+PAUSED(macOS): macOS app development paused after M3 (2026-09-28) — next up M4 (Sparkle, notarized DMG, docs/macos.md + download page) when resumed
 TODO(macOS): provider-side SSO registration (desktop client_id + redirect URI) — needs Ternis Auth admin
 TODO(macOS): menu-bar quick-shorten + global hotkey
 TODO(macOS): main window — links, analytics, QR, API keys, domains, notifications, activity, settings

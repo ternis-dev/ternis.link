@@ -33,11 +33,16 @@ Open the folder in Xcode for Previews and archiving (full Xcode required).
 ## Layout
 
 - `Sources/TernisLinkCore` — testable library: `APIClient`, `LinksAPI`,
+  `AccountAPI` (keys, notifications, activity, settings, domain delete),
   `Auth/` (`Credential`, `AuthManager`, `SSOAuthorizer`, `PKCE`,
   `KeychainStore`), `Persistence/HistoryStore`, models, typed `APIError`.
 - `Sources/TernisLinkApp` — `@main` App: onboarding (key + SSO),
-  dashboard shell (New Link, Links), quick-shortener (clipboard prefill,
+  dashboard shell (New Link, Links, API Keys, Domains, Activity,
+  Notifications; `⌘1…⌘6`), quick-shortener (clipboard prefill,
   domain picker, QR preview, history), link detail (facts, Swift Charts
-  analytics, QR copy/save, deactivate), `⌃⌥⌘L` global hotkey, Settings stub.
+  analytics, QR copy/save, deactivate), domains (register/verify/remove),
+  API keys (create copy-once/revoke), notifications (mark read),
+  activity feed, Settings (theme/layout + email prefs via API),
+  `⌃⌥⌘L` global hotkey.
 - `Tests/` — swift-testing suites for PKCE vectors, error mapping, models,
   auth validation, history persistence.

@@ -29,6 +29,10 @@ class VersionController extends Controller
                 'links_public' => '/v1/links/public',
                 'qr_public' => '/v1/qr?url=https%3A%2F%2Fexample.com',
                 'domains' => '/v1/domains',
+                'api_keys' => '/v1/api-keys',
+                'notifications' => '/v1/notifications',
+                'activity' => '/v1/activity',
+                'settings' => '/v1/settings',
             ],
             'docs' => 'docs/api-v1-openapi.yaml',
         ]);

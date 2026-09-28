@@ -136,3 +136,78 @@ import Testing
     #expect(summary.clicksByDay.last?.day != nil)
     #expect(DayCount(date: "not-a-date", count: 1).day == nil)
 }
+
+// MARK: - M3 account models
+
+@Test func apiKeyCreateResponseDecodesRawTokenOnce() {
+    let json = """
+        {"id":"01J","name":"Mac","key_prefix":"tl_abc123","api_version":1,\
+        "last_used_at":null,"revoked_at":null,\
+        "created_at":"2026-09-28T10:00:00.000000Z","api_key":"tl_rawtoken"}
+        """.data(using: .utf8)!
+    let key = try! JSONDecoder.api.decode(APIKey.self, from: json)
+    #expect(key.displayName == "Mac (tl_abc123…)")
+    #expect(key.apiKey == "tl_rawtoken")
+    #expect(!key.isRevoked)
+    #expect(key.createdAt != nil)
+}
+
+@Test func apiKeyListHidesRawToken() {
+    let json = """
+        {"data":[{"id":"01J","name":"Mac","key_prefix":"tl_abc123","api_version":1,\
+        "revoked_at":"2026-09-28T11:00:00.000000Z",\
+        "created_at":"2026-09-28T10:00:00.000000Z"}],\
+        "current_page":1,"last_page":1,"total":1}
+        """.data(using: .utf8)!
+    let page = try! JSONDecoder.api.decode(Paged<APIKey>.self, from: json)
+    #expect(page.data.first?.isRevoked == true)
+    #expect(page.data.first?.apiKey == nil)
+}
+
+@Test func notificationDecodesPayload() {
+    let json = """
+        {"data":[{"id":"01N","type":"App.Notifications.SecurityAlert",\
+        "data":{"title":"New API key created","lines":["A key was created."],\
+        "action_url":"https://dash.ternis.link/api-keys","action_label":"View"},\
+        "read_at":null,"created_at":"2026-09-28T10:00:00.000000Z"}],\
+        "current_page":1,"last_page":1,"total":1}
+        """.data(using: .utf8)!
+    let page = try! JSONDecoder.api.decode(Paged<AppNotification>.self, from: json)
+    let item = page.data.first!
+    #expect(item.isUnread)
+    #expect(item.title == "New API key created")
+    #expect(item.data?.body == "A key was created.")
+}
+
+@Test func activityDecodesActorAndMetadata() {
+    let json = """
+        {"data":[{"id":"01A","actor_id":"01U","action":"api_key.created",\
+        "subject_type":"App.Models.ApiKey","subject_id":"01K",\
+        "subject_owner_id":"01U","subject_label":null,\
+        "metadata":{"name":"Mac","via":"api","count":1},\
+        "created_at":"2026-09-28T10:00:00.000000Z",\
+        "actor":{"id":"01U","name":"Jane","email":"jane@example.com"}}],\
+        "current_page":1,"last_page":1,"total":1}
+        """.data(using: .utf8)!
+    let page = try! JSONDecoder.api.decode(Paged<ActivityEntry>.self, from: json)
+    let entry = page.data.first!
+    #expect(entry.actorName == "Jane")
+    #expect(entry.metadata?["via"]?.stringValue == "api")
+    #expect(entry.metadata?["count"]?.stringValue == "1")
+}
+
+@Test func settingsRoundTripSnakeCase() {
+    let json = """
+        {"nav_layout":"top","theme":"dark","notify_security_email":false,\
+        "notify_admin_security_email":true,"notify_server_error_email":true}
+        """.data(using: .utf8)!
+    let settings = try! JSONDecoder.api.decode(UserSettings.self, from: json)
+    #expect(settings.navLayout == "top")
+    #expect(settings.theme == "dark")
+    #expect(!settings.notifySecurityEmail)
+
+    let patch = SettingsPatch(theme: "light")
+    let encoded = try! JSONEncoder.api.encode(patch)
+    let body = String(data: encoded, encoding: .utf8)!
+    #expect(body.contains("light"))
+}

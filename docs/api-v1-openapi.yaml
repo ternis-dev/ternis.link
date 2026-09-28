@@ -324,6 +324,85 @@ paths:
       responses:
         '200': { description: "{ verified: true } on success" }
         '422': { description: "{ verified: false, verification: {...} } — record missing" }
+  /api-keys:
+    get:
+      summary: List own API keys (newest first, digests never exposed)
+      responses:
+        '200': { description: Paginated keys (prefix + metadata, no raw tokens) }
+        '401': { description: "{ message } — missing/invalid Bearer key or SSO token" }
+    post:
+      summary: Create an API key (raw token returned once)
+      description: |
+        The raw `tl_…` token is returned as `api_key` exactly once and
+        is never stored — only its SHA-256 digest persists. Creation is
+        logged to the activity feed and triggers a security notification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, maxLength: 255 }
+      responses:
+        '201': { description: Created (includes one-time `api_key`) }
+        '422': { description: Validation error (`{ message, errors }`) }
+  /api-keys/{apiKey}:
+    parameters:
+      - { name: apiKey, in: path, required: true, schema: { type: string, description: ULID } }
+    delete:
+      summary: Revoke an owned API key (links preserved)
+      responses:
+        '204': { description: Revoked }
+        '403': { description: "{ message: 'You do not own this API key.' }" }
+  /notifications:
+    get:
+      summary: In-app notification inbox (newest first)
+      responses:
+        '200': { description: Paginated database notifications }
+        '401': { description: "{ message } — missing/invalid Bearer key or SSO token" }
+  /notifications/read:
+    post:
+      summary: Mark every unread notification as read
+      responses:
+        '200': { description: "{ message } confirmation" }
+  /notifications/{id}/read:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, description: ULID } }
+    post:
+      summary: Mark one notification as read
+      responses:
+        '200': { description: Updated notification }
+        '404': { description: Unknown notification }
+  /activity:
+    get:
+      summary: Personal activity history (own actions + actions on own stuff)
+      responses:
+        '200': { description: Paginated activity rows, newest first }
+        '401': { description: "{ message } — missing/invalid Bearer key or SSO token" }
+  /settings:
+    get:
+      summary: Theme/layout + email notification preferences
+      responses:
+        '200': { description: "{ nav_layout, theme, notify_* }" }
+    patch:
+      summary: Update preferences (same rules as the web settings form)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nav_layout: { type: string, enum: [side, top] }
+                theme: { type: string, enum: [system, light, dark] }
+                notify_security_email: { type: boolean }
+                notify_admin_security_email: { type: boolean }
+                notify_server_error_email: { type: boolean }
+      responses:
+        '200': { description: Updated preferences }
+        '422': { description: Validation error (`{ message, errors }`) }
 components:
   securitySchemes:
     bearerAuth:
