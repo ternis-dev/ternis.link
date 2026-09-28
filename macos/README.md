@@ -1,6 +1,6 @@
 # ternis.link for Mac
 
-Native SwiftUI desktop client (menu-bar quick-shorten + dashboard), thin
+Native SwiftUI desktop client (dashboard window + hotkey quick-shortener), thin
 client over `https://links.t-api.de/v1`. See
 [`../.plans/20260928T175229_macos-app-plan.md`](../.plans/20260928T175229_macos-app-plan.md).
 
