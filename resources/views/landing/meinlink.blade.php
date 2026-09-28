@@ -3,17 +3,120 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>meinlink.at — Schnelle, sichere Kurzlinks aus Deutschland</title>
-    <meta name="description" content="meinlink.at — Der moderne Kurzlink-Dienst aus Deutschland. Links sofort kürzen ohne Anmeldung, mit QR-Code und garantiert datenschutzfreundlich.">
+    <title>meinlink.at — Schneller &amp; sicherer URL-Kürzer aus Deutschland</title>
+    <meta name="description" content="Kostenloser URL-Shortener ohne Registrierung. Lange Links sofort kürzen, QR-Codes erstellen, Ablaufdatum festlegen und datenschutzkonform teilen.">
+    <meta name="keywords" content="URL Shortener, Link kürzen, Kurzlink erstellen, Link verkürzen, QR Code erstellen, Kurzlink Deutschland, meinlink, meinlink.at, URL verkürzen, Link Shortener kostenlos">
+    <meta name="author" content="Ternis">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="theme-color" content="#dc2626">
+
+    {{-- Canonical & Hreflang --}}
     <link rel="canonical" href="https://meinlink.at/">
+    <link rel="alternate" hreflang="de" href="https://meinlink.at/">
+    <link rel="alternate" hreflang="de-DE" href="https://meinlink.at/">
+    <link rel="alternate" hreflang="de-AT" href="https://meinlink.at/">
+    <link rel="alternate" hreflang="de-CH" href="https://meinlink.at/">
+    <link rel="alternate" hreflang="x-default" href="https://meinlink.at/">
+
+    {{-- Open Graph / Facebook --}}
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="de_DE">
     <meta property="og:site_name" content="meinlink.at">
-    <meta property="og:title" content="meinlink.at — Schnelle, sichere Kurzlinks aus Deutschland">
-    <meta property="og:description" content="Lange Links blitzschnell kürzen. Kostenlos, ohne Registrierung und datenschutzkonform.">
+    <meta property="og:title" content="meinlink.at — Schneller &amp; sicherer URL-Kürzer aus Deutschland">
+    <meta property="og:description" content="Lange Links blitzschnell kürzen. Kostenlos, ohne Registrierung, mit QR-Code und frei wählbarer Link-Länge. 100% datenschutzkonform.">
     <meta property="og:url" content="https://meinlink.at/">
+
+    {{-- Twitter Cards --}}
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="meinlink.at — Schneller &amp; sicherer URL-Kürzer aus Deutschland">
+    <meta name="twitter:description" content="Lange Links blitzschnell kürzen. Kostenlos, ohne Registrierung, mit QR-Code und frei wählbarer Link-Länge.">
+
     <link rel="icon" href="{{ asset('favicon.ico') }}">
+
+    {{-- Structured Data (JSON-LD) --}}
+    <script type="application/ld+json">
+    {!! json_encode([
+        '@context' => 'https://schema.org',
+        '@graph' => [
+            [
+                '@type' => 'WebSite',
+                '@id' => 'https://meinlink.at/#website',
+                'url' => 'https://meinlink.at/',
+                'name' => 'meinlink.at',
+                'description' => 'Kostenloser URL-Shortener und Kurzlink-Dienst aus Deutschland.',
+                'inLanguage' => 'de-DE',
+            ],
+            [
+                '@type' => 'WebApplication',
+                '@id' => 'https://meinlink.at/#webapp',
+                'name' => 'meinlink.at URL Shortener',
+                'applicationCategory' => 'UtilitiesApplication',
+                'operatingSystem' => 'All',
+                'url' => 'https://meinlink.at/',
+                'description' => 'Moderner URL-Kürzer zum schnellen Erstellen kompakter Links und QR-Codes ohne Registrierung.',
+                'offers' => [
+                    '@type' => 'Offer',
+                    'price' => '0',
+                    'priceCurrency' => 'EUR',
+                ],
+                'featureList' => [
+                    'URL-Kürzung ohne Registrierung',
+                    'Automatische QR-Code-Erstellung',
+                    'Individuelle Link-Länge (5 bis 9 Zeichen)',
+                    'Wählbare Domain (meinlink.at oder href.nz)',
+                    'Frei einstellbares Ablaufdatum',
+                    'DSGVO-konform ohne Tracking-Cookies',
+                ],
+            ],
+            [
+                '@type' => 'FAQPage',
+                '@id' => 'https://meinlink.at/#faq',
+                'mainEntity' => [
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Wie kann ich einen Link auf meinlink.at kostenlos kürzen?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Füge einfach deine lange Ziel-URL in das Eingabefeld ein, wähle bei Bedarf deine bevorzugte Domain (meinlink.at oder href.nz), die gewünschte Zeichenlänge (5 bis 9 Zeichen) sowie ein optionales Ablaufdatum und klicke auf "Kürzen".',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Ist meinlink.at kostenlos und ohne Registrierung nutzbar?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Ja, als Gast kannst du bis zu 50 Links pro Tag völlig kostenlos und ohne Angabe von E-Mail-Adresse oder Passwort kürzen.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Wird automatisch ein QR-Code für den Link generiert?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Ja! Zu jedem erstellten Kurzlink erhältst du direkt einen hochauflösenden QR-Code zum Scannen oder Herunterladen.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Wie schützt meinlink.at den Datenschutz und die Privatsphäre?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'meinlink.at arbeitet nach strengen DSGVO-Richtlinien. Es werden keine Werbetracker oder Tracking-Cookies gesetzt, und IP-Adressen werden zur Missbrauchsprävention nur als Einweg-Hash verarbeitet.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Welche Vorteile bietet ein kostenloses Mitgliedskonto?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'Registrierte Mitglieder können eigene Wunschkürzel vergeben, detaillierte Klick-Statistiken in Echtzeit einsehen und höhere Tageslimits nutzen.',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
 
     @vite(['resources/css/meinlink.css'])
     @livewireStyles
@@ -44,6 +147,9 @@
             <nav class="flex items-center gap-3 sm:gap-6" aria-label="Hauptnavigation">
                 <a href="#features" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">
                     Vorteile
+                </a>
+                <a href="#faq" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">
+                    FAQ
                 </a>
                 <a href="https://ternis.link/pages/legal/privacy" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">
                     Datenschutz
@@ -168,6 +274,68 @@
                         </div>
                         <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                             Angemeldete Mitglieder können eigene Wunschkürzel wählen und Klick-Statistiken einsehen.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {{-- FAQ Section (SEO Boost) --}}
+        <section id="faq" class="py-16 sm:py-24">
+            <div class="mx-auto max-w-4xl px-4 sm:px-6">
+                <div class="text-center">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">Wissenswertes</span>
+                    <h2 class="mt-2 font-display text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-100">
+                        Häufig gestellte Fragen (FAQ)
+                    </h2>
+                    <p class="mx-auto mt-2 max-w-lg text-sm text-zinc-600 dark:text-zinc-400">
+                        Alles Wichtige über den kostenlosen Kurzlink-Dienst auf meinlink.at.
+                    </p>
+                </div>
+
+                <div class="mt-12 space-y-4">
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                            Wie kann ich einen Link auf meinlink.at kostenlos kürzen?
+                        </h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            Füge einfach deine lange Ziel-URL in das Eingabefeld ein, wähle bei Bedarf deine bevorzugte Domain (<code>meinlink.at</code> oder <code>href.nz</code>), die gewünschte Zeichenlänge (5 bis 9 Zeichen) sowie ein optionales Ablaufdatum und klicke auf „Kürzen“. Der Kurzlink wird sofort erstellt.
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                            Ist meinlink.at kostenlos und ohne Registrierung nutzbar?
+                        </h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            Ja, als Gast kannst du bis zu 50 Links pro Tag völlig kostenlos und ohne Angabe von persönlichen Daten, E-Mail-Adresse oder Passwort kürzen.
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                            Wird automatisch ein QR-Code für den Link generiert?
+                        </h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            Ja! Zu jedem erstellten Kurzlink erhältst du direkt einen hochauflösenden QR-Code zum Scannen oder Herunterladen. Perfekt für Flyer, Präsentationen und Visitenkarten.
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                            Wie schützt meinlink.at meine Privatsphäre?
+                        </h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            meinlink.at arbeitet nach strengen DSGVO-Richtlinien. Es werden keine Werbetracker oder Tracking-Cookies gesetzt, und IP-Adressen werden zur Missbrauchsprävention nur als Einweg-Hash verarbeitet.
+                        </p>
+                    </div>
+
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                            Welche Vorteile bietet ein kostenloses Mitgliedskonto?
+                        </h3>
+                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            Registrierte Mitglieder können eigene Wunschkürzel vergeben, detaillierte Klick-Statistiken in Echtzeit abrufen und höhere Tageslimits nutzen. Die Anmeldung erfolgt schnell und sicher über Ternis Auth SSO.
                         </p>
                     </div>
                 </div>
