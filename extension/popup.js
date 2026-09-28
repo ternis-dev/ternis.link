@@ -1,7 +1,7 @@
-/* Popup: shorten the active tab. Depends on src/api.js (window.TernisLink). */
+/* Popup: shorten the active tab. Depends on src/api.js (globalThis.TernisLink). */
 (function () {
   const $ = (id) => document.getElementById(id);
-  const api = () => window.TernisLink;
+  const api = () => globalThis.TernisLink;
 
   async function currentTabUrl() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

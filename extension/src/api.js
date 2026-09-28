@@ -1,5 +1,7 @@
 /* Shared API + settings helpers for popup / background / options.
- * No build step: loaded as a classic script, exposes window.TernisLink. */
+ * No build step: loaded as a classic script, exposes globalThis.TernisLink
+ * (globalThis — never window — so it also evaluates in the MV3 service
+ * worker, where window does not exist). */
 (function () {
   const DEFAULT_API_BASE = 'https://links.t-api.de/v1';
 
@@ -107,7 +109,7 @@
     return err?.message || 'Something went wrong.';
   }
 
-  window.TernisLink = {
+  globalThis.TernisLink = {
     DEFAULT_API_BASE, getSettings, setSettings, listDomains, shorten, pushHistory, friendlyError, shortUrlOf,
   };
 })();

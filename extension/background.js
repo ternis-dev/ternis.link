@@ -38,11 +38,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     return;
   }
   try {
-    const { shortUrl } = await window.TernisLink.shorten(destination);
-    await window.TernisLink.pushHistory({ shortUrl, destination, mode: 'menu' });
+    const { shortUrl } = await globalThis.TernisLink.shorten(destination);
+    await globalThis.TernisLink.pushHistory({ shortUrl, destination, mode: 'menu' });
     await notify('Short link ready', shortUrl);
   } catch (e) {
-    await notify('ternis.link failed', window.TernisLink.friendlyError(e));
+    await notify('ternis.link failed', globalThis.TernisLink.friendlyError(e));
   }
 });
 
@@ -51,10 +51,10 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
   const destination = text.trim();
   if (!/^https?:\/\//i.test(destination)) return;
   try {
-    const { shortUrl } = await window.TernisLink.shorten(destination);
-    await window.TernisLink.pushHistory({ shortUrl, destination, mode: 'omnibox' });
+    const { shortUrl } = await globalThis.TernisLink.shorten(destination);
+    await globalThis.TernisLink.pushHistory({ shortUrl, destination, mode: 'omnibox' });
     await chrome.tabs.create({ url: shortUrl });
   } catch (e) {
-    await notify('ternis.link failed', window.TernisLink.friendlyError(e));
+    await notify('ternis.link failed', globalThis.TernisLink.friendlyError(e));
   }
 });

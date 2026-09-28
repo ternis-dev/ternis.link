@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ternis.link Shortener",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shorten the current tab with ternis.link — guest mode or your own API key, custom slugs, QR codes.",
   "homepage_url": "https://ternis.link/pages/extension",
   "minimum_chrome_version": "109",
