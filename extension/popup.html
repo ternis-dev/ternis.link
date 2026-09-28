@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ternis.link Shortener</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="head">
+      <img src="icons/icon32.png" alt="" width="20" height="20" />
+      <strong>ternis.link</strong>
+      <span id="modeBadge" class="badge">guest</span>
+      <a id="optionsLink" href="#" title="Settings">⚙</a>
+    </header>
+
+    <label class="field">
+      <span>Long URL</span>
+      <textarea id="url" rows="2" spellcheck="false" placeholder="https://example.com/…"></textarea>
+    </label>
+
+    <div id="authFields">
+      <div class="row">
+        <label class="field grow">
+          <span>Domain</span>
+          <select id="domain"><option value="">Loading…</option></select>
+        </label>
+        <button id="refreshDomains" title="Reload domains" class="icon-btn">↻</button>
+      </div>
+      <label class="field">
+        <span>Custom slug <em>(optional)</em></span>
+        <input id="slug" type="text" spellcheck="false" placeholder="my-link" pattern="[A-Za-z0-9_-]+" />
+      </label>
+    </div>
+
+    <p id="guestNote" class="note" hidden>
+      Guest mode — links go to <code>href.nz</code> with an auto-generated code.
+      Add an API key in <a id="guestOptions" href="#">settings</a> for custom slugs &amp; your domains.
+    </p>
+
+    <button id="shorten" class="primary">Shorten</button>
+    <p id="error" class="error" hidden></p>
+
+    <section id="result" class="result" hidden>
+      <a id="shortUrl" href="#" target="_blank" rel="noopener"></a>
+      <div class="result-row">
+        <button id="copy" class="secondary">Copy</button>
+        <button id="qr" class="secondary">QR</button>
+        <a id="openDash" class="secondary link-btn" href="https://dash.ternis.link/" target="_blank" rel="noopener">Dashboard</a>
+      </div>
+      <img id="qrImg" alt="QR code for the short link" hidden />
+    </section>
+
+    <section class="history">
+      <h2>Recent</h2>
+      <ul id="history"></ul>
+    </section>
+
+    <footer>
+      <a href="https://ternis.link/pages/extension" target="_blank" rel="noopener">Get help</a>
+      <span>·</span>
+      <a href="https://docs.ternis.link/links" target="_blank" rel="noopener">API docs</a>
+    </footer>
+  </main>
+  <script src="src/api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

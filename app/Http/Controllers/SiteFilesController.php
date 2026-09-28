@@ -50,6 +50,7 @@ class SiteFilesController extends Controller
             'User-agent: *',
             'Allow: /$',
             'Allow: /pages/',
+            'Allow: /extension',
             'Disallow: /auth/',
             'Disallow: /login',
             'Disallow: /logout',
@@ -80,6 +81,7 @@ class SiteFilesController extends Controller
         if ($type === 'ternis') {
             $urls[] = ['loc' => $base.'/pages/stats', 'lastmod' => $today];
             $urls[] = ['loc' => $base.'/pages/stats/domains', 'lastmod' => $today];
+            $urls[] = ['loc' => $base.'/pages/extension', 'lastmod' => $today];
 
             foreach (PagesController::PAGES as $slug => $title) {
                 $path = resource_path("legal/{$slug}.md");

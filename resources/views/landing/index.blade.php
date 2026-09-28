@@ -17,6 +17,8 @@
         <p class="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
             <a href="{{ url('/pages/stats') }}" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">Live network stats</a>
             <span aria-hidden="true" class="mx-1">·</span>
+            <a href="{{ url('/pages/extension') }}" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">Browser extension</a>
+            <span aria-hidden="true" class="mx-1">·</span>
             <a href="https://docs.ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">Developer docs</a>
         </p>
 

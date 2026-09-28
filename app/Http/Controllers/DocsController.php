@@ -23,6 +23,7 @@ class DocsController extends Controller
         'authentication' => 'authentication.md',
         'domains-routing' => 'domains-routing.md',
         'links' => 'links.md',
+        'extension' => 'extension.md',
     ];
 
     /**
@@ -34,6 +35,7 @@ class DocsController extends Controller
         'authentication' => 'Sign in without a password, plus API keys.',
         'domains-routing' => 'Which host does what, plus custom domains.',
         'links' => 'Shorten links, custom slugs, QR codes, clicks.',
+        'extension' => 'Shorten any tab: popup, menu, omnibox.',
     ];
 
     public function index()

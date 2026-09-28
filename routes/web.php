@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
+use App\Http\Controllers\ExtensionController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
@@ -315,6 +316,60 @@ Route::middleware(['ensure.domain:ternis'])->get('/stats{any?}', function () {
     }
 
     return redirect('/pages/stats'.rtrim($suffix, '/').$qs, 301);
+})->where('any', '.*');
+
+/*
+|----------------------------------------------------------------------
+| Browser extension download page (ternis.link/pages/extension) —
+| same /pages/ pattern as stats/legal: public, no login, ternis host
+| only (every other host 404s). HTML + Markdown twin + version JSON
+| (manifest.json is the version source of truth) + zip download
+| (built by `php artisan extension:build` into public/extension/).
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:ternis'])->prefix('pages/extension')->name('pages.extension.')->group(function () {
+    Route::get('/', [ExtensionController::class, 'index'])->name('index');
+    Route::get('/version', [ExtensionController::class, 'version'])->name('version');
+    Route::get('/download', [ExtensionController::class, 'download'])->name('download');
+});
+
+Route::middleware(['ensure.domain:ternis'])->get('/pages/extension.md', [ExtensionController::class, 'indexMd'])->name('pages.extension.index-md');
+
+/*
+|----------------------------------------------------------------------
+| Short memorable URL for the extension (ternis.link/extension) —
+| 301 to the canonical /pages/extension home, preserving subpaths
+| (/extension/download, /extension/version, /extension.md) and query
+| strings. Single definition with host branching INSIDE the handler:
+| Laravel only matches the FIRST route per URI, so a ternis-pinned
+| route here would shadow docs.ternis.link/extension on the docs
+| host (same reason /login and /legal/* branch internally).
+| Ternis → redirect; docs → delegate to the docs page (.md twin
+| included); everywhere else → 404. Registered above the short-link
+| catch-all so `extension` is never mistaken for a link slug.
+|----------------------------------------------------------------------
+*/
+Route::get('/extension{any?}', function () {
+    $type = request()->attributes->get('domain_type');
+    $suffix = substr(request()->getPathInfo(), strlen('/extension'));
+    $query = request()->getQueryString();
+    $qs = $query ? '?'.$query : '';
+
+    if ($type === 'ternis') {
+        return redirect('/pages/extension'.rtrim($suffix, '/').$qs, 301);
+    }
+
+    if ($type === 'docs') {
+        if ($suffix === '') {
+            return app(DocsController::class)->show('extension');
+        }
+
+        if ($suffix === '.md') {
+            return app(DocsController::class)->showMd('extension');
+        }
+    }
+
+    abort(404);
 })->where('any', '.*');
 
 /*

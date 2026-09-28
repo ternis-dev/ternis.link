@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ternis.link — Extension settings</title>
+  <link rel="stylesheet" href="popup.css" />
+  <style>.wrap { width: auto; max-width: 480px; margin: 24px auto; }</style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="head">
+      <img src="icons/icon32.png" alt="" width="20" height="20" />
+      <strong>ternis.link — settings</strong>
+    </header>
+    <p class="note">Create an API key at <a href="https://dash.ternis.link/api-keys" target="_blank" rel="noopener">dash.ternis.link/api-keys</a> (keys start with <code>tl_</code>). Without a key the extension uses guest mode (href.nz, auto-generated codes).</p>
+    <label class="field"><span>API key</span><input id="apiKey" type="password" placeholder="tl_…" autocomplete="off" /></label>
+    <label class="field"><span>API base</span><input id="apiBase" type="url" spellcheck="false" /></label>
+    <button id="save" class="primary">Save</button>
+    <p id="status" class="note"></p>
+    <p class="note"><a href="https://ternis.link/pages/extension" target="_blank" rel="noopener">Install &amp; usage guide</a></p>
+  </main>
+  <script src="src/api.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

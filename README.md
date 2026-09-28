@@ -111,6 +111,24 @@ overages are `429` with `Retry-After`.
 - **Database**: SQLite (local/testing) / PostgreSQL or MySQL (production)
 - **Auth**: Ternis Auth SSO (OAuth 2.0 + PKCE)
 - **Web Server**: Caddy
+- **Browser Extension**: vanilla Manifest V3 in `extension/` (zero deps)
+
+---
+
+## 📦 Semi-Monorepo Layout
+
+| Path | What |
+| ---- | ---- |
+| `/` (`app/`, `routes/`, `resources/`) | Laravel web app (shortener, dashboards, API, docs) |
+| `/extension` | Chrome extension (MV3 popup, options, background, icons) — see `extension/README.md` |
+| `/docs/extension.md` | Extension user + API notes, rendered at `docs.ternis.link/extension` |
+| `ExtensionController` + `resources/views/pages/extension/*` | Download page at `ternis.link/pages/extension` (+ `.md` twin, `/version` JSON, `/download` zip) |
+
+Build the extension zip for the download page:
+
+```bash
+php artisan extension:build
+```
 
 ---
 
@@ -144,6 +162,7 @@ All feature and unit tests cover:
 - Dashboard domain manager (custom hostname registration, DNS TXT instructions, verification, removal; plan-gated, tamper-proof scoping)
 - Admin dashboard (`admin.ternis.link` overview, link moderation, domain moderation, user role/plan management, host pinning, self-demotion guard)
 - Redirect cache (hot-slug hits skip DB, per-domain keys, update/deactivate/expiry invalidation, no negative caching)
+- Chrome extension (`extension/` MV3: popup/menu/omnibox shorten, guest + API-key modes, QR preview; `ternis.link/pages/extension` download page + `.md` twin + `/version` JSON + `/download` zip via `extension:build`; `docs.ternis.link/extension`)
 
 > Multi-domain tests must put the host in the URL
 > (e.g. `$this->get('http://links.t-api.de/v1/links')`):

@@ -8,6 +8,7 @@ ternis.link shortens long URLs into memorable short links and counts every redir
 
 - [Network stats]({{ $hosts['ternis'] }}/pages/stats): public aggregate analytics for the whole network (totals, per-day charts). ([Markdown]({{ $hosts['ternis'] }}/pages/stats.md))
 - [Links per domain]({{ $hosts['ternis'] }}/pages/stats/domains): link and click counts by user-added domain. ([Markdown]({{ $hosts['ternis'] }}/pages/stats/domains.md))
+- [Browser extension]({{ $hosts['ternis'] }}/pages/extension): shorten any tab (popup, menu, omnibox) + install guide. ([Markdown]({{ $hosts['ternis'] }}/pages/extension.md))
 @foreach ($pages as $slug => $title)
 - [{{ $title }}]({{ $hosts['ternis'] }}/pages/legal/{{ $slug }}): ([Markdown]({{ $hosts['ternis'] }}/pages/legal/{{ $slug }}.md))
 @endforeach
