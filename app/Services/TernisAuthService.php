@@ -6,7 +6,9 @@ use App\Enums\UserRole;
 use App\Models\OAuthIdentity;
 use App\Models\Plan;
 use App\Models\User;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class TernisAuthService
@@ -148,18 +150,29 @@ class TernisAuthService
             }
         }
 
-        // Store/update OAuth tokens
+        // Store/update OAuth tokens. A rotated APP_KEY leaves the stored
+        // row undecryptable — Eloquent throws DecryptException on the
+        // dirty-check before any write happens. Drop the dead row and
+        // re-provision from the fresh tokens at hand (this IS a login,
+        // so they are always available) instead of failing sign-in.
         $expiresIn = $tokenData['expires_in'] ?? 3600;
-        OAuthIdentity::updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'access_token' => $tokenData['access_token'],
-                'refresh_token' => $tokenData['refresh_token'] ?? null,
-                'token_expires_at' => now()->addSeconds((int) $expiresIn),
-                'sso_claims' => $userInfo,
-                'claims_synced_at' => now(),
-            ]
-        );
+        $identityData = [
+            'access_token' => $tokenData['access_token'],
+            'refresh_token' => $tokenData['refresh_token'] ?? null,
+            'token_expires_at' => now()->addSeconds((int) $expiresIn),
+            'sso_claims' => $userInfo,
+            'claims_synced_at' => now(),
+        ];
+
+        try {
+            OAuthIdentity::updateOrCreate(['user_id' => $user->id], $identityData);
+        } catch (DecryptException $e) {
+            Log::warning('SSO identity re-provisioned after key rotation', [
+                'user_id' => $user->id,
+            ]);
+            OAuthIdentity::where('user_id', $user->id)->delete();
+            OAuthIdentity::create(['user_id' => $user->id] + $identityData);
+        }
 
         return $user->fresh();
     }
@@ -173,13 +186,13 @@ class TernisAuthService
      */
     public function refreshAccessToken(User $user): bool
     {
-        $identity = $user->oauthIdentity;
-
-        if (! $identity || ! $identity->refresh_token) {
-            return false;
-        }
-
         try {
+            $identity = $user->oauthIdentity;
+
+            if (! $identity || ! $identity->refresh_token) {
+                return false;
+            }
+
             $response = Http::asForm()->post("{$this->baseUrl}/oauth/token", [
                 'grant_type' => 'refresh_token',
                 'client_id' => $this->clientId,
@@ -210,6 +223,17 @@ class TernisAuthService
             $this->syncUserFromClaims($user, $userInfo);
 
             return true;
+        } catch (DecryptException $e) {
+            // Undecryptable row (rotated APP_KEY): drop it so the next
+            // login re-provisions fresh tokens instead of 500ing every
+            // dashboard request. Returning false logs the user out with
+            // the usual "session expired" redirect.
+            Log::warning('SSO identity dropped after key rotation', [
+                'user_id' => $user->id,
+            ]);
+            OAuthIdentity::where('user_id', $user->id)->delete();
+
+            return false;
         } catch (\Throwable) {
             return false;
         }

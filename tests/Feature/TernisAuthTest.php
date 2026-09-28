@@ -3,11 +3,15 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Models\OAuthIdentity;
 use App\Models\User;
+use App\Services\TernisAuthService;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class TernisAuthTest extends TestCase
@@ -140,6 +144,76 @@ class TernisAuthTest extends TestCase
 
         $response->assertRedirect('/');
         $this->assertGuest();
+    }
+
+    public function test_callback_heals_identity_row_undecryptable_after_key_rotation(): void
+    {
+        // Production case: APP_KEY was rotated, so the stored tokens
+        // (encrypted with the old key) throw DecryptException on read.
+        // Simulate with a garbage ciphertext row (same exception class).
+        $user = User::factory()->create([
+            'sso_sub' => '11111111-2222-3333-4444-555555555555',
+        ]);
+        DB::table('oauth_identities')->insert([
+            'id' => (string) Str::ulid(),
+            'user_id' => $user->id,
+            'access_token' => 'ciphertext-from-a-previous-app-key',
+            'refresh_token' => 'ciphertext-from-a-previous-app-key',
+            'token_expires_at' => now()->subHour(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Http::fake([
+            'https://auth.ternis.net/oauth/token' => Http::response([
+                'access_token' => 'fresh-access-token',
+                'refresh_token' => 'fresh-refresh-token',
+                'expires_in' => 3600,
+            ]),
+            'https://auth.ternis.net/oauth/userinfo' => Http::response([
+                'sub' => '11111111-2222-3333-4444-555555555555',
+                'name' => 'Fabian Ternis',
+                'email' => 'fabian@ternis.dev',
+                'user_type' => 'general',
+            ]),
+        ]);
+
+        $state = 'test_random_state_string';
+        $verifier = 'test_code_verifier_1234567890123456789012345678901234567890';
+
+        // Must log in — not bounce to /login with an error.
+        $response = $this->withSession([
+            'oauth_state' => $state,
+            'oauth_code_verifier' => $verifier,
+        ])->get("http://dash.ternis.link/auth/callback?code=mock_code&state={$state}");
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+
+        // Stale row replaced by one holding the fresh tokens.
+        $identity = $user->fresh()->oauthIdentity;
+        $this->assertNotNull($identity);
+        $this->assertSame('fresh-access-token', $identity->access_token);
+        $this->assertSame('fresh-refresh-token', $identity->refresh_token);
+        $this->assertSame(1, OAuthIdentity::where('user_id', $user->id)->count());
+    }
+
+    public function test_refresh_drops_undecryptable_identity_instead_of_throwing(): void
+    {
+        $user = User::factory()->create();
+        DB::table('oauth_identities')->insert([
+            'id' => (string) Str::ulid(),
+            'user_id' => $user->id,
+            'access_token' => 'ciphertext-from-a-previous-app-key',
+            'refresh_token' => 'ciphertext-from-a-previous-app-key',
+            'token_expires_at' => now()->subHour(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // No HTTP fakes: must return false before any network call.
+        $this->assertFalse(app(TernisAuthService::class)->refreshAccessToken($user->fresh()));
+        $this->assertSame(0, OAuthIdentity::where('user_id', $user->id)->count());
     }
 
     public function test_demo_login_authenticates_user(): void

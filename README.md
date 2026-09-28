@@ -57,9 +57,12 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
    `TRUSTED_PROXIES=*`, PostgreSQL + Redis, Ternis Auth credentials). Create a Cloudflare
    Turnstile widget for the public shortener host (`href.nz`) and set both
    `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`; partial configuration fails closed.
-2. **Install & migrate**: `composer install --no-dev`, `php artisan key:generate`,
+2. **Install & migrate**: `composer install --no-dev`,
    `php artisan migrate --force`, `npm ci && npm run build`, `php artisan extension:build`
    (packages the Chrome extension zip served at `ternis.link/pages/extension/download`).
+   Run `php artisan key:generate` **only on first install when `APP_KEY` is still
+   empty — never re-run it**: rotating the key orphans every encrypted value
+   (SSO tokens, stored IPs) and locks out returning users.
 3. **Queue worker** (async `RecordClick` analytics — do not stay on `sync`):
    run `php artisan queue:work --tries=3` under systemd/supervisor with restarts.
 4. **Scheduler** (daily `links:deactivate-expired` cleanup):
