@@ -6,6 +6,7 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
 use App\Support\LinkQrCode;
+use App\Support\NetworkStats;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -148,6 +149,63 @@ class QrCodeTest extends TestCase
     {
         $this->get('http://href.re/qr/example.com')->assertNotFound();
         $this->get('http://href.re/qrslug01.png')->assertNotFound();
+    }
+
+    public function test_slug_qr_serves_short_link_code(): void
+    {
+        $domain = Domain::where('hostname', 'href.nz')->first();
+
+        Link::create([
+            'slug' => 'qrslug02',
+            'destination_url' => 'https://example.com/qr-target',
+            'domain_id' => $domain->id,
+            'user_id' => null,
+            'is_active' => true,
+        ]);
+
+        $this->get('http://href.nz/qrslug02/qr')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+
+        $this->get('http://href.nz/qrslug02/qr.svg')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/svg+xml');
+
+        $this->get('http://href.nz/qrslug02/qr.jpg')->assertNotFound();
+        $this->get('http://href.nz/nosuchslug/qr')->assertNotFound();
+
+        // Reserved API paths are never mistaken for slugs.
+        $this->get('http://href.nz/v1/qr.svg')->assertNotFound();
+    }
+
+    public function test_qr_generations_are_tracked_with_link_reference(): void
+    {
+        $domain = Domain::where('hostname', 'href.nz')->first();
+
+        $link = Link::create([
+            'slug' => 'qrtrack01',
+            'destination_url' => 'https://example.com/qr-tracked',
+            'domain_id' => $domain->id,
+            'user_id' => null,
+            'is_active' => true,
+        ]);
+
+        $this->get('http://href.nz/v1/qr?url='.urlencode('https://example.com/loose'))->assertStatus(200);
+        $this->get('http://href.nz/qrtrack01/qr')->assertStatus(200);
+
+        $this->assertDatabaseHas('qr_generations', [
+            'link_id' => null,
+            'format' => 'svg',
+        ]);
+        $this->assertDatabaseHas('qr_generations', [
+            'link_id' => $link->id,
+            'format' => 'png',
+        ]);
+
+        $stats = NetworkStats::overview();
+        $this->assertSame(2, $stats['qr_codes']);
+        $this->assertSame(2, $stats['qr_codes_today']);
+        $this->assertContains(2, NetworkStats::qrByDay(30)['values']);
     }
 
     public function test_repeated_qr_requests_stay_healthy_on_warm_cache(): void

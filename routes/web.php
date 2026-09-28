@@ -526,11 +526,13 @@ Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(funct
         ->name('redirect.preview');
 
     // Pretty QR codes (public hosts only, throttled like /v1/qr):
-    // /qr/{url} (PNG default), /qr/{url}/{mime} and /{url}.{mime}
-    // for short-link slugs or direct URLs. Above the catch-all so
-    // slugs stay resolvable; unknown slugs 404. The mime route comes
-    // first: /qr/{url} is greedy and would otherwise swallow the
-    // trailing /{mime} segment into the URL (then it just encodes).
+    // /qr/{url} (PNG default), /qr/{url}/{mime}, /{slug}/qr[.mime]
+    // and /{url}.{mime} for short-link slugs or direct URLs. Above
+    // the catch-all so slugs stay resolvable; unknown slugs 404. The
+    // mime route comes first: /qr/{url} is greedy and would otherwise
+    // swallow the trailing /{mime} segment into the URL (then it just
+    // encodes). Slug-QR routes come before the suffixed route so
+    // /{slug}/qr.png isn't misread as url "{slug}/qr".
     Route::middleware(['ensure.domain:public', 'throttle:10,1'])->group(function () {
         Route::get('/qr/{url}/{mime}', [PublicQrCodeController::class, 'prettyMime'])
             ->where(['url' => '.*', 'mime' => 'png|svg'])
@@ -538,8 +540,14 @@ Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(funct
         Route::get('/qr/{url}', [PublicQrCodeController::class, 'pretty'])
             ->where('url', '.*')
             ->name('qr.pretty');
+        Route::get('/{slug}/qr', [PublicQrCodeController::class, 'slugQr'])
+            ->where('slug', '(?!v[0-9]+/)[a-zA-Z0-9_-]+')
+            ->name('qr.slug');
+        Route::get('/{slug}/qr.{mime}', [PublicQrCodeController::class, 'slugQrMime'])
+            ->where(['slug' => '(?!v[0-9]+/)[a-zA-Z0-9_-]+', 'mime' => 'png|svg'])
+            ->name('qr.slug-mime');
         Route::get('/{url}.{mime}', [PublicQrCodeController::class, 'suffixed'])
-            ->where(['url' => '.*', 'mime' => 'png|svg'])
+            ->where(['url' => '(?!v[0-9]+/).*', 'mime' => 'png|svg'])
             ->name('qr.suffixed');
     });
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\QrGeneration;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -24,6 +25,7 @@ class AdminController extends Controller
             'links_today' => Link::where('created_at', '>=', now()->startOfDay())->count(),
             'clicks_today' => Click::where('created_at', '>=', now()->startOfDay())->count(),
             'direct_url_clicks' => Click::where('is_direct_url', true)->count(),
+            'qr_codes' => QrGeneration::count(),
         ];
 
         $topLinks = Link::with(['domain', 'user'])

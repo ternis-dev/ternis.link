@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\RecordQrGeneration;
 use App\Models\Domain;
 use App\Services\LinkService;
 use App\Services\SlugResolverService;
@@ -33,7 +34,11 @@ class PublicQrCodeController extends Controller
             'format' => ['nullable', Rule::in(self::FORMATS)],
         ]);
 
-        return $this->render($validated['url'], $validated['format'] ?? 'svg');
+        $format = $validated['format'] ?? 'svg';
+
+        RecordQrGeneration::dispatch(null, $format);
+
+        return $this->render($validated['url'], $format);
     }
 
     /**
@@ -42,6 +47,8 @@ class PublicQrCodeController extends Controller
      */
     public function pretty(Request $request, string $url): Response
     {
+        RecordQrGeneration::dispatch(null, 'png');
+
         return $this->render($this->cleanUrl($url), 'png');
     }
 
@@ -50,6 +57,8 @@ class PublicQrCodeController extends Controller
      */
     public function prettyMime(Request $request, string $url, string $mime): Response
     {
+        RecordQrGeneration::dispatch(null, $mime);
+
         return $this->render($this->cleanUrl($url), $mime);
     }
 
@@ -74,10 +83,45 @@ class PublicQrCodeController extends Controller
                 abort(404);
             }
 
+            RecordQrGeneration::dispatch($link->id, $mime);
+
             return $this->render(LinkQrCode::shortUrl($link), $mime);
         }
 
+        RecordQrGeneration::dispatch(null, $mime);
+
         return $this->render($this->cleanUrl($url), $mime);
+    }
+
+    /**
+     * GET /{slug}/qr — QR code for a short-link slug, PNG by default.
+     */
+    public function slugQr(Request $request, string $slug): Response
+    {
+        return $this->slugQrMime($request, $slug, 'png');
+    }
+
+    /**
+     * GET /{slug}/qr.{mime} — QR code for a short-link slug in the
+     * requested format. Unknown slugs 404 like a normal miss.
+     */
+    public function slugQrMime(Request $request, string $slug, string $mime): Response
+    {
+        $domain = $request->attributes->get('domain_model');
+
+        if (! $domain) {
+            $domain = Domain::where('hostname', 'href.nz')->first();
+        }
+
+        $link = $domain ? $this->links->resolveSlug($slug, $domain) : null;
+
+        if (! $link) {
+            abort(404);
+        }
+
+        RecordQrGeneration::dispatch($link->id, $mime);
+
+        return $this->render(LinkQrCode::shortUrl($link), $mime);
     }
 
     /**

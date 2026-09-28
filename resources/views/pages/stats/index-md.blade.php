@@ -9,6 +9,10 @@
 - Total Clicks (All Time): {{ number_format($stats['total_clicks']) }}
 - Links Today: {{ number_format($stats['links_today']) }}
 - Clicks Today: {{ number_format($stats['clicks_today']) }}
+- Direct-URL Redirects (All Time): {{ number_format($stats['direct_url_clicks']) }}
+- Direct-URL Redirects Today: {{ number_format($stats['direct_url_clicks_today']) }}
+- QR Codes Generated (All Time): {{ number_format($stats['qr_codes']) }}
+- QR Codes Today: {{ number_format($stats['qr_codes_today']) }}
 
 ## Links Created Per Day (last 30 days)
 
@@ -24,4 +28,12 @@
 |---|---:|
 @foreach ($clickLabels as $i => $label)
 | {{ $label }} | {{ number_format($clickValues[$i]) }} |
+@endforeach
+
+## QR Codes Per Day (last 30 days)
+
+| Day | QR codes |
+|---|---:|
+@foreach ($qrLabels as $i => $label)
+| {{ $label }} | {{ number_format($qrValues[$i]) }} |
 @endforeach

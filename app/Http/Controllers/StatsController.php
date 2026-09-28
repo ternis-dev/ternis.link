@@ -16,12 +16,13 @@ class StatsController extends Controller
     public const MARKDOWN = 'text/markdown; charset=UTF-8';
 
     /**
-     * Overview: all-time totals + creations/clicks per day (30d).
+     * Overview: all-time totals + creations/clicks/QR per day (30d).
      */
     public function index()
     {
         $creations = NetworkStats::creationsByDay(30);
         $clicks = NetworkStats::clicksByDay(30);
+        $qr = NetworkStats::qrByDay(30);
 
         return view('pages.stats.index', [
             'stats' => NetworkStats::overview(),
@@ -29,6 +30,8 @@ class StatsController extends Controller
             'creationValues' => collect($creations['values']),
             'clickLabels' => collect($clicks['labels']),
             'clickValues' => collect($clicks['values']),
+            'qrLabels' => collect($qr['labels']),
+            'qrValues' => collect($qr['values']),
         ]);
     }
 
@@ -39,6 +42,7 @@ class StatsController extends Controller
     {
         $creations = NetworkStats::creationsByDay(30);
         $clicks = NetworkStats::clicksByDay(30);
+        $qr = NetworkStats::qrByDay(30);
 
         return response()->view('pages.stats.index-md', [
             'stats' => NetworkStats::overview(),
@@ -46,6 +50,8 @@ class StatsController extends Controller
             'creationValues' => $creations['values'],
             'clickLabels' => $clicks['labels'],
             'clickValues' => $clicks['values'],
+            'qrLabels' => $qr['labels'],
+            'qrValues' => $qr['values'],
         ], 200, ['Content-Type' => self::MARKDOWN]);
     }
 

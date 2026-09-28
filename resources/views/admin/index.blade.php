@@ -21,6 +21,7 @@
         <x-ui.stat :value="number_format($stats['links_today'])" label="Links Today" />
         <x-ui.stat :value="number_format($stats['clicks_today'])" label="Clicks Today" />
         <x-ui.stat :value="number_format($stats['direct_url_clicks'])" label="Direct-URL Clicks" />
+        <x-ui.stat :value="number_format($stats['qr_codes'])" label="QR Codes Generated" />
     </div>
 
     <x-ui.card title="Top Links by Clicks" class="mb-6">

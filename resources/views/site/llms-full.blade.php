@@ -66,6 +66,8 @@ Aggregate counts, refreshed every 10 minutes. No personal data.
 - Total Clicks (All Time): {{ number_format($overview['total_clicks']) }}
 - Links Today: {{ number_format($overview['links_today']) }}
 - Clicks Today: {{ number_format($overview['clicks_today']) }}
+- Direct-URL Redirects (All Time): {{ number_format($overview['direct_url_clicks']) }}
+- QR Codes Generated (All Time): {{ number_format($overview['qr_codes']) }}
 
 ## Full legal texts
 

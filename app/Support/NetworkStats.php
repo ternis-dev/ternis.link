@@ -6,6 +6,7 @@ use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\LinkTombstone;
+use App\Models\QrGeneration;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -25,7 +26,7 @@ class NetworkStats
     /**
      * All-time totals + today's counts (cached 10 minutes).
      *
-     * @return array{total_links: int, active_links: int, removed_links: int, total_clicks: int, links_today: int, clicks_today: int}
+     * @return array{total_links: int, active_links: int, removed_links: int, total_clicks: int, links_today: int, clicks_today: int, direct_url_clicks: int, direct_url_clicks_today: int, qr_codes: int, qr_codes_today: int}
      */
     public static function overview(): array
     {
@@ -41,6 +42,11 @@ class NetworkStats
                     + LinkTombstone::whereDate('created_day', $today)->count(),
                 'clicks_today' => Click::where('created_at', '>=', now()->startOfDay())->count()
                     + self::tombstoneClicksOn($today),
+                'direct_url_clicks' => Click::where('is_direct_url', true)->count(),
+                'direct_url_clicks_today' => Click::where('is_direct_url', true)
+                    ->where('created_at', '>=', now()->startOfDay())->count(),
+                'qr_codes' => QrGeneration::count(),
+                'qr_codes_today' => QrGeneration::where('created_at', '>=', now()->startOfDay())->count(),
             ];
         });
     }
@@ -136,6 +142,33 @@ class NetworkStats
     }
 
     /**
+     * QR codes generated per day, zero-filled.
+     *
+     * @return array{labels: list<string>, values: list<int>}
+     */
+    public static function qrByDay(int $days = 30): array
+    {
+        $counts = Cache::remember('stats:qr-30d', 600, function () {
+            return QrGeneration::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                ->where('created_at', '>=', now()->subDays(29)->startOfDay())
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('count', 'date')
+                ->map(fn ($count) => (int) $count)
+                ->all();
+        });
+
+        $labels = [];
+        $values = [];
+
+        foreach (self::lastDays($days) as $day) {
+            $labels[] = $day['label'];
+            $values[] = (int) ($counts[$day['date']] ?? 0);
+        }
+
+        return ['labels' => $labels, 'values' => $values];
+    }
+
+    /**
      * Links + clicks per domain, most links first (cached 10 minutes).
      * Tombstoned links stay counted against their original hostname.
      * Visibility (platform vs. own domains) is decided per request in
@@ -195,7 +228,7 @@ class NetworkStats
      */
     public static function flush(): void
     {
-        foreach (['stats:overview', 'stats:creations-30d', 'stats:clicks-30d', 'stats:domains', 'stats:domains:v2'] as $key) {
+        foreach (['stats:overview', 'stats:creations-30d', 'stats:clicks-30d', 'stats:qr-30d', 'stats:domains', 'stats:domains:v2'] as $key) {
             Cache::forget($key);
         }
     }
