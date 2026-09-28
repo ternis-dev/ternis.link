@@ -10,6 +10,7 @@ use App\Models\Link;
 use App\Services\LinkService;
 use App\Services\TurnstileService;
 use App\Support\IpHash;
+use Carbon\Carbon;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -23,6 +24,17 @@ class ShortenForm extends Component
     public bool $minimal = false;
 
     public string $destination_url = '';
+
+    /** Domain choice: meinlink.at or href.nz */
+    public string $selectedDomain = 'meinlink.at';
+
+    /** Slug length: 5 to 9 characters */
+    public int $slugLength = 8;
+
+    /** Optional expiration date */
+    public ?string $expiresAt = null;
+
+    public ?string $linkExpiresAtFormatted = null;
 
     public ?string $turnstile_token = null;
 
@@ -43,6 +55,9 @@ class ShortenForm extends Component
     {
         return [
             'destination_url' => ['required', 'url', 'max:'.LinkService::PUBLIC_MAX_URL_LENGTH],
+            'selectedDomain' => ['required', 'string', 'in:meinlink.at,href.nz'],
+            'slugLength' => ['required', 'integer', 'between:5,9'],
+            'expiresAt' => ['nullable', 'date', 'after:now'],
         ];
     }
 
@@ -52,6 +67,9 @@ class ShortenForm extends Component
             'destination_url.required' => 'Bitte gib eine Ziel-URL ein.',
             'destination_url.url' => 'Das sieht nicht nach einer gültigen URL aus — sie muss mit https:// oder http:// beginnen.',
             'destination_url.max' => 'Diese URL ist zu lang — maximal '.LinkService::PUBLIC_MAX_URL_LENGTH.' Zeichen erlaubt.',
+            'selectedDomain.in' => 'Bitte wähle eine gültige Domain (meinlink.at oder href.nz).',
+            'slugLength.between' => 'Die Link-Länge muss zwischen 5 und 9 Zeichen liegen.',
+            'expiresAt.after' => 'Das Ablaufdatum muss in der Zukunft liegen.',
         ];
     }
 
@@ -62,6 +80,7 @@ class ShortenForm extends Component
         if ($this->shortUrl !== null) {
             $this->shortUrl = null;
             $this->originalUrl = null;
+            $this->linkExpiresAtFormatted = null;
         }
 
         $this->errorMessage = null;
@@ -176,6 +195,27 @@ class ShortenForm extends Component
             throw $e;
         }
 
+        $expiry = null;
+        if (! empty($this->expiresAt)) {
+            try {
+                $expiry = Carbon::parse($this->expiresAt);
+                if ($expiry->isPast()) {
+                    $this->addError('expiresAt', 'Das Ablaufdatum muss in der Zukunft liegen.');
+
+                    return;
+                }
+                if ($expiry->diffInDays(now()) > LinkService::GUEST_MAX_EXPIRY_DAYS) {
+                    $this->addError('expiresAt', 'Das Ablaufdatum darf maximal 365 Tage in der Zukunft liegen.');
+
+                    return;
+                }
+            } catch (\Throwable) {
+                $this->addError('expiresAt', 'Ungültiges Datumsformat.');
+
+                return;
+            }
+        }
+
         if ($turnstile->isEnabled()) {
             if (! $turnstile->isWidgetAvailable()) {
                 Log::warning('Turnstile enforced without site key on meinlink.at');
@@ -217,6 +257,8 @@ class ShortenForm extends Component
                 domain: $domain,
                 user: null,
                 customSlug: null,
+                expiresAt: $expiry,
+                generatedLength: $this->slugLength,
                 creatorIp: request()->ip(),
             );
         } catch (ValidationException $e) {
@@ -265,13 +307,14 @@ class ShortenForm extends Component
 
         $this->shortUrl = "https://{$domain->hostname}/{$link->slug}";
         $this->originalUrl = $this->destination_url;
+        $this->linkExpiresAtFormatted = $link->expires_at?->format('d.m.Y H:i');
         $this->destination_url = '';
         $this->urlState = 'idle';
     }
 
     public function resetForm(): void
     {
-        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'turnstile_token', 'errorMessage']);
+        $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'turnstile_token', 'errorMessage', 'expiresAt', 'linkExpiresAtFormatted']);
         $this->urlState = 'idle';
         $this->errorKind = 'idle';
         $this->resetValidation();
@@ -280,22 +323,15 @@ class ShortenForm extends Component
 
     public function resolveDomain(): Domain
     {
-        $current = request()->attributes->get('domain_model');
+        $targetHost = $this->selectedDomain === 'href.nz'
+            ? 'href.nz'
+            : (string) config('domains.meinlink_host', 'meinlink.at');
 
-        if ($current instanceof Domain
-            && $current->isSystemDomain()
-            && $current->type === DomainType::Public
-            && $current->isUsableForLinks()) {
-            return $current;
-        }
-
-        $meinlinkHost = (string) config('domains.meinlink_host', 'meinlink.at');
-
-        $domain = Domain::where('hostname', $meinlinkHost)->first();
+        $domain = Domain::where('hostname', $targetHost)->first();
 
         if (! $domain) {
             $domain = Domain::firstOrCreate(
-                ['hostname' => $meinlinkHost],
+                ['hostname' => $targetHost],
                 ['type' => DomainType::Public, 'is_active' => true],
             );
         }

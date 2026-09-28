@@ -34,9 +34,11 @@ class MeinlinkTest extends TestCase
         $this->get('http://meinlink.at/')
             ->assertOk()
             ->assertSee('meinlink.at', escape: false)
+            ->assertSee('Deutschland', escape: false)
             ->assertSee('Lange URLs einfach', escape: false)
             ->assertSee('kurz gemacht', escape: false)
             ->assertSee('Kürzen', escape: false)
+            ->assertDontSee('Österreich', escape: false)
             ->assertDontSee('Amt für kurze Links', escape: false)
             ->assertDontSee('ml-board', escape: false)
             ->assertDontSee('Formular LK-8', escape: false)
@@ -111,15 +113,83 @@ class MeinlinkTest extends TestCase
         ]);
     }
 
+    public function test_meinlink_form_allows_choosing_hrefnz_domain(): void
+    {
+        $component = Livewire::test(MeinlinkShortenForm::class)
+            ->set('selectedDomain', 'href.nz')
+            ->set('destination_url', 'https://example.com/hrefnz-ziel')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $shortUrl = $component->get('shortUrl');
+        $this->assertNotNull($shortUrl);
+        $this->assertStringStartsWith('https://href.nz/', $shortUrl);
+
+        $hrefDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $this->assertDatabaseHas('links', [
+            'destination_url' => 'https://example.com/hrefnz-ziel',
+            'domain_id' => $hrefDomain->id,
+        ]);
+    }
+
+    public function test_meinlink_form_allows_choosing_slug_length(): void
+    {
+        $component = Livewire::test(MeinlinkShortenForm::class)
+            ->set('slugLength', 5)
+            ->set('destination_url', 'https://example.com/short-slug')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $shortUrl = $component->get('shortUrl');
+        $slug = basename(parse_url($shortUrl, PHP_URL_PATH));
+        $this->assertSame(5, strlen($slug));
+
+        $component9 = Livewire::test(MeinlinkShortenForm::class)
+            ->set('slugLength', 9)
+            ->set('destination_url', 'https://example.com/longer-slug')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $shortUrl9 = $component9->get('shortUrl');
+        $slug9 = basename(parse_url($shortUrl9, PHP_URL_PATH));
+        $this->assertSame(9, strlen($slug9));
+    }
+
+    public function test_meinlink_form_allows_setting_expiration_date(): void
+    {
+        $expiryDate = now()->addDays(14)->format('Y-m-d');
+
+        $component = Livewire::test(MeinlinkShortenForm::class)
+            ->set('expiresAt', $expiryDate)
+            ->set('destination_url', 'https://example.com/expiring-link')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $link = Link::where('destination_url', 'https://example.com/expiring-link')->firstOrFail();
+        $this->assertNotNull($link->expires_at);
+        $this->assertSame($expiryDate, $link->expires_at->format('Y-m-d'));
+    }
+
+    public function test_meinlink_form_rejects_past_expiration_date(): void
+    {
+        $pastDate = now()->subDays(2)->format('Y-m-d');
+
+        Livewire::test(MeinlinkShortenForm::class)
+            ->set('expiresAt', $pastDate)
+            ->set('destination_url', 'https://example.com/past-link')
+            ->call('create')
+            ->assertHasErrors('expiresAt');
+    }
+
     public function test_meinlink_form_smart_fix(): void
     {
         $component = Livewire::test(MeinlinkShortenForm::class)
-            ->set('destination_url', 'beispiel.at/seite');
+            ->set('destination_url', 'beispiel.de/seite');
 
-        $this->assertSame('https://beispiel.at/seite', $component->get('fixablePreview'));
+        $this->assertSame('https://beispiel.de/seite', $component->get('fixablePreview'));
 
         $component->call('applyFix')
-            ->assertSet('destination_url', 'https://beispiel.at/seite')
+            ->assertSet('destination_url', 'https://beispiel.de/seite')
             ->assertSet('urlState', 'valid');
     }
 

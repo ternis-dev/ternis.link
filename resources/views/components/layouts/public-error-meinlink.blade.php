@@ -32,9 +32,8 @@
 
     <div class="mx-auto flex min-h-screen max-w-xl flex-col justify-between px-4 py-8 sm:px-6">
         <header class="flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
-                <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-600 font-display text-sm font-black text-white shadow-sm">m</span>
-                <span>meinlink<span class="text-red-600">.at</span></span>
+            <a href="/" class="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
+                meinlink<span class="text-red-600">.at</span>
             </a>
 
             <nav aria-label="Navigation">

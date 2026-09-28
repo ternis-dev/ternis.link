@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>meinlink.at — Schnelle, sichere Kurzlinks</title>
-    <meta name="description" content="meinlink.at — Der moderne Kurzlink-Dienst aus Österreich. Links sofort kürzen ohne Anmeldung, mit QR-Code und garantiert datenschutzfreundlich.">
+    <title>meinlink.at — Schnelle, sichere Kurzlinks aus Deutschland</title>
+    <meta name="description" content="meinlink.at — Der moderne Kurzlink-Dienst aus Deutschland. Links sofort kürzen ohne Anmeldung, mit QR-Code und garantiert datenschutzfreundlich.">
     <meta name="theme-color" content="#dc2626">
     <link rel="canonical" href="https://meinlink.at/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="meinlink.at">
-    <meta property="og:title" content="meinlink.at — Schnelle, sichere Kurzlinks">
+    <meta property="og:title" content="meinlink.at — Schnelle, sichere Kurzlinks aus Deutschland">
     <meta property="og:description" content="Lange Links blitzschnell kürzen. Kostenlos, ohne Registrierung und datenschutzkonform.">
     <meta property="og:url" content="https://meinlink.at/">
     <meta name="twitter:card" content="summary_large_image">
@@ -37,11 +37,8 @@
     {{-- Navigation Header --}}
     <header class="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/75 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/75">
         <div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-            <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-600 font-display text-base font-black text-white shadow-sm">
-                    m
-                </span>
-                <span>meinlink<span class="text-red-600">.at</span></span>
+            <a href="/" class="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
+                meinlink<span class="text-red-600">.at</span>
             </a>
 
             <nav class="flex items-center gap-3 sm:gap-6" aria-label="Hauptnavigation">
@@ -75,14 +72,14 @@
         {{-- Hero Section --}}
         <section class="relative px-4 pt-12 pb-16 sm:px-6 sm:pt-20 sm:pb-24">
             <div class="mx-auto max-w-3xl text-center">
-                {{-- Austrian Flag Pill --}}
-                <div class="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3.5 py-1 text-xs font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-950/40 dark:text-red-300">
-                    <span class="inline-block h-2.5 w-3.5 overflow-hidden rounded-xs border border-red-600/30 shadow-xs">
+                {{-- Germany Flag Pill --}}
+                <div class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3.5 py-1 text-xs font-semibold text-zinc-700 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                    <span class="inline-block h-2.5 w-3.5 overflow-hidden rounded-xs border border-zinc-300 dark:border-zinc-700 shadow-xs">
+                        <span class="block h-1/3 bg-black"></span>
                         <span class="block h-1/3 bg-red-600"></span>
-                        <span class="block h-1/3 bg-white"></span>
-                        <span class="block h-1/3 bg-red-600"></span>
+                        <span class="block h-1/3 bg-amber-400"></span>
                     </span>
-                    <span>Moderne &amp; sichere Kurzlinks aus Österreich</span>
+                    <span>Moderne &amp; sichere Kurzlinks aus Deutschland</span>
                 </div>
 
                 <h1 class="mt-6 font-display text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl sm:leading-tight lg:text-6xl dark:text-zinc-50" id="hero-title">
@@ -91,7 +88,7 @@
                 </h1>
 
                 <p class="mx-auto mt-4 max-w-xl text-base text-zinc-600 sm:text-lg dark:text-zinc-400">
-                    Füge deine lange Webadresse ein und erhalte sofort einen kompakten <strong>meinlink.at</strong>-Kurzlink — ohne Registrierung, gebührenfrei und datenschutzfreundlich.
+                    Füge deine lange Webadresse ein und erhalte sofort einen kompakten Kurzlink — ohne Registrierung, gebührenfrei und datenschutzfreundlich.
                 </p>
 
                 {{-- Dedicated Link Creation Form --}}
@@ -116,52 +113,60 @@
                 <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {{-- Card 1 --}}
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+                        <div class="flex items-center gap-3">
+                            <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Sofort einsatzbereit</h3>
                         </div>
-                        <h3 class="mt-4 font-semibold text-zinc-900 dark:text-zinc-100">Sofort einsatzbereit</h3>
-                        <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                             Kein Passwort, kein Konto nötig. Link einfügen und in Sekunden teilen.
                         </p>
                     </div>
 
                     {{-- Card 2 --}}
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
+                        <div class="flex items-center gap-3">
+                            <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Datenschutz nach DSGVO</h3>
                         </div>
-                        <h3 class="mt-4 font-semibold text-zinc-900 dark:text-zinc-100">Datenschutz nach DSGVO</h3>
-                        <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                             Keine Weitergabe von Daten, keine Tracking-Cookies und anonymisierte IP-Hashes.
                         </p>
                     </div>
 
                     {{-- Card 3 --}}
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                            </svg>
+                        <div class="flex items-center gap-3">
+                            <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">QR-Codes inklusive</h3>
                         </div>
-                        <h3 class="mt-4 font-semibold text-zinc-900 dark:text-zinc-100">QR-Codes inklusive</h3>
-                        <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                             Zu jedem Kurzlink gibt es automatisch einen hochauflösenden QR-Code zum Herunterladen.
                         </p>
                     </div>
 
                     {{-- Card 4 --}}
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
+                        <div class="flex items-center gap-3">
+                            <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Auswertungen &amp; Slugs</h3>
                         </div>
-                        <h3 class="mt-4 font-semibold text-zinc-900 dark:text-zinc-100">Auswertungen &amp; Slugs</h3>
-                        <p class="mt-1.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                        <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                             Angemeldete Mitglieder können eigene Wunschkürzel wählen und Klick-Statistiken einsehen.
                         </p>
                     </div>
@@ -197,7 +202,6 @@
     <footer class="border-t border-zinc-200 bg-white py-12 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
         <div class="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 px-4 text-center sm:flex-row sm:px-6 sm:text-left">
             <div class="flex items-center gap-2">
-                <span class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-red-600 text-xs font-bold text-white">m</span>
                 <span class="font-semibold text-zinc-800 dark:text-zinc-200">meinlink.at</span>
                 <span class="text-zinc-400 dark:text-zinc-600">·</span>
                 <span>Ein Dienst der Ternis-Plattform</span>
