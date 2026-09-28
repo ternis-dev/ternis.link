@@ -20,6 +20,7 @@ DONE: self-host post rewritten around first-party SSO (auth.ternis.net); 3 more 
 DONE: dated collection URLs (Jekyll-style /pages/blog/2026-09-28-slug for blog+news+changelog; undated 301 incl. twins; shortcut resolves straight to canonical; index/twins/sitemap/prev-next use canonicals)
 DONE: blog UI/UX (featured latest-post card + hoverable cards on index; auto TOC with anchored h2s on long entries; legal pages untouched)
 REVERTED: blog UI back to classic list/entry layout per feedback; content containers widened to max-w-4xl
+DONE: sitemap reliability (valid XML verified; 30-min per-host cache so crawlers never wait on a cold backend; strict XML + robots/sitemap cross-host tests)
 
 Desktop-Application (starting with MacOS)
 

@@ -82,6 +82,27 @@ class SiteFilesTest extends TestCase
         $this->assertStringNotContainsString('/pages/', $body);
     }
 
+    public function test_sitemap_is_strictly_valid_xml(): void
+    {
+        foreach (['http://ternis.link/sitemap.xml', 'http://docs.ternis.link/sitemap.xml', 'http://href.nz/sitemap.xml'] as $url) {
+            $response = $this->get($url)->assertStatus(200);
+            $this->assertStringStartsWith('application/xml', $response->headers->get('Content-Type'));
+
+            $doc = simplexml_load_string($response->getContent());
+            $this->assertNotFalse($doc, "Invalid XML from {$url}");
+            $this->assertNotEmpty($doc->url);
+        }
+    }
+
+    public function test_robots_advertises_sitemap_on_crawlable_hosts(): void
+    {
+        foreach (['http://ternis.link/robots.txt', 'http://docs.ternis.link/robots.txt', 'http://href.nz/robots.txt'] as $url) {
+            $host = parse_url($url, PHP_URL_HOST);
+            $body = $this->get($url)->assertStatus(200)->getContent();
+            $this->assertStringContainsString("Sitemap: http://{$host}/sitemap.xml", $body);
+        }
+    }
+
     public function test_sitemap_carries_changefreq_and_priority(): void
     {
         $body = $this->get('http://ternis.link/sitemap.xml')->assertStatus(200)->getContent();

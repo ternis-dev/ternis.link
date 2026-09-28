@@ -6,6 +6,7 @@ use App\Support\ContentCollection;
 use App\Support\NetworkStats;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Machine-readable site files, served as REAL routes (not static
@@ -86,6 +87,22 @@ class SiteFilesController extends Controller
     {
         $type = $request->attributes->get('domain_type');
         $base = $request->getSchemeAndHttpHost();
+
+        // Crawlers refetch on their own schedule and must never wait
+        // on a cold backend: cache per host+type, briefly. Entry
+        // lastmod comes from file dates, so a stale cache can only
+        // lag the homepage day-stamp, never entry data.
+        $xml = Cache::remember(
+            'sitemap:xml:'.$type.':'.md5($base),
+            1800,
+            fn () => $this->buildSitemap($type, $base)
+        );
+
+        return response($xml, 200, ['Content-Type' => self::XML]);
+    }
+
+    private function buildSitemap(?string $type, string $base): string
+    {
         $today = now()->toDateString();
 
         $urls = [[
@@ -164,7 +181,7 @@ class SiteFilesController extends Controller
 
         $xml .= '</urlset>';
 
-        return response($xml, 200, ['Content-Type' => self::XML]);
+        return $xml;
     }
 
     public function llms(Request $request): Response
