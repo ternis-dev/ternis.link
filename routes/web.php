@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Api\V1\PublicQrCodeController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
@@ -523,6 +524,24 @@ Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(funct
     Route::get('/preview/{input}', [PreviewController::class, 'show'])
         ->where('input', '.*')
         ->name('redirect.preview');
+
+    // Pretty QR codes (public hosts only, throttled like /v1/qr):
+    // /qr/{url} (PNG default), /qr/{url}/{mime} and /{url}.{mime}
+    // for short-link slugs or direct URLs. Above the catch-all so
+    // slugs stay resolvable; unknown slugs 404. The mime route comes
+    // first: /qr/{url} is greedy and would otherwise swallow the
+    // trailing /{mime} segment into the URL (then it just encodes).
+    Route::middleware(['ensure.domain:public', 'throttle:10,1'])->group(function () {
+        Route::get('/qr/{url}/{mime}', [PublicQrCodeController::class, 'prettyMime'])
+            ->where(['url' => '.*', 'mime' => 'png|svg'])
+            ->name('qr.pretty-mime');
+        Route::get('/qr/{url}', [PublicQrCodeController::class, 'pretty'])
+            ->where('url', '.*')
+            ->name('qr.pretty');
+        Route::get('/{url}.{mime}', [PublicQrCodeController::class, 'suffixed'])
+            ->where(['url' => '.*', 'mime' => 'png|svg'])
+            ->name('qr.suffixed');
+    });
 
     // Root-level direct URL redirects remain supported for href.nz:
     // href.nz/https://example.com/path. Other direct URLs must use the

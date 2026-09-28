@@ -19,7 +19,7 @@ Sign in and the training wheels come off:
 - **Shorter auto slugs** — generated links use your plan's length range.
 - **Expiry dates** — links can stop resolving automatically.
 - **Descriptions and tags** — keep large collections searchable.
-- **QR codes** — every short link has one: append via the dashboard or open `/v1/qr?url=<short-link>&format=png`.
+- **QR codes** — every short link has one: via the dashboard, or directly as `href.nz/qr/<url>` (PNG), `href.nz/qr/<url>/svg`, or `href.nz/<slug>.png` for an existing short link.
 - **Click stats** — opens over time, referrers, browsers, regions, CSV export.
 
 Manage everything from [dash.ternis.link/links](https://dash.ternis.link/links), where you can also deactivate a link (stops resolving, keeps stats) or let it expire on its own.

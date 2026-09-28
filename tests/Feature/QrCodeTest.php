@@ -85,6 +85,71 @@ class QrCodeTest extends TestCase
             ->assertHeader('Content-Type', 'image/png');
     }
 
+    public function test_pretty_qr_defaults_to_png(): void
+    {
+        $this->get('http://href.nz/qr/https://example.com/some/path')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+    }
+
+    public function test_pretty_qr_accepts_bare_hostnames_and_mime(): void
+    {
+        $this->get('http://href.nz/qr/example.com/svg')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/svg+xml');
+
+        $this->get('http://href.nz/qr/example.com/png')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+    }
+
+    public function test_pretty_qr_treats_unknown_mime_as_part_of_the_url(): void
+    {
+        // /qr/{url} is greedy: an unsupported trailing segment just
+        // gets encoded (PNG default) instead of 404ing.
+        $this->get('http://href.nz/qr/example.com/jpg')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+    }
+
+    public function test_suffixed_qr_serves_short_link_slugs(): void
+    {
+        $domain = Domain::where('hostname', 'href.nz')->first();
+
+        Link::create([
+            'slug' => 'qrslug01',
+            'destination_url' => 'https://example.com/qr-target',
+            'domain_id' => $domain->id,
+            'user_id' => null,
+            'is_active' => true,
+        ]);
+
+        $this->get('http://href.nz/qrslug01.png')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+
+        $this->get('http://href.nz/qrslug01.svg')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/svg+xml');
+
+        $this->get('http://href.nz/qrslug01.jpg')->assertNotFound();
+
+        $this->get('http://href.nz/nosuchslug.png')->assertNotFound();
+    }
+
+    public function test_suffixed_qr_serves_direct_urls(): void
+    {
+        $this->get('http://href.nz/example.com.png')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+    }
+
+    public function test_pretty_qr_is_public_host_only(): void
+    {
+        $this->get('http://href.re/qr/example.com')->assertNotFound();
+        $this->get('http://href.re/qrslug01.png')->assertNotFound();
+    }
+
     public function test_repeated_qr_requests_stay_healthy_on_warm_cache(): void
     {
         // Regression: the version middleware used to cache an Eloquent

@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\IpCapture;
 use App\Support\IpHash;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
@@ -355,19 +356,27 @@ class LinkService
     /**
      * Resolve a slug to a link on the given domain.
      *
-     * Hot slugs are cached for RESOLVE_CACHE_TTL seconds. Misses are
-     * never cached so a freshly created slug is visible immediately.
-     * A stale hit (deactivated/expired while cached) falls through to
-     * the database instead of serving the wrong redirect.
+     * Hot slugs are cached for RESOLVE_CACHE_TTL seconds. The cache
+     * holds plain attribute rows (rehydrated on read) because cached
+     * models unserialize as __PHP_Incomplete_Class under
+     * cache.serializable_classes=false. Misses are never cached so a
+     * freshly created slug is visible immediately. A stale hit
+     * (deactivated/expired while cached) falls through to the database
+     * instead of serving the wrong redirect.
      */
     public function resolveSlug(string $slug, Domain $domain): ?Link
     {
         $key = Link::cacheKey($domain->id, $slug);
         $cached = Cache::get($key);
 
-        if ($cached instanceof Link && $cached->domain_id === $domain->id && $cached->slug === $slug) {
-            if ($cached->isAccessible()) {
-                return $cached;
+        if (is_array($cached)
+            && ($cached['domain_id'] ?? null) === $domain->id
+            && ($cached['slug'] ?? null) === $slug
+        ) {
+            $link = Link::hydrate([$cached])->first();
+
+            if ($link && $link->isAccessible()) {
+                return $link;
             }
 
             Cache::forget($key);
@@ -379,7 +388,7 @@ class LinkService
             ->first();
 
         if ($link) {
-            Cache::put($key, $link, self::RESOLVE_CACHE_TTL);
+            Cache::put($key, Arr::except($link->getAttributes(), ['creator_ip_encrypted', 'creator_ip_hash']), self::RESOLVE_CACHE_TTL);
         }
 
         return $link;

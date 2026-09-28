@@ -3,13 +3,24 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Domain;
+use App\Services\LinkService;
+use App\Services\SlugResolverService;
 use App\Support\LinkQrCode;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class PublicQrCodeController extends Controller
 {
+    public const FORMATS = ['svg', 'png'];
+
+    public function __construct(
+        private SlugResolverService $slugs,
+        private LinkService $links,
+    ) {}
+
     /**
      * GET /v1/qr — Generate a QR code for an arbitrary public URL.
      *
@@ -19,11 +30,73 @@ class PublicQrCodeController extends Controller
     {
         $validated = $request->validate([
             'url' => ['required', 'url:http,https', 'max:2048'],
-            'format' => ['nullable', Rule::in(['svg', 'png'])],
+            'format' => ['nullable', Rule::in(self::FORMATS)],
         ]);
 
-        $url = $validated['url'];
-        $format = $validated['format'] ?? 'svg';
+        return $this->render($validated['url'], $validated['format'] ?? 'svg');
+    }
+
+    /**
+     * GET /qr/{url} — Pretty QR code, PNG by default (public hosts).
+     * Accepts bare hostnames (example.com/…) as well as full URLs.
+     */
+    public function pretty(Request $request, string $url): Response
+    {
+        return $this->render($this->cleanUrl($url), 'png');
+    }
+
+    /**
+     * GET /qr/{url}/{mime} — Pretty QR code in the requested format.
+     */
+    public function prettyMime(Request $request, string $url, string $mime): Response
+    {
+        return $this->render($this->cleanUrl($url), $mime);
+    }
+
+    /**
+     * GET /{url}.{mime} — QR code for a short-link slug or a direct
+     * URL (public hosts). Slug-shaped input resolves the short link
+     * first; anything URL-shaped encodes the destination directly.
+     * Unknown slugs 404 like a normal miss.
+     */
+    public function suffixed(Request $request, string $url, string $mime): Response
+    {
+        if ($this->slugs->classify($url) === 'slug') {
+            $domain = $request->attributes->get('domain_model');
+
+            if (! $domain) {
+                $domain = Domain::where('hostname', 'href.nz')->first();
+            }
+
+            $link = $domain ? $this->links->resolveSlug($url, $domain) : null;
+
+            if (! $link) {
+                abort(404);
+            }
+
+            return $this->render(LinkQrCode::shortUrl($link), $mime);
+        }
+
+        return $this->render($this->cleanUrl($url), $mime);
+    }
+
+    /**
+     * Normalize (bare hostnames gain https://) and validate against
+     * the same rules as the v1 endpoint, so error shapes stay
+     * identical (422 JSON).
+     */
+    private function cleanUrl(string $url): string
+    {
+        return Validator::make(
+            ['url' => $this->slugs->normalizeUrl($url)],
+            ['url' => ['required', 'url:http,https', 'max:2048']]
+        )->validate()['url'];
+    }
+
+    private function render(string $url, string $format): Response
+    {
+        abort_unless(in_array($format, self::FORMATS, true), 404);
+
         $extension = $format;
 
         if ($format === 'png') {
