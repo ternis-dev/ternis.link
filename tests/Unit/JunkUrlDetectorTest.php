@@ -86,6 +86,10 @@ class JunkUrlDetectorTest extends TestCase
         yield 'local.ch swiss directory' => ['https://app.local.ch'];
         yield 'json.org documentation' => ['https://news.json.org'];
         yield 'debian orig tarball' => ['https://deb.debian.org/debian/pool/main/h/hello/hello_2.10.orig.tar.gz'];
+        yield 'self-hosted pma alias' => ['https://example.com/pma'];
+        yield 'self-hosted phpmyadmin alias' => ['https://db.example.com/phpmyadmin'];
+        yield 'uppercase pma with slash' => ['https://example.com/PMA/'];
+        yield 'pma on lan ip' => ['http://192.168.1.1/pma'];
     }
 
     #[DataProvider('legitimateUrls')]
@@ -103,7 +107,6 @@ class JunkUrlDetectorTest extends TestCase
             'https://example.com/wp-login.php',
             'https://example.com/web.config',
             'https://example.com/database.yml',
-            'https://example.com/pma',
             'https://example.com/.git/config',
             'https://example.com/.svn/all-wcprops',
             'https://example.com/wp-config.php.orig',
@@ -114,6 +117,30 @@ class JunkUrlDetectorTest extends TestCase
         foreach (['https://example.com/wp-config.php.bak', 'https://example.com/export.sql~'] as $url) {
             $this->assertTrue($this->detector->isJunk($url), "Expected junk: {$url}");
         }
+    }
+
+    public function test_admin_aliases_need_clean_host(): void
+    {
+        // Self-hosted admin panels on real domains pass …
+        foreach ([
+            'https://example.com/pma',
+            'https://db.example.com/phpmyadmin',
+            'https://example.com/PMA/',
+        ] as $url) {
+            $this->assertFalse($this->detector->isJunk($url), "Expected clean: {$url}");
+        }
+
+        // … but the same aliases on scanner-probe hosts still flag.
+        foreach ([
+            'https://phpinfo.php/pma',
+            'https://i.php/phpmyadmin',
+            'https://test.php.bak/pma',
+        ] as $url) {
+            $this->assertTrue($this->detector->isJunk($url), "Expected junk: {$url}");
+        }
+
+        // Backup-suffixed aliases flag regardless of host.
+        $this->assertTrue($this->detector->isJunk('https://example.com/pma.bak'));
     }
 
     public function test_reject_throws_keyed_validation_exception(): void

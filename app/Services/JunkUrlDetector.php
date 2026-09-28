@@ -22,6 +22,12 @@ use App\Exceptions\JunkUrlException;
  *   server-status, xmlrpc, wp-login, …)
  * - backup-copy suffixes on hosts and paths (*.bak, *~, …)
  *
+ * One deliberate exception: final path segments `pma` / `phpmyadmin`
+ * are the default aliases of self-hosted phpMyAdmin installs. On an
+ * otherwise clean host (`https://db.example.com/phpmyadmin`) they
+ * pass; on a suspicious host (`https://phpinfo.php/pma`) they still
+ * flag — scanners probe those aliases, but real users link to them.
+ *
  * Deliberately conservative: anything unrecognized passes. No DNS
  * lookups — they are slow, flaky, and legit-but-new domains often
  * don't resolve yet.
@@ -86,6 +92,13 @@ final class JunkUrlDetector
 
     private const BACKUP_LABEL_PATTERN = '/^(bak|backup|old|save|orig|tmp|temp|bkp|copy)\d*$/i';
 
+    /**
+     * Final path segments that double as self-hosted admin aliases
+     * (phpMyAdmin's documented short alias is `pma`). These pass on
+     * clean hosts and flag on suspicious ones (see pathReasons).
+     */
+    private const ADMIN_ALIAS_SEGMENTS = ['pma', 'phpmyadmin'];
+
     private const DOTLESS_ALLOWLIST = ['localhost'];
 
     public function isJunk(string $url): bool
@@ -134,7 +147,7 @@ final class JunkUrlDetector
 
         // IP hosts bypass domain checks; only path heuristics apply
         if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
-            return $this->pathReasons($path);
+            return $this->pathReasons($path, false);
         }
 
         $reasons = [];
@@ -170,13 +183,13 @@ final class JunkUrlDetector
             $reasons[] = 'host targets an environment configuration file';
         }
 
-        return array_merge($reasons, $this->pathReasons($path));
+        return array_merge($reasons, $this->pathReasons($path, $reasons !== []));
     }
 
     /**
      * @return list<string>
      */
-    private function pathReasons(string $path): array
+    private function pathReasons(string $path, bool $hostIsSuspicious): array
     {
         $rawPath = trim($path);
         if ($rawPath === '' || $rawPath === '/') {
@@ -206,6 +219,17 @@ final class JunkUrlDetector
         }
 
         $last = end($segments);
+
+        // Self-hosted admin aliases (phpMyAdmin's `pma`) are legitimate
+        // destinations on real domains — only scanner probes put them
+        // on junk hosts. Backup/`.env`/VCS checks above already ran,
+        // so `pma.bak` and friends still flag.
+        if (! $hostIsSuspicious && (
+            in_array($last, self::ADMIN_ALIAS_SEGMENTS, true)
+            || str_contains($last, 'phpmyadmin')
+        )) {
+            return [];
+        }
 
         if (in_array($last, self::PROBE_FILENAMES, true)) {
             return ["path ends in targeted probe file '{$last}'"];

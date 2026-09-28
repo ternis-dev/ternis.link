@@ -151,6 +151,33 @@ class JunkUrlTest extends TestCase
         $this->assertTrue($real->fresh()->is_active);
     }
 
+    public function test_purge_command_keeps_self_hosted_admin_aliases(): void
+    {
+        $alias = Link::create([
+            'slug' => 'pma00001',
+            'destination_url' => 'https://db.example.com/phpmyadmin',
+            'domain_id' => $this->publicDomain->id,
+            'user_id' => null,
+            'creator_ip_hash' => hash('sha256', '127.0.0.1'),
+            'is_active' => true,
+        ]);
+        $probe = Link::create([
+            'slug' => 'pma00002',
+            'destination_url' => 'https://phpinfo.php/pma',
+            'domain_id' => $this->publicDomain->id,
+            'user_id' => null,
+            'creator_ip_hash' => hash('sha256', '127.0.0.1'),
+            'is_active' => true,
+        ]);
+
+        $this->artisan('links:purge-junk', ['--apply' => true])
+            ->expectsOutputToContain('Deactivated 1 junk link')
+            ->assertSuccessful();
+
+        $this->assertTrue($alias->fresh()->is_active);
+        $this->assertFalse($probe->fresh()->is_active);
+    }
+
     public function test_dashboard_tables_use_custom_pagination(): void
     {
         $user = User::factory()->create();
