@@ -481,6 +481,20 @@ Route::get('/new', function () {
     return view('landing.new');
 })->name('public.new');
 
+if (app()->environment('local', 'testing')) {
+    // Design preview for the meinlink.at landing page (bypasses the
+    // host check so the theme can be screenshotted without DNS).
+    // Never available in production.
+    Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
+    Route::get('/_preview/at-new', fn () => view('landing.new-meinlink'))->name('preview.at-new');
+    Route::get('/_preview/at-login', fn () => view('auth.login-meinlink'))->name('preview.at-login');
+    Route::get('/_preview/at-error', fn () => response()->view('components.layouts.public-error-meinlink', [
+        'code' => '404',
+        'title' => 'Link nicht gefunden.',
+        'slot' => 'Der Kurzlink meink-xyz für die Domain meinlink.at wurde nicht gefunden, ist inaktiv oder abgelaufen.',
+    ], 404))->name('preview.at-error');
+}
+
 /*
 |----------------------------------------------------------------------
 | Redirect routes — short-link hosts only

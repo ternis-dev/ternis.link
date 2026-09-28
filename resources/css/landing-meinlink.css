@@ -1,25 +1,33 @@
 /* ==========================================================
- * meinlink.at — "Abfahrtstafel" theme
- * A railway departure board: near-black panels, amber LED type,
- * monospace throughout, hairline rows. Self-contained — shares
- * nothing with the sketchbook theme except the Livewire form
- * state (the board template is its own markup).
+ * meinlink.at — "Amt für kurze Links"
+ * Precise Swiss-functional design: Inter grotesk, hairline
+ * grid rules, numbered sections, one signal-red stamp.
+ * Self-contained — shares nothing with the sketchbook theme
+ * except the Livewire form state (own board markup).
  * ========================================================== */
 
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-var.woff2') format('woff2');
+}
+
 .ml-board {
-    --ml-bg: #101014;
-    --ml-panel: #17171d;
-    --ml-panel-2: #1e1e26;
-    --ml-line: #2b2b35;
-    --ml-amber: #ffb000;
-    --ml-amber-dim: #9a7420;
-    --ml-amber-glow: rgba(255, 176, 0, 0.4);
-    --ml-paper: #f2efe6;
-    --ml-muted: #8e8e9a;
-    --ml-green: #3ddc84;
-    --ml-red: #ff5d5d;
+    --ml-paper: #fafaf7;
+    --ml-card: #ffffff;
+    --ml-ink: #191917;
+    --ml-muted: #6f6f68;
+    --ml-faint: #e5e3d9;
+    --ml-line: #e0ded4;
+    --ml-red: #c8102e;
+    --ml-red-dark: #9c0c24;
+    --ml-red-soft: #fdf0f2;
+    --ml-green: #1c7a3d;
+    --ml-green-soft: #edf6f0;
     --ml-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-    --ml-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --ml-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
 body.ml-board {
@@ -28,27 +36,26 @@ body.ml-board {
     padding: 0 1rem 3rem;
     font-family: var(--ml-sans);
     font-size: 1rem;
-    line-height: 1.55;
-    color: var(--ml-paper);
-    background:
-        repeating-linear-gradient(transparent, transparent 3px, rgba(255, 255, 255, 0.012) 3px, rgba(255, 255, 255, 0.012) 4px),
-        radial-gradient(900px 320px at 50% -100px, rgba(255, 176, 0, 0.07), transparent 70%),
-        var(--ml-bg);
+    line-height: 1.6;
+    color: var(--ml-ink);
+    background: var(--ml-paper);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
 }
 
 body.ml-board ::selection {
-    background: var(--ml-amber);
-    color: #000;
+    background: var(--ml-red);
+    color: #fff;
 }
 
 .ml-wrap {
-    max-width: 760px;
+    max-width: 880px;
     margin: 0 auto;
     position: relative;
 }
 
 .ml-narrow {
-    max-width: 560px;
+    max-width: 620px;
 }
 
 /* --- skip link -------------------------------------------- */
@@ -57,10 +64,10 @@ body.ml-board ::selection {
     left: 1rem;
     top: -4rem;
     z-index: 50;
-    font-family: var(--ml-mono);
     font-size: 0.85rem;
-    background: var(--ml-amber);
-    color: #000;
+    font-weight: 600;
+    background: var(--ml-ink);
+    color: #fff;
     padding: 0.6rem 1rem;
     border-radius: 6px;
     text-decoration: none;
@@ -69,7 +76,7 @@ body.ml-board ::selection {
 
 .ml-skip:focus {
     top: 1rem;
-    color: #000;
+    color: #fff;
 }
 
 /* --- top bar ------------------------------------------------ */
@@ -79,21 +86,25 @@ body.ml-board ::selection {
     align-items: center;
     gap: 1rem;
     padding: 1.1rem 0.25rem;
-    border-bottom: 1px solid var(--ml-line);
+    border-bottom: 2px solid var(--ml-ink);
 }
 
 .ml-brand {
-    font-family: var(--ml-mono);
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: var(--ml-paper);
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: -0.02em;
+    color: var(--ml-ink);
     text-decoration: none;
+    line-height: 1.2;
 }
 
-.ml-brand b {
-    color: var(--ml-amber);
-    font-weight: 700;
+.ml-brand small {
+    display: block;
+    font-family: var(--ml-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    color: var(--ml-muted);
 }
 
 .ml-top-right {
@@ -102,111 +113,109 @@ body.ml-board ::selection {
     gap: 1rem;
 }
 
-.ml-clock {
-    font-family: var(--ml-mono);
-    font-size: 0.95rem;
-    font-variant-numeric: tabular-nums;
-    color: var(--ml-amber);
-    text-shadow: 0 0 8px var(--ml-amber-glow);
-}
-
 .ml-login {
-    font-family: var(--ml-mono);
-    font-size: 0.85rem;
-    letter-spacing: 0.04em;
-    color: var(--ml-paper);
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--ml-ink);
     text-decoration: none;
     border-bottom: 1px solid transparent;
     padding-bottom: 1px;
 }
 
 .ml-login:hover {
-    color: var(--ml-amber);
-    border-bottom-color: var(--ml-amber);
+    color: var(--ml-red);
+    border-bottom-color: var(--ml-red);
 }
 
 /* --- hero --------------------------------------------------- */
 .ml-hero {
-    text-align: left;
-    padding: 2.75rem 0.25rem 0;
+    padding: 3rem 0.25rem 0;
 }
 
 .ml-kicker {
     display: inline-block;
     font-family: var(--ml-mono);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.22em;
-    color: #000;
-    background: var(--ml-amber);
-    border-radius: 4px;
-    padding: 0.3em 0.9em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--ml-ink);
+    border: 1px solid var(--ml-ink);
+    border-radius: 999px;
+    padding: 0.35em 1em;
 }
 
+.ml-kicker .red { color: var(--ml-red); }
+
 .ml-title {
-    font-family: var(--ml-mono);
-    font-weight: 700;
-    font-size: clamp(2rem, 6.5vw, 3.1rem);
-    line-height: 1.12;
-    letter-spacing: -0.01em;
-    margin: 1rem 0 0.75rem;
-    color: var(--ml-paper);
+    font-weight: 800;
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    margin: 1.1rem 0 0.8rem;
+    color: var(--ml-ink);
+    text-wrap: balance;
+    overflow-wrap: break-word;
 }
 
 .ml-title .amber {
-    color: var(--ml-amber);
-    text-shadow: 0 0 14px var(--ml-amber-glow);
+    color: var(--ml-red);
 }
 
 .ml-sub {
     max-width: 36rem;
     margin: 0;
     color: var(--ml-muted);
-    font-size: 1rem;
+    font-size: 1.02rem;
 }
 
 .ml-sub code {
     font-family: var(--ml-mono);
-    color: var(--ml-paper);
-    font-size: 0.92em;
+    color: var(--ml-ink);
+    font-size: 0.9em;
+    background: #f0eee6;
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
 }
 
 .ml-steps {
     list-style: none;
     display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin: 1.5rem 0 0;
+    gap: 0;
+    margin: 1.75rem 0 0;
     padding: 0;
-    font-family: var(--ml-mono);
-    font-size: 0.82rem;
-    color: var(--ml-muted);
+    border-top: 1px solid var(--ml-line);
+    font-size: 0.88rem;
 }
 
 .ml-steps li {
-    border: 1px solid var(--ml-line);
-    border-radius: 6px;
-    padding: 0.4rem 0.8rem;
-    background: var(--ml-panel);
+    flex: 1;
+    padding: 0.8rem 1rem 0.8rem 0;
+    color: var(--ml-muted);
+}
+
+.ml-steps li + li {
+    border-left: 1px solid var(--ml-line);
+    padding-left: 1rem;
 }
 
 .ml-steps .n {
-    color: var(--ml-amber);
+    font-family: var(--ml-mono);
     font-weight: 700;
-    margin-right: 0.45rem;
+    color: var(--ml-red);
+    margin-right: 0.5rem;
 }
 
-/* --- the board (form card) ---------------------------------- */
+/* --- the form ------------------------------------------------- */
 .ml-board-zone {
     margin-top: 2rem;
 }
 
 .ml-panel {
-    background: var(--ml-panel);
+    background: var(--ml-card);
     border: 1px solid var(--ml-line);
-    border-radius: 10px;
-    padding: 1.25rem 1.25rem 1.1rem;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    border-radius: 12px;
+    padding: 1.4rem 1.4rem 1.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.06);
 }
 
 .ml-panel-head {
@@ -214,24 +223,24 @@ body.ml-board ::selection {
     justify-content: space-between;
     align-items: baseline;
     gap: 0.75rem;
-    padding-bottom: 0.8rem;
+    padding-bottom: 0.9rem;
     border-bottom: 1px solid var(--ml-line);
-    margin-bottom: 1rem;
+    margin-bottom: 1.1rem;
 }
 
 .ml-panel-title {
     font-family: var(--ml-mono);
-    font-size: 0.8rem;
+    font-size: 0.76rem;
     font-weight: 700;
-    letter-spacing: 0.2em;
-    color: var(--ml-paper);
+    letter-spacing: 0.22em;
+    color: var(--ml-ink);
     margin: 0;
 }
 
 .ml-status {
     font-family: var(--ml-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
     white-space: nowrap;
 }
 
@@ -249,15 +258,17 @@ body.ml-board ::selection {
     vertical-align: baseline;
 }
 
-.ml-status.is-valid .dot { box-shadow: 0 0 8px currentColor; }
-
 .ml-field-label {
     display: block;
-    font-family: var(--ml-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.18em;
-    color: var(--ml-muted);
-    margin-bottom: 0.5rem;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--ml-ink);
+    margin-bottom: 0.45rem;
+}
+
+.ml-field-label .req {
+    color: var(--ml-red);
+    font-weight: 700;
 }
 
 .ml-input-row {
@@ -277,62 +288,59 @@ body.ml-board ::selection {
     flex: 1;
     min-width: 0;
     width: 100%;
-    font-family: var(--ml-mono);
     font-size: 1rem;
-    color: var(--ml-amber);
-    caret-color: var(--ml-amber);
-    text-shadow: 0 0 10px var(--ml-amber-glow);
-    background: #0b0b0f;
-    border: 1px solid var(--ml-line);
+    color: var(--ml-ink);
+    background: var(--ml-paper);
+    border: 1.5px solid var(--ml-line);
     border-radius: 8px;
     padding: 0.75rem 1rem;
     outline: none;
-    transition: border-color 0.12s ease;
+    transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
 }
 
-.ml-input-wrap input::placeholder {
-    color: #4a4a55;
-    text-shadow: none;
-}
+.ml-input-wrap input::placeholder { color: #a8a69c; }
 
 .ml-input-wrap input:focus {
-    border-color: var(--ml-amber-dim);
+    border-color: var(--ml-ink);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(25, 25, 23, 0.08);
 }
 
-.ml-input-wrap input.is-valid {
-    border-color: var(--ml-green);
-}
+.ml-input-wrap input.is-valid { border-color: var(--ml-green); }
 
 .ml-input-wrap input.is-error {
     border-color: var(--ml-red);
-    color: var(--ml-red);
-    text-shadow: 0 0 10px rgba(255, 93, 93, 0.4);
+    background: var(--ml-red-soft);
+}
+
+.ml-input-wrap input.is-error:focus {
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.1);
 }
 
 .ml-btn {
-    font-family: var(--ml-mono);
     font-size: 0.95rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
-    color: #000;
-    background: var(--ml-amber);
-    border: 1px solid var(--ml-amber);
+    letter-spacing: -0.01em;
+    color: #fff;
+    background: var(--ml-ink);
+    border: 1.5px solid var(--ml-ink);
     border-radius: 8px;
-    padding: 0.7rem 1.5rem;
+    padding: 0.7rem 1.6rem;
     cursor: pointer;
     white-space: nowrap;
-    transition: filter 0.12s ease;
+    transition: background 0.12s ease;
 }
 
-.ml-btn:hover { filter: brightness(1.1); }
-.ml-btn:active { filter: brightness(0.92); }
+.ml-btn:hover { background: #33332f; }
+.ml-btn:active { background: #000; }
 .ml-btn:disabled { opacity: 0.55; cursor: wait; }
 
 .ml-btn:focus-visible,
 .ml-ghost-btn:focus-visible,
 .ml-input-wrap input:focus-visible {
-    outline: 2px dashed var(--ml-amber);
-    outline-offset: 3px;
+    outline: 2px solid var(--ml-red);
+    outline-offset: 2px;
 }
 
 .ml-meta {
@@ -342,38 +350,50 @@ body.ml-board ::selection {
     gap: 0.75rem;
     flex-wrap: wrap;
     margin: 0.7rem 0 0;
-    font-family: var(--ml-mono);
-    font-size: 0.76rem;
+    font-size: 0.82rem;
     color: var(--ml-muted);
 }
 
 .ml-meta code {
-    color: var(--ml-paper);
+    font-family: var(--ml-mono);
+    color: var(--ml-ink);
+    font-size: 0.92em;
 }
 
 .ml-quota {
-    letter-spacing: 0.04em;
+    font-family: var(--ml-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
 }
 
 .ml-quota strong {
-    color: var(--ml-amber);
+    color: var(--ml-ink);
     font-weight: 700;
 }
 
 .ml-hint a {
-    color: var(--ml-amber);
+    color: var(--ml-ink);
+    font-weight: 600;
+}
+
+.ml-tool-row {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
 }
 
 /* --- notices (fix / duplicate / error) ---------------------- */
 .ml-notice {
-    margin-top: 0.8rem;
+    margin-top: 0.9rem;
     border: 1px solid var(--ml-line);
-    border-left: 3px solid var(--ml-amber);
+    border-left: 3px solid var(--ml-ink);
     border-radius: 8px;
-    padding: 0.7rem 0.9rem;
-    background: var(--ml-panel-2);
-    font-size: 0.88rem;
-    color: var(--ml-paper);
+    padding: 0.75rem 1rem;
+    background: var(--ml-paper);
+    font-size: 0.9rem;
+    color: var(--ml-ink);
 }
 
 .ml-notice p { margin: 0; }
@@ -387,68 +407,73 @@ body.ml-board ::selection {
     flex-wrap: wrap;
 }
 
-.ml-notice strong { color: var(--ml-amber); }
+.ml-notice strong { font-weight: 700; }
 
 .ml-notice.is-error {
     border-left-color: var(--ml-red);
-}
-
-.ml-notice.is-error .ml-notice-title {
-    color: var(--ml-red);
+    background: var(--ml-red-soft);
+    border-top-color: #f3d4d9;
+    border-right-color: #f3d4d9;
+    border-bottom-color: #f3d4d9;
 }
 
 .ml-notice.is-ok {
     border-left-color: var(--ml-green);
-}
-
-.ml-notice.is-ok .ml-notice-title {
-    color: var(--ml-green);
+    background: var(--ml-green-soft);
+    border-top-color: #cfe6d6;
+    border-right-color: #cfe6d6;
+    border-bottom-color: #cfe6d6;
 }
 
 .ml-notice-title {
     font-family: var(--ml-mono);
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.16em;
     margin: 0 0 0.25rem;
 }
 
+.ml-notice.is-error .ml-notice-title { color: var(--ml-red); }
+.ml-notice.is-ok .ml-notice-title { color: var(--ml-green); }
+
 .ml-notice-msg {
     color: var(--ml-muted);
-    font-size: 0.85rem;
+    font-size: 0.86rem;
     overflow-wrap: anywhere;
 }
 
 .ml-notice a {
-    color: var(--ml-amber);
+    color: var(--ml-ink);
+    font-weight: 600;
 }
 
 .ml-ghost-btn {
-    font-family: var(--ml-mono);
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    color: var(--ml-amber);
+    color: var(--ml-ink);
     background: transparent;
-    border: 1px solid var(--ml-amber-dim);
-    border-radius: 6px;
-    padding: 0.4rem 0.9rem;
+    border: 1.5px solid var(--ml-line);
+    border-radius: 8px;
+    padding: 0.42rem 0.95rem;
     cursor: pointer;
     white-space: nowrap;
+    transition: border-color 0.12s ease, background 0.12s ease;
 }
 
 .ml-ghost-btn:hover {
-    border-color: var(--ml-amber);
-    background: rgba(255, 176, 0, 0.08);
+    border-color: var(--ml-ink);
+    background: rgba(25, 25, 23, 0.04);
 }
 
-/* --- result departure row ----------------------------------- */
+/* --- result: the stamp ---------------------------------------- */
 .ml-departure {
+    position: relative;
     margin-top: 1rem;
-    border: 1px solid var(--ml-amber-dim);
-    border-radius: 8px;
-    background: #0b0b0f;
-    padding: 1rem 1.1rem;
+    border: 1.5px solid var(--ml-line);
+    border-radius: 10px;
+    background: #fff;
+    padding: 1.1rem 1.2rem;
+    overflow: hidden;
     animation: ml-arrive 0.3s ease-out;
 }
 
@@ -457,44 +482,55 @@ body.ml-board ::selection {
     to { opacity: 1; transform: translateY(0); }
 }
 
+.ml-stamp {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    font-family: var(--ml-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-indent: 0.28em;
+    color: var(--ml-red);
+    border: 2px solid var(--ml-red);
+    border-radius: 6px;
+    padding: 0.3em 0.7em;
+    transform: rotate(7deg);
+    opacity: 0.92;
+    background: rgba(200, 16, 46, 0.04);
+    pointer-events: none;
+}
+
 .ml-departure-kicker {
     margin: 0;
+    padding-right: 9rem;
     font-family: var(--ml-mono);
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 700;
     letter-spacing: 0.18em;
     color: var(--ml-green);
 }
 
-.ml-departure-kicker .dot {
-    display: inline-block;
-    width: 0.55em;
-    height: 0.55em;
-    border-radius: 50%;
-    background: currentColor;
-    box-shadow: 0 0 8px currentColor;
-    margin-right: 0.5em;
-}
-
 .ml-departure-link {
-    display: block;
+    display: inline-block;
     font-family: var(--ml-mono);
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    color: var(--ml-amber);
-    text-shadow: 0 0 12px var(--ml-amber-glow);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-top: 0.4rem;
-    text-decoration: none;
+    letter-spacing: -0.01em;
+    color: var(--ml-ink);
+    margin-top: 0.45rem;
+    text-decoration: underline;
+    text-decoration-color: var(--ml-red);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+    overflow-wrap: anywhere;
 }
 
-.ml-departure-link:hover { text-decoration: underline; }
+.ml-departure-link:hover { color: var(--ml-red); }
 
 .ml-departure-from {
-    margin: 0.35rem 0 0;
-    font-size: 0.8rem;
+    margin: 0.4rem 0 0;
+    font-size: 0.82rem;
     color: var(--ml-muted);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -504,7 +540,7 @@ body.ml-board ::selection {
 .ml-departure-actions {
     display: flex;
     gap: 0.5rem;
-    margin-top: 0.8rem;
+    margin-top: 0.85rem;
     flex-wrap: wrap;
 }
 
@@ -514,89 +550,17 @@ body.ml-board ::selection {
 }
 
 .ml-copied-note {
-    margin: 0.5rem 0 0;
+    margin: 0.55rem 0 0;
     font-family: var(--ml-mono);
     font-size: 0.78rem;
     color: var(--ml-green);
 }
 
-/* --- turnstile ------------------------------------------------ */
-.ml-turnstile-zone {
-    margin-top: 0.9rem;
-    display: flex;
-}
-
-.ml-turnstile {
-    border-radius: 8px;
-    overflow: hidden;
-    filter: invert(0.92) hue-rotate(180deg);
-}
-
-/* --- info rows ------------------------------------------------ */
-.ml-info {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-top: 2rem;
-}
-
-.ml-info-card {
-    background: var(--ml-panel);
-    border: 1px solid var(--ml-line);
-    border-radius: 10px;
-    padding: 1rem 1rem 0.9rem;
-    font-size: 0.88rem;
-    color: var(--ml-muted);
-}
-
-.ml-info-card h2 {
-    font-family: var(--ml-mono);
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    color: var(--ml-paper);
-    margin: 0 0 0.4rem;
-}
-
-.ml-info-card h2 .amber { color: var(--ml-amber); }
-.ml-info-card p { margin: 0 0 0.45rem; }
-.ml-info-card p:last-child { margin-bottom: 0; }
-.ml-info-card a { color: var(--ml-amber); }
-
-/* --- ticker --------------------------------------------------- */
-.ml-ticker {
-    margin-top: 2rem;
-    border-top: 1px solid var(--ml-line);
-    border-bottom: 1px solid var(--ml-line);
-    padding: 0.7rem 0.25rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    font-family: var(--ml-mono);
-    font-size: 0.8rem;
-    color: var(--ml-muted);
-}
-
-.ml-ticker strong {
-    color: var(--ml-amber);
-    font-variant-numeric: tabular-nums;
-}
-
-.ml-ticker a {
-    color: var(--ml-amber);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-}
-
-.ml-ticker a:hover { border-bottom-color: var(--ml-amber); }
-
-/* --- device tray (shared markup, board look) -------------------- */
+/* --- device tray (shared markup, amt look) -------------------- */
 .ml-tray {
-    margin-top: 1rem;
+    margin-top: 1.1rem;
     border-top: 1px solid var(--ml-line);
-    padding-top: 0.8rem;
+    padding-top: 0.85rem;
 }
 
 .ml-tray .sk-tray-head {
@@ -609,32 +573,33 @@ body.ml-board ::selection {
 .ml-tray .sk-tray-title {
     margin: 0 0 0.5rem;
     font-family: var(--ml-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
     color: var(--ml-muted);
 }
 
 .ml-tray .sk-tray-toggle {
     margin: 0 0 0.5rem;
     font-family: var(--ml-mono);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: var(--ml-muted);
     background: transparent;
     border: 1px solid var(--ml-line);
-    border-radius: 6px;
-    padding: 0.15rem 0.7rem;
+    border-radius: 999px;
+    padding: 0.15rem 0.75rem;
     cursor: pointer;
 }
 
 .ml-tray .sk-tray-toggle:hover {
-    color: var(--ml-amber);
-    border-color: var(--ml-amber-dim);
+    color: var(--ml-ink);
+    border-color: var(--ml-ink);
 }
 
 .ml-tray .sk-tray-empty {
     margin: 0;
     color: var(--ml-muted);
-    font-size: 0.85rem;
+    font-size: 0.86rem;
 }
 
 .ml-tray .sk-tray-list {
@@ -650,7 +615,7 @@ body.ml-board ::selection {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    background: #0b0b0f;
+    background: var(--ml-paper);
     border: 1px solid var(--ml-line);
     border-radius: 8px;
     padding: 0.35rem 0.6rem 0.45rem 0.8rem;
@@ -663,8 +628,8 @@ body.ml-board ::selection {
     text-overflow: ellipsis;
     white-space: nowrap;
     font-family: var(--ml-mono);
-    font-size: 0.9rem;
-    color: var(--ml-amber);
+    font-size: 0.88rem;
+    color: var(--ml-ink);
     text-decoration: none;
 }
 
@@ -676,8 +641,8 @@ body.ml-board ::selection {
 }
 
 .ml-tray .sk-tray-list button {
-    font-family: var(--ml-mono);
     font-size: 0.78rem;
+    font-weight: 600;
     color: var(--ml-muted);
     background: transparent;
     border: 1px solid var(--ml-line);
@@ -687,12 +652,11 @@ body.ml-board ::selection {
     flex-shrink: 0;
 }
 
-.ml-tray .sk-tray-list button:hover { color: var(--ml-amber); border-color: var(--ml-amber-dim); }
+.ml-tray .sk-tray-list button:hover { color: var(--ml-ink); border-color: var(--ml-ink); }
 
 .ml-tray .sk-tray-clear {
     margin-top: 0.6rem;
-    font-family: var(--ml-mono);
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: var(--ml-muted);
     background: transparent;
     border: none;
@@ -702,39 +666,120 @@ body.ml-board ::selection {
     text-underline-offset: 3px;
 }
 
+/* --- turnstile ------------------------------------------------ */
+.ml-turnstile-zone {
+    margin-top: 0.9rem;
+    display: flex;
+}
+
+.ml-turnstile {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* --- info sections ---------------------------------------------- */
+.ml-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-top: 2.5rem;
+    border-top: 2px solid var(--ml-ink);
+}
+
+.ml-info-card {
+    padding: 1.1rem 1.25rem 1rem 0;
+    font-size: 0.9rem;
+    color: var(--ml-muted);
+}
+
+.ml-info-card + .ml-info-card {
+    border-left: 1px solid var(--ml-line);
+    padding-left: 1.25rem;
+}
+
+.ml-info-card h2 {
+    font-family: var(--ml-mono);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--ml-ink);
+    margin: 0 0 0.5rem;
+}
+
+.ml-info-card h2 .num {
+    color: var(--ml-red);
+    margin-right: 0.5rem;
+}
+
+.ml-info-card p { margin: 0 0 0.45rem; }
+.ml-info-card p:last-child { margin-bottom: 0; }
+.ml-info-card a { color: var(--ml-ink); font-weight: 600; }
+
+/* --- meta strip ------------------------------------------------- */
+.ml-ticker {
+    margin-top: 2rem;
+    border-top: 1px solid var(--ml-line);
+    border-bottom: 1px solid var(--ml-line);
+    padding: 0.7rem 0.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-family: var(--ml-mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    color: var(--ml-muted);
+}
+
+.ml-ticker strong {
+    color: var(--ml-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.ml-ticker a {
+    color: var(--ml-ink);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+.ml-ticker a:hover { border-bottom-color: var(--ml-red); color: var(--ml-red); }
+
 /* --- footer --------------------------------------------------- */
 .ml-foot {
     margin: 1.5rem 0 0;
     text-align: center;
-    font-family: var(--ml-mono);
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     color: var(--ml-muted);
 }
 
-.ml-foot a { color: var(--ml-paper); }
+.ml-foot a { color: var(--ml-ink); font-weight: 600; }
 
-/* --- error board ---------------------------------------------- */
+/* --- error notice ----------------------------------------------- */
 .ml-error {
-    margin: 2.5rem 0 0;
+    margin: 0;
+    padding-top: 2.5rem;
 }
 
 .ml-error-code {
-    font-family: var(--ml-mono);
-    font-size: clamp(4rem, 16vw, 7rem);
-    font-weight: 700;
+    font-size: clamp(3.5rem, 13vw, 6rem);
+    font-weight: 800;
     line-height: 1;
-    color: var(--ml-amber);
-    text-shadow: 0 0 24px var(--ml-amber-glow);
+    letter-spacing: -0.04em;
     margin: 0.75rem 0 0;
     font-variant-numeric: tabular-nums;
+    color: var(--ml-ink);
 }
 
+.ml-error-code .dot { color: var(--ml-red); }
+
 .ml-error-title {
-    font-family: var(--ml-mono);
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     margin: 0.5rem 0 0;
-    color: var(--ml-paper);
+    color: var(--ml-ink);
 }
 
 .ml-error-msg {
@@ -749,61 +794,90 @@ body.ml-board ::selection {
     flex-wrap: wrap;
 }
 
-/* Action links come from shared x-ui buttons — style every anchor
- * as a board button: first departs amber, the rest ghost. */
+/* Action links come from shared x-ui buttons — style every anchor:
+ * first is the primary black button, the rest are outline buttons. */
 .ml-error-actions a {
-    font-family: var(--ml-mono);
     font-size: 0.9rem;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    color: #000;
-    background: var(--ml-amber);
-    border: 1px solid var(--ml-amber);
+    color: #fff;
+    background: var(--ml-ink);
+    border: 1.5px solid var(--ml-ink);
     border-radius: 8px;
     padding: 0.6rem 1.3rem;
     text-decoration: none;
     display: inline-block;
 }
 
-.ml-error-actions a:hover { filter: brightness(1.1); }
+.ml-error-actions a:hover { background: #33332f; }
 
 .ml-error-actions a:not(:first-child) {
-    color: var(--ml-amber);
+    color: var(--ml-ink);
     background: transparent;
-    border-color: var(--ml-amber-dim);
+    border-color: var(--ml-line);
 }
 
 .ml-error-actions a:not(:first-child):hover {
-    border-color: var(--ml-amber);
-    background: rgba(255, 176, 0, 0.08);
-    filter: none;
+    border-color: var(--ml-ink);
+    background: rgba(25, 25, 23, 0.04);
 }
 
 .ml-new-back {
     margin: 1.25rem 0 0;
-    font-family: var(--ml-mono);
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     color: var(--ml-muted);
     text-align: center;
 }
 
-.ml-new-back a { color: var(--ml-amber); }
+.ml-new-back a { color: var(--ml-ink); font-weight: 600; }
 
-/* --- login card ------------------------------------------------ */
+/* --- login card ------------------------------------------------- */
 .ml-login-card {
     margin-top: 1.75rem;
 }
 
-/* --- focus ------------------------------------------------------ */
+/* --- narrow layouts ----------------------------------------------- */
+.ml-narrow .ml-info {
+    grid-template-columns: 1fr 1fr;
+}
+
+/* --- focus -------------------------------------------------------- */
 .ml-board a:focus-visible,
 .ml-board button:focus-visible {
-    outline: 2px dashed var(--ml-amber);
-    outline-offset: 3px;
+    outline: 2px solid var(--ml-red);
+    outline-offset: 2px;
 }
 
 @media (max-width: 640px) {
     body.ml-board {
         padding: 0 0.85rem 2rem;
+    }
+
+    .ml-top {
+        flex-wrap: wrap;
+        row-gap: 0.4rem;
+    }
+
+    .ml-brand {
+        font-size: 0.95rem;
+    }
+
+    .ml-login {
+        font-size: 0.8rem;
+    }
+
+    .ml-hero {
+        padding-top: 2rem;
+    }
+
+    .ml-steps {
+        flex-direction: column;
+    }
+
+    .ml-steps li + li {
+        border-left: none;
+        border-top: 1px solid var(--ml-line);
+        padding-left: 0;
+        padding-top: 0.8rem;
     }
 
     .ml-input-row {
@@ -814,15 +888,38 @@ body.ml-board ::selection {
         width: 100%;
     }
 
-    .ml-info {
-        grid-template-columns: 1fr;
-        margin-top: 1.5rem;
+    .ml-tool-row .ml-ghost-btn {
+        flex: 1 1 auto;
     }
 
-    .ml-clock { display: none; }
+    .ml-info {
+        grid-template-columns: 1fr;
+    }
+
+    .ml-info-card + .ml-info-card {
+        border-left: none;
+        border-top: 1px solid var(--ml-line);
+        padding-left: 0;
+        padding-top: 1.1rem;
+    }
+
+    .ml-narrow .ml-info {
+        grid-template-columns: 1fr;
+    }
 
     .ml-departure-link {
-        font-size: 1.15rem;
+        font-size: 1.1rem;
+    }
+
+    .ml-stamp {
+        position: static;
+        display: inline-block;
+        transform: rotate(3deg);
+        margin-bottom: 0.6rem;
+    }
+
+    .ml-departure-kicker {
+        padding-right: 0;
     }
 }
 

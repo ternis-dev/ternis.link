@@ -7,7 +7,8 @@
 
     @if ($shortUrl)
         <div class="ml-departure" role="status" aria-live="polite">
-            <p class="ml-departure-kicker"><span class="dot" aria-hidden="true"></span>{{ $this->t('result.kicker') }}</p>
+            <span class="ml-stamp" aria-hidden="true">{{ $this->t('result.stamp') }}</span>
+            <p class="ml-departure-kicker">{{ $this->t('result.kicker') }}</p>
             <a href="{{ $shortUrl }}" target="_blank" rel="noopener" class="ml-departure-link" data-sk-result-link>{{ $shortUrl }}</a>
             @if ($originalUrl)
                 <p class="ml-departure-from" title="{{ $originalUrl }}" data-sk-result-original>
@@ -35,7 +36,7 @@
         </div>
     @else
         <form wire:submit="create" novalidate>
-            <label class="ml-field-label" for="public_destination_url">{{ $this->t('label.destination') }}</label>
+            <label class="ml-field-label" for="public_destination_url">{{ $this->t('label.destination') }}<span class="req" aria-hidden="true"> *</span></label>
             <div class="ml-input-row">
                 <div class="ml-input-wrap">
                     <input
@@ -63,7 +64,7 @@
                     wire:loading.attr="disabled"
                     wire:target="create"
                 >
-                    <span wire:loading.remove wire:target="create">{{ $this->t('submit') }} ▸</span>
+                    <span wire:loading.remove wire:target="create">{{ $this->t('submit') }}</span>
                     <span wire:loading wire:target="create">{{ $this->t('submitting') }}</span>
                 </button>
             </div>
@@ -79,12 +80,9 @@
                     <span class="ml-quota" aria-hidden="true"><strong>{{ $this->quotaLeft }}</strong>/{{ \App\Services\LinkService::ANONYMOUS_DAILY_LIMIT }}</span>
                 @endif
             </div>
-            <div class="ml-meta">
-                <span></span>
-                <span>
-                    <button type="button" class="ml-ghost-btn" data-sk-paste>{{ $this->t('tool.paste') }}</button>
-                    <button type="button" class="ml-ghost-btn" data-sk-clear>{{ $this->t('tool.clear') }}</button>
-                </span>
+            <div class="ml-tool-row">
+                <button type="button" class="ml-ghost-btn" data-sk-paste>{{ $this->t('tool.paste') }}</button>
+                <button type="button" class="ml-ghost-btn" data-sk-clear>{{ $this->t('tool.clear') }}</button>
             </div>
             @if ($this->fixablePreview)
                 <div class="ml-notice" aria-live="polite">

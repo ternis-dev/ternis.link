@@ -32,10 +32,10 @@ class MeinlinkTest extends TestCase
     {
         $this->get('http://meinlink.at/')
             ->assertOk()
-            ->assertSee('Wohin darf', escape: false)
-            ->assertSee('MEINLINK', escape: false)
+            ->assertSee('Gekürzt.', escape: false)
+            ->assertSee('Amt für kurze Links', escape: false)
             ->assertSee('ml-board', escape: false)
-            ->assertSee('Abfahrtsanzeige', escape: false)
+            ->assertSee('Formular LK-8', escape: false)
             ->assertSee('Link kürzen', escape: false)
             ->assertDontSee('long links go in', escape: false)
             ->assertDontSee('sk-root', escape: false);
@@ -55,8 +55,8 @@ class MeinlinkTest extends TestCase
     {
         $this->get('http://meinlink.at/new')
             ->assertOk()
-            ->assertSee('Nächste', escape: false)
-            ->assertSee('als Gast weiter', escape: false)
+            ->assertSee('Vorgang.', escape: false)
+            ->assertSee('als Gast', escape: false)
             ->assertSee('Link kürzen', escape: false);
     }
 
@@ -64,8 +64,8 @@ class MeinlinkTest extends TestCase
     {
         $this->get('http://meinlink.at/login')
             ->assertOk()
-            ->assertSee('Dienstausweis', escape: false)
-            ->assertSee('Mit Ternis Auth einloggen', escape: false);
+            ->assertSee('ausweisen.', escape: false)
+            ->assertSee('Mit Ternis Auth anmelden', escape: false);
     }
 
     public function test_meinlink_errors_are_german_board(): void
@@ -73,7 +73,7 @@ class MeinlinkTest extends TestCase
         $this->get('http://meinlink.at/not-a-real-link')
             ->assertStatus(404)
             ->assertSee('class="ml-error"', escape: false)
-            ->assertSee('Zug verpasst', escape: false)
+            ->assertSee('Aktenzeichen unbekannt', escape: false)
             ->assertSee('meinlink.at', escape: false)
             ->assertDontSee('tl-theme', escape: false);
     }
@@ -84,7 +84,7 @@ class MeinlinkTest extends TestCase
             ->set('destination_url', 'https://example.com/gut')
             ->html();
 
-        foreach (['Link kürzen', 'Ziel-URL', 'Kürzen', 'kein Konto nötig', 'Sieht gut aus'] as $needle) {
+        foreach (['Link kürzen', 'Ziel-URL', 'Antrag einreichen', 'kein Konto nötig', 'Sieht gut aus'] as $needle) {
             $this->assertStringContainsString($needle, $html);
         }
     }

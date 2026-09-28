@@ -8,7 +8,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
 
 - **Multi-Domain Routing**:
   - `href.nz` / `*.href.nz`: Public link shortener with its own landing page (`landing.public`, `public/css/landing-public.css`). Guest form + direct `/url/{url}` redirects and bare redirects.
-  - `meinlink.at` / `*.meinlink.at`: German-language public shortener with its own departure-board theme (`landing-meinlink.css`, amber LED on near-black). Same type/rules as `href.nz`; German form via `ShortenForm(locale=de, theme=board)`.
+  - `meinlink.at` / `*.meinlink.at`: German-language public shortener with its own Amt-style theme (`landing-meinlink.css`, Inter grotesk + BEWILLIGT stamp). Same type/rules as `href.nz`; German form via `ShortenForm(locale=de, theme=board)`.
   - `href.re` / `*.href.re`: Reserved for official business links with its own landing page (`landing.business`, `public/css/landing-business.css`, no guest form).
   - `ternis.link` / `*.ternis.link`: Reserved for family members, relatives, and partners (generic `landing.index` fallback).
   - `links.thosted.de`, `short.thosted.de`, `go.thosted.de`: Internal infrastructure redirects.

@@ -106,11 +106,11 @@ class ShortenForm extends Component
         ],
         'tool.paste' => ['en' => 'Paste from clipboard', 'de' => 'Aus Zwischenablage einfügen'],
         'tool.clear' => ['en' => 'Clear field', 'de' => 'Feld leeren'],
-        'submit' => ['en' => 'Shorten', 'de' => 'Kürzen'],
-        'submitting' => ['en' => 'Shortening…', 'de' => 'Wird gekürzt…'],
+        'submit' => ['en' => 'Shorten', 'de' => 'Antrag einreichen'],
+        'submitting' => ['en' => 'Shortening…', 'de' => 'Wird bearbeitet…'],
         'focus.valid' => [
             'en' => 'Looks good — hit Shorten when you’re ready.',
-            'de' => 'Sieht gut aus — klick auf Kürzen, wenn du bereit bist.',
+            'de' => 'Sieht gut aus — reich den Antrag ein, wenn du bereit bist.',
         ],
         'focus.invalid' => [
             'en' => 'Tip: links start with https://',
@@ -150,6 +150,7 @@ class ShortenForm extends Component
             'en' => 'Done — your short link is ready',
             'de' => 'Fertig — dein Kurzlink ist bereit',
         ],
+        'result.stamp' => ['en' => 'Approved', 'de' => 'Bewilligt'],
         'result.from' => ['en' => 'Shortened from', 'de' => 'Gekürzt aus'],
         'result.copy' => ['en' => 'Copy', 'de' => 'Kopieren'],
         'result.copy.aria' => ['en' => 'Copy short link to clipboard', 'de' => 'Kurzlink in Zwischenablage kopieren'],

@@ -16,11 +16,11 @@
     @endif
 </head>
 <body class="ml-board">
-    <a class="ml-skip" href="#new-link">Zum Automaten springen</a>
+    <a class="ml-skip" href="#new-link">Zum Formular springen</a>
 
     <div class="ml-wrap ml-narrow">
         <header class="ml-top">
-            <a href="/" class="ml-brand" aria-label="meinlink.at Startseite">MEINLINK<b>.AT</b> ▮</a>
+            <a href="/" class="ml-brand" aria-label="meinlink.at Startseite">meinlink.at<small>Amt für kurze Links</small></a>
             <div class="ml-top-right">
                 <nav aria-label="Konto">
                     @auth
@@ -33,19 +33,19 @@
         </header>
 
         <main>
-            <section class="ml-hero" style="padding-top: 2rem;">
-                <span class="ml-kicker">Neuer Kurzlink</span>
-                <h1 class="ml-title" id="new-title">Nächste <span class="amber">Abfahrt.</span></h1>
+            <section class="ml-hero" style="padding-top: 2.25rem;">
+                <span class="ml-kicker">Formular LK-8 <span class="red">·</span> neuer Vorgang</span>
+                <h1 class="ml-title" id="new-title">Neuer <span class="amber">Vorgang.</span></h1>
                 <p class="ml-sub">Ziel eingeben, Kurzlink erhalten.</p>
             </section>
 
             @guest
                 <div class="ml-notice" role="note" style="margin-top: 1.25rem;">
-                    <p>Mitglied? <a href="{{ url('/login') }}">Log dich ein</a> für eigene Kürzel, kürzere Links &amp; Statistiken — oder fahr als Gast weiter.</p>
+                    <p>Mitglied? <a href="{{ url('/login') }}">Log dich ein</a> für eigene Kürzel, kürzere Links &amp; Statistiken — oder stell den Antrag als Gast.</p>
                 </div>
             @else
                 <div class="ml-notice" role="note" style="margin-top: 1.25rem;">
-                    <p>Angemeldet — deine Links landen mit Statistik im <a href="{{ \App\Support\DomainUrls::dashboard('/') }}">Dashboard</a>.</p>
+                    <p>Angemeldet — deine Vorgänge landen mit Statistik im <a href="{{ \App\Support\DomainUrls::dashboard('/') }}">Dashboard</a>.</p>
                 </div>
             @endguest
 
@@ -53,11 +53,11 @@
                 <livewire:public.shorten-form :compact="true" :minimal="true" locale="de" theme="board" />
             </section>
 
-            <p class="ml-new-back"><a href="/">← zurück zum Automaten</a></p>
+            <p class="ml-new-back"><a href="/">← zurück zur Übersicht</a></p>
         </main>
 
         <footer class="ml-foot">
-            meinlink.at · <a href="https://ternis.link/pages/legal/privacy">Datenschutz</a> ·
+            Amt für kurze Links · Dienststelle meinlink.at · <a href="https://ternis.link/pages/legal/privacy">Datenschutz</a> ·
             <a href="https://ternis.link/pages/legal/terms">AGB</a>
         </footer>
     </div>
