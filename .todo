@@ -12,7 +12,8 @@ DONE: every /url/ view is logged (RedirectController::directUrl tracks is_direct
 
 DONE: junk-detector admin-alias exception (self-hosted /pma + /phpmyadmin pass on clean hosts incl. LAN IPs, still flag on probe hosts; pma.bak/.env/xmlrpc still blocked; unit + purge coverage)
 DONE: API guide (docs/api.md rendered at docs.ternis.link/api + .md twin; allowlist + descriptions; README index; llms.txt; auth pointer; DocsTest coverage)
-DONE: FAQ section on ternis.link landing (6 Q&As from single $faqs source, hero anchor, FAQPage JSON-LD validated; LandingIndexTest coverage)
+DONE: FAQ section on ternis.link landing (6 Q&As from single $faqs source, hero anchor, FAQPage JSON-LD validated; LandingIndexTest coverage; subdomain answer fixed: inner circle — family/partners/admins only)
+DONE: blog SEO push (3 new posts: QR codes, custom slugs, what-we-count; auto-indexed + sitemap + twins; ContentTest iterates every entry)
 
 Desktop-Application (starting with MacOS)
 

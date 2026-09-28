@@ -102,6 +102,23 @@ class ContentTest extends TestCase
         $this->assertStringContainsString('<loc>http://ternis.link/pages/blog/why-we-self-host-everything</loc>', $body);
     }
 
+    public function test_every_blog_entry_resolves_with_twin(): void
+    {
+        // Guards new posts against broken front matter or slugs:
+        // each entry must render HTML and serve its markdown twin.
+        foreach (\App\Support\ContentCollection::entries('blog') as $entry) {
+            $this->get("http://ternis.link/pages/blog/{$entry['slug']}")
+                ->assertStatus(200)
+                ->assertSee($entry['title']);
+
+            $this->get("http://ternis.link/pages/blog/{$entry['slug']}.md")
+                ->assertStatus(200)
+                ->assertHeader('Content-Type', 'text/markdown; charset=UTF-8');
+        }
+
+        $this->assertNotEmpty(\App\Support\ContentCollection::entries('blog'));
+    }
+
     public function test_llms_mentions_collections(): void
     {
         $this->get('http://ternis.link/llms.txt')

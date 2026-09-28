@@ -6,7 +6,7 @@ $faqs = [
     ],
     [
         'q' => 'How do I claim my {name}.ternis.link subdomain?',
-        'a' => 'Sign in, open Domains in your dashboard and pick a name. One subdomain per account, verified instantly — no DNS setup on your side.',
+        'a' => 'Personal subdomains are reserved for the inner circle — family members, partners and admins. If that is you, sign in, open Domains in your dashboard and pick a name: one subdomain per account, verified instantly, no DNS setup on your side.',
     ],
     [
         'q' => 'What analytics do I get?',
