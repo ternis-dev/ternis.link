@@ -46,7 +46,7 @@ class ContentTest extends TestCase
         $this->get('http://ternis.link/pages/blog/why-we-self-host-everything')
             ->assertStatus(200)
             ->assertSee('Why we self-host everything', escape: false)
-            ->assertSee('Altcha', escape: false)
+            ->assertSee('Turnstile', escape: false)
             ->assertSee('← Blog', escape: false);
     }
 
@@ -117,6 +117,50 @@ class ContentTest extends TestCase
         }
 
         $this->assertNotEmpty(\App\Support\ContentCollection::entries('blog'));
+    }
+
+    public function test_blog_shortcuts_redirect_to_canonical_home(): void
+    {
+        $this->get('http://ternis.link/blog')->assertRedirect('http://ternis.link/pages/blog');
+        $this->get('http://ternis.link/blogs')->assertRedirect('http://ternis.link/pages/blog');
+        $this->get('http://ternis.link/blogs/why-we-self-host-everything')
+            ->assertRedirect('http://ternis.link/pages/blog/why-we-self-host-everything');
+        $this->get('http://ternis.link/blog?utm_source=nav')
+            ->assertRedirect('http://ternis.link/pages/blog?utm_source=nav');
+
+        // Bare slugs starting with "blog" stay on short-link resolution.
+        $this->get('http://ternis.link/blogroll')->assertNotFound();
+
+        // Shortcuts 404 off the home host (never shadow slugs or docs).
+        $this->get('http://href.nz/blog')->assertNotFound();
+        $this->get('http://href.nz/blogs')->assertNotFound();
+        $this->get('http://docs.ternis.link/blog')->assertNotFound();
+    }
+
+    public function test_entry_has_lede_reading_time_and_structured_data(): void
+    {
+        $body = $this->get('http://ternis.link/pages/blog/why-we-self-host-everything')
+            ->assertStatus(200)
+            ->getContent();
+
+        $this->assertStringContainsString('min read', $body);
+        $this->assertStringContainsString('application/ld+json', $body);
+        $this->assertStringContainsString('"@type":"BlogPosting"', $body);
+    }
+
+    public function test_entry_navigates_to_neighbors(): void
+    {
+        // Newest-first: the newest post links back to an older one.
+        $entries = \App\Support\ContentCollection::entries('blog');
+        $newest = $entries[0]['slug'];
+
+        $body = $this->get("http://ternis.link/pages/blog/{$newest}")
+            ->assertStatus(200)
+            ->getContent();
+
+        if (count($entries) > 1) {
+            $this->assertStringContainsString('/pages/blog/'.$entries[1]['slug'], $body);
+        }
     }
 
     public function test_llms_mentions_collections(): void

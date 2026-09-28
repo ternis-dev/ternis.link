@@ -374,6 +374,31 @@ Route::get('/extension{any?}', function () {
 
 /*
 |----------------------------------------------------------------------
+| Short memorable URLs for the blog (ternis.link/blog, /blogs) —
+| 301 to the canonical /pages/blog home, preserving entry subpaths
+| (/blogs/{slug}, /blogs/{slug}.md) and query strings. Same single-
+| definition pattern as /extension above: ternis → redirect,
+| everywhere else → 404. The `any` constraint keeps bare slugs like
+| `blogroll` on the short-link catch-all below. Registered above it
+| so `blog` is never mistaken for a link slug.
+|----------------------------------------------------------------------
+*/
+foreach (['/blogs', '/blog'] as $shortcut) {
+    Route::get($shortcut.'{any?}', function () use ($shortcut) {
+        if (request()->attributes->get('domain_type') !== 'ternis') {
+            abort(404);
+        }
+
+        $suffix = substr(request()->getPathInfo(), strlen($shortcut));
+        $query = request()->getQueryString();
+        $qs = $query ? '?'.$query : '';
+
+        return redirect('/pages/blog'.rtrim($suffix, '/').$qs, 301);
+    })->where('any', '(/.*)?');
+}
+
+/*
+|----------------------------------------------------------------------
 | Legal pages — Markdown from resources/legal/*.md, allowlisted slugs.
 | Canonical home is ternis.link/pages/legal/{slug}: the route below
 | serves there; the legacy /legal/* route 301s (same host or

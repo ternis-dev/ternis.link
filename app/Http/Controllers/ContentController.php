@@ -48,11 +48,16 @@ class ContentController extends Controller
             abort(404);
         }
 
+        $neighbors = $this->neighbors($collection, $slug);
+
         return view('content.show', [
             'collection' => $collection,
             'meta' => $meta,
             'entry' => $entry,
             'html' => Str::markdown($entry['body']),
+            'readingTime' => max(1, (int) round(str_word_count(strip_tags($entry['body'])) / 200)),
+            'newer' => $neighbors['newer'],
+            'older' => $neighbors['older'],
         ]);
     }
 
@@ -70,6 +75,28 @@ class ContentController extends Controller
            .$entry['body'];
 
         return response($md, 200, ['Content-Type' => self::MARKDOWN]);
+    }
+
+    /**
+     * Adjacent entries for prev/next navigation. entries() is
+     * newest-first, so the previous item is the newer one.
+     *
+     * @return array{newer: array{slug: string, title: string}|null, older: array{slug: string, title: string}|null}
+     */
+    private function neighbors(string $collection, string $slug): array
+    {
+        $entries = ContentCollection::entries($collection);
+
+        foreach ($entries as $index => $entry) {
+            if ($entry['slug'] === $slug) {
+                return [
+                    'newer' => $entries[$index - 1] ?? null,
+                    'older' => $entries[$index + 1] ?? null,
+                ];
+            }
+        }
+
+        return ['newer' => null, 'older' => null];
     }
 
     /**
