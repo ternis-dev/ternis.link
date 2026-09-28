@@ -1,6 +1,6 @@
 <x-layouts.app :title="$entry['title'].' — '.$meta['title'].' — ternis.link'">
     <x-slot:head>
-        <link rel="alternate" type="text/markdown" title="{{ $entry['title'] }} (Markdown)" href="{{ url('/pages/'.$collection.'/'.$entry['slug'].'.md') }}">
+        <link rel="alternate" type="text/markdown" title="{{ $entry['title'] }} (Markdown)" href="{{ url('/pages/'.$collection.'/'.$entry['canonical'].'.md') }}">
         <script type="application/ld+json">
         {!! json_encode([
             '@context' => 'https://schema.org',
@@ -31,13 +31,13 @@
                 <div>
                     @if ($older)
                         <p class="text-xs tracking-wide text-neutral-500 uppercase dark:text-neutral-500">Older</p>
-                        <a href="{{ url('/pages/'.$collection.'/'.$older['slug']) }}" class="font-display mt-1 inline-block font-semibold underline-offset-4 hover:underline">← {{ $older['title'] }}</a>
+                        <a href="{{ url('/pages/'.$collection.'/'.$older['canonical']) }}" class="font-display mt-1 inline-block font-semibold underline-offset-4 hover:underline">← {{ $older['title'] }}</a>
                     @endif
                 </div>
                 <div class="sm:text-right">
                     @if ($newer)
                         <p class="text-xs tracking-wide text-neutral-500 uppercase dark:text-neutral-500">Newer</p>
-                        <a href="{{ url('/pages/'.$collection.'/'.$newer['slug']) }}" class="font-display mt-1 inline-block font-semibold underline-offset-4 hover:underline">{{ $newer['title'] }} →</a>
+                        <a href="{{ url('/pages/'.$collection.'/'.$newer['canonical']) }}" class="font-display mt-1 inline-block font-semibold underline-offset-4 hover:underline">{{ $newer['title'] }} →</a>
                     @endif
                 </div>
             </nav>

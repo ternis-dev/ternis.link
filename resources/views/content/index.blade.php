@@ -20,7 +20,7 @@
             <article class="mb-6 border-b border-neutral-200 pb-6 last:border-0 dark:border-neutral-800">
                 <p class="text-xs tracking-wide text-neutral-500 uppercase dark:text-neutral-500">{{ $entry['date'] }}</p>
                 <h2 class="font-display mt-1 text-xl font-semibold tracking-tight">
-                    <a href="{{ url('/pages/'.$collection.'/'.$entry['slug']) }}" class="underline-offset-4 hover:underline">{{ $entry['title'] }}</a>
+                    <a href="{{ url('/pages/'.$collection.'/'.$entry['canonical']) }}" class="underline-offset-4 hover:underline">{{ $entry['title'] }}</a>
                 </h2>
                 @if ($entry['description'] !== '')
                     <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ $entry['description'] }}</p>

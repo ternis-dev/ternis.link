@@ -81,7 +81,11 @@ class ContentCollection
     /**
      * A single entry incl. raw body, or null when missing/invalid.
      *
-     * @return array{slug: string, title: string, date: string, description: string, body: string}|null
+     * Accepts both the filename slug (`my-post`) and the canonical
+     * dated slug (`2026-09-26-my-post`); the entry always carries
+     * both, so callers can 301 the former to the latter.
+     *
+     * @return array{slug: string, canonical: string, title: string, date: string, description: string, body: string}|null
      */
     public static function entry(string $collection, string $slug): ?array
     {
@@ -95,7 +99,24 @@ class ContentCollection
             return null;
         }
 
-        $path = $dir.'/'.$slug.'.md';
+        $filename = null;
+
+        if (is_file($dir.'/'.$slug.'.md')) {
+            $filename = $slug;
+        } else {
+            foreach (self::entries($collection) as $candidate) {
+                if ($candidate['canonical'] === $slug) {
+                    $filename = $candidate['slug'];
+                    break;
+                }
+            }
+        }
+
+        if ($filename === null) {
+            return null;
+        }
+
+        $path = $dir.'/'.$filename.'.md';
 
         // Confine reads to the collection dir even if a slug ever
         // slips past the regex (defense in depth, no traversal).
@@ -105,7 +126,7 @@ class ContentCollection
             return null;
         }
 
-        return self::parse($collection, $slug, (string) file_get_contents($real), (int) filemtime($real), true);
+        return self::parse($collection, $filename, (string) file_get_contents($real), (int) filemtime($real), true);
     }
 
     /**
@@ -124,7 +145,7 @@ class ContentCollection
     }
 
     /**
-     * @return array{slug: string, title: string, date: string, description: string, body?: string}
+     * @return array{slug: string, canonical: string, title: string, date: string, description: string, body?: string}
      */
     private static function parse(string $collection, string $slug, string $raw, int $mtime, bool $withBody = false): array
     {
@@ -151,6 +172,11 @@ class ContentCollection
 
         $entry = [
             'slug' => $slug,
+            // Canonical URL slug, Jekyll-style. Files already carrying
+            // a date prefix keep it (no double-prefixing).
+            'canonical' => preg_match('/^\d{4}-\d{2}-\d{2}-/', $slug) === 1
+                ? $slug
+                : $date.'-'.$slug,
             'title' => $title,
             'date' => $date,
             'description' => self::description($meta['description'] ?? null, $body),

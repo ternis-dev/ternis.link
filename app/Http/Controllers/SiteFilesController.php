@@ -127,7 +127,7 @@ class SiteFilesController extends Controller
 
                 foreach (ContentCollection::entries($collection) as $entry) {
                     $urls[] = [
-                        'loc' => $base."/pages/{$collection}/{$entry['slug']}",
+                        'loc' => $base."/pages/{$collection}/{$entry['canonical']}",
                         'lastmod' => $entry['date'],
                         'changefreq' => 'monthly',
                         'priority' => '0.6',

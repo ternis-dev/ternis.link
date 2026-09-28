@@ -24,7 +24,7 @@ class ContentTest extends TestCase
 
         $this->assertStringContainsString('Changelog', $body);
         $this->assertStringContainsString('sketch-login-for-href-nz', $body);
-        $this->assertStringContainsString('/pages/changelog/machine-readable-site-files', $body);
+        $this->assertStringContainsString('/pages/changelog/2026-09-26-machine-readable-site-files', $body);
 
         // Newest first: entries share the seed date, so order falls
         // back to slug descending.
@@ -43,7 +43,7 @@ class ContentTest extends TestCase
 
     public function test_entry_renders_markdown(): void
     {
-        $this->get('http://ternis.link/pages/blog/why-we-self-host-everything')
+        $this->get('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything')
             ->assertStatus(200)
             ->assertSee('Why we self-host everything', escape: false)
             ->assertSee('Turnstile', escape: false)
@@ -71,9 +71,9 @@ class ContentTest extends TestCase
             ->assertStatus(200)
             ->assertHeader('Content-Type', 'text/markdown; charset=UTF-8')
             ->assertSee('# Changelog', escape: false)
-            ->assertSee('/pages/changelog/machine-readable-site-files.md', escape: false);
+            ->assertSee('/pages/changelog/2026-09-26-machine-readable-site-files.md', escape: false);
 
-        $entry = $this->get('http://ternis.link/pages/news/public-network-stats.md')
+        $entry = $this->get('http://ternis.link/pages/news/2026-09-26-public-network-stats.md')
             ->assertStatus(200)
             ->assertHeader('Content-Type', 'text/markdown; charset=UTF-8')
             ->assertSee('# Network stats are now public', escape: false);
@@ -88,8 +88,8 @@ class ContentTest extends TestCase
         $this->get('http://ternis.link/pages/blog')
             ->assertSee('/pages/blog.md', escape: false);
 
-        $this->get('http://ternis.link/pages/blog/why-we-self-host-everything')
-            ->assertSee('/pages/blog/why-we-self-host-everything.md', escape: false);
+        $this->get('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything')
+            ->assertSee('/pages/blog/2026-09-26-why-we-self-host-everything.md', escape: false);
     }
 
     public function test_sitemap_includes_collections(): void
@@ -99,7 +99,17 @@ class ContentTest extends TestCase
         $this->assertStringContainsString('<loc>http://ternis.link/pages/changelog</loc>', $body);
         $this->assertStringContainsString('<loc>http://ternis.link/pages/news</loc>', $body);
         $this->assertStringContainsString('<loc>http://ternis.link/pages/blog</loc>', $body);
-        $this->assertStringContainsString('<loc>http://ternis.link/pages/blog/why-we-self-host-everything</loc>', $body);
+        $this->assertStringContainsString('<loc>http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything</loc>', $body);
+    }
+
+    public function test_undated_entry_urls_redirect_to_dated_canonical(): void
+    {
+        $this->get('http://ternis.link/pages/blog/why-we-self-host-everything')
+            ->assertRedirect('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything');
+        $this->get('http://ternis.link/pages/blog/why-we-self-host-everything.md')
+            ->assertRedirect('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything.md');
+        $this->get('http://ternis.link/pages/changelog/machine-readable-site-files')
+            ->assertRedirect('http://ternis.link/pages/changelog/2026-09-26-machine-readable-site-files');
     }
 
     public function test_every_blog_entry_resolves_with_twin(): void
@@ -107,11 +117,11 @@ class ContentTest extends TestCase
         // Guards new posts against broken front matter or slugs:
         // each entry must render HTML and serve its markdown twin.
         foreach (\App\Support\ContentCollection::entries('blog') as $entry) {
-            $this->get("http://ternis.link/pages/blog/{$entry['slug']}")
+            $this->get("http://ternis.link/pages/blog/{$entry['canonical']}")
                 ->assertStatus(200)
                 ->assertSee($entry['title']);
 
-            $this->get("http://ternis.link/pages/blog/{$entry['slug']}.md")
+            $this->get("http://ternis.link/pages/blog/{$entry['canonical']}.md")
                 ->assertStatus(200)
                 ->assertHeader('Content-Type', 'text/markdown; charset=UTF-8');
         }
@@ -124,7 +134,7 @@ class ContentTest extends TestCase
         $this->get('http://ternis.link/blog')->assertRedirect('http://ternis.link/pages/blog');
         $this->get('http://ternis.link/blogs')->assertRedirect('http://ternis.link/pages/blog');
         $this->get('http://ternis.link/blogs/why-we-self-host-everything')
-            ->assertRedirect('http://ternis.link/pages/blog/why-we-self-host-everything');
+            ->assertRedirect('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything');
         $this->get('http://ternis.link/blog?utm_source=nav')
             ->assertRedirect('http://ternis.link/pages/blog?utm_source=nav');
 
@@ -139,7 +149,7 @@ class ContentTest extends TestCase
 
     public function test_entry_has_lede_reading_time_and_structured_data(): void
     {
-        $body = $this->get('http://ternis.link/pages/blog/why-we-self-host-everything')
+        $body = $this->get('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything')
             ->assertStatus(200)
             ->getContent();
 
@@ -152,14 +162,14 @@ class ContentTest extends TestCase
     {
         // Newest-first: the newest post links back to an older one.
         $entries = \App\Support\ContentCollection::entries('blog');
-        $newest = $entries[0]['slug'];
+        $newest = $entries[0]['canonical'];
 
         $body = $this->get("http://ternis.link/pages/blog/{$newest}")
             ->assertStatus(200)
             ->getContent();
 
         if (count($entries) > 1) {
-            $this->assertStringContainsString('/pages/blog/'.$entries[1]['slug'], $body);
+            $this->assertStringContainsString('/pages/blog/'.$entries[1]['canonical'], $body);
         }
     }
 

@@ -17,6 +17,7 @@ use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
+use App\Support\ContentCollection;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -392,6 +393,16 @@ foreach (['/blogs', '/blog'] as $shortcut) {
         $suffix = substr(request()->getPathInfo(), strlen($shortcut));
         $query = request()->getQueryString();
         $qs = $query ? '?'.$query : '';
+
+        // Entry shortcuts resolve straight to the canonical dated URL
+        // (single 301, no chain through the undated slug).
+        if (preg_match('#^/([a-z0-9-]+)(\.md)?$#', $suffix, $m)) {
+            $entry = ContentCollection::entry('blog', $m[1]);
+
+            if ($entry !== null) {
+                return redirect('/pages/blog/'.$entry['canonical'].($m[2] ?? '').$qs, 301);
+            }
+        }
 
         return redirect('/pages/blog'.rtrim($suffix, '/').$qs, 301);
     })->where('any', '(/.*)?');

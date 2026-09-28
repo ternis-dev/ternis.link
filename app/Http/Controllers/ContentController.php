@@ -48,7 +48,13 @@ class ContentController extends Controller
             abort(404);
         }
 
-        $neighbors = $this->neighbors($collection, $slug);
+        // Undated filename slugs 301 to the canonical dated URL so
+        // old links keep working and crawlers consolidate.
+        if ($slug !== $entry['canonical']) {
+            return redirect($this->canonicalUrl($collection, $entry['canonical']), 301);
+        }
+
+        $neighbors = $this->neighbors($collection, $entry['slug']);
 
         return view('content.show', [
             'collection' => $collection,
@@ -70,11 +76,25 @@ class ContentController extends Controller
             abort(404);
         }
 
+        if ($slug !== $entry['canonical']) {
+            return redirect($this->canonicalUrl($collection, $entry['canonical'].'.md'), 301);
+        }
+
         $md = '# '.$entry['title']."\n\n"
            .'> '.$entry['date'].' · '.$entry['description']."\n\n"
            .$entry['body'];
 
         return response($md, 200, ['Content-Type' => self::MARKDOWN]);
+    }
+
+    /**
+     * Absolute canonical entry URL, preserving the query string.
+     */
+    private function canonicalUrl(string $collection, string $canonical): string
+    {
+        $query = request()->getQueryString();
+
+        return url('/pages/'.$collection.'/'.$canonical).($query ? '?'.$query : '');
     }
 
     /**
