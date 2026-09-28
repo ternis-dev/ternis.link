@@ -59,4 +59,16 @@ class LandingIndexTest extends TestCase
             ->assertSee('short links created', escape: false)
             ->assertSee('redirects counted', escape: false);
     }
+
+    public function test_ternis_landing_answers_frequently_asked_questions(): void
+    {
+        $this->get('http://ternis.link/')
+            ->assertStatus(200)
+            ->assertSee('Frequently asked questions', escape: false)
+            ->assertSee('id="faq"', escape: false)
+            ->assertSee('href="#faq"', escape: false)
+            ->assertSee('claim my {name}.ternis.link subdomain', escape: false)
+            ->assertSee('application/ld+json', escape: false)
+            ->assertSee('FAQPage', escape: false);
+    }
 }

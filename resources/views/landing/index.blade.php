@@ -1,4 +1,42 @@
+@php
+$faqs = [
+    [
+        'q' => 'Do I need an account?',
+        'a' => 'Not for a quick link: guests shorten on <a href="https://href.nz" class="underline underline-offset-2">href.nz</a> (up to 50 links a day, auto-generated slugs). A personal subdomain, custom slugs, analytics and API keys need a sign-in via Ternis Auth — no passwords, no registration forms.',
+    ],
+    [
+        'q' => 'How do I claim my {name}.ternis.link subdomain?',
+        'a' => 'Sign in, open Domains in your dashboard and pick a name. One subdomain per account, verified instantly — no DNS setup on your side.',
+    ],
+    [
+        'q' => 'What analytics do I get?',
+        'a' => 'Every link reports referrers, countries, browsers and per-day charts, with CSV export for deeper digging — the same numbers the API serves.',
+    ],
+    [
+        'q' => 'How is my privacy protected?',
+        'a' => 'There are no local passwords to leak, visitor IPs are stored only as one-way hashes, and pages set no ad trackers. Public forms carry a bot check; everything else is first-party.',
+    ],
+    [
+        'q' => 'What happens when I deactivate a link?',
+        'a' => 'It stops resolving immediately, while its stats stay in your dashboard — totals and history are never rewritten.',
+    ],
+    [
+        'q' => 'Can I use my own domain or automate via API?',
+        'a' => 'Eligible plans can bring any hostname (verified by DNS within minutes), and API keys unlock the versioned REST API — see the <a href="https://docs.ternis.link/api" class="underline underline-offset-2">API guide</a>.',
+    ],
+];
+$faqJsonLd = array_map(fn ($faq) => [
+    '@type' => 'Question',
+    'name' => $faq['q'],
+    'acceptedAnswer' => ['@type' => 'Answer', 'text' => strip_tags($faq['a'])],
+], $faqs);
+@endphp
 <x-layouts.app title="ternis.link — Personal short links for family & partners">
+    <x-slot:head>
+        <script type="application/ld+json">
+        {!! json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', '@id' => 'https://ternis.link/#faq', 'mainEntity' => $faqJsonLd], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+        </script>
+    </x-slot:head>
     <div class="mx-auto flex max-w-4xl flex-col items-center px-4 py-20 text-center sm:px-6">
         <x-ui.badge tone="solid" class="mb-6">For family &amp; partners</x-ui.badge>
         <h1 class="font-display text-5xl font-bold tracking-tight sm:text-6xl">Short links, <span class="text-neutral-400 dark:text-neutral-500">on your own name.</span></h1>
@@ -20,6 +58,8 @@
             <a href="{{ url('/pages/extension') }}" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">Browser extension</a>
             <span aria-hidden="true" class="mx-1">·</span>
             <a href="https://docs.ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">Developer docs</a>
+            <span aria-hidden="true" class="mx-1">·</span>
+            <a href="#faq" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">FAQ</a>
         </p>
 
         <div class="mt-16 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
@@ -106,6 +146,18 @@
                     <dt class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">created today</dt>
                 </div>
             </dl>
+        </div>
+
+        <div id="faq" class="mt-16 w-full scroll-mt-8 text-left">
+            <h2 class="text-center font-display text-2xl font-bold tracking-tight">Frequently asked questions</h2>
+            <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                @foreach ($faqs as $faq)
+                    <x-ui.card>
+                        <h3 class="font-display text-base font-bold">{{ $faq['q'] }}</h3>
+                        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{!! $faq['a'] !!}</p>
+                    </x-ui.card>
+                @endforeach
+            </div>
         </div>
 
         <p class="mt-10 text-sm text-neutral-500 dark:text-neutral-400">
