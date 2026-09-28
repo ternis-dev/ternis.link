@@ -158,36 +158,6 @@ class ContentTest extends TestCase
         $this->assertStringContainsString('"@type":"BlogPosting"', $body);
     }
 
-    public function test_entry_renders_table_of_contents_with_anchors(): void
-    {
-        $body = $this->get('http://ternis.link/pages/blog/2026-09-28-qr-codes-for-every-short-link')
-            ->assertStatus(200)
-            ->getContent();
-
-        $this->assertStringContainsString('On this page', $body);
-        $this->assertStringContainsString('href="#where-to-get-the-code"', $body);
-        $this->assertStringContainsString('<h2 id="where-to-get-the-code">', $body);
-    }
-
-    public function test_entry_without_sections_has_no_table_of_contents(): void
-    {
-        $body = $this->get('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything')
-            ->assertStatus(200)
-            ->getContent();
-
-        $this->assertStringNotContainsString('On this page', $body);
-    }
-
-    public function test_collection_index_leads_with_latest_entry(): void
-    {
-        $body = $this->get('http://ternis.link/pages/blog')
-            ->assertStatus(200)
-            ->getContent();
-
-        $this->assertStringContainsString('Latest', $body);
-        $this->assertStringContainsString('/pages/blog/2026-09-28-', $body);
-    }
-
     public function test_entry_navigates_to_neighbors(): void
     {
         // Newest-first: the newest post links back to an older one.

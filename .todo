@@ -19,6 +19,7 @@ DONE: sitemap SEO (changefreq+priority everywhere; docs-host sitemap lists all g
 DONE: self-host post rewritten around first-party SSO (auth.ternis.net); 3 more posts (expiry, preview sandbox, browser extension) — 10 total, all claims verified
 DONE: dated collection URLs (Jekyll-style /pages/blog/2026-09-28-slug for blog+news+changelog; undated 301 incl. twins; shortcut resolves straight to canonical; index/twins/sitemap/prev-next use canonicals)
 DONE: blog UI/UX (featured latest-post card + hoverable cards on index; auto TOC with anchored h2s on long entries; legal pages untouched)
+REVERTED: blog UI back to classic list/entry layout per feedback; content containers widened to max-w-4xl
 
 Desktop-Application (starting with MacOS)
 
