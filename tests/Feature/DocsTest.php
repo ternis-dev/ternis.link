@@ -30,6 +30,8 @@ class DocsTest extends TestCase
             ->assertSee('Shorten links, use the API', escape: false)
             ->assertSee('/architecture', escape: false)
             ->assertSee('/api-v1-openapi.yaml', escape: false)
+            ->assertSee('<link rel="canonical" href="https://docs.ternis.link/">', escape: false)
+            ->assertSee('<meta property="og:title" content="Docs · ternis.link">', escape: false)
             ->assertDontSee('crawlers and agents', escape: false);
     }
 
@@ -38,6 +40,8 @@ class DocsTest extends TestCase
         $this->get('http://docs.ternis.link/architecture')
             ->assertOk()
             ->assertSee('How it works', escape: false)
+            ->assertSee('<link rel="canonical" href="https://docs.ternis.link/architecture">', escape: false)
+            ->assertSee('<meta property="og:type" content="article">', escape: false)
             ->assertSee('text/markdown', escape: false); // alternate link to the .md twin
     }
 

@@ -6,6 +6,14 @@
     <title>{{ $title }} · Docs · ternis.link</title>
     <meta name="description" content="{{ $title }} — ternis.link guides.">
     <link rel="canonical" href="https://docs.ternis.link/{{ $slug }}">
+    <meta property="og:title" content="{{ $title }} · Docs · ternis.link">
+    <meta property="og:description" content="{{ $title }} — ternis.link guides.">
+    <meta property="og:url" content="https://docs.ternis.link/{{ $slug }}">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="ternis.link docs">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ $title }} · Docs · ternis.link">
+    <meta name="twitter:description" content="{{ $title }} — ternis.link guides.">
     <link rel="alternate" type="text/markdown" title="{{ $title }} (Markdown)" href="{{ url('/'.$slug.'.md') }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <script>

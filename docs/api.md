@@ -49,6 +49,7 @@ curl -X POST https://links.t-api.de/v1/links \
 
 Every link created with a personal key stores that key (`api_key_id`, exposed as `api_key` with name/prefix on responses) and logs it in the activity history (`link.created` with `api_key_id`, `api_key_name`, `api_key_prefix`, `auth_via`). SSO-token calls leave `api_key_id` empty. Filter the dashboard list by origin (All origins / Dashboard only / one key) or open a key's dedicated page under API keys.
 
+```bash
 # Show / update / deactivate (deleting stops resolution; stats stay)
 curl https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
 curl -X PUT https://links.t-api.de/v1/links/<ulid> \

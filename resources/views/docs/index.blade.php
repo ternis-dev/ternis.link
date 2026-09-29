@@ -6,6 +6,14 @@
     <title>Docs · ternis.link</title>
     <meta name="description" content="Guides for the ternis.link network: shorten links, use the API, custom domains, accounts, and how it all works.">
     <link rel="canonical" href="https://docs.ternis.link/">
+    <meta property="og:title" content="Docs · ternis.link">
+    <meta property="og:description" content="Guides for the ternis.link network: shorten links, use the API, custom domains, accounts, and how it all works.">
+    <meta property="og:url" content="https://docs.ternis.link/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ternis.link docs">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Docs · ternis.link">
+    <meta name="twitter:description" content="Guides for the ternis.link network: shorten links, use the API, custom domains, accounts, and how it all works.">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <script>
         try {
