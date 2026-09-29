@@ -125,6 +125,9 @@ curl -X POST https://links.t-api.de/v1/api-keys \
   -H "Content-Type: application/json" \
   -d '{"name": "ci-runner", "show_on_dashboard": false}'
 
+# Show a key (prefix + metadata, digests never exposed)
+curl https://links.t-api.de/v1/api-keys/<ulid> -H "Authorization: Bearer tl_your_key_here"
+
 # Rename or toggle dashboard visibility (nothing is moved or deleted)
 curl -X PATCH https://links.t-api.de/v1/api-keys/<ulid> \
   -H "Authorization: Bearer tl_your_key_here" \

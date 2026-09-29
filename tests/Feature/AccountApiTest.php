@@ -114,11 +114,53 @@ class AccountApiTest extends TestCase
             'name' => 'Mine',
         ]);
 
+        $this->getJson(
+            "http://links.t-api.de/v1/api-keys/{$key->id}",
+            $this->headersFor($stranger)
+        )->assertStatus(403);
+
+        $this->patchJson(
+            "http://links.t-api.de/v1/api-keys/{$key->id}",
+            ['name' => 'Stolen'],
+            $this->headersFor($stranger)
+        )->assertStatus(403);
+
         $this->deleteJson(
             "http://links.t-api.de/v1/api-keys/{$key->id}",
             [],
             $this->headersFor($stranger)
         )->assertStatus(403);
+    }
+
+    public function test_api_key_show_and_update(): void
+    {
+        $user = $this->user();
+        $headers = $this->headersFor($user);
+
+        $created = $this->postJson(
+            'http://links.t-api.de/v1/api-keys',
+            ['name' => 'Initial Name', 'show_on_dashboard' => false],
+            $headers
+        )->assertStatus(201);
+
+        $keyId = $created->json('id');
+
+        $show = $this->getJson("http://links.t-api.de/v1/api-keys/{$keyId}", $headers)
+            ->assertStatus(200);
+        $show->assertJsonPath('name', 'Initial Name');
+        $show->assertJsonPath('show_on_dashboard', false);
+        $this->assertArrayNotHasKey('key_hash', $show->json());
+
+        $updated = $this->patchJson(
+            "http://links.t-api.de/v1/api-keys/{$keyId}",
+            ['name' => 'Renamed Key', 'show_on_dashboard' => true],
+            $headers
+        )->assertStatus(200);
+        $updated->assertJsonPath('name', 'Renamed Key');
+        $updated->assertJsonPath('show_on_dashboard', true);
+
+        $this->assertSame('Renamed Key', ApiKey::find($keyId)->name);
+        $this->assertTrue(ApiKey::find($keyId)->show_on_dashboard);
     }
 
     public function test_notifications_list_and_mark_read(): void

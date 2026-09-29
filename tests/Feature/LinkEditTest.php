@@ -165,6 +165,31 @@ class LinkEditTest extends TestCase
         $this->assertSame('https://example.com/original', $this->link->fresh()->destination_url);
     }
 
+    public function test_unsafe_destination_is_rejected_on_update(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(LinkEditForm::class, ['link' => $this->link])
+            ->set('destination_url', 'http://127.0.0.1:8000/internal')
+            ->call('save')
+            ->assertHasErrors('destination_url')
+            ->assertSee('short links must point to a public website', escape: false);
+
+        $this->assertSame('https://example.com/original', $this->link->fresh()->destination_url);
+    }
+
+    public function test_api_rejects_unsafe_destination_on_update(): void
+    {
+        $response = $this->putJson(
+            "http://links.t-api.de/v1/links/{$this->link->id}",
+            ['destination_url' => 'http://192.168.1.1/router'],
+            $this->headersFor($this->user)
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('destination_url');
+        $this->assertSame('https://example.com/original', $this->link->fresh()->destination_url);
+    }
+
     public function test_links_table_links_to_edit_page(): void
     {
         $this->actingAs($this->user)

@@ -359,6 +359,12 @@ paths:
   /api-keys/{apiKey}:
     parameters:
       - { name: apiKey, in: path, required: true, schema: { type: string, description: ULID } }
+    get:
+      summary: Show an API key (prefix + metadata, digests never exposed)
+      responses:
+        '200': { description: Key metadata }
+        '403': { description: "{ message: 'You do not own this API key.' }" }
+        '404': { description: Unknown API key or wrong host }
     patch:
       summary: Rename a key or toggle its dashboard visibility
       description: Links are never moved or deleted; hiding only changes where they are listed.

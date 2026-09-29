@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Dashboard\ApiKeyManager;
 use App\Livewire\Dashboard\LinkForm;
+use App\Livewire\Dashboard\LinkTable;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -127,5 +128,28 @@ class DashboardTest extends TestCase
 
         $test->call('revokeKey', $key->id);
         $this->assertFalse($key->fresh()->isValid());
+    }
+
+    public function test_link_table_empty_state_and_filter_reset(): void
+    {
+        Link::create([
+            'slug' => 'sample-findable',
+            'destination_url' => 'https://example.com/findable',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        $test = Livewire::actingAs($this->user)
+            ->test(LinkTable::class)
+            ->assertSee('sample-findable')
+            ->set('search', 'non-existent-query-12345')
+            ->assertDontSee('sample-findable')
+            ->assertSee('No short links match your current search or filter.')
+            ->assertSee('Clear all filters');
+
+        $test->call('resetFilters')
+            ->assertSet('search', '')
+            ->assertSee('sample-findable');
     }
 }

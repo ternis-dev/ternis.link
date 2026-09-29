@@ -169,7 +169,7 @@ class LinkController extends Controller
             abort(403, 'You do not own this link.');
         }
 
-        $link = $this->linkService->update($link, $request->validated());
+        $link = $this->linkService->update($link, $request->validated(), $request->user());
 
         /** @var ApiKey|null $apiKey */
         $apiKey = $request->attributes->get('api_key');

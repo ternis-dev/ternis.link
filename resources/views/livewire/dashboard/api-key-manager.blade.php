@@ -62,7 +62,35 @@
                 @forelse ($apiKeys as $key)
                     <tr>
                         <td class="font-semibold">
-                            <a href="{{ route('dashboard.api-keys.show', $key->id) }}" class="underline-offset-2 hover:underline">{{ $key->name }}</a>
+                            @if ($editingKeyId === $key->id)
+                                <form wire:submit="saveKeyName" class="flex items-center gap-1.5">
+                                    <input
+                                        type="text"
+                                        wire:model="editingKeyName"
+                                        class="h-7 rounded border border-neutral-300 px-2 text-xs text-neutral-900 focus:border-neutral-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+                                        required
+                                        autofocus
+                                    />
+                                    <x-ui.button type="submit" size="sm" variant="primary">Save</x-ui.button>
+                                    <x-ui.button type="button" wire:click="cancelEditing" size="sm">Cancel</x-ui.button>
+                                </form>
+                            @else
+                                <div class="flex items-center gap-1.5">
+                                    <a href="{{ route('dashboard.api-keys.show', $key->id) }}" class="underline-offset-2 hover:underline">{{ $key->name }}</a>
+                                    @if ($key->isValid())
+                                        <button
+                                            type="button"
+                                            wire:click="startEditing('{{ $key->id }}')"
+                                            class="cursor-pointer text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                                            title="Rename key"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                    @endif
+                                </div>
+                            @endif
                         </td>
                         <td><code>{{ $key->masked_key }}</code></td>
                         <td>v{{ $key->api_version }}</td>

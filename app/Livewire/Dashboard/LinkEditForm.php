@@ -79,7 +79,7 @@ class LinkEditForm extends Component
                 'tags' => $this->tags !== null && trim($this->tags) !== '' ? LinkService::normalizeTags($this->tags) : null,
                 'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
                 'is_active' => $this->is_active,
-            ]);
+            ], auth()->user());
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
                 foreach ((array) $messages as $message) {

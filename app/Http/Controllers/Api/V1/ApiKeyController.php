@@ -73,6 +73,20 @@ class ApiKeyController extends Controller
     }
 
     /**
+     * GET /v1/api-keys/{key} — Show an API key.
+     *
+     * The raw token is never exposed.
+     */
+    public function show(Request $request, ApiKey $apiKey): JsonResponse
+    {
+        if ($apiKey->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
+            abort(403, 'You do not own this API key.');
+        }
+
+        return response()->json($apiKey);
+    }
+
+    /**
      * PATCH /v1/api-keys/{key} — Rename a key or toggle its
      * dashboard visibility (`show_on_dashboard`). Links are never
      * moved or deleted; hiding only changes where they are listed.

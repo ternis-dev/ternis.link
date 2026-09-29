@@ -99,4 +99,39 @@ class ApiKeyDisplayTest extends TestCase
             ->assertDontSee($shown)
             ->assertSet('newlyCreatedKey', null);
     }
+
+    public function test_inline_editing_and_visibility_toggle(): void
+    {
+        $test = Livewire::actingAs($this->user)
+            ->test(ApiKeyManager::class)
+            ->set('keyName', 'Before Rename')
+            ->call('createKey')
+            ->assertHasNoErrors();
+
+        $key = $this->user->apiKeys()->firstOrFail();
+        $this->assertSame('Before Rename', $key->name);
+        $this->assertTrue($key->show_on_dashboard);
+
+        // Toggle dashboard visibility
+        $test->call('toggleVisibility', $key->id);
+        $this->assertFalse($key->fresh()->show_on_dashboard);
+
+        // Start editing
+        $test->call('startEditing', $key->id)
+            ->assertSet('editingKeyId', $key->id)
+            ->assertSet('editingKeyName', 'Before Rename');
+
+        // Cancel editing
+        $test->call('cancelEditing')
+            ->assertSet('editingKeyId', null)
+            ->assertSet('editingKeyName', '');
+
+        // Save new name
+        $test->call('startEditing', $key->id)
+            ->set('editingKeyName', 'After Rename')
+            ->call('saveKeyName')
+            ->assertSet('editingKeyId', null);
+
+        $this->assertSame('After Rename', $key->fresh()->name);
+    }
 }

@@ -431,11 +431,16 @@ class LinkService
      * Update a link.
      *
      * @throws JunkUrlException When the new destination is scanner junk.
+     * @throws UnsafeUrlException When the new destination targets intranet or non-public IPs.
      */
-    public function update(Link $link, array $data): Link
+    public function update(Link $link, array $data, ?User $actor = null): Link
     {
         if (isset($data['destination_url'])) {
             $data['destination_url'] = trim((string) $data['destination_url']);
+            $actingUser = $actor ?? $link->user;
+            if ($actingUser === null || ! $actingUser->isAdmin()) {
+                $this->unsafeUrls->rejectIfUnsafe($data['destination_url']);
+            }
             $this->junkUrls->rejectIfJunk($data['destination_url']);
         }
 

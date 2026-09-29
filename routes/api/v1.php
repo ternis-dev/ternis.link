@@ -49,6 +49,7 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::c
     // API keys (raw token returned once on create, never stored)
     Route::get('api-keys', [ApiKeyController::class, 'index']);
     Route::post('api-keys', [ApiKeyController::class, 'store']);
+    Route::get('api-keys/{apiKey}', [ApiKeyController::class, 'show']);
     Route::patch('api-keys/{apiKey}', [ApiKeyController::class, 'update']);
     Route::delete('api-keys/{apiKey}', [ApiKeyController::class, 'destroy']);
 

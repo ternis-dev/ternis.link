@@ -78,6 +78,16 @@ class LinkTable extends Component
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->tag = '';
+        if ($this->lockedApiKeyId === null) {
+            $this->apiKeyFilter = '';
+        }
+        $this->resetPage();
+    }
+
     public function mount(?string $apiKeyId = null): void
     {
         // Embedded on the per-key page: pin the scope and mirror it

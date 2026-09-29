@@ -19,17 +19,19 @@ class ApiKeyManager extends Component
 
     public ?string $newlyCreatedKey = null;
 
-    protected array $rules = [
-        'keyName' => ['required', 'string', 'max:255'],
-        'newKeyShowOnDashboard' => ['boolean'],
-    ];
+    public ?string $editingKeyId = null;
+
+    public string $editingKeyName = '';
 
     /**
      * Generate a new API key.
      */
     public function createKey(): void
     {
-        $this->validate();
+        $this->validate([
+            'keyName' => ['required', 'string', 'max:255'],
+            'newKeyShowOnDashboard' => ['boolean'],
+        ]);
 
         // Generate a raw key with tl_ prefix. Only the SHA-256 digest
         // is persisted (ApiKey::hashToken); the raw token lives only in
@@ -80,6 +82,42 @@ class ApiKeyManager extends Component
             'key_prefix' => $key->key_prefix,
             'show_on_dashboard' => $key->fresh()->show_on_dashboard,
         ]);
+    }
+
+    public function startEditing(string $keyId): void
+    {
+        $key = auth()->user()->apiKeys()->findOrFail($keyId);
+        $this->editingKeyId = $key->id;
+        $this->editingKeyName = $key->name;
+    }
+
+    public function cancelEditing(): void
+    {
+        $this->editingKeyId = null;
+        $this->editingKeyName = '';
+        $this->resetValidation();
+    }
+
+    public function saveKeyName(): void
+    {
+        if (! $this->editingKeyId) {
+            return;
+        }
+
+        $this->validate([
+            'editingKeyName' => ['required', 'string', 'max:255'],
+        ]);
+
+        $key = auth()->user()->apiKeys()->findOrFail($this->editingKeyId);
+        $key->update(['name' => $this->editingKeyName]);
+
+        Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
+            'name' => $key->fresh()->name,
+            'key_prefix' => $key->key_prefix,
+            'show_on_dashboard' => $key->fresh()->show_on_dashboard,
+        ]);
+
+        $this->cancelEditing();
     }
 
     public function revokeKey(string $keyId): void

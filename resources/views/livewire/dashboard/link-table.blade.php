@@ -134,7 +134,16 @@
             @empty
                 <tr>
                     <td colspan="{{ $columnCount }}">
-                        <x-ui.empty-state>No short links found. <a href="{{ route('dashboard.links.create') }}" class="underline underline-offset-2">Create your first short link!</a></x-ui.empty-state>
+                        @if ($search !== '' || $tag !== '' || ($lockedApiKeyId === null && $apiKeyFilter !== ''))
+                            <x-ui.empty-state>
+                                No short links match your current search or filter.
+                                <div class="mt-2">
+                                    <button type="button" wire:click="resetFilters" class="cursor-pointer font-medium underline underline-offset-2 hover:text-neutral-900 dark:hover:text-neutral-100">Clear all filters</button>
+                                </div>
+                            </x-ui.empty-state>
+                        @else
+                            <x-ui.empty-state>No short links found. <a href="{{ route('dashboard.links.create') }}" class="underline underline-offset-2">Create your first short link!</a></x-ui.empty-state>
+                        @endif
                     </td>
                 </tr>
             @endforelse
