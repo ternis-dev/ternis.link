@@ -22,6 +22,7 @@ DONE: blog UI/UX (featured latest-post card + hoverable cards on index; auto TOC
 REVERTED: blog UI back to classic list/entry layout per feedback; content containers widened to max-w-4xl
 DONE: sitemap reliability (valid XML verified; 30-min per-host cache so crawlers never wait on a cold backend; strict XML + robots/sitemap cross-host tests)
 DONE: SEO batch 2 (2026-09-29) — 4 new posts, 14 total: one-api-key-per-integration (key hygiene + per-key pages), organize-links-with-tags, find-and-fix-dead-links (rot routine), links-that-expire-for-events-and-listings (use-case SEO); all claims verified against code, internal cross-links, ContentTest iterator covers all entries
+DONE: href.re landing page overhaul (2026-09-29) — enterprise identity & positioning, live telemetry banner ($stats overview), interactive client-side link inspector & slug validator with safe preview sandbox link, enterprise vs generic shortener matrix, core capabilities, 4 enterprise use cases, zero-trust pipeline architecture, 6-item FAQ with Schema.org JSON-LD FAQPage & Service graph, /_preview/re local route, BusinessLandingTest (38 assertions)
 
 Desktop-Application (starting with MacOS)
 
