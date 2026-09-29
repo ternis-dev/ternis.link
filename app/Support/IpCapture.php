@@ -33,7 +33,7 @@ final class IpCapture
      */
     public static function encrypt(?string $ip): ?string
     {
-        if (! static::enabled() || $ip === null || trim($ip) === '') {
+        if (! self::enabled() || $ip === null || trim($ip) === '') {
             return null;
         }
 

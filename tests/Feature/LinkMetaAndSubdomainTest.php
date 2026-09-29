@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Admin\LinkModeration;
 use App\Livewire\Dashboard\DomainManager;
 use App\Livewire\Dashboard\LinkEditForm;
 use App\Livewire\Dashboard\LinkForm;
+use App\Livewire\Dashboard\LinkTable;
+use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\Plan;
@@ -17,6 +20,7 @@ use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class LinkMetaAndSubdomainTest extends TestCase
@@ -115,7 +119,7 @@ class LinkMetaAndSubdomainTest extends TestCase
     {
         $user = $this->userOnPlan('pro');
         $raw = 'tl_'.str_repeat('a', 48);
-        \App\Models\ApiKey::create([
+        ApiKey::create([
             'user_id' => $user->id,
             'key_hash' => hash('sha256', $raw),
             'key_prefix' => substr($raw, 0, 8),
@@ -141,7 +145,7 @@ class LinkMetaAndSubdomainTest extends TestCase
     {
         $user = $this->userOnPlan('pro');
         $raw = 'tl_'.str_repeat('b', 48);
-        \App\Models\ApiKey::create([
+        ApiKey::create([
             'user_id' => $user->id,
             'key_hash' => hash('sha256', $raw),
             'key_prefix' => substr($raw, 0, 8),
@@ -262,7 +266,7 @@ class LinkMetaAndSubdomainTest extends TestCase
             ->assertStatus(200)
             ->assertDontSee('Your ternis.link Subdomain', escape: false);
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectException(HttpException::class);
         app(DomainService::class)->claimSubdomain($user, 'nope');
     }
 
@@ -282,7 +286,7 @@ class LinkMetaAndSubdomainTest extends TestCase
         $this->makeLink($user, 'tagged-other-1', 'https://example.com/other', 'Other page', ['other']);
 
         Livewire::actingAs($user)
-            ->test(\App\Livewire\Dashboard\LinkTable::class)
+            ->test(LinkTable::class)
             ->assertSee('All tags', escape: false)
             ->assertSee('docs', escape: false)
             ->set('tag', 'docs')
@@ -301,7 +305,7 @@ class LinkMetaAndSubdomainTest extends TestCase
         $this->makeLink($user, 'mod-tagged-1', 'https://example.com/m', null, ['moderate-me']);
 
         Livewire::actingAs($admin)
-            ->test(\App\Livewire\Admin\LinkModeration::class)
+            ->test(LinkModeration::class)
             ->set('search', 'moderate-me')
             ->assertSee('mod-tagged-1', escape: false);
     }

@@ -18,6 +18,8 @@ use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
 use App\Support\ContentCollection;
+use App\Support\NetworkStats;
+use App\Support\PublicHost;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -534,19 +536,19 @@ Route::get('/', function () {
         return redirect("/v{$latest}/", 302);
     }
     if ($type === 'business') {
-        return view('landing.business', ['stats' => \App\Support\NetworkStats::overview()]);
+        return view('landing.business', ['stats' => NetworkStats::overview()]);
     }
     if ($type === 'public') {
         // meinlink.at shares every public rule but gets its own German
         // landing page and theme (see meinlink.css).
-        if (\App\Support\PublicHost::isMeinlink()) {
+        if (PublicHost::isMeinlink()) {
             return view('landing.meinlink');
         }
 
         return view('landing.public');
     }
 
-    return view('landing.index', ['stats' => \App\Support\NetworkStats::overview()]);
+    return view('landing.index', ['stats' => NetworkStats::overview()]);
 })->name('home');
 
 Route::get('/new', function () {
@@ -567,7 +569,7 @@ Route::get('/new', function () {
         abort(404);
     }
 
-    if (\App\Support\PublicHost::isMeinlink()) {
+    if (PublicHost::isMeinlink()) {
         return view('landing.new-meinlink');
     }
 
@@ -579,7 +581,7 @@ if (app()->environment('local', 'testing')) {
     // host check so the theme can be screenshotted without DNS).
     // Never available in production.
     Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
-    Route::get('/_preview/re', fn () => view('landing.business', ['stats' => \App\Support\NetworkStats::overview()]))->name('preview.re');
+    Route::get('/_preview/re', fn () => view('landing.business', ['stats' => NetworkStats::overview()]))->name('preview.re');
     Route::get('/_preview/at-new', fn () => view('landing.new-meinlink'))->name('preview.at-new');
     Route::get('/_preview/at-login', fn () => view('auth.login-meinlink'))->name('preview.at-login');
     Route::get('/_preview/at-error', fn () => response()->view('components.layouts.public-error-meinlink', [

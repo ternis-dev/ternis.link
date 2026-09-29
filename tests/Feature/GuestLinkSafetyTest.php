@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Dashboard\LinkForm;
 use App\Livewire\Public\ShortenForm;
 use App\Models\Domain;
+use App\Models\User;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -95,7 +96,7 @@ class GuestLinkSafetyTest extends TestCase
     {
         // 192.168.x.x is explicitly legitimate for the (shared) junk
         // detector — only the guest-only safety layer blocks it.
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $domain = Domain::where('hostname', 'href.nz')->firstOrFail();
 
         Livewire::actingAs($user)

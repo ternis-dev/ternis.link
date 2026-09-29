@@ -17,6 +17,7 @@ class LandingIndexTest extends TestCase
         parent::setUp();
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
     }
+
     public function test_ternis_landing_presents_personal_subdomains(): void
     {
         $this->get('http://ternis.link/')

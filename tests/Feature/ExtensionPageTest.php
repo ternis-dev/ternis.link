@@ -101,7 +101,7 @@ class ExtensionPageTest extends TestCase
 
         $this->assertFileExists($zip);
 
-        $archive = new \ZipArchive();
+        $archive = new \ZipArchive;
         $this->assertTrue($archive->open($zip));
         foreach (['manifest.json', 'popup.html', 'popup.js', 'background.js'] as $required) {
             $this->assertNotFalse($archive->locateName($required), "missing {$required}");

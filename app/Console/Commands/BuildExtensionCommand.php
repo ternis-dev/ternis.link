@@ -71,7 +71,7 @@ class BuildExtensionCommand extends Command
 
     private function zip(string $root, string $target): bool
     {
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
 
         if ($zip->open($target, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             $this->error("Cannot write {$target}.");

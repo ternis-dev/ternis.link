@@ -7,7 +7,6 @@ use App\Livewire\Public\ShortenForm;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
-use App\Services\LinkService;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;

@@ -145,7 +145,7 @@ class UnsafeUrlValidator
             }
         }
 
-        if ($isMapped && $b[10] === 0xff && $b[11] === 0xff) {
+        if ($isMapped && $b[10] === 0xFF && $b[11] === 0xFF) {
             $v4 = ($b[12] << 24) | ($b[13] << 16) | ($b[14] << 8) | $b[15];
 
             return $this->isBlockedIpv4($v4);
@@ -155,19 +155,19 @@ class UnsafeUrlValidator
             return true; // loopback / unspecified
         }
 
-        if (($b[0] & 0xfe) === 0xfc) {
+        if (($b[0] & 0xFE) === 0xFC) {
             return true; // fc00::/7 unique local
         }
 
-        if ($b[0] === 0xfe && ($b[1] & 0xc0) === 0x80) {
+        if ($b[0] === 0xFE && ($b[1] & 0xC0) === 0x80) {
             return true; // fe80::/10 link-local
         }
 
-        if ($b[0] === 0xff) {
+        if ($b[0] === 0xFF) {
             return true; // ff00::/8 multicast
         }
 
-        if ($b[0] === 0x20 && $b[1] === 0x01 && $b[2] === 0x0d && $b[3] === 0xb8) {
+        if ($b[0] === 0x20 && $b[1] === 0x01 && $b[2] === 0x0D && $b[3] === 0xB8) {
             return true; // 2001:db8::/32 documentation
         }
 

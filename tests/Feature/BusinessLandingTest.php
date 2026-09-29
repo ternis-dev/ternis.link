@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Domain;
+use App\Models\User;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -74,5 +75,31 @@ class BusinessLandingTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('href<span>.re</span>', escape: false);
         $response->assertSee('Official links', escape: false);
+    }
+
+    public function test_href_re_authenticated_landing_shows_dashboard_action(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('http://href.re/')
+            ->assertStatus(200)
+            ->assertSee('Go to Dashboard', escape: false)
+            ->assertDontSee('dash.ternis.link/login', escape: false);
+    }
+
+    public function test_href_re_robots_and_sitemap(): void
+    {
+        $robots = $this->get('http://href.re/robots.txt')->assertStatus(200)->getContent();
+        $this->assertStringContainsString('Allow: /$', $robots);
+        $this->assertStringContainsString('Sitemap: http://href.re/sitemap.xml', $robots);
+
+        $sitemap = $this->get('http://href.re/sitemap.xml')->assertStatus(200)->getContent();
+        $this->assertStringContainsString('<loc>http://href.re/</loc>', $sitemap);
+        $this->assertStringNotContainsString('ternis.link/pages/', $sitemap);
+
+        $doc = simplexml_load_string($sitemap);
+        $this->assertNotFalse($doc);
+        $this->assertNotEmpty($doc->url);
     }
 }

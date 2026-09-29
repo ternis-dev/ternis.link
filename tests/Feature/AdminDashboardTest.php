@@ -12,6 +12,7 @@ use App\Models\Link;
 use App\Models\LinkTombstone;
 use App\Models\Plan;
 use App\Models\User;
+use App\Support\Activity;
 use App\Support\NetworkStats;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
@@ -87,7 +88,7 @@ class AdminDashboardTest extends TestCase
             'user_id' => $this->user->id,
             'is_active' => true,
         ]);
-        \App\Support\Activity::record(ActivityLog::ADMIN_LINK_DEACTIVATED, $this->admin, $link, ['slug' => $link->slug]);
+        Activity::record(ActivityLog::ADMIN_LINK_DEACTIVATED, $this->admin, $link, ['slug' => $link->slug]);
 
         $this->actingAs($this->admin)
             ->get('http://admin.ternis.link/links')

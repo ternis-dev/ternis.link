@@ -15,9 +15,9 @@ use Illuminate\Validation\ValidationException;
 class JunkUrlException extends ValidationException
 {
     /**
-     * @param list<string> $reasons Machine-readable notes for logs; the
-     *                              user-facing message stays generic so
-     *                              scanners learn nothing.
+     * @param  list<string>  $reasons  Machine-readable notes for logs; the
+     *                                 user-facing message stays generic so
+     *                                 scanners learn nothing.
      */
     public static function forUrl(string $url, array $reasons = []): self
     {

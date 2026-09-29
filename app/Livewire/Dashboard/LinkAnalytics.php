@@ -61,7 +61,7 @@ class LinkAnalytics extends Component
 
     private function maxPeriod(): int
     {
-        $ageDays = $this->link->created_at->diffInDays(now()) + 1;
+        $ageDays = ($this->link->created_at ?? now())->diffInDays(now()) + 1;
 
         return $ageDays <= 7 ? 7 : ($ageDays <= 30 ? 30 : 90);
     }
@@ -121,7 +121,7 @@ class LinkAnalytics extends Component
      */
     private function averageDivisor(): int
     {
-        $ageDays = $this->link->created_at->diffInDays(now()) + 1;
+        $ageDays = ($this->link->created_at ?? now())->diffInDays(now()) + 1;
 
         return max(1, min($this->period, $ageDays));
     }

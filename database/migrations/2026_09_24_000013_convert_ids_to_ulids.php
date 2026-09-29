@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Symfony\Component\Uid\Ulid;
 
 /**
@@ -236,7 +237,7 @@ return new class extends Migration
             // Fall through to a random ULID.
         }
 
-        return strtolower((string) Illuminate\Support\Str::ulid());
+        return strtolower((string) Str::ulid());
     }
 
     private function mapFk(array $map, mixed $old): mixed

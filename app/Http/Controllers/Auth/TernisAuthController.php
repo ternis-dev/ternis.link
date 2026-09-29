@@ -9,6 +9,7 @@ use App\Models\Plan;
 use App\Models\User;
 use App\Services\TernisAuthService;
 use App\Support\Activity;
+use App\Support\PublicHost;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -35,7 +36,7 @@ class TernisAuthController extends Controller
         }
 
         if ($request->attributes->get('domain_type') === 'public') {
-            if (\App\Support\PublicHost::isMeinlink($request->getHost())) {
+            if (PublicHost::isMeinlink($request->getHost())) {
                 return view('auth.login-meinlink');
             }
 

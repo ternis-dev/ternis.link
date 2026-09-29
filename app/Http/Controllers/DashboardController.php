@@ -129,7 +129,7 @@ class DashboardController extends Controller
      */
     public function qrCode(string $link)
     {
-        $link = auth()->user()->links()->with('domain')->findOrFail($link);
+        $link = auth()->user()->links()->notRemoved()->with('domain')->findOrFail($link);
 
         $filename = 'qr-'.$link->slug.'.png';
 

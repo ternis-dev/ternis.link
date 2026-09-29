@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\User;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -84,7 +85,7 @@ class PreviewTest extends TestCase
     {
         // Guests are login-redirected on the ternis host before the
         // handler runs; an authenticated user reaches it and gets a 404.
-        $user = \App\Models\User::factory()->family()->create();
+        $user = User::factory()->family()->create();
         $link = Link::create([
             'slug' => 'preview99',
             'destination_url' => 'https://example.com/x',

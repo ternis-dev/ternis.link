@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Livewire\Admin\LinkModeration;
+use App\Livewire\Dashboard\LinkTable;
+use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -10,6 +12,7 @@ use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -78,12 +81,24 @@ class RemovedLinksTest extends TestCase
             ->assertStatus(404);
 
         $this->actingAs($this->user)
+            ->get("http://dash.ternis.link/links/{$this->link->id}/qr")
+            ->assertStatus(404);
+
+        $this->actingAs($this->user)
+            ->get("http://dash.ternis.link/links/{$this->link->id}/edit")
+            ->assertStatus(404);
+
+        $this->actingAs($this->user)
+            ->get("http://dash.ternis.link/links/{$this->link->id}/export")
+            ->assertStatus(404);
+
+        $this->actingAs($this->user)
             ->get('http://dash.ternis.link')
             ->assertStatus(200)
             ->assertViewHas('stats', fn ($stats) => $stats['total_links'] === 0);
 
         Livewire::actingAs($this->user)
-            ->test(\App\Livewire\Dashboard\LinkTable::class)
+            ->test(LinkTable::class)
             ->assertDontSee('toremove1', escape: false);
     }
 
@@ -103,8 +118,8 @@ class RemovedLinksTest extends TestCase
 
     private function headersFor(User $user): array
     {
-        $raw = 'tl_'.\Illuminate\Support\Str::random(48);
-        \App\Models\ApiKey::create([
+        $raw = 'tl_'.Str::random(48);
+        ApiKey::create([
             'user_id' => $user->id,
             'key_hash' => hash('sha256', $raw),
             'key_prefix' => substr($raw, 0, 8),

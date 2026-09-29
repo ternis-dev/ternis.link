@@ -14,7 +14,7 @@ class JunkUrlDetectorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->detector = new JunkUrlDetector();
+        $this->detector = new JunkUrlDetector;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\ContentCollection;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -116,7 +117,7 @@ class ContentTest extends TestCase
     {
         // Guards new posts against broken front matter or slugs:
         // each entry must render HTML and serve its markdown twin.
-        foreach (\App\Support\ContentCollection::entries('blog') as $entry) {
+        foreach (ContentCollection::entries('blog') as $entry) {
             $this->get("http://ternis.link/pages/blog/{$entry['canonical']}")
                 ->assertStatus(200)
                 ->assertSee($entry['title']);
@@ -126,7 +127,22 @@ class ContentTest extends TestCase
                 ->assertHeader('Content-Type', 'text/markdown; charset=UTF-8');
         }
 
-        $this->assertNotEmpty(\App\Support\ContentCollection::entries('blog'));
+        $this->assertNotEmpty(ContentCollection::entries('blog'));
+    }
+
+    public function test_every_changelog_entry_resolves_with_twin(): void
+    {
+        foreach (ContentCollection::entries('changelog') as $entry) {
+            $this->get("http://ternis.link/pages/changelog/{$entry['canonical']}")
+                ->assertStatus(200)
+                ->assertSee($entry['title']);
+
+            $this->get("http://ternis.link/pages/changelog/{$entry['canonical']}.md")
+                ->assertStatus(200)
+                ->assertHeader('Content-Type', 'text/markdown; charset=UTF-8');
+        }
+
+        $this->assertNotEmpty(ContentCollection::entries('changelog'));
     }
 
     public function test_blog_shortcuts_redirect_to_canonical_home(): void
@@ -161,7 +177,7 @@ class ContentTest extends TestCase
     public function test_entry_navigates_to_neighbors(): void
     {
         // Newest-first: the newest post links back to an older one.
-        $entries = \App\Support\ContentCollection::entries('blog');
+        $entries = ContentCollection::entries('blog');
         $newest = $entries[0]['canonical'];
 
         $body = $this->get("http://ternis.link/pages/blog/{$newest}")

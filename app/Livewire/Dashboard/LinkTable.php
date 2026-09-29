@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
+use App\Services\LinkService;
 use App\Support\Activity;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -105,8 +106,8 @@ class LinkTable extends Component
     {
         // Strictly per-user: cross-user moderation happens on the
         // admin host (Admin\LinkModeration), never from dash.
-        $link = auth()->user()->links()->findOrFail($linkId);
-        $link->update(['is_active' => false]);
+        $link = auth()->user()->links()->notRemoved()->findOrFail($linkId);
+        app(LinkService::class)->deactivate($link);
 
         Activity::record(ActivityLog::LINK_DEACTIVATED, auth()->user(), $link, [
             'slug' => $link->slug,

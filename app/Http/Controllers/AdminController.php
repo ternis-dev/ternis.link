@@ -19,7 +19,7 @@ class AdminController extends Controller
         $stats = [
             'total_users' => User::count(),
             'total_links' => Link::count(),
-            'active_links' => Link::where('is_active', true)->count(),
+            'active_links' => Link::where('is_active', true)->where('is_removed', false)->count(),
             'total_clicks' => Click::count(),
             'total_domains' => Domain::count(),
             'links_today' => Link::where('created_at', '>=', now()->startOfDay())->count(),
@@ -28,12 +28,14 @@ class AdminController extends Controller
             'qr_codes' => QrGeneration::count(),
         ];
 
-        $topLinks = Link::with(['domain', 'user'])
+        $topLinks = Link::notRemoved()
+            ->with(['domain', 'user'])
             ->orderByDesc('click_count')
             ->limit(5)
             ->get();
 
-        $recentLinks = Link::with(['domain', 'user'])
+        $recentLinks = Link::notRemoved()
+            ->with(['domain', 'user'])
             ->orderByDesc('created_at')
             ->limit(5)
             ->get();

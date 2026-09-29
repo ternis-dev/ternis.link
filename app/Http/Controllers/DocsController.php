@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Str;
+
 /**
  * Developer docs on the docs host (docs.ternis.link): renders the
  * Markdown files from docs/*.md as HTML, each with a raw Markdown

@@ -23,6 +23,7 @@ REVERTED: blog UI back to classic list/entry layout per feedback; content contai
 DONE: sitemap reliability (valid XML verified; 30-min per-host cache so crawlers never wait on a cold backend; strict XML + robots/sitemap cross-host tests)
 DONE: SEO batch 2 (2026-09-29) — 4 new posts, 14 total: one-api-key-per-integration (key hygiene + per-key pages), organize-links-with-tags, find-and-fix-dead-links (rot routine), links-that-expire-for-events-and-listings (use-case SEO); all claims verified against code, internal cross-links, ContentTest iterator covers all entries
 DONE: href.re landing page (2026-09-29) — expanded in minimalist grayscale theme: 6 core principles, 3-step how-it-works, 2 use cases, live network telemetry ($stats), 6-item FAQ with Schema.org JSON-LD FAQPage, theme toggle, /_preview/re local route, BusinessLandingTest (27 assertions)
+DONE: web clean-code & audit hardening (2026-09-29) — Pint style compliance across app/tests/routes, QR/edit/export/deactivate consistency with notRemoved scope, Admin overview removed-link filtering, null-safe analytics age divisors, changelog entry for href.re, 548 PHPUnit tests green
 
 Desktop-Application (starting with MacOS)
 

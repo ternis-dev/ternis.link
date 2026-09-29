@@ -10,6 +10,7 @@ use App\Models\QrGeneration;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+
 /**
  * Cached aggregate network stats for the public ternis.link pages
  * (HTML + Markdown twins) and machine-readable files (llms-full.txt).

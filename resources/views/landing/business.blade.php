@@ -216,7 +216,7 @@ $faqJsonLd = array_map(fn ($faq) => [
     </main>
 
     <footer class="mt-16 border-t border-neutral-200 py-6 dark:border-neutral-800">
-        <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">
+        <p class="text-center text-xs text-neutral-500 dark:text-neutral-400">
             href.re — official business shortener by <a href="https://ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">ternis.link</a> · 
             public links: <a href="https://href.nz" class="font-semibold underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">href.nz</a> · 
             <a href="https://ternis.link/pages/legal/privacy" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">privacy</a> · 

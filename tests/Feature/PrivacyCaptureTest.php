@@ -11,6 +11,7 @@ use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -89,7 +90,7 @@ class PrivacyCaptureTest extends TestCase
             'creator_ip_encrypted' => '127.0.0.1',
             'is_active' => true,
         ]);
-        \Illuminate\Support\Facades\DB::table('links')->where('id', $old->id)->update(['created_at' => now()->subDays(40)]);
+        DB::table('links')->where('id', $old->id)->update(['created_at' => now()->subDays(40)]);
         $oldClick = Click::create([
             'link_id' => $old->id,
             'ip_hash' => hash('sha256', '127.0.0.1'),
