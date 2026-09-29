@@ -8,7 +8,7 @@ Every host in the network does exactly one job. Pick the right one and the app b
 |------|-----|--------|
 | `href.nz` | Shortening links as a guest, in English. | Optional |
 | `meinlink.at` | Shortening links as a guest, in German — same rules, own design. | Optional |
-| `href.re` | Official business links (verified gateway, live telemetry & inspector, no guest form). | Required |
+| `href.re` | Official business links. No guest form. | Required |
 | `ternis.link` | Family, relatives, partners. Public network stats live here too. | Required |
 | `dash.ternis.link` | Your dashboard: links, stats, domains, API keys. | Required |
 | `admin.ternis.link` | Admin console: moderation, users, system overview. | Admins only |
