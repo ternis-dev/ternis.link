@@ -172,6 +172,34 @@ class ContentTest extends TestCase
         $this->assertStringContainsString('min read', $body);
         $this->assertStringContainsString('application/ld+json', $body);
         $this->assertStringContainsString('"@type":"BlogPosting"', $body);
+        $this->assertStringContainsString('"wordCount":', $body);
+        $this->assertStringContainsString('"mainEntityOfPage":', $body);
+    }
+
+    public function test_entry_has_canonical_and_open_graph_meta(): void
+    {
+        $body = $this->get('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything')
+            ->assertStatus(200)
+            ->getContent();
+
+        $this->assertStringContainsString('<link rel="canonical" href="http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything">', $body);
+        $this->assertStringContainsString('<meta name="description"', $body);
+        $this->assertStringContainsString('<meta property="og:title"', $body);
+        $this->assertStringContainsString('<meta property="og:type" content="article">', $body);
+        $this->assertStringContainsString('<meta name="twitter:card" content="summary">', $body);
+    }
+
+    public function test_index_has_canonical_and_open_graph_meta(): void
+    {
+        $body = $this->get('http://ternis.link/pages/blog')
+            ->assertStatus(200)
+            ->getContent();
+
+        $this->assertStringContainsString('<link rel="canonical" href="http://ternis.link/pages/blog">', $body);
+        $this->assertStringContainsString('<meta name="description"', $body);
+        $this->assertStringContainsString('<meta property="og:title" content="Blog — ternis.link">', $body);
+        $this->assertStringContainsString('<meta property="og:type" content="website">', $body);
+        $this->assertStringContainsString('<meta name="twitter:card" content="summary">', $body);
     }
 
     public function test_entry_navigates_to_neighbors(): void

@@ -1,5 +1,18 @@
 <x-layouts.app :title="$entry['title'].' — '.$meta['title'].' — ternis.link'">
     <x-slot:head>
+        <link rel="canonical" href="{{ url('/pages/'.$collection.'/'.$entry['canonical']) }}">
+        @if ($entry['description'] !== '')
+            <meta name="description" content="{{ $entry['description'] }}">
+            <meta property="og:description" content="{{ $entry['description'] }}">
+            <meta name="twitter:description" content="{{ $entry['description'] }}">
+        @endif
+        <meta property="og:title" content="{{ $entry['title'] }}">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="{{ url('/pages/'.$collection.'/'.$entry['canonical']) }}">
+        <meta property="og:site_name" content="ternis.link">
+        <meta property="article:published_time" content="{{ $entry['date'] }}">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="{{ $entry['title'] }}">
         <link rel="alternate" type="text/markdown" title="{{ $entry['title'] }} (Markdown)" href="{{ url('/pages/'.$collection.'/'.$entry['canonical'].'.md') }}">
         <script type="application/ld+json">
         {!! json_encode([
@@ -8,7 +21,12 @@
             'headline' => $entry['title'],
             'description' => $entry['description'],
             'datePublished' => $entry['date'],
+            'dateModified' => $entry['date'],
+            'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => url('/pages/'.$collection.'/'.$entry['canonical'])],
+            'url' => url('/pages/'.$collection.'/'.$entry['canonical']),
+            'wordCount' => str_word_count(strip_tags($entry['body'])),
             'author' => ['@type' => 'Organization', 'name' => 'ternis-dev', 'url' => 'https://ternis.dev'],
+            'publisher' => ['@type' => 'Organization', 'name' => 'ternis.link', 'url' => 'https://ternis.link'],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
         </script>
     </x-slot:head>

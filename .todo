@@ -24,6 +24,7 @@ DONE: sitemap reliability (valid XML verified; 30-min per-host cache so crawlers
 DONE: SEO batch 2 (2026-09-29) — 4 new posts, 14 total: one-api-key-per-integration (key hygiene + per-key pages), organize-links-with-tags, find-and-fix-dead-links (rot routine), links-that-expire-for-events-and-listings (use-case SEO); all claims verified against code, internal cross-links, ContentTest iterator covers all entries
 DONE: href.re landing page (2026-09-29) — expanded in minimalist grayscale theme: 6 core principles, 3-step how-it-works, 2 use cases, live network telemetry ($stats), 6-item FAQ with Schema.org JSON-LD FAQPage, theme toggle, /_preview/re local route, BusinessLandingTest (27 assertions)
 DONE: web clean-code & audit hardening (2026-09-29) — Pint style compliance across app/tests/routes, QR/edit/export/deactivate consistency with notRemoved scope, Admin overview removed-link filtering, null-safe analytics age divisors, changelog entry for href.re, 548 PHPUnit tests green
+DONE: SEO batch 3 & metadata overhaul (2026-09-29) — 4 new posts (18 total): high-performance-edge-redirects, privacy-first-link-analytics-without-cookies, separate-domains-for-transactional-and-public-links, direct-vanity-redirects-without-slug-databases; canonical URLs, meta descriptions, OpenGraph, Twitter cards, enriched BlogPosting JSON-LD; 550 tests green
 
 Desktop-Application (starting with MacOS)
 
