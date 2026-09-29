@@ -136,7 +136,7 @@ curl -X DELETE https://links.t-api.de/v1/api-keys/<ulid> -H "Authorization: Bear
 
 ## Request logging
 
-Every `/v1/*` request (public or authenticated, success or error) writes one row to the API request log: method, host, path (no query string), status, duration, IP hash, truncated user-agent, plus user and key IDs when authenticated. Bodies, tokens and raw IPs are never stored; rows are deleted after 90 days (see Privacy Policy).
+Every `/v1/*` request (public or authenticated, success or error) writes one row to the API request log: method, host, path (no query string), status, duration, IP hash, truncated user-agent, plus user and key IDs when authenticated. Bodies, tokens and raw IPs are never stored; rows are kept indefinitely and are not deleted on request (see Privacy Policy).
 
 ## Notifications
 

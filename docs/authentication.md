@@ -20,7 +20,7 @@ Every link a key creates is attributed to it: the dashboard shows a `via <key>` 
 
 Keys have a **Show its links on the dashboard** setting. Turn it off for noisy automation keys: their links disappear from the main list and live only on the key's page (analytics, edit and back-links all stay inside that page). Nothing is moved or deleted — toggling it back restores the old view.
 
-Every API request is logged (method, path, status, duration, IP hash — never bodies, tokens or raw IPs) and request logs are deleted after 90 days. See the Privacy Policy for details.
+Every API request is logged (method, path, status, duration, IP hash — never bodies, tokens or raw IPs) and request logs are kept indefinitely, including against erasure requests. See the Privacy Policy for details.
 
 Use the key as a Bearer token against `https://links.t-api.de/v1`:
 

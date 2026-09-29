@@ -10,5 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('links:deactivate-expired')->daily();
 Schedule::command('privacy:prune-ips')->daily();
-Schedule::command('privacy:prune-api-logs')->daily();
 Schedule::command('env:backup')->dailyAt('03:00');

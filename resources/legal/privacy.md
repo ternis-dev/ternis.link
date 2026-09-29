@@ -12,7 +12,7 @@ This policy explains what data ternis.link collects when you shorten links, open
 
 **API keys and link attribution.** If you create a link through the API with a personal key (`tl_…`), the link stores which key created it (key ID, name and prefix) so you can filter your links per key on the dashboard and in the API. API-token metadata (creation, visibility changes, revocation) is kept in the same activity history as your other actions. Hiding a key's links from the dashboard (`Show its links on the dashboard` off) only changes where they are listed — nothing is deleted or moved.
 
-**API request log.** Every request to the API (`links.t-api.de/v1/*`, authenticated or not) writes one audit row: HTTP method, host, path (without query string), response status, duration in milliseconds, a one-way IP hash, a truncated user-agent string, and — for authenticated calls — your user ID and the API key ID used. Request bodies, query strings, tokens and raw IP addresses are never stored. The log exists for abuse investigation and capacity planning.
+**API request log.** Every request to the API (`links.t-api.de/v1/*`, authenticated or not) writes one audit row: HTTP method, host, path (without query string), response status, duration in milliseconds, a one-way IP hash, a truncated user-agent string, and — for authenticated calls — your user ID and the API key ID used. Request bodies, query strings, tokens and raw IP addresses are never stored. The log exists for abuse investigation and capacity planning. It is kept **indefinitely and is not deleted — not automatically, and not on individual request** (retained as security and abuse evidence, Art. 17(3)(e)); by using the API you accept this.
 
 **Link usage (clicks).** When someone opens a short link we count the visit and store coarse technical data: referrer, browser user-agent, a one-way IP hash (for unique-visitor counts), and an approximate country/city derived once and then kept without the address. For abuse investigation we additionally store the visitor IP **encrypted**, and it is **automatically deleted after 30 days** (see Retention).
 
@@ -42,7 +42,7 @@ We use strictly necessary cookies only: the login session and framework security
 |---|---|
 | Links and their settings | Until you delete/deactivate them (analytics are preserved on deactivation) |
 | Encrypted visitor/creator IPs | **30 days**, then automatically and irreversibly deleted |
-| API request log | **90 days**, then automatically deleted (no aggregates kept) |
+| API request log | **Indefinitely** — never deleted, not automatically and not on individual request (security/abuse evidence, Art. 17(3)(e)) |
 | Activity history (your actions + admin actions on your stuff) | **Indefinitely** — never deleted automatically. Legal basis: legitimate interest in security, abuse prevention and transparency (Art. 6(1)(f)); only IP hashes (never raw addresses), truncated user-agents and labels are stored. Individual erasure requests (Art. 17) are honored on request — contact legal@ternis.dev |
 | API-key attribution on links | As long as the link exists (survives key revocation; cleared only if the key row itself is deleted) |
 | IP hashes | As long as needed for quotas and deduplication |
@@ -55,7 +55,7 @@ We do not sell data and share nothing for marketing. Data is processed on infras
 
 ## Your rights
 
-Access, rectification, erasure, restriction, portability and objection (GDPR Art. 15–21), plus the right to complain to your supervisory authority. Because guest links carry no account, include the short URL(s) in erasure requests so we can find them. Contact: [legal@ternis.dev](mailto:legal@ternis.dev) or [platforms@ternis.dev](mailto:platforms@ternis.dev). Abuse reports: [abuse@ternis.dev](mailto:abuse@ternis.dev).
+Access, rectification, erasure, restriction, portability and objection (GDPR Art. 15–21), plus the right to complain to your supervisory authority. Because guest links carry no account, include the short URL(s) in erasure requests so we can find them. The API request log is excluded from erasure (see Retention). Contact: [legal@ternis.dev](mailto:legal@ternis.dev) or [platforms@ternis.dev](mailto:platforms@ternis.dev). Abuse reports: [abuse@ternis.dev](mailto:abuse@ternis.dev).
 
 ## Changes
 

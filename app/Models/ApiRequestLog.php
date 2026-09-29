@@ -15,13 +15,17 @@ class ApiRequestLog extends Model
     /**
      * Append-only audit rows: created_at is set by the database,
      * updated_at does not exist.
+     *
+     * Deliberately NO retention window: API request logs are kept
+     * indefinitely and are not deleted — not by schedule, not by
+     * operator, not on individual request (product decision; the
+     * log is security/abuse evidence). There is intentionally no
+     * prune command for this table. Note the GDPR tension: refusing
+     * erasure outright is only defensible where retention stays
+     * necessary for legal claims (Art. 17(3)(e)); keep that
+     * assessment on file and review it with counsel.
      */
     public const UPDATED_AT = null;
-
-    /**
-     * Retention window in days (see privacy:prune-api-logs + privacy policy).
-     */
-    public const RETENTION_DAYS = 90;
 
     protected $fillable = [
         'user_id',

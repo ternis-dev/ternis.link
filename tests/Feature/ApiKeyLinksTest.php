@@ -224,7 +224,7 @@ class ApiKeyLinksTest extends TestCase
     {
         $policy = file_get_contents(resource_path('legal/privacy.md'));
         $this->assertStringContainsString('API request log', $policy);
-        $this->assertStringContainsString('90 days', $policy);
+        $this->assertStringContainsString('not on individual request', $policy);
         $this->assertStringContainsString('attribution', strtolower($policy));
     }
 }
