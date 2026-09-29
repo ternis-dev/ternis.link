@@ -228,4 +228,19 @@ class SiteFilesTest extends TestCase
         $this->get('http://ternis.link/pages/legal/terms')
             ->assertSee('/pages/legal/terms.md', escape: false);
     }
+
+    public function test_html_pages_have_canonical_urls(): void
+    {
+        $this->get('http://ternis.link/pages/stats')
+            ->assertSee('<link rel="canonical" href="http://ternis.link/pages/stats">', escape: false);
+
+        $this->get('http://ternis.link/pages/stats/domains')
+            ->assertSee('<link rel="canonical" href="http://ternis.link/pages/stats/domains">', escape: false);
+
+        $this->get('http://ternis.link/pages/extension')
+            ->assertSee('<link rel="canonical" href="http://ternis.link/pages/extension">', escape: false);
+
+        $this->get('http://ternis.link/pages/legal/terms')
+            ->assertSee('<link rel="canonical" href="http://ternis.link/pages/legal/terms">', escape: false);
+    }
 }

@@ -1,5 +1,15 @@
 <x-layouts.app title="Links Per Domain — ternis.link stats">
     <x-slot:head>
+        <link rel="canonical" href="{{ url('/pages/stats/domains') }}">
+        <meta name="description" content="Domain breakdown for the ternis.link network: aggregate link and click volume per domain.">
+        <meta property="og:title" content="Links Per Domain — ternis.link stats">
+        <meta property="og:description" content="Domain breakdown for the ternis.link network: aggregate link and click volume per domain.">
+        <meta property="og:url" content="{{ url('/pages/stats/domains') }}">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="ternis.link">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Links Per Domain — ternis.link stats">
+        <meta name="twitter:description" content="Domain breakdown for the ternis.link network: aggregate link and click volume per domain.">
         <link rel="alternate" type="text/markdown" title="Links Per Domain (Markdown)" href="{{ url('/pages/stats/domains.md') }}">
     </x-slot:head>
     <x-ui.page-header

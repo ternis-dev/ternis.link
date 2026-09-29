@@ -1,5 +1,15 @@
 <x-layouts.app :title="$title.' — ternis.link'">
     <x-slot:head>
+        <link rel="canonical" href="{{ url('/pages/legal/'.$current) }}">
+        <meta name="description" content="{{ $title }} — ternis.link legal documentation and policy.">
+        <meta property="og:title" content="{{ $title }} — ternis.link">
+        <meta property="og:description" content="{{ $title }} — ternis.link legal documentation and policy.">
+        <meta property="og:url" content="{{ url('/pages/legal/'.$current) }}">
+        <meta property="og:type" content="article">
+        <meta property="og:site_name" content="ternis.link">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="{{ $title }} — ternis.link">
+        <meta name="twitter:description" content="{{ $title }} — ternis.link legal documentation and policy.">
         <link rel="alternate" type="text/markdown" title="{{ $title }} (Markdown)" href="{{ url('/pages/legal/'.$current.'.md') }}">
     </x-slot:head>
     <div class="mx-auto max-w-2xl py-12">

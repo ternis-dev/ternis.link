@@ -1,5 +1,15 @@
 <x-layouts.app title="Network Stats — ternis.link">
     <x-slot:head>
+        <link rel="canonical" href="{{ url('/pages/stats') }}">
+        <meta name="description" content="Public, aggregate-only analytics for the whole ternis.link network. No personal data — counts and daily totals, nothing else.">
+        <meta property="og:title" content="Network Stats — ternis.link">
+        <meta property="og:description" content="Public, aggregate-only analytics for the whole ternis.link network.">
+        <meta property="og:url" content="{{ url('/pages/stats') }}">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="ternis.link">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Network Stats — ternis.link">
+        <meta name="twitter:description" content="Public, aggregate-only analytics for the whole ternis.link network.">
         <link rel="alternate" type="text/markdown" title="Network Stats (Markdown)" href="{{ url('/pages/stats.md') }}">
     </x-slot:head>
     <x-ui.page-header

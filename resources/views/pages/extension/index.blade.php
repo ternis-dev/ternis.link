@@ -1,5 +1,15 @@
 <x-layouts.app title="Browser Extension — ternis.link">
     <x-slot:head>
+        <link rel="canonical" href="{{ url('/pages/extension') }}">
+        <meta name="description" content="ternis.link Chrome Extension: shorten links from the toolbar, right-click context menu, or address bar in one click.">
+        <meta property="og:title" content="Browser Extension — ternis.link">
+        <meta property="og:description" content="Shorten any tab in one click with the ternis.link browser extension.">
+        <meta property="og:url" content="{{ url('/pages/extension') }}">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="ternis.link">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Browser Extension — ternis.link">
+        <meta name="twitter:description" content="Shorten any tab in one click with the ternis.link browser extension.">
         <link rel="alternate" type="text/markdown" title="Browser Extension (Markdown)" href="{{ url('/pages/extension.md') }}">
     </x-slot:head>
 
