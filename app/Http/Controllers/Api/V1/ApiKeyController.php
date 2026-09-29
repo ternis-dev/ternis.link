@@ -37,6 +37,7 @@ class ApiKeyController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'show_on_dashboard' => ['sometimes', 'boolean'],
         ]);
 
         $rawKey = 'tl_'.Str::random(48);
@@ -47,11 +48,13 @@ class ApiKeyController extends Controller
             'key_prefix' => substr($rawKey, 0, 8),
             'api_version' => ApiVersion::latestVersion(),
             'name' => $validated['name'],
+            'show_on_dashboard' => $validated['show_on_dashboard'] ?? true,
         ]);
 
         Activity::record(ActivityLog::API_KEY_CREATED, $request->user(), $key, [
             'name' => $key->name,
             'key_prefix' => $key->key_prefix,
+            'show_on_dashboard' => $key->show_on_dashboard,
             'via' => 'api',
         ]);
 
@@ -67,6 +70,38 @@ class ApiKeyController extends Controller
             ...$key->fresh()->toArray(),
             'api_key' => $rawKey,
         ], 201);
+    }
+
+    /**
+     * PATCH /v1/api-keys/{key} — Rename a key or toggle its
+     * dashboard visibility (`show_on_dashboard`). Links are never
+     * moved or deleted; hiding only changes where they are listed.
+     */
+    public function update(Request $request, ApiKey $apiKey): JsonResponse
+    {
+        if ($apiKey->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
+            abort(403, 'You do not own this API key.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'show_on_dashboard' => ['sometimes', 'required', 'boolean'],
+        ]);
+
+        if ($validated === []) {
+            return response()->json($apiKey, 200);
+        }
+
+        $apiKey->update($validated);
+
+        Activity::record(ActivityLog::API_KEY_UPDATED, $request->user(), $apiKey, [
+            'name' => $apiKey->name,
+            'key_prefix' => $apiKey->key_prefix,
+            'show_on_dashboard' => $apiKey->show_on_dashboard,
+            'via' => 'api',
+        ]);
+
+        return response()->json($apiKey->fresh(), 200);
     }
 
     /**

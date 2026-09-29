@@ -21,6 +21,7 @@ class Link extends Model
         'tags',
         'domain_id',
         'user_id',
+        'api_key_id',
         'creator_ip_hash',
         'creator_ip_encrypted',
         'click_count',
@@ -46,6 +47,11 @@ class Link extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function apiKey(): BelongsTo
+    {
+        return $this->belongsTo(ApiKey::class);
     }
 
     public function clicks(): HasMany
@@ -127,5 +133,29 @@ class Link extends Model
     public function scopeNotRemoved(Builder $query): Builder
     {
         return $query->where('is_removed', false);
+    }
+
+    /**
+     * Scope: only links created with the given API key (null =
+     * dashboard-created, i.e. no key involved).
+     */
+    public function scopeForApiKey(Builder $query, ?string $apiKeyId): Builder
+    {
+        return $apiKeyId === null
+            ? $query->whereNull('api_key_id')
+            : $query->where('api_key_id', $apiKeyId);
+    }
+
+    /**
+     * Scope: links visible on the main dashboard list — everything
+     * except links made with a key that opted out via
+     * `show_on_dashboard = false` (those live on their per-key page).
+     */
+    public function scopeVisibleOnDashboard(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->whereNull('api_key_id')
+                ->orWhereHas('apiKey', fn (Builder $keys) => $keys->where('show_on_dashboard', true));
+        });
     }
 }

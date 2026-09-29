@@ -2,8 +2,8 @@
     <x-ui.page-header
         title="Edit Short Link"
         subtitle="Change where it points, when it expires, or switch it off."
-        :backHref="route('dashboard.links')"
-        backLabel="Back to Links"
+        :backHref="$backHref ?? route('dashboard.links')"
+        :backLabel="$backLabel ?? 'Back to Links'"
     />
 
     <div class="max-w-2xl">

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ApiKey extends Model
 {
@@ -17,6 +18,7 @@ class ApiKey extends Model
         'key_prefix',
         'api_version',
         'name',
+        'show_on_dashboard',
         'last_used_at',
         'expires_at',
         'revoked_at',
@@ -24,6 +26,7 @@ class ApiKey extends Model
 
     protected $casts = [
         'api_version' => 'integer',
+        'show_on_dashboard' => 'boolean',
         'last_used_at' => 'datetime',
         'expires_at' => 'datetime',
         'revoked_at' => 'datetime',
@@ -72,6 +75,16 @@ class ApiKey extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function links(): HasMany
+    {
+        return $this->hasMany(Link::class);
+    }
+
+    public function requestLogs(): HasMany
+    {
+        return $this->hasMany(ApiRequestLog::class);
     }
 
     public function apiVersion(): BelongsTo

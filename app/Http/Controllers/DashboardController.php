@@ -58,14 +58,18 @@ class DashboardController extends Controller
      *
      * Strictly per-user: admins manage other users' links from the
      * admin host (Link Moderation), not from dash.ternis.link.
+     *
+     * `?from_api_key=<ulid>` keeps the back-link (and edit link)
+     * inside the per-key page when the user arrived from there.
      */
-    public function showLink(string $link)
+    public function showLink(Request $request, string $link)
     {
-        $link = auth()->user()->links()->notRemoved()->with('domain')->findOrFail($link);
+        $link = auth()->user()->links()->notRemoved()->with(['domain', 'apiKey:id,name,key_prefix'])->findOrFail($link);
 
         $qrSvg = LinkQrCode::svgDataUri($link);
+        ['backHref' => $backHref, 'backLabel' => $backLabel, 'fromApiKey' => $fromApiKey] = $this->linkBackContext($request);
 
-        return view('dashboard.links.show', compact('link', 'qrSvg'));
+        return view('dashboard.links.show', compact('link', 'qrSvg', 'backHref', 'backLabel', 'fromApiKey'));
     }
 
     /**
@@ -73,11 +77,13 @@ class DashboardController extends Controller
      *
      * Strictly per-user (see showLink).
      */
-    public function editLink(string $link)
+    public function editLink(Request $request, string $link)
     {
-        $link = auth()->user()->links()->notRemoved()->with('domain')->findOrFail($link);
+        $link = auth()->user()->links()->notRemoved()->with(['domain', 'apiKey:id,name,key_prefix'])->findOrFail($link);
 
-        return view('dashboard.links.edit', compact('link'));
+        ['backHref' => $backHref, 'backLabel' => $backLabel, 'fromApiKey' => $fromApiKey] = $this->linkBackContext($request);
+
+        return view('dashboard.links.edit', compact('link', 'backHref', 'backLabel', 'fromApiKey'));
     }
 
     /**
@@ -142,6 +148,22 @@ class DashboardController extends Controller
     }
 
     /**
+     * Per-key page: every link created with this API key, regardless
+     * of its `show_on_dashboard` setting. Strictly per-user.
+     */
+    public function showApiKey(string $key)
+    {
+        $apiKey = auth()->user()->apiKeys()->findOrFail($key);
+
+        $stats = [
+            'total_links' => $apiKey->links()->notRemoved()->count(),
+            'total_clicks' => $apiKey->links()->notRemoved()->sum('click_count'),
+        ];
+
+        return view('dashboard.api-keys.show', compact('apiKey', 'stats'));
+    }
+
+    /**
      * Custom domains management page (Livewire: DomainManager).
      */
     public function domains()
@@ -201,5 +223,33 @@ class DashboardController extends Controller
             ->paginate(25);
 
         return view('dashboard.activity.index', compact('entries'));
+    }
+
+    /**
+     * Back-link context for link detail/edit pages. When `from_api_key`
+     * names an owned key, point back at its per-key page; otherwise
+     * fall back to the main links list. Returns the href, label, and
+     * the validated key id (for forwarding to edit/analytics links).
+     *
+     * @return array{backHref: string, backLabel: string, fromApiKey: ?string}
+     */
+    private function linkBackContext(Request $request): array
+    {
+        $fromApiKey = $request->query('from_api_key');
+
+        if (is_string($fromApiKey) && $fromApiKey !== ''
+            && auth()->user()->apiKeys()->whereKey($fromApiKey)->exists()) {
+            return [
+                'backHref' => route('dashboard.api-keys.show', $fromApiKey),
+                'backLabel' => 'Back to API key links',
+                'fromApiKey' => $fromApiKey,
+            ];
+        }
+
+        return [
+            'backHref' => route('dashboard.links'),
+            'backLabel' => 'Back to Links',
+            'fromApiKey' => null,
+        ];
     }
 }

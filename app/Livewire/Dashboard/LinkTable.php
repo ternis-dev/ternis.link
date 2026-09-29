@@ -23,6 +23,18 @@ class LinkTable extends Component
 
     public string $tag = '';
 
+    /**
+     * API-key filter: '' = all visible, 'none' = dashboard-created
+     * (no key), otherwise an owned ApiKey ULID.
+     */
+    public string $apiKeyFilter = '';
+
+    /**
+     * Locked key scope for the per-key page: when set, the filter
+     * dropdown is hidden and the query is pinned to this key.
+     */
+    public ?string $lockedApiKeyId = null;
+
     public string $sortBy = 'created_at';
 
     public string $sortDir = 'desc';
@@ -60,6 +72,21 @@ class LinkTable extends Component
         $this->resetPage();
     }
 
+    public function updatingApiKeyFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function mount(?string $apiKeyId = null): void
+    {
+        // Embedded on the per-key page: pin the scope and mirror it
+        // into the filter so the query below needs a single branch.
+        if ($apiKeyId !== null && $apiKeyId !== '') {
+            $this->lockedApiKeyId = $apiKeyId;
+            $this->apiKeyFilter = $apiKeyId;
+        }
+    }
+
     public function sort(string $column): void
     {
         if (! in_array($column, self::SORTABLE, true)) {
@@ -83,6 +110,7 @@ class LinkTable extends Component
 
         Activity::record(ActivityLog::LINK_DEACTIVATED, auth()->user(), $link, [
             'slug' => $link->slug,
+            'via' => 'dashboard',
         ]);
     }
 
@@ -91,10 +119,25 @@ class LinkTable extends Component
         $sortBy = in_array($this->sortBy, self::SORTABLE, true) ? $this->sortBy : 'created_at';
         $sortDir = $this->sortDir === 'asc' ? 'asc' : 'desc';
 
-        $base = auth()->user()->links()->notRemoved();
+        $user = auth()->user();
+        $base = $user->links()->notRemoved();
+
+        // Owned keys for the origin filter (id => label). Revoked keys
+        // stay listed so their historical links remain findable.
+        $apiKeys = $user->apiKeys()->orderByDesc('created_at')->get(['id', 'name', 'key_prefix', 'show_on_dashboard']);
+
+        // A locked per-key page trusts its own mount value; the free
+        // filter only accepts owned keys (or 'none') and falls back
+        // to "all visible" on anything else.
+        $effectiveFilter = $this->lockedApiKeyId ?? $this->apiKeyFilter;
+        if ($this->lockedApiKeyId === null
+            && $effectiveFilter !== '' && $effectiveFilter !== 'none'
+            && ! $apiKeys->contains('id', $effectiveFilter)) {
+            $effectiveFilter = '';
+        }
 
         $links = $base
-            ->with(['domain', 'user'])
+            ->with(['domain', 'user', 'apiKey:id,name,key_prefix'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('slug', 'like', "%{$this->search}%")
@@ -104,14 +147,30 @@ class LinkTable extends Component
                 });
             })
             ->when($this->tag, fn ($query) => $query->where('tags', 'like', '%"'.strtolower($this->tag).'"%'))
+            ->when(true, function ($query) use ($effectiveFilter) {
+                if ($effectiveFilter === 'none') {
+                    $query->whereNull('api_key_id');
+                } elseif ($effectiveFilter !== '') {
+                    $query->where('api_key_id', $effectiveFilter);
+                } else {
+                    // Default view: hide links whose key opted out of
+                    // the dashboard (they live on their per-key page).
+                    $query->visibleOnDashboard();
+                }
+            })
             ->orderBy($sortBy, $sortDir)
             ->paginate(20);
 
         $visibleColumns = $this->visibleColumns();
 
+        // Preserve the back-link context (per-key page) on row links.
+        $fromApiKey = $this->lockedApiKeyId ?? ($effectiveFilter !== '' && $effectiveFilter !== 'none' ? $effectiveFilter : null);
+
         return view('livewire.dashboard.link-table', [
             'links' => $links,
             'availableTags' => $this->availableTags($base),
+            'apiKeys' => $apiKeys,
+            'fromApiKey' => $fromApiKey,
             'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visibleColumns,
             'columnCount' => count($visibleColumns) + 1, // + fixed Actions column

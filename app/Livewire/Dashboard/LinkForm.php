@@ -215,6 +215,7 @@ class LinkForm extends Component
         Activity::record(ActivityLog::LINK_CREATED, $user, $link, [
             'slug' => $link->slug,
             'domain' => $domain->hostname,
+            'via' => 'dashboard',
         ]);
 
         if ($this->modal) {

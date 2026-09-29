@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
+use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -131,6 +132,10 @@ class LinkService
      * Authenticated auto-generated slugs use the owner's plan minimum
      * (falling back to AUTHENTICATED_DEFAULT_SLUG_LENGTH).
      *
+     * Pass $apiKey when the link is created through the API with a
+     * personal key so the row is attributed to it (links.api_key_id).
+     * Dashboard creations and SSO-token API calls leave it null.
+     *
      * @throws ValidationException On slug or daily-quota violations (HTTP 422).
      * @throws JunkUrlException On scanner-junk destinations (HTTP 422).
      * @throws UnsafeUrlException On structurally unsafe guest destinations (HTTP 422).
@@ -147,6 +152,7 @@ class LinkService
         ?string $description = null,
         array|string|null $tags = null,
         ?string $creatorIp = null,
+        ?ApiKey $apiKey = null,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -216,6 +222,13 @@ class LinkService
             $slug = $this->slugGenerator->generate($generatedLength, $domain->id);
         }
 
+        // An API key only ever attributes links of its own owner —
+        // a programming error passing a foreign key degrades to
+        // unattributed (NULL) instead of corrupt cross-user data.
+        $attributedKeyId = $apiKey !== null && $user !== null && $apiKey->user_id === $user->id
+            ? $apiKey->getKey()
+            : null;
+
         $link = Link::create([
             'slug' => $slug,
             'destination_url' => $destinationUrl,
@@ -223,6 +236,7 @@ class LinkService
             'tags' => ($normalizedTags = self::normalizeTags($tags)) !== [] ? $normalizedTags : null,
             'domain_id' => $domain->id,
             'user_id' => $user?->id,
+            'api_key_id' => $attributedKeyId,
             'creator_ip_hash' => $creatorIpHash,
             'creator_ip_encrypted' => IpCapture::enabled() ? $creatorIp : null,
             'is_active' => true,

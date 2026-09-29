@@ -15,10 +15,13 @@ class ApiKeyManager extends Component
 {
     public string $keyName = '';
 
+    public bool $newKeyShowOnDashboard = true;
+
     public ?string $newlyCreatedKey = null;
 
     protected array $rules = [
         'keyName' => ['required', 'string', 'max:255'],
+        'newKeyShowOnDashboard' => ['boolean'],
     ];
 
     /**
@@ -39,11 +42,13 @@ class ApiKeyManager extends Component
             'key_prefix' => substr($rawKey, 0, 8),
             'api_version' => ApiVersion::latestVersion(),
             'name' => $this->keyName,
+            'show_on_dashboard' => $this->newKeyShowOnDashboard,
         ]);
 
         Activity::record(ActivityLog::API_KEY_CREATED, auth()->user(), $key, [
             'name' => $key->name,
             'key_prefix' => $key->key_prefix,
+            'show_on_dashboard' => $key->show_on_dashboard,
         ]);
 
         Notifier::security(
@@ -57,6 +62,24 @@ class ApiKeyManager extends Component
         // Show the key to the user ONCE
         $this->newlyCreatedKey = $rawKey;
         $this->keyName = '';
+        $this->newKeyShowOnDashboard = true;
+    }
+
+    /**
+     * Toggle whether links made with this key appear on the main
+     * dashboard list. Hidden keys keep their links on a dedicated
+     * per-key page (nothing is moved or deleted).
+     */
+    public function toggleVisibility(string $keyId): void
+    {
+        $key = auth()->user()->apiKeys()->findOrFail($keyId);
+        $key->update(['show_on_dashboard' => ! $key->show_on_dashboard]);
+
+        Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
+            'name' => $key->name,
+            'key_prefix' => $key->key_prefix,
+            'show_on_dashboard' => $key->fresh()->show_on_dashboard,
+        ]);
     }
 
     public function revokeKey(string $keyId): void

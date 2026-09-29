@@ -4,6 +4,7 @@ use App\Http\Middleware\AuthenticateApi;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\EnsureApiVersion;
 use App\Http\Middleware\EnsureDomainType;
+use App\Http\Middleware\LogApiRequest;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ErrorEncounter;
@@ -42,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.api-version' => EnsureApiVersion::class,
             'refresh.sso' => RefreshSsoToken::class,
             'auth.api' => AuthenticateApi::class,
+            'log.api-request' => LogApiRequest::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -16,6 +16,12 @@ Your role decides which corners of the network you can use: regular members get 
 
 API keys let scripts and apps act as you. Create one in the dashboard under API keys: you see the full key **once** — it starts with `tl_` — after that only a masked prefix (`tl_abc1****`) is shown. Only a hash of the key is stored, so a leaked database can't leak your keys. Revoke a key the moment you don't need it anymore.
 
+Every link a key creates is attributed to it: the dashboard shows a `via <key>` hint, the API returns `api_key` (name + prefix), and the activity entry records key ID, name and prefix. Filter the links list by origin (All origins / Dashboard only / one key), or open a key's own page (API keys → Links) for everything that key made.
+
+Keys have a **Show its links on the dashboard** setting. Turn it off for noisy automation keys: their links disappear from the main list and live only on the key's page (analytics, edit and back-links all stay inside that page). Nothing is moved or deleted — toggling it back restores the old view.
+
+Every API request is logged (method, path, status, duration, IP hash — never bodies, tokens or raw IPs) and request logs are deleted after 90 days. See the Privacy Policy for details.
+
 Use the key as a Bearer token against `https://links.t-api.de/v1`:
 
 ```bash

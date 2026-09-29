@@ -16,6 +16,17 @@
                     @endforeach
                 </x-ui.select>
             @endif
+            @if (! isset($lockedApiKeyId) || $lockedApiKeyId === null)
+                @if (isset($apiKeys) && $apiKeys->isNotEmpty())
+                    <x-ui.select name="table-api-key" wire:model.live="apiKeyFilter" class="w-auto" aria-label="Filter by API key">
+                        <option value="">All origins</option>
+                        <option value="none">Dashboard only</option>
+                        @foreach ($apiKeys as $apiKey)
+                            <option value="{{ $apiKey->id }}">{{ $apiKey->name }} ({{ $apiKey->key_prefix }}…)</option>
+                        @endforeach
+                    </x-ui.select>
+                @endif
+            @endif
         </div>
         <div class="flex items-center gap-2">
             @include('livewire.partials.column-customizer')
@@ -55,13 +66,19 @@
         </thead>
         <tbody>
             @forelse ($links as $link)
+                @php
+                    $rowQuery = isset($fromApiKey) && $fromApiKey ? ['from_api_key' => $fromApiKey] : [];
+                @endphp
                 <tr>
                     @foreach ($visibleColumns as $column)
                         @if ($column === 'slug')
                             <td>
-                                <a href="{{ route('dashboard.links.show', $link->id) }}" class="font-semibold underline-offset-2 hover:underline">
+                                <a href="{{ route('dashboard.links.show', array_merge([$link->id], $rowQuery)) }}" class="font-semibold underline-offset-2 hover:underline">
                                     {{ $link->slug }}
                                 </a>
+                                @if ($link->apiKey)
+                                    <p class="mt-0.5 text-[11px] text-neutral-400 dark:text-neutral-600" title="Created with API key {{ $link->apiKey->name }}">via {{ $link->apiKey->name }}</p>
+                                @endif
                             </td>
                         @elseif ($column === 'destination')
                             <td class="max-w-[300px]">
@@ -106,8 +123,8 @@
                     @endforeach
                     <td>
                         <div class="flex gap-2">
-                            <x-ui.button href="{{ route('dashboard.links.show', $link->id) }}" size="sm">Analytics</x-ui.button>
-                            <x-ui.button href="{{ route('dashboard.links.edit', $link->id) }}" size="sm">Edit</x-ui.button>
+                            <x-ui.button href="{{ route('dashboard.links.show', array_merge([$link->id], $rowQuery)) }}" size="sm">Analytics</x-ui.button>
+                            <x-ui.button href="{{ route('dashboard.links.edit', array_merge([$link->id], $rowQuery)) }}" size="sm">Edit</x-ui.button>
                             @if ($link->is_active)
                                 <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
                             @endif

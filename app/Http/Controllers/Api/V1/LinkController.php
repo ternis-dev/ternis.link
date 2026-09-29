@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreLinkRequest;
 use App\Http\Requests\UpdateLinkRequest;
 use App\Models\ActivityLog;
+use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
@@ -26,7 +27,9 @@ class LinkController extends Controller
      *
      * Admins list ALL links by default (`?scope=mine` restricts to their
      * own); regular users list their own links only. `?tag=` filters to
-     * links carrying that exact tag.
+     * links carrying that exact tag. `?api_key_id=` filters to links
+     * created with one API key (`none` = dashboard-created, i.e. no
+     * key involved).
      */
     public function index(Request $request): JsonResponse
     {
@@ -34,10 +37,22 @@ class LinkController extends Controller
         $adminAll = $user->isAdmin() && $request->query('scope', 'all') === 'all';
 
         $tag = strtolower(trim((string) $request->query('tag', '')));
+        $apiKeyFilter = trim((string) $request->query('api_key_id', $request->query('api_key', '')));
 
         $links = ($adminAll ? Link::query() : $user->links())->notRemoved()
-            ->with($adminAll ? ['domain', 'user'] : 'domain')
+            ->with($adminAll ? ['domain', 'user', 'apiKey:id,name,key_prefix'] : ['domain', 'apiKey:id,name,key_prefix'])
             ->when($tag !== '', fn ($query) => $query->where('tags', 'like', '%"'.$tag.'"%'))
+            ->when($apiKeyFilter !== '', function ($query) use ($apiKeyFilter, $user, $adminAll) {
+                if ($apiKeyFilter === 'none') {
+                    $query->whereNull('api_key_id');
+                } else {
+                    // Non-admins may only filter by their own keys.
+                    if (! $adminAll && ! $user->apiKeys()->whereKey($apiKeyFilter)->exists()) {
+                        abort(403, 'You do not own this API key.');
+                    }
+                    $query->where('api_key_id', $apiKeyFilter);
+                }
+            })
             ->orderByDesc('created_at')
             ->paginate(25);
 
@@ -46,12 +61,19 @@ class LinkController extends Controller
 
     /**
      * POST /v1/links — Create a new short link.
+     *
+     * The resolving API key (if any) is stored on the link
+     * (links.api_key_id) and in the activity metadata so every
+     * token-created link stays attributable.
      */
     public function store(StoreLinkRequest $request): JsonResponse
     {
         $domain = Domain::findOrFail($request->validated('domain_id'));
         $user = $request->user();
         $customSlug = $request->validated('slug');
+
+        /** @var ApiKey|null $apiKey */
+        $apiKey = $request->attributes->get('api_key');
 
         // A custom slug always wins; the picker only sizes generated ones.
         // Unvalidated (ineligible) values never reach the service.
@@ -70,15 +92,20 @@ class LinkController extends Controller
             generatedLength: $generatedLength,
             description: $request->validated('description'),
             tags: $request->validated('tags'),
+            apiKey: $apiKey,
         );
 
-        Activity::record(ActivityLog::LINK_CREATED, $user, $link, [
+        Activity::record(ActivityLog::LINK_CREATED, $user, $link, array_filter([
             'slug' => $link->slug,
             'domain' => $domain->hostname,
             'via' => 'api',
-        ]);
+            'auth_via' => $request->attributes->get('auth_via', 'api-key'),
+            'api_key_id' => $apiKey?->getKey(),
+            'api_key_name' => $apiKey?->name,
+            'api_key_prefix' => $apiKey?->key_prefix,
+        ], fn ($value) => $value !== null));
 
-        return response()->json($link->load('domain'), 201);
+        return response()->json($link->load(['domain', 'apiKey:id,name,key_prefix']), 201);
     }
 
     /**
@@ -94,7 +121,7 @@ class LinkController extends Controller
             abort(403, 'You do not own this link.');
         }
 
-        return response()->json($link->load('domain'));
+        return response()->json($link->load(['domain', 'apiKey:id,name,key_prefix']));
     }
 
     /**
@@ -144,12 +171,18 @@ class LinkController extends Controller
 
         $link = $this->linkService->update($link, $request->validated());
 
-        Activity::record(ActivityLog::LINK_UPDATED, $request->user(), $link, [
+        /** @var ApiKey|null $apiKey */
+        $apiKey = $request->attributes->get('api_key');
+
+        Activity::record(ActivityLog::LINK_UPDATED, $request->user(), $link, array_filter([
             'slug' => $link->slug,
             'via' => 'api',
-        ]);
+            'auth_via' => $request->attributes->get('auth_via', 'api-key'),
+            'api_key_id' => $apiKey?->getKey(),
+            'api_key_prefix' => $apiKey?->key_prefix,
+        ], fn ($value) => $value !== null));
 
-        return response()->json($link->load('domain'));
+        return response()->json($link->load(['domain', 'apiKey:id,name,key_prefix']));
     }
 
     /**
@@ -167,10 +200,16 @@ class LinkController extends Controller
 
         $this->linkService->deactivate($link);
 
-        Activity::record(ActivityLog::LINK_DEACTIVATED, $request->user(), $link, [
+        /** @var ApiKey|null $apiKey */
+        $apiKey = $request->attributes->get('api_key');
+
+        Activity::record(ActivityLog::LINK_DEACTIVATED, $request->user(), $link, array_filter([
             'slug' => $link->slug,
             'via' => 'api',
-        ]);
+            'auth_via' => $request->attributes->get('auth_via', 'api-key'),
+            'api_key_id' => $apiKey?->getKey(),
+            'api_key_prefix' => $apiKey?->key_prefix,
+        ], fn ($value) => $value !== null));
 
         return response()->json(null, 204);
     }

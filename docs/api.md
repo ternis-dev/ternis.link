@@ -36,11 +36,18 @@ curl https://links.t-api.de/v1/
 curl "https://links.t-api.de/v1/links?tag=launch" \
   -H "Authorization: Bearer tl_your_key_here"
 
+# Only links made with one API key (?api_key_id=<ulid>; ?api_key_id=none = dashboard-created)
+curl "https://links.t-api.de/v1/links?api_key_id=<key-ulid>" \
+  -H "Authorization: Bearer tl_your_key_here"
+
 # Create (custom slug optional; plan minimum length applies; domains must be verified)
 curl -X POST https://links.t-api.de/v1/links \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{"destination_url": "https://example.com/very-long-page", "domain_id": "<ulid>", "slug": "my-launch", "tags": ["launch"]}'
+```
+
+Every link created with a personal key stores that key (`api_key_id`, exposed as `api_key` with name/prefix on responses) and logs it in the activity history (`link.created` with `api_key_id`, `api_key_name`, `api_key_prefix`, `auth_via`). SSO-token calls leave `api_key_id` empty. Filter the dashboard list by origin (All origins / Dashboard only / one key) or open a key's dedicated page under API keys.
 
 # Show / update / deactivate (deleting stops resolution; stats stay)
 curl https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
@@ -110,14 +117,26 @@ curl -X DELETE https://links.t-api.de/v1/domains/<ulid> -H "Authorization: Beare
 curl https://links.t-api.de/v1/api-keys -H "Authorization: Bearer tl_your_key_here"
 
 # Create — the raw token comes back as api_key exactly once
+# show_on_dashboard=false hides the key's links from the main
+# dashboard list (they stay on the key's own page)
 curl -X POST https://links.t-api.de/v1/api-keys \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{"name": "ci-runner"}'
+  -d '{"name": "ci-runner", "show_on_dashboard": false}'
+
+# Rename or toggle dashboard visibility (nothing is moved or deleted)
+curl -X PATCH https://links.t-api.de/v1/api-keys/<ulid> \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"show_on_dashboard": true}'
 
 # Revoke
 curl -X DELETE https://links.t-api.de/v1/api-keys/<ulid> -H "Authorization: Bearer tl_your_key_here"
 ```
+
+## Request logging
+
+Every `/v1/*` request (public or authenticated, success or error) writes one row to the API request log: method, host, path (no query string), status, duration, IP hash, truncated user-agent, plus user and key IDs when authenticated. Bodies, tokens and raw IPs are never stored; rows are deleted after 90 days (see Privacy Policy).
 
 ## Notifications
 

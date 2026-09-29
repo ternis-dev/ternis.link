@@ -1,6 +1,6 @@
 # Privacy Policy
 
-> Last updated: 2026-09-24
+> Last updated: 2026-09-29
 
 This policy explains what data ternis.link collects when you shorten links, open short links, or use the dashboard — and your rights over that data.
 
@@ -9,6 +9,10 @@ This policy explains what data ternis.link collects when you shorten links, open
 ## What we collect
 
 **Short links you create.** Destination URL, short code, domain, and optional description, tags and expiry. Guest links additionally store a one-way hash of your IP address to enforce the daily fair-use quota — never the address itself.
+
+**API keys and link attribution.** If you create a link through the API with a personal key (`tl_…`), the link stores which key created it (key ID, name and prefix) so you can filter your links per key on the dashboard and in the API. API-token metadata (creation, visibility changes, revocation) is kept in the same activity history as your other actions. Hiding a key's links from the dashboard (`Show its links on the dashboard` off) only changes where they are listed — nothing is deleted or moved.
+
+**API request log.** Every request to the API (`links.t-api.de/v1/*`, authenticated or not) writes one audit row: HTTP method, host, path (without query string), response status, duration in milliseconds, a one-way IP hash, a truncated user-agent string, and — for authenticated calls — your user ID and the API key ID used. Request bodies, query strings, tokens and raw IP addresses are never stored. The log exists for abuse investigation and capacity planning.
 
 **Link usage (clicks).** When someone opens a short link we count the visit and store coarse technical data: referrer, browser user-agent, a one-way IP hash (for unique-visitor counts), and an approximate country/city derived once and then kept without the address. For abuse investigation we additionally store the visitor IP **encrypted**, and it is **automatically deleted after 30 days** (see Retention).
 
@@ -38,6 +42,8 @@ We use strictly necessary cookies only: the login session and framework security
 |---|---|
 | Links and their settings | Until you delete/deactivate them (analytics are preserved on deactivation) |
 | Encrypted visitor/creator IPs | **30 days**, then automatically and irreversibly deleted |
+| API request log | **90 days**, then automatically deleted (no aggregates kept) |
+| API-key attribution on links | As long as the link exists (survives key revocation; cleared only if the key row itself is deleted) |
 | IP hashes | As long as needed for quotas and deduplication |
 | Accounts | Until you stop using SSO sign-in and ask for deletion |
 | Error log entries | 90 days |

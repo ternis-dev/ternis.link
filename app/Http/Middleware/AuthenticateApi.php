@@ -35,6 +35,11 @@ class AuthenticateApi
             }
 
             $apiKey->touchLastUsed();
+            // Expose the key for attribution (link creation) and audit
+            // logging (LogApiRequest reads this after the response).
+            // Never expose the raw token — only the resolved model.
+            $request->attributes->set('api_key', $apiKey);
+            $request->attributes->set('auth_via', 'api-key');
             $request->setUserResolver(fn () => $apiKey->user);
             auth()->setUser($apiKey->user);
 
@@ -64,6 +69,7 @@ class AuthenticateApi
             return response()->json(['message' => 'User not found. Please log in via the dashboard first.'], 401);
         }
 
+        $request->attributes->set('auth_via', 'sso');
         $request->setUserResolver(fn () => $user);
         auth()->setUser($user);
 

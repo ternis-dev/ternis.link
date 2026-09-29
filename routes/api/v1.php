@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\PublicQrCodeController;
 use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\VersionController;
 use App\Http\Middleware\AuthenticateApi;
+use App\Http\Middleware\LogApiRequest;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,13 +28,13 @@ use Illuminate\Support\Facades\Route;
 
 // Version metadata (public, no auth) — also the landing target of
 // links.t-api.de/ (/v{latest}/), so it must never 404 while v1 exists.
-Route::middleware(['ensure.domain:api', 'ensure.api-version:1', 'throttle:api'])->get('/', [VersionController::class, 'show']);
+Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, 'throttle:api'])->get('/', [VersionController::class, 'show']);
 
 // Public: anonymous link creation (IP-throttled, no auth).
-Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', 'throttle:10,1'])->post('links/public', [PublicLinkController::class, 'store']);
-Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', 'throttle:10,1'])->get('qr', PublicQrCodeController::class);
+Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', LogApiRequest::class, 'throttle:10,1'])->post('links/public', [PublicLinkController::class, 'store']);
+Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', LogApiRequest::class, 'throttle:10,1'])->get('qr', PublicQrCodeController::class);
 
-Route::middleware(['ensure.domain:api', 'ensure.api-version:1', AuthenticateApi::class, 'throttle:api'])->group(function () {
+Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, AuthenticateApi::class, 'throttle:api'])->group(function () {
     // Links CRUD
     Route::get('links/{link}/qr', [LinkController::class, 'qr']);
     Route::apiResource('links', LinkController::class);
@@ -48,6 +49,7 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', AuthenticateApi:
     // API keys (raw token returned once on create, never stored)
     Route::get('api-keys', [ApiKeyController::class, 'index']);
     Route::post('api-keys', [ApiKeyController::class, 'store']);
+    Route::patch('api-keys/{apiKey}', [ApiKeyController::class, 'update']);
     Route::delete('api-keys/{apiKey}', [ApiKeyController::class, 'destroy']);
 
     // Notifications inbox (database notifications, newest first)

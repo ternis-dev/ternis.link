@@ -33,8 +33,15 @@
                     required
                 />
             </div>
+            <label class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <input type="checkbox" wire:model="newKeyShowOnDashboard" class="h-4 w-4 rounded" />
+                Show its links on the dashboard
+            </label>
             <x-ui.button type="submit" variant="primary">Generate Key</x-ui.button>
         </form>
+        <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+            Unchecked keys hide their links from the main list — they stay visible on a dedicated per-key page.
+        </p>
     </x-ui.card>
 
     <x-ui.card title="Active API Keys">
@@ -46,6 +53,7 @@
                     <th>API Version</th>
                     <th>Created</th>
                     <th>Last Used</th>
+                    <th>Dashboard</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -53,12 +61,19 @@
             <tbody>
                 @forelse ($apiKeys as $key)
                     <tr>
-                        <td class="font-semibold">{{ $key->name }}</td>
+                        <td class="font-semibold">
+                            <a href="{{ route('dashboard.api-keys.show', $key->id) }}" class="underline-offset-2 hover:underline">{{ $key->name }}</a>
+                        </td>
                         <td><code>{{ $key->masked_key }}</code></td>
                         <td>v{{ $key->api_version }}</td>
                         <td class="text-xs text-neutral-500">{{ $key->created_at->format('M d, Y') }}</td>
                         <td class="text-xs text-neutral-500">
                             {{ $key->last_used_at ? $key->last_used_at->diffForHumans() : 'Never' }}
+                        </td>
+                        <td>
+                            <button type="button" wire:click="toggleVisibility('{{ $key->id }}')" title="Toggle dashboard visibility" class="cursor-pointer text-xs underline underline-offset-2">
+                                {{ $key->show_on_dashboard ? 'Shown' : 'Hidden' }}
+                            </button>
                         </td>
                         <td>
                             @if ($key->isValid())
@@ -68,16 +83,19 @@
                             @endif
                         </td>
                         <td>
-                            @if ($key->isValid())
-                                <x-ui.button wire:click="revokeKey('{{ $key->id }}')" wire:confirm="Revoke this API key immediately?" size="sm" variant="danger">Revoke</x-ui.button>
-                            @else
-                                <span class="text-xs text-neutral-500">Revoked</span>
-                            @endif
+                            <div class="flex gap-2">
+                                <x-ui.button href="{{ route('dashboard.api-keys.show', $key->id) }}" size="sm">Links</x-ui.button>
+                                @if ($key->isValid())
+                                    <x-ui.button wire:click="revokeKey('{{ $key->id }}')" wire:confirm="Revoke this API key immediately?" size="sm" variant="danger">Revoke</x-ui.button>
+                                @else
+                                    <span class="text-xs text-neutral-500">Revoked</span>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7">
+                        <td colspan="8">
                             <x-ui.empty-state>No API keys yet. Generate one above to access the API.</x-ui.empty-state>
                         </td>
                     </tr>

@@ -1,8 +1,11 @@
 <x-layouts.dashboard title="Link Analytics — {{ $link->slug }}">
+    @php
+        $query = isset($fromApiKey) && $fromApiKey ? ['from_api_key' => $fromApiKey] : [];
+    @endphp
     <x-ui.page-header
         :title="($link->domain->hostname ?? 'href.nz').'/'.$link->slug"
-        :backHref="route('dashboard.links')"
-        backLabel="Back to Links"
+        :backHref="$backHref ?? route('dashboard.links')"
+        :backLabel="$backLabel ?? 'Back to Links'"
     >
         <x-slot:subtitle>
             Target: <a href="{{ $link->destination_url }}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">{{ $link->destination_url }}</a>
@@ -18,7 +21,7 @@
             @endif
         </x-slot:subtitle>
         <x-slot:actions>
-            <x-ui.button href="{{ route('dashboard.links.edit', $link->id) }}" size="sm">Edit Link</x-ui.button>
+            <x-ui.button href="{{ route('dashboard.links.edit', array_merge([$link->id], $query)) }}" size="sm">Edit Link</x-ui.button>
             <x-ui.button href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" size="sm" target="_blank">Visit Link ↗</x-ui.button>
             <x-ui.button href="{{ route('dashboard.links.qr', $link->id) }}" size="sm">Download QR</x-ui.button>
         </x-slot:actions>

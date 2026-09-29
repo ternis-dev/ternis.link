@@ -27,6 +27,8 @@ class ActivityLog extends Model
 
     public const API_KEY_CREATED = 'api_key.created';
 
+    public const API_KEY_UPDATED = 'api_key.updated';
+
     public const API_KEY_REVOKED = 'api_key.revoked';
 
     public const AUTH_LOGIN = 'auth.login';
