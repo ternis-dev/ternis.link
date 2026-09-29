@@ -14,6 +14,18 @@
             </x-slot:actions>
         </x-layouts.public-error>
     @endif
+@elseif (request()->attributes->get('domain_type') === 'business')
+    <x-layouts.app title="Link Not Found — href.re">
+        <div class="mx-auto flex max-w-xl flex-col items-center py-16 text-center">
+            <div class="font-display text-7xl font-bold tracking-tight">404</div>
+            <h1 class="mt-3 text-xl font-semibold">Business Link Not Found</h1>
+            <p class="mt-2 text-neutral-500 dark:text-neutral-400">The business redirect <code>{{ $slug }}</code> on <code>{{ $domain ?? request()->getHost() }}</code> was not found, is inactive, or has expired.</p>
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <x-ui.button href="/" variant="primary">Return to href.re</x-ui.button>
+                <x-ui.button href="https://href.nz" variant="secondary">Open href.nz</x-ui.button>
+            </div>
+        </div>
+    </x-layouts.app>
 @else
     <x-layouts.app title="Link Not Found — ternis.link">
         <div class="mx-auto flex max-w-xl flex-col items-center py-16 text-center">

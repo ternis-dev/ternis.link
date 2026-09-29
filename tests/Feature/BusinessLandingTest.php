@@ -102,4 +102,15 @@ class BusinessLandingTest extends TestCase
         $this->assertNotFalse($doc);
         $this->assertNotEmpty($doc->url);
     }
+
+    public function test_href_re_unknown_slug_returns_business_not_found(): void
+    {
+        $response = $this->get('http://href.re/unknownbizlink');
+
+        $response->assertStatus(404);
+        $response->assertSee('Business Link Not Found', escape: false);
+        $response->assertSee('unknownbizlink', escape: false);
+        $response->assertSee('href.re', escape: false);
+        $response->assertSee('Return to href.re', escape: false);
+    }
 }
