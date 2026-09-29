@@ -86,16 +86,20 @@ class AnalyticsPolishTest extends TestCase
             ->get("http://dash.ternis.link/links/{$this->link->id}");
 
         $response->assertStatus(200);
-        $response->assertSee('No clicks in the last 30 days yet');
+        $response->assertSee('No clicks in the last 7 days yet');
     }
 
     public function test_analytics_period_switching(): void
     {
+        // Old enough for every window (young links are capped, see below).
+        $this->link->created_at = now()->subDays(100);
+        $this->link->save();
+
         $this->recordClick(['created_at' => now()->subDays(2)]);
         $this->recordClick(['created_at' => now()->subDays(60), 'ip_hash' => hash('sha256', 'old')]);
 
         $test = Livewire::actingAs($this->user)
-            ->test(LinkAnalytics::class, ['link' => $this->link]);
+            ->test(LinkAnalytics::class, ['link' => $this->link->fresh()]);
 
         // Default 30d window excludes the 60-day-old click
         $test->assertSee('Clicks · last 30 days');
@@ -108,17 +112,21 @@ class AnalyticsPolishTest extends TestCase
         $test->call('setPeriod', 7);
         $this->assertSame(1, $test->viewData('totalClicks'));
 
-        // Invalid period falls back to 30
+        // Invalid period falls back to the longest available window
         $test->call('setPeriod', 999);
-        $test->assertSet('period', 30);
+        $test->assertSet('period', 90);
     }
 
     public function test_analytics_chart_is_zero_filled(): void
     {
+        // Old enough for the full 30-day window.
+        $this->link->created_at = now()->subDays(40);
+        $this->link->save();
+
         $this->recordClick(['created_at' => now()]);
 
         $test = Livewire::actingAs($this->user)
-            ->test(LinkAnalytics::class, ['link' => $this->link]);
+            ->test(LinkAnalytics::class, ['link' => $this->link->fresh()]);
 
         $days = $test->viewData('clicksByDay');
 
@@ -199,6 +207,60 @@ class AnalyticsPolishTest extends TestCase
 
         $this->assertSame(2, $test->viewData('totalClicks'));
         $this->assertSame(round(2 / 7, 1), $test->viewData('averagePerDay'));
+    }
+
+    public function test_periods_are_capped_by_link_age(): void
+    {
+        // Fresh link: 7d only, default clamped down from 30.
+        $fresh = Livewire::actingAs($this->user)
+            ->test(LinkAnalytics::class, ['link' => $this->link]);
+        $fresh->assertSet('period', 7);
+        $fresh->call('setPeriod', 90);
+        $fresh->assertSet('period', 7);
+        $fresh->assertSee('Longer ranges unlock as the link ages.');
+
+        // Ten days old: 7/30d, 90d rejected back to the max available.
+        $this->link->created_at = now()->subDays(10);
+        $this->link->save();
+
+        $mid = Livewire::actingAs($this->user)
+            ->test(LinkAnalytics::class, ['link' => $this->link->fresh()]);
+        $mid->assertSet('period', 30);
+        $mid->call('setPeriod', 90);
+        $mid->assertSet('period', 30);
+        $mid->call('setPeriod', 7);
+        $mid->assertSet('period', 7);
+
+        // Old link: everything available.
+        $this->link->created_at = now()->subDays(100);
+        $this->link->save();
+
+        $old = Livewire::actingAs($this->user)
+            ->test(LinkAnalytics::class, ['link' => $this->link->fresh()]);
+        $old->assertSet('period', 30);
+        $old->call('setPeriod', 90);
+        $old->assertSet('period', 90);
+        $old->assertDontSee('Longer ranges unlock as the link ages.');
+    }
+
+    public function test_chart_type_switching(): void
+    {
+        // The canvas renders once clicks exist.
+        $this->recordClick();
+
+        $test = Livewire::actingAs($this->user)
+            ->test(LinkAnalytics::class, ['link' => $this->link]);
+
+        $test->assertSet('chartType', 'bar');
+        $test->assertSee('data-chart-type="bar"', escape: false);
+
+        $test->call('setChartType', 'line');
+        $test->assertSet('chartType', 'line');
+        $test->assertSee('data-chart-type="line"', escape: false);
+
+        // Invalid input falls back to bars, never breaks the canvas.
+        $test->call('setChartType', 'pie');
+        $test->assertSet('chartType', 'bar');
     }
 
     public function test_browser_family_classification(): void

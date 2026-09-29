@@ -13,13 +13,57 @@ class LinkAnalytics extends Component
     public int $period = 30;
 
     /**
-     * Selectable analytics windows (days).
+     * Clicks-over-time rendering: bars (default) or a line graph.
+     */
+    public string $chartType = 'bar';
+
+    /**
+     * Selectable analytics windows (days) — capped by link age, see
+     * availablePeriods().
      */
     public const PERIODS = [7, 30, 90];
 
+    public const CHART_TYPES = ['bar', 'line'];
+
+    public function mount(): void
+    {
+        // A fresh link starts on the longest window its age allows
+        // instead of a mostly-empty 30-day view.
+        $this->period = min($this->period, $this->maxPeriod());
+    }
+
     public function setPeriod(int $days): void
     {
-        $this->period = in_array($days, self::PERIODS, true) ? $days : 30;
+        $available = $this->availablePeriods();
+        $this->period = in_array($days, $available, true) ? $days : max($available);
+    }
+
+    public function setChartType(string $type): void
+    {
+        $type = strtolower($type);
+        $this->chartType = in_array($type, self::CHART_TYPES, true) ? $type : 'bar';
+    }
+
+    /**
+     * Windows the link is old enough for: younger than 7 days → 7d
+     * only; younger than 30 days → 7/30d; older → 7/30/90d. Ranges
+     * beyond the link's age would render mostly zeros, so they are
+     * not offered.
+     *
+     * @return list<int>
+     */
+    public function availablePeriods(): array
+    {
+        $max = $this->maxPeriod();
+
+        return array_values(array_filter(self::PERIODS, fn (int $days) => $days <= $max));
+    }
+
+    private function maxPeriod(): int
+    {
+        $ageDays = $this->link->created_at->diffInDays(now()) + 1;
+
+        return $ageDays <= 7 ? 7 : ($ageDays <= 30 ? 30 : 90);
     }
 
     public function render()

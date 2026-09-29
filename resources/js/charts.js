@@ -6,6 +6,10 @@
  *           data-chart-labels='["Mon", ...]'
  *           data-chart-values='[3, 0, ...]'></canvas>
  *
+ * A clicks chart may render as bars (default) or a line:
+ *
+ *   <canvas data-chart="clicks" data-chart-type="line" …></canvas>
+ *
  * A bar chart may override the tooltip unit (default "click"/"clicks"):
  *
  *   <canvas data-chart="clicks" data-chart-unit="link" …></canvas>
@@ -20,9 +24,9 @@
  *   <ul data-chart-legend="browsers-canvas-id">…
  *     <span data-swatch="0"></span> Chrome …
  *
- * initCharts() (re)builds every chart under `root`. Previous instances
- * on the same canvas are destroyed first, so it is safe to call after
- * Livewire morphs, SPA navigations, and theme switches.
+ * initCharts() (re)builds every chart under `root` — including `root`
+ * itself when it is a chart canvas. Previous instances on the same
+ * canvas are destroyed first, so rebuilds are idempotent.
  */
 
 import { Chart, registerables } from 'chart.js';
@@ -89,17 +93,31 @@ function buildClicksChart(canvas, dark) {
     const solid = dark ? '#fafafa' : '#171717';
     const soft = dark ? 'rgba(250,250,250,0.25)' : 'rgba(23,23,23,0.15)';
     const unit = canvas.dataset.chartUnit ?? 'click';
+    const line = canvas.dataset.chartType === 'line';
 
     canvas._tlChart = new Chart(canvas, {
-        type: 'bar',
+        type: line ? 'line' : 'bar',
         data: {
             labels: readJson(canvas, 'chartLabels'),
             datasets: [
                 {
                     data: readJson(canvas, 'chartValues'),
-                    backgroundColor: (ctx) => (ctx.raw > 0 ? solid : soft),
-                    borderRadius: 3,
-                    borderSkipped: 'start',
+                    ...(line
+                        ? {
+                            borderColor: solid,
+                            backgroundColor: soft,
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: solid,
+                            pointBorderColor: solid,
+                        }
+                        : {
+                            backgroundColor: (ctx) => (ctx.raw > 0 ? solid : soft),
+                            borderRadius: 3,
+                            borderSkipped: 'start',
+                        }),
                 },
             ],
         },
@@ -164,7 +182,15 @@ function buildBrowsersChart(canvas, dark) {
 export function initCharts(root = document) {
     if (typeof Chart === 'undefined') return;
 
-    root.querySelectorAll('canvas[data-chart]').forEach((canvas) => {
+    // The root itself may be a freshly morphed chart canvas (Livewire
+    // fires morph.updated per element) — querySelectorAll only finds
+    // descendants, so include it explicitly.
+    const canvases = [...root.querySelectorAll('canvas[data-chart]')];
+    if (root instanceof HTMLCanvasElement && root.hasAttribute('data-chart') && !canvases.includes(root)) {
+        canvases.unshift(root);
+    }
+
+    canvases.forEach((canvas) => {
         if (canvas._tlChart) {
             canvas._tlChart.destroy();
             canvas._tlChart = null;
@@ -183,8 +209,22 @@ initCharts();
 /* Livewire SPA navigations + DOM morphs (period switches, verification). */
 document.addEventListener('livewire:navigated', () => initCharts());
 
+/* Morphs fire per element, top-down: an ancestor's rebuild would read
+ * not-yet-morphed child attributes (stale chart), while the canvas's
+ * own event finds no descendants (missed rebuild) — the visible chart
+ * lagged one interaction behind ("click twice"). Deferring to a
+ * microtask rebuilds once, after the whole walk, with fresh data. */
+let morphRebuildQueued = false;
+
 document.addEventListener('livewire:init', () => {
-    window.Livewire.hook('morph.updated', ({ el }) => initCharts(el));
+    window.Livewire.hook('morph.updated', () => {
+        if (morphRebuildQueued) return;
+        morphRebuildQueued = true;
+        queueMicrotask(() => {
+            morphRebuildQueued = false;
+            initCharts();
+        });
+    });
 });
 
 /* Theme toggle repaints charts in the active palette. */

@@ -1,6 +1,11 @@
 <div>
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <x-ui.segmented :options="\App\Livewire\Dashboard\LinkAnalytics::PERIODS" :active="$period" action="setPeriod" suffix="d" label="Analytics period" />
+        <div class="flex flex-wrap items-center gap-3">
+            <x-ui.segmented :options="$this->availablePeriods()" :active="$period" action="setPeriod" suffix="d" label="Analytics period" />
+            @if (count($this->availablePeriods()) < count(\App\Livewire\Dashboard\LinkAnalytics::PERIODS))
+                <span class="text-xs text-neutral-500 dark:text-neutral-400">Longer ranges unlock as the link ages.</span>
+            @endif
+        </div>
         <x-ui.button href="{{ route('dashboard.links.export', $link->id) }}" size="sm">Export CSV</x-ui.button>
     </div>
 
@@ -12,12 +17,16 @@
     </div>
 
     <x-ui.card title="Clicks over time" class="mb-6">
+        <x-slot:actions>
+            <x-ui.segmented :options="['bar', 'line']" :labels="['bar' => 'Bars', 'line' => 'Line']" :active="$chartType" action="setChartType" label="Chart type" />
+        </x-slot:actions>
         @if ($totalClicks === 0)
             <p class="text-sm text-neutral-500 dark:text-neutral-400">No clicks in the last {{ $period }} days yet. Share your link to see traffic here.</p>
         @else
             <div class="relative h-56" role="img" aria-label="Daily clicks for the last {{ $period }} days">
                 <canvas
                     data-chart="clicks"
+                    data-chart-type="{{ $chartType }}"
                     data-chart-labels='@json($clicksByDay->pluck("label")->values())'
                     data-chart-values='@json($clicksByDay->pluck("count")->values())'
                 ></canvas>
