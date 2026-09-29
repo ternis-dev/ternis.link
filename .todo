@@ -21,6 +21,7 @@ DONE: dated collection URLs (Jekyll-style /pages/blog/2026-09-28-slug for blog+n
 DONE: blog UI/UX (featured latest-post card + hoverable cards on index; auto TOC with anchored h2s on long entries; legal pages untouched)
 REVERTED: blog UI back to classic list/entry layout per feedback; content containers widened to max-w-4xl
 DONE: sitemap reliability (valid XML verified; 30-min per-host cache so crawlers never wait on a cold backend; strict XML + robots/sitemap cross-host tests)
+DONE: SEO batch 2 (2026-09-29) — 4 new posts, 14 total: one-api-key-per-integration (key hygiene + per-key pages), organize-links-with-tags, find-and-fix-dead-links (rot routine), links-that-expire-for-events-and-listings (use-case SEO); all claims verified against code, internal cross-links, ContentTest iterator covers all entries
 
 Desktop-Application (starting with MacOS)
 
