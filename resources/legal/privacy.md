@@ -43,6 +43,7 @@ We use strictly necessary cookies only: the login session and framework security
 | Links and their settings | Until you delete/deactivate them (analytics are preserved on deactivation) |
 | Encrypted visitor/creator IPs | **30 days**, then automatically and irreversibly deleted |
 | API request log | **90 days**, then automatically deleted (no aggregates kept) |
+| Activity history (your actions + admin actions on your stuff) | **3 years**, then automatically deleted |
 | API-key attribution on links | As long as the link exists (survives key revocation; cleared only if the key row itself is deleted) |
 | IP hashes | As long as needed for quotas and deduplication |
 | Accounts | Until you stop using SSO sign-in and ask for deletion |

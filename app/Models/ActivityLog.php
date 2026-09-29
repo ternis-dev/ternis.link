@@ -63,6 +63,15 @@ class ActivityLog extends Model
      */
     public const UPDATED_AT = null;
 
+    /**
+     * Retention window in days (see privacy:prune-activity-logs +
+     * privacy policy). Three years: covers the regular limitation
+     * period for civil claims (DE §195 BGB) plus a security margin,
+     * then rows are deleted — "forever" is not a GDPR retention
+     * policy (Art. 5(1)(e) storage limitation).
+     */
+    public const RETENTION_DAYS = 1095;
+
     protected $fillable = [
         'actor_id',
         'action',

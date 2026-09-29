@@ -28,7 +28,19 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp ".build/$CONFIG/TernisLink" "$APP/Contents/MacOS/"
 
-cat > "$APP/Contents/Info.plist" <<'PLIST'
+# Single source of truth for the marketing version is ../VERSION (kept in
+# sync with the website feed + download page). CFBundleVersion stays a
+# monotonic integer for Sparkle (dots stripped, e.g. 0.4.0 → 040).
+VERSION="$(tr -d '[:space:]' < VERSION)"
+BUILD_NUM="$(printf '%s' "$VERSION" | tr -d '.')"
+
+# SUFeedURL points at the first-party appcast; SUPublicEDKey is injected
+# at release time (env ED_PUBLIC_KEY) and left empty for dev bundles —
+# without it Sparkle refuses silent installs and the app falls back to
+# opening the download page (see UpdateService).
+FEED_URL="${SPARKLE_FEED_URL:-https://ternis.link/pages/macos/appcast.xml}"
+
+cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -36,12 +48,14 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
     <key>CFBundleName</key><string>ternis.link</string>
     <key>CFBundleDisplayName</key><string>ternis.link</string>
     <key>CFBundleIdentifier</key><string>link.ternis.desktop</string>
-    <key>CFBundleVersion</key><string>1</string>
-    <key>CFBundleShortVersionString</key><string>0.1.0</string>
+    <key>CFBundleVersion</key><string>${BUILD_NUM}</string>
+    <key>CFBundleShortVersionString</key><string>${VERSION}</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleSignature</key><string>????</string>
     <key>CFBundleExecutable</key><string>TernisLink</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>SUFeedURL</key><string>${FEED_URL}</string>
+    <key>SUPublicEDKey</key><string>${ED_PUBLIC_KEY:-}</string>
     <key>CFBundleURLTypes</key>
     <array><dict>
         <key>CFBundleURLName</key><string>OAuth callback</string>

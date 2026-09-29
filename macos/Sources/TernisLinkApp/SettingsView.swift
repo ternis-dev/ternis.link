@@ -1,5 +1,8 @@
 import SwiftUI
 import TernisLinkCore
+#if canImport(AppKit)
+import AppKit
+#endif
 
 /// Native settings: appearance, global hotkey hint, launch note,
 /// plus server-synced theme/layout + email notification preferences.
@@ -10,6 +13,7 @@ struct SettingsView: View {
     @State private var saving = false
     @State private var errorMessage: String?
     @State private var savedFlash = false
+    @State private var updates = UpdateService()
 
     private let api = AccountAPI()
 
