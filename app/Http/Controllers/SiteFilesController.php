@@ -213,6 +213,7 @@ class SiteFilesController extends Controller
             'base' => $request->getSchemeAndHttpHost(),
             'hosts' => [
                 'public' => $host('public_host', 'href.nz'),
+                'meinlink' => $host('meinlink_host', 'meinlink.at'),
                 'business' => $host('business_host', 'href.re'),
                 'ternis' => 'https://ternis.link',
                 'dashboard' => $host('dashboard_host', 'dash.ternis.link'),

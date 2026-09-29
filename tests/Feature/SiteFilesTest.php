@@ -151,6 +151,8 @@ class SiteFilesTest extends TestCase
         $this->assertStringContainsString('legal@ternis.dev', $body);
         // …API endpoint list…
         $this->assertStringContainsString('/v1/links/{link}/clicks/summary', $body);
+        $this->assertStringContainsString('/v1/api-keys', $body);
+        $this->assertStringContainsString('https://meinlink.at', $body);
         // …and a live aggregate snapshot (seeded link counted, no PII).
         $this->assertStringContainsString('Links Created (All Time): 1', $body);
         $this->assertStringNotContainsString('secret.example', $body);

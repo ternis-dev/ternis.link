@@ -14,7 +14,7 @@
 - [{{ ucfirst($slug) }}]({{ $url }}): canonical legal page on ternis.dev (external).
 @endforeach
 - [Public shortener]({{ $hosts['public'] }}): guest link shortening with a hand-drawn sketchbook landing page.
-- [German shortener](https://meinlink.at): guest link shortening in German with a modern design, same rules as href.nz.
+- [German shortener]({{ $hosts['meinlink'] }}): guest link shortening in German with a modern design, same rules as href.nz.
 - [Business shortener]({{ $hosts['business'] }}): official business links.
 - [Family & partners]({{ $hosts['ternis'] }}): landing page for family, relatives, and partners.
 
@@ -37,11 +37,13 @@ Base: `{{ $hosts['api'] }}/v1/`. Auth: `Authorization: Bearer <api-key>` (keys s
 
 - `GET /v1/` — public version metadata.
 - `POST /v1/links/public` — public guest link creation (system domains only, no custom slugs).
-- `GET /v1/links` — list own links.
+- `GET /v1/qr` — public QR code generator.
+- `GET /v1/links` — list own links (?scope=mine for admins, ?tag=, ?api_key_id=).
 - `POST /v1/links` — create a link.
 - `GET /v1/links/{link}` — show a link.
 - `PATCH /v1/links/{link}` — update a link.
 - `DELETE /v1/links/{link}` — delete a link.
+- `GET /v1/links/{link}/qr` — link QR code.
 - `GET /v1/links/{link}/clicks` — click rows.
 - `GET /v1/links/{link}/clicks/summary` — aggregated click stats.
 - `GET /v1/domains` — list domains.
@@ -49,6 +51,17 @@ Base: `{{ $hosts['api'] }}/v1/`. Auth: `Authorization: Bearer <api-key>` (keys s
 - `GET /v1/domains/{domain}` — show a domain.
 - `POST /v1/domains/{domain}/verify` — verify DNS TXT ownership.
 - `DELETE /v1/domains/{domain}` — remove a domain.
+- `GET /v1/api-keys` — list own API keys.
+- `POST /v1/api-keys` — create an API key (returns raw key once).
+- `GET /v1/api-keys/{key}` — show an API key.
+- `PATCH /v1/api-keys/{key}` — rename key or toggle dashboard visibility.
+- `DELETE /v1/api-keys/{key}` — revoke an API key.
+- `GET /v1/notifications` — in-app notification inbox.
+- `POST /v1/notifications/read` — mark all notifications read.
+- `POST /v1/notifications/{id}/read` — mark single notification read.
+- `GET /v1/activity` — personal activity history.
+- `GET /v1/settings` — get user preferences.
+- `PATCH /v1/settings` — update theme/layout/email preferences.
 
 Machine-readable contract: `docs/api-v1-openapi.yaml` in the repo, served raw at `{{ $hosts['docs'] }}/api-v1-openapi.yaml`. Rendered developer docs (architecture, authentication, routing): `{{ $hosts['docs'] }}/`.
 

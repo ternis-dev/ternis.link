@@ -16,12 +16,15 @@
         <x-ui.stat :value="number_format($stats['total_users'])" label="Total Users" />
         <x-ui.stat :value="number_format($stats['total_links'])" label="Total Links" />
         <x-ui.stat :value="number_format($stats['active_links'])" label="Active Links" />
+        <x-ui.stat :value="number_format($stats['removed_links'])" label="Removed Links" />
         <x-ui.stat :value="number_format($stats['total_clicks'])" label="Total Clicks" />
-        <x-ui.stat :value="number_format($stats['total_domains'])" label="Total Domains" />
-        <x-ui.stat :value="number_format($stats['links_today'])" label="Links Today" />
         <x-ui.stat :value="number_format($stats['clicks_today'])" label="Clicks Today" />
+        <x-ui.stat :value="number_format($stats['links_today'])" label="Links Today" />
         <x-ui.stat :value="number_format($stats['direct_url_clicks'])" label="Direct-URL Clicks" />
+        <x-ui.stat :value="number_format($stats['total_domains'])" label="Total Domains" />
+        <x-ui.stat :value="number_format($stats['active_api_keys'])" label="Active API Keys" />
         <x-ui.stat :value="number_format($stats['qr_codes'])" label="QR Codes Generated" />
+        <x-ui.stat :value="number_format($stats['errors_today'])" label="Errors Today" />
     </div>
 
     <x-ui.card title="Top Links by Clicks" class="mb-6">

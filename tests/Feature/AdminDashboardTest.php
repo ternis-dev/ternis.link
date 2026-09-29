@@ -75,6 +75,10 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Admin Console', escape: false)
             ->assertViewHas('stats', fn ($stats) => $stats['total_users'] === 2
                 && $stats['total_links'] === 1
+                && $stats['active_links'] === 1
+                && $stats['removed_links'] === 0
+                && $stats['active_api_keys'] === 0
+                && $stats['errors_today'] === 0
                 && $stats['total_clicks'] === 2
                 && $stats['direct_url_clicks'] === 1);
     }
