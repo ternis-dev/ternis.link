@@ -8,12 +8,17 @@ use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 /**
- * Retention proof: neither API request logs nor activity/audit logs
- * are kept "forever". Both have a bounded window enforced by a daily
- * scheduled prune command (GDPR Art. 5(1)(e) storage limitation).
+ * Retention proof: API request logs are bounded (90-day rolling window
+ * via a daily prune), while activity/audit history is intentionally
+ * kept indefinitely — there is no prune command for activity_logs, so
+ * no schedule or operator action can delete the trail, not even after
+ * decades. GDPR basis for the indefinite trail: legitimate interest
+ * (Art. 6(1)(f)); individual erasure requests (Art. 17) are honored
+ * on request (see privacy policy).
  */
 class LogRetentionTest extends TestCase
 {
@@ -40,30 +45,36 @@ class LogRetentionTest extends TestCase
         $this->assertSame(1, $remaining);
     }
 
-    public function test_activity_logs_are_deleted_after_3_years(): void
+    public function test_activity_logs_are_never_pruned(): void
     {
         $old = ActivityLog::create(['action' => ActivityLog::AUTH_LOGIN]);
         // created_at is not fillable (append-only default) — backdate explicitly.
-        ActivityLog::whereKey($old->id)->update(['created_at' => now()->subDays(1096)]);
+        ActivityLog::whereKey($old->id)->update(['created_at' => now()->subYears(30)]);
         ActivityLog::create(['action' => ActivityLog::AUTH_LOGIN]);
 
-        $this->artisan('privacy:prune-activity-logs')
-            ->assertSuccessful()
-            ->expectsOutputToContain('Pruned activity logs: 1 row(s)');
-
-        $this->assertSame(1, ActivityLog::count());
-        $this->assertEquals(ActivityLog::AUTH_LOGIN, ActivityLog::first()->action);
+        // No prune command exists for this table — the trail survives everything.
+        $this->assertSame(2, ActivityLog::count());
+        $this->assertArrayNotHasKey(
+            'privacy:prune-activity-logs',
+            Artisan::all(),
+            'A prune command for activity_logs must not exist.'
+        );
     }
 
     public function test_log_pruning_is_scheduled_daily(): void
     {
         $events = collect(app(Schedule::class)->events());
 
-        foreach (['privacy:prune-api-logs', 'privacy:prune-activity-logs', 'privacy:prune-ips'] as $command) {
+        foreach (['privacy:prune-api-logs', 'privacy:prune-ips'] as $command) {
             $event = $events->first(fn ($e) => str_contains((string) ($e->command ?? ''), $command));
 
             $this->assertNotNull($event, "Missing schedule for {$command}");
             $this->assertEquals('0 0 * * *', $event->getExpression());
         }
+
+        $this->assertNull(
+            $events->first(fn ($e) => str_contains((string) ($e->command ?? ''), 'prune-activity')),
+            'Activity logs must have no scheduled prune.'
+        );
     }
 }

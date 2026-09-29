@@ -43,7 +43,7 @@ We use strictly necessary cookies only: the login session and framework security
 | Links and their settings | Until you delete/deactivate them (analytics are preserved on deactivation) |
 | Encrypted visitor/creator IPs | **30 days**, then automatically and irreversibly deleted |
 | API request log | **90 days**, then automatically deleted (no aggregates kept) |
-| Activity history (your actions + admin actions on your stuff) | **3 years**, then automatically deleted |
+| Activity history (your actions + admin actions on your stuff) | **Indefinitely** — never deleted automatically. Legal basis: legitimate interest in security, abuse prevention and transparency (Art. 6(1)(f)); only IP hashes (never raw addresses), truncated user-agents and labels are stored. Individual erasure requests (Art. 17) are honored on request — contact legal@ternis.dev |
 | API-key attribution on links | As long as the link exists (survives key revocation; cleared only if the key row itself is deleted) |
 | IP hashes | As long as needed for quotas and deduplication |
 | Accounts | Until you stop using SSO sign-in and ask for deletion |

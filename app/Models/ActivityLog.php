@@ -60,17 +60,17 @@ class ActivityLog extends Model
     /**
      * Append-only audit rows: created_at is set by the database,
      * updated_at does not exist.
+     *
+     * Deliberately NO retention window: activity history is kept
+     * indefinitely (product decision — the trail must never be
+     * deleted, not even after decades). There is intentionally no
+     * prune command for this table, so no schedule or operator can
+     * wipe it by accident. Note the GDPR tension: indefinite storage
+     * relies on legitimate interest (Art. 6(1)(f) — security, abuse
+     * prevention, user transparency); keep the balancing assessment
+     * on file and honor erasure requests (Art. 17) individually.
      */
     public const UPDATED_AT = null;
-
-    /**
-     * Retention window in days (see privacy:prune-activity-logs +
-     * privacy policy). Three years: covers the regular limitation
-     * period for civil claims (DE §195 BGB) plus a security margin,
-     * then rows are deleted — "forever" is not a GDPR retention
-     * policy (Art. 5(1)(e) storage limitation).
-     */
-    public const RETENTION_DAYS = 1095;
 
     protected $fillable = [
         'actor_id',
