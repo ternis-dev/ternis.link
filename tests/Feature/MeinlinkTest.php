@@ -220,12 +220,78 @@ class MeinlinkTest extends TestCase
         }
     }
 
-    public function test_form_stays_english_by_default(): void
+    public function test_meinlink_landing_includes_turnstile_with_action_when_configured(): void
     {
-        $html = Livewire::test(ShortenForm::class)->html();
+        config(['services.turnstile.key' => '1x00000000000000000000AA']);
 
-        foreach (['Shorten a link', 'Destination URL', 'no account needed'] as $needle) {
-            $this->assertStringContainsString($needle, $html);
-        }
+        $response = $this->get('http://meinlink.at/');
+
+        $response->assertStatus(200);
+        $response->assertSee('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit', escape: false);
+        $response->assertSee("action: '".\App\Services\TurnstileService::ACTION."'", escape: false);
+        $response->assertSee('data-cf-container', escape: false);
+    }
+
+    public function test_meinlink_form_succeeds_when_turnstile_verification_passes(): void
+    {
+        config([
+            'services.turnstile.key' => 'test-site-key',
+            'services.turnstile.secret' => 'test-secret-key',
+        ]);
+
+        \Illuminate\Support\Facades\Http::fake([
+            \App\Services\TurnstileService::VERIFY_URL => \Illuminate\Support\Facades\Http::response([
+                'success' => true,
+                'hostname' => 'meinlink.at',
+                'action' => \App\Services\TurnstileService::ACTION,
+            ], 200),
+        ]);
+
+        Livewire::test(MeinlinkShortenForm::class)
+            ->set('destination_url', 'https://example.com/meinlink-turnstile')
+            ->set('turnstile_token', 'good-token')
+            ->call('create')
+            ->assertHasNoErrors()
+            ->assertSet('shortUrl', fn ($val) => is_string($val) && str_starts_with($val, 'https://meinlink.at/'))
+            ->assertDispatched('reset-turnstile');
+
+        $this->assertDatabaseHas('links', [
+            'destination_url' => 'https://example.com/meinlink-turnstile',
+        ]);
+    }
+
+    public function test_meinlink_form_fails_when_turnstile_token_is_missing(): void
+    {
+        config([
+            'services.turnstile.key' => 'test-site-key',
+            'services.turnstile.secret' => 'test-secret-key',
+        ]);
+
+        Livewire::test(MeinlinkShortenForm::class)
+            ->set('destination_url', 'https://example.com/meinlink-no-token')
+            ->call('create')
+            ->assertHasErrors(['turnstile_token' => 'Bitte führe die Sicherheitsprüfung durch.']);
+    }
+
+    public function test_meinlink_form_fails_when_turnstile_verification_rejected(): void
+    {
+        config([
+            'services.turnstile.key' => 'test-site-key',
+            'services.turnstile.secret' => 'test-secret-key',
+        ]);
+
+        \Illuminate\Support\Facades\Http::fake([
+            \App\Services\TurnstileService::VERIFY_URL => \Illuminate\Support\Facades\Http::response([
+                'success' => false,
+                'error-codes' => ['invalid-input-response'],
+            ], 200),
+        ]);
+
+        Livewire::test(MeinlinkShortenForm::class)
+            ->set('destination_url', 'https://example.com/meinlink-bad-token')
+            ->set('turnstile_token', 'bad-token')
+            ->call('create')
+            ->assertHasErrors(['turnstile_token' => 'Sicherheitsprüfung fehlgeschlagen — bitte versuche es erneut.'])
+            ->assertDispatched('reset-turnstile');
     }
 }

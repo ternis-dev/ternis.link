@@ -90,14 +90,44 @@ class TurnstileService
             }
 
             if (! hash_equals($expectedAction, (string) ($data['action'] ?? ''))) {
+                Log::warning('Turnstile action mismatch', [
+                    'expected' => $expectedAction,
+                    'got' => $data['action'] ?? null,
+                ]);
+
                 return false;
             }
 
             $expectedHostname = strtolower(trim((string) $expectedHostname));
             $verifiedHostname = strtolower(trim((string) ($data['hostname'] ?? '')));
 
-            return $expectedHostname === ''
-                || hash_equals($expectedHostname, $verifiedHostname);
+            if ($expectedHostname !== '') {
+                $normExpected = (string) preg_replace('/^www\./', '', $expectedHostname);
+                $normVerified = (string) preg_replace('/^www\./', '', $verifiedHostname);
+
+                $allowedPublicHosts = array_filter([
+                    'meinlink.at',
+                    'href.nz',
+                    'href.re',
+                    'ternis.link',
+                    (string) config('domains.meinlink_host'),
+                    (string) config('domains.public_short_link_host'),
+                ]);
+
+                $matchesDirect = hash_equals($normExpected, $normVerified);
+                $bothPublic = in_array($normExpected, $allowedPublicHosts, true) && in_array($normVerified, $allowedPublicHosts, true);
+
+                if (! $matchesDirect && ! $bothPublic) {
+                    Log::warning('Turnstile hostname mismatch', [
+                        'expected' => $expectedHostname,
+                        'verified' => $verifiedHostname,
+                    ]);
+
+                    return false;
+                }
+            }
+
+            return true;
         } catch (\Throwable $e) {
             Log::error('Turnstile verification exception', [
                 'message' => $e->getMessage(),

@@ -381,36 +381,63 @@
                             wire:ignore
                             class="mt-1 flex justify-center"
                             x-data="{
+                                wire: null,
                                 widgetId: null,
-                                init() {
-                                    const render = () => {
+                                loadTimer: null,
+                                loadAttempts: 0,
+                                boot(component, rootEl) {
+                                    const self = this;
+                                    self.wire = component;
+                                    const container = rootEl.querySelector('[data-cf-container]');
+                                    const renderWidget = () => {
                                         if (typeof turnstile === 'undefined') {
-                                            setTimeout(render, 150);
+                                            self.loadAttempts++;
+                                            if (self.loadAttempts > 50) return;
+                                            self.loadTimer = setTimeout(renderWidget, 100);
                                             return;
                                         }
-                                        if (this.widgetId !== null) return;
+                                        if (self.widgetId !== null || ! container) return;
                                         turnstile.ready(() => {
                                             try {
-                                                this.widgetId = turnstile.render($refs.cfContainer, {
+                                                self.widgetId = turnstile.render(container, {
                                                     sitekey: '{{ config('services.turnstile.key') }}',
+                                                    action: '{{ \App\Services\TurnstileService::ACTION }}',
                                                     theme: 'auto',
-                                                    callback: (token) => $wire.set('turnstile_token', token),
-                                                    'expired-callback': () => $wire.set('turnstile_token', null),
-                                                    'error-callback': () => $wire.set('turnstile_token', null),
+                                                    callback: (token) => {
+                                                        self.wire.set('turnstile_token', token);
+                                                    },
+                                                    'expired-callback': () => {
+                                                        self.wire.set('turnstile_token', null);
+                                                    },
+                                                    'timeout-callback': () => {
+                                                        self.wire.set('turnstile_token', null);
+                                                    },
+                                                    'error-callback': () => {
+                                                        self.wire.set('turnstile_token', null);
+                                                    },
                                                 });
                                             } catch (e) {}
                                         });
                                     };
-                                    render();
-                                    Livewire.on('reset-turnstile', () => {
-                                        if (this.widgetId !== null && typeof turnstile !== 'undefined') {
-                                            turnstile.reset(this.widgetId);
-                                        }
-                                    });
+                                    renderWidget();
+                                },
+                                reset() {
+                                    if (typeof turnstile !== 'undefined' && this.widgetId !== null) {
+                                        turnstile.reset(this.widgetId);
+                                    }
+                                },
+                                destroy() {
+                                    if (this.loadTimer !== null) clearTimeout(this.loadTimer);
+                                    if (typeof turnstile !== 'undefined' && this.widgetId !== null) {
+                                        turnstile.remove(this.widgetId);
+                                        this.widgetId = null;
+                                    }
                                 }
                             }"
+                            x-init="boot($wire, $el)"
+                            x-on:reset-turnstile.window="reset()"
                         >
-                            <div x-ref="cfContainer"></div>
+                            <div data-cf-container></div>
                         </div>
                     @endif
 
