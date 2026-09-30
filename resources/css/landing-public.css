@@ -899,8 +899,16 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
 }
 
 @media (max-width: 640px) {
-    /* Touch devices get the native scrollbar; the custom rail takes
-     * valuable edge space and is awkward to drag with a finger. */
+    /* ==========================================================
+     * MOBILE: FORM-FIRST LAYOUT
+     * On mobile, the entire page is reorganised so the shorten
+     * form appears immediately below a compact header. The hero
+     * content is demoted below the form — condensed into a
+     * minimal "about" blurb. This makes the primary action
+     * (pasting a URL) instantly accessible with zero scrolling.
+     * ========================================================== */
+
+    /* Touch devices get the native scrollbar. */
     html {
         scrollbar-width: auto;
     }
@@ -920,65 +928,62 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
         font-size: 1rem;
     }
 
+    /* --- flex column with reordered children -------------------- */
     .sk-wrap {
         width: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
+    /* Order: header(1) → form(2) → trust(3) → hero(4) → notes(5) → cut(6) → footer(7) */
+    .sk-head       { order: 1; }
+    .sk-form-zone  { order: 2; }
+    .sk-trust      { order: 3; }
+    .sk-hero       { order: 4; }
+    .sk-notes      { order: 5; }
+    .sk-cut        { order: 6; }
+    .sk-foot       { order: 7; }
+
+    /* --- compact header ---------------------------------------- */
     .sk-head {
-        align-items: flex-start;
-        padding: 1rem 0.1rem;
+        align-items: center;
+        padding: 0.8rem 0.1rem 0.5rem;
     }
 
     .sk-brand {
-        font-size: 2rem;
+        font-size: 1.85rem;
     }
 
     .sk-login {
         max-width: 10rem;
         text-align: right;
         line-height: 1.2;
+        font-size: 1.05rem;
     }
 
-    .sk-hero {
-        padding-top: 1.5rem;
-    }
-
-    .sk-title {
-        font-size: clamp(2.65rem, 14vw, 4rem);
-        overflow-wrap: anywhere;
-    }
-
-    .sk-sub {
-        max-width: 32rem;
-        font-size: 1rem;
-    }
-
-    .sk-steps {
-        align-items: stretch;
-        flex-direction: column;
-        gap: 0.45rem;
-        margin-top: 1.5rem;
-    }
-
-    .sk-steps li {
-        justify-content: flex-start;
-        width: 100%;
-        box-sizing: border-box;
-        min-height: 2.9rem;
-        padding: 0.45rem 0.8rem;
-    }
-
-    .sk-step-arrow {
+    /* Hide the envelope icon on mobile login link */
+    .sk-login svg:last-child {
         display: none;
     }
 
+    /* --- form rises to the top --------------------------------- */
     .sk-form-zone {
-        margin-top: 1.75rem;
+        margin-top: 0.35rem;
     }
 
     .sk-card {
-        padding: 1.2rem 0.9rem 1.1rem;
+        padding: 1.1rem 0.9rem 1rem;
         border-radius: 14px;
+        /* Remove tilt on mobile — clean and centered */
+        transform: none !important;
+        /* Stronger shadow to emphasise the card as the hero element */
+        box-shadow: 3px 4px 0 rgba(0, 0, 0, 0.13);
+    }
+
+    /* Hide the tape — it sticks out weirdly when the card is the
+     * first thing you see; the pin-board metaphor needs context. */
+    .sk-card .sk-tape {
+        display: none;
     }
 
     .sk-form-title {
@@ -1006,14 +1011,17 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     }
 
     .sk-field input {
-        min-height: 3.1rem;
+        min-height: 3.2rem;
         box-sizing: border-box;
         padding-right: 5rem;
+        /* Slightly larger font on mobile for easier touch-typing */
+        font-size: 1.15rem;
     }
 
     .sk-btn {
         width: 100%;
-        min-height: 3.1rem;
+        min-height: 3.2rem;
+        font-size: 1.5rem;
     }
 
     .sk-result-actions {
@@ -1050,21 +1058,110 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
         font-size: 0.95rem;
     }
 
+    /* --- trust pills sit right below the form ------------------- */
+    .sk-trust {
+        margin-top: 0.75rem;
+        gap: 0.35rem;
+    }
+
+    .sk-trust li {
+        font-size: 0.85rem;
+        padding: 0.2rem 0.65rem;
+    }
+
+    /* --- hero: demoted & condensed ------------------------------ */
+    .sk-hero {
+        padding-top: 1.75rem;
+        padding-bottom: 0;
+        margin-top: 0.5rem;
+        border-top: 2px dashed var(--sk-faint);
+        text-align: left;
+    }
+
+    /* Hide the big title — on mobile the form card title IS the
+     * headline. Show the kicker as a section intro instead. */
+    .sk-title {
+        font-size: clamp(2rem, 10vw, 2.8rem);
+        line-height: 1.1;
+        text-align: left;
+        margin-top: 0.6rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .sk-kicker {
+        font-size: 1.05rem;
+        padding: 0.05em 0.7em 0.1em;
+        transform: none;
+        box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    .sk-sub {
+        max-width: none;
+        font-size: 0.95rem;
+        text-align: left;
+    }
+
+    /* Hide the step-by-step on mobile — the form itself makes
+     * the flow obvious; the steps add scroll distance. */
+    .sk-steps {
+        display: none;
+    }
+
+    .sk-step-arrow {
+        display: none;
+    }
+
+    /* --- notes: horizontal scroll strip ------------------------- */
     .sk-notes {
-        grid-template-columns: 1fr;
-        gap: 0.8rem;
-        margin-top: 2rem;
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
+        /* Hide scrollbar visually but keep it functional */
+        scrollbar-width: none;
+    }
+
+    .sk-notes::-webkit-scrollbar {
+        display: none;
     }
 
     .sk-note {
-        padding: 1rem 0.9rem 0.9rem;
+        flex: 0 0 78vw;
+        max-width: 320px;
+        scroll-snap-align: start;
+        padding: 0.9rem 0.85rem 0.85rem;
+        /* Reset tilts for the horizontal layout */
+        transform: none !important;
+    }
+
+    .sk-note h2 {
+        font-size: 1.3rem;
+    }
+
+    .sk-note p {
+        font-size: 0.9rem;
     }
 
     .sk-cut {
-        margin-top: 2rem;
+        margin-top: 1.5rem;
     }
 
+    /* --- doodles: hide decorative ones on mobile ---------------- */
     .dk-hide-sm { display: none; }
+
+    /* Hide the curly pointer above the form — pointless when the
+     * form is the first thing on the page. */
+    .sk-form-zone > .dk {
+        display: none;
+    }
+
+    /* Hide the looping arrow above notes. */
+    .sk-notes > .dk {
+        display: none;
+    }
 }
 
 @media (max-width: 380px) {

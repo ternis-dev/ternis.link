@@ -249,10 +249,11 @@
         if (!loader || !fill) return;
 
         var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var mobile  = window.matchMedia('(max-width: 640px)').matches;
         var FILL_W  = 324;  /* inner width of the loader bar */
         var start   = null;
-        var FILL_MS = reduced ? 0 : 700;  /* how long the fill-up takes */
-        var HOLD_MS = reduced ? 0 : 120;  /* pause at full before fade   */
+        var FILL_MS = reduced ? 0 : mobile ? 350 : 700;  /* faster on mobile */
+        var HOLD_MS = reduced ? 0 : mobile ?  60 : 120;  /* shorter hold too */
 
         function setFill(eased) {
             /* eased 0→1: fill width grows 0→FILL_W, % counts 0→100 */
