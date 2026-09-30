@@ -4,6 +4,9 @@
         :backHref="route('dashboard.api-keys')"
         backLabel="Back to API Keys"
     >
+        <x-slot:actions>
+            <x-ui.button href="{{ route('dashboard.links.export-all', ['api_key_id' => $apiKey->id]) }}" size="sm" variant="secondary">Export CSV</x-ui.button>
+        </x-slot:actions>
         <x-slot:subtitle>
             <code>{{ $apiKey->masked_key }}</code>
             <span class="text-neutral-400">·</span> v{{ $apiKey->api_version }}

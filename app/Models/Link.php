@@ -106,6 +106,26 @@ class Link extends Model
     }
 
     /**
+     * Get the full short URL for this link (e.g. https://href.nz/myslug).
+     */
+    public function getShortUrlAttribute(): string
+    {
+        $host = $this->domain?->hostname ?? config('domains.public_host', 'href.nz');
+
+        try {
+            $scheme = app()->runningInConsole()
+                ? parse_url((string) config('app.url'), PHP_URL_SCHEME)
+                : request()->getScheme();
+        } catch (\Throwable) {
+            $scheme = null;
+        }
+
+        $scheme = is_string($scheme) && $scheme !== '' ? $scheme : 'https';
+
+        return "{$scheme}://{$host}/{$this->slug}";
+    }
+
+    /**
      * Increment click count atomically (denormalized counter).
      */
     public function incrementClicks(): void

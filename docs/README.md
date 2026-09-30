@@ -9,6 +9,7 @@ No account is needed to start: anyone can shorten links as a guest on [href.nz](
 | Host | What it is |
 |------|------------|
 | [href.nz](https://href.nz) | Public shortener. Shorten links without an account. |
+| [meinlink.at](https://meinlink.at) | German public shortener. Same rules, Austrian red theme. |
 | [href.re](https://href.re) | Official business links. |
 | [ternis.link](https://ternis.link) | Family, relatives, and partners — plus public network stats. |
 | [dash.ternis.link](https://dash.ternis.link) | Your dashboard: links, stats, domains, API keys. |

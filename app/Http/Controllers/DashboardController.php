@@ -87,6 +87,71 @@ class DashboardController extends Controller
     }
 
     /**
+     * Export the user's short links catalog as CSV.
+     *
+     * Respects optional filters: tag, api_key_id.
+     * Strictly per-user; excludes removed links.
+     */
+    public function exportLinks(Request $request)
+    {
+        $user = auth()->user();
+        $query = $user->links()->notRemoved()->with(['domain', 'apiKey:id,name']);
+
+        if ($request->filled('tag')) {
+            $tag = strtolower(trim((string) $request->query('tag')));
+            $query->where('tags', 'like', '%"'.$tag.'"%');
+        }
+
+        if ($request->filled('api_key_id')) {
+            $keyId = (string) $request->query('api_key_id');
+            if ($keyId === 'none') {
+                $query->whereNull('api_key_id');
+            } elseif ($user->apiKeys()->whereKey($keyId)->exists()) {
+                $query->where('api_key_id', $keyId);
+            }
+        }
+
+        $links = $query->orderByDesc('created_at')->cursor();
+
+        $filename = 'links-export-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($links) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, [
+                'slug',
+                'short_url',
+                'destination_url',
+                'domain',
+                'api_key',
+                'click_count',
+                'status',
+                'tags',
+                'description',
+                'created_at',
+                'expires_at',
+            ]);
+
+            foreach ($links as $link) {
+                fputcsv($out, [
+                    $link->slug,
+                    $link->short_url,
+                    $link->destination_url,
+                    $link->domain?->hostname ?? config('domains.public_host', 'href.nz'),
+                    $link->apiKey?->name ?? 'Dashboard',
+                    $link->click_count,
+                    $link->is_active && ! $link->isExpired() ? 'active' : ($link->isExpired() ? 'expired' : 'disabled'),
+                    $link->tags ? implode(', ', $link->tags) : '',
+                    $link->description ?? '',
+                    $link->created_at?->toIso8601String(),
+                    $link->expires_at?->toIso8601String() ?? '',
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    /**
      * Export a link's clicks as CSV.
      *
      * Strictly per-user; direct-URL rows are excluded here (they stay

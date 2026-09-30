@@ -26,6 +26,7 @@ DONE: href.re landing page (2026-09-29) — expanded in minimalist grayscale the
 DONE: web clean-code & audit hardening (2026-09-29) — Pint style compliance across app/tests/routes, QR/edit/export/deactivate consistency with notRemoved scope, Admin overview removed-link filtering, null-safe analytics age divisors, changelog entry for href.re, 548 PHPUnit tests green
 DONE: SEO batch 3 & metadata overhaul (2026-09-29) — 4 new posts (18 total): high-performance-edge-redirects, privacy-first-link-analytics-without-cookies, separate-domains-for-transactional-and-public-links, direct-vanity-redirects-without-slug-databases; canonical URLs, meta descriptions, OpenGraph, Twitter cards, enriched BlogPosting JSON-LD; 550 tests green
 DONE: web clean-code & API hardening (2026-09-30) — UnsafeUrlValidator enforcement on destination updates (SSRF protection across dashboard + API), GET /v1/api-keys/{id} endpoint + OpenAPI + api.md sync, Livewire ApiKeyManager inline renaming, LinkTable empty-state filter reset; 557 PHPUnit tests green
+DONE: links catalog CSV export & data portability (2026-09-30) — GET /links/export stream download with tag + api_key_id filters, Link short_url accessor, dashboard UI action buttons, docs README sync, changelog entry; 564 PHPUnit tests green
 
 Desktop-Application (starting with MacOS)
 
