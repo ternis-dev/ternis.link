@@ -1,5 +1,104 @@
 <div class="w-full" x-data="{
     copied: false,
+    copiedIndex: null,
+    showQr: false,
+    history: [],
+    historyCollapsed: false,
+    activeQrIndex: null,
+
+    init() {
+        this.loadHistory();
+        this.historyCollapsed = localStorage.getItem('ml-history-collapsed') === '1';
+
+        @if ($shortUrl)
+            this.recordLink('{{ $shortUrl }}', '{{ addslashes($originalUrl ?? '') }}');
+        @endif
+
+        this.$watch('$wire.shortUrl', value => {
+            if (value) {
+                this.recordLink(value, this.$wire.originalUrl);
+                this.showQr = false;
+            }
+        });
+    },
+
+    loadHistory() {
+        try {
+            const raw = localStorage.getItem('ml-recent-links');
+            this.history = raw ? JSON.parse(raw) : [];
+            if (!Array.isArray(this.history)) this.history = [];
+        } catch (e) {
+            this.history = [];
+        }
+    },
+
+    saveHistory() {
+        try {
+            localStorage.setItem('ml-recent-links', JSON.stringify(this.history.slice(0, 15)));
+        } catch (e) {}
+    },
+
+    recordLink(short, original) {
+        if (!short) return;
+        this.loadHistory();
+        this.history = this.history.filter(item => item.short !== short);
+        const now = new Date();
+        const dateFormatted = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ', ' +
+                              now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+        this.history.unshift({
+            short: short,
+            original: original || '',
+            created_at: Date.now(),
+            date_formatted: dateFormatted
+        });
+        this.saveHistory();
+    },
+
+    toggleHistory() {
+        this.historyCollapsed = !this.historyCollapsed;
+        try {
+            localStorage.setItem('ml-history-collapsed', this.historyCollapsed ? '1' : '0');
+        } catch (e) {}
+    },
+
+    clearHistory() {
+        this.history = [];
+        this.activeQrIndex = null;
+        try {
+            localStorage.removeItem('ml-recent-links');
+        } catch (e) {}
+    },
+
+    removeHistoryItem(index) {
+        this.history.splice(index, 1);
+        if (this.activeQrIndex === index) {
+            this.activeQrIndex = null;
+        }
+        this.saveHistory();
+    },
+
+    toggleHistoryQr(index) {
+        this.activeQrIndex = (this.activeQrIndex === index) ? null : index;
+    },
+
+    copyHistoryLink(text, index) {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => {
+                this.copiedIndex = index;
+                setTimeout(() => this.copiedIndex = null, 2000);
+            });
+        } else {
+            const input = document.createElement('input');
+            input.value = text;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            this.copiedIndex = index;
+            setTimeout(() => this.copiedIndex = null, 2000);
+        }
+    },
+
     copyToClipboard(text) {
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(text).then(() => {
@@ -17,6 +116,7 @@
             setTimeout(() => this.copied = false, 2500);
         }
     },
+
     pasteFromClipboard() {
         if (navigator.clipboard) {
             navigator.clipboard.readText().then(text => {
@@ -88,12 +188,13 @@
                         </svg>
                     </a>
 
-                    <a
-                        href="{{ url('/v1/qr?url='.urlencode($shortUrl).'&format=png') }}"
-                        target="_blank"
-                        rel="noopener"
-                        class="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-white"
-                        title="QR-Code herunterladen"
+                    <button
+                        type="button"
+                        @click="showQr = !showQr"
+                        :class="showQr ? 'border-red-500 bg-red-50 text-red-600 dark:border-red-600 dark:bg-red-950/50 dark:text-red-400' : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-white'"
+                        class="inline-flex h-12 w-12 items-center justify-center rounded-xl border shadow-sm transition active:scale-[0.98]"
+                        title="QR-Code anzeigen"
+                        :aria-expanded="showQr.toString()"
                     >
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="3" width="6" height="6" rx="1"/>
@@ -104,7 +205,54 @@
                             <path d="M19 15h2v2h-2z"/>
                             <path d="M15 19h2v2h-2z"/>
                         </svg>
-                    </a>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Inline QR Code Section (generated on demand after clicking the button) --}}
+            <div
+                x-show="showQr"
+                x-transition
+                x-cloak
+                class="mt-6 flex flex-col items-center rounded-xl border border-zinc-200/90 bg-zinc-50/80 p-5 dark:border-zinc-800 dark:bg-zinc-950/60"
+            >
+                <div class="relative flex flex-col items-center">
+                    <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-white">
+                        <template x-if="showQr">
+                            <img
+                                :src="'{{ url('/v1/qr') }}?url=' + encodeURIComponent('{{ $shortUrl }}') + '&format=svg'"
+                                alt="QR-Code für {{ $shortUrl }}"
+                                class="h-44 w-44 sm:h-48 sm:w-48"
+                            />
+                        </template>
+                    </div>
+                    <p class="mt-3 text-xs font-medium text-zinc-600 dark:text-zinc-400">Scannen mit der Smartphone-Kamera zum direkten Öffnen</p>
+                    <div class="mt-3 flex items-center gap-2">
+                        <a
+                            href="{{ url('/v1/qr?url='.urlencode($shortUrl).'&format=png') }}"
+                            download="qr-meinlink.png"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        >
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span>PNG herunterladen</span>
+                        </a>
+                        <a
+                            href="{{ url('/v1/qr?url='.urlencode($shortUrl).'&format=svg') }}"
+                            download="qr-meinlink.svg"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        >
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            <span>SVG herunterladen</span>
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -509,6 +657,198 @@
                     </div>
                 </div>
             </form>
+        </div>
+    @endif
+
+    @if (! $minimal)
+        {{-- Guest Link History Tray --}}
+        <div
+            x-show="history && history.length > 0"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            class="mt-6 overflow-hidden rounded-2xl border border-zinc-200/90 bg-white/80 p-5 shadow-lg backdrop-blur-xl sm:p-6 dark:border-zinc-800 dark:bg-zinc-900/80"
+        >
+            {{-- Header --}}
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-3 dark:border-zinc-800/80">
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                            <path d="M12 7v5l4 2"/>
+                        </svg>
+                    </span>
+                    <h4 class="font-display text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                        Link-Verlauf
+                    </h4>
+                    <span
+                        class="inline-flex items-center justify-center rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+                        x-text="history.length"
+                    ></span>
+                    <span class="hidden text-xs text-zinc-600 sm:inline dark:text-zinc-400">· Lokal im Browser</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        @click="toggleHistory()"
+                        class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                    >
+                        <span x-text="historyCollapsed ? 'Anzeigen' : 'Minimieren'"></span>
+                        <svg class="h-3.5 w-3.5 transition-transform duration-200" :class="{ 'rotate-180': !historyCollapsed }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        @click="if (confirm('Möchtest du deinen lokalen Link-Verlauf leeren?')) clearHistory()"
+                        class="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-zinc-600 transition hover:bg-red-50 hover:text-red-600 dark:text-zinc-400 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                        title="Verlauf leeren"
+                    >
+                        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        <span>Leeren</span>
+                    </button>
+                </div>
+            </div>
+
+            {{-- History List --}}
+            <div x-show="!historyCollapsed" x-transition class="mt-3 divide-y divide-zinc-100 dark:divide-zinc-800/60">
+                <template x-for="(item, index) in history" :key="item.short">
+                    <div class="py-3 first:pt-1 last:pb-1">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            {{-- URL info --}}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <a
+                                        :href="item.short"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="truncate font-mono text-sm font-bold text-zinc-900 transition hover:text-red-600 dark:text-zinc-100 dark:hover:text-red-400"
+                                        x-text="item.short"
+                                    ></a>
+                                    <a
+                                        :href="item.short"
+                                        target="_blank"
+                                        rel="noopener"
+                                        class="text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                                        title="Link im neuen Tab öffnen"
+                                    >
+                                        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                            <polyline points="15 3 21 3 21 9"/>
+                                            <line x1="10" y1="14" x2="21" y2="3"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                                <div class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-zinc-600 dark:text-zinc-400">
+                                    <span class="truncate max-w-xs sm:max-w-md font-mono" :title="item.original" x-text="item.original"></span>
+                                    <span class="text-zinc-400 dark:text-zinc-600">·</span>
+                                    <span class="text-[11px] text-zinc-600 dark:text-zinc-400" x-text="item.date_formatted"></span>
+                                </div>
+                            </div>
+
+                            {{-- Actions --}}
+                            <div class="flex items-center gap-1.5 self-end sm:self-center">
+                                <button
+                                    type="button"
+                                    @click="copyHistoryLink(item.short, index)"
+                                    class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 shadow-2xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                    :title="copiedIndex === index ? 'Kopiert!' : 'In Zwischenablage kopieren'"
+                                >
+                                    <svg x-show="copiedIndex !== index" class="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                    </svg>
+                                    <svg x-show="copiedIndex === index" style="display: none;" class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 6L9 17L4 12"/>
+                                    </svg>
+                                    <span x-text="copiedIndex === index ? 'Kopiert' : 'Kopieren'">Kopieren</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    @click="toggleHistoryQr(index)"
+                                    :class="activeQrIndex === index ? 'border-red-500 bg-red-50 text-red-600 dark:border-red-600 dark:bg-red-950/50 dark:text-red-400' : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700'"
+                                    class="inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-semibold shadow-2xs transition"
+                                    title="QR-Code anzeigen"
+                                >
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="6" height="6" rx="1"/>
+                                        <rect x="15" y="3" width="6" height="6" rx="1"/>
+                                        <rect x="3" y="15" width="6" height="6" rx="1"/>
+                                        <path d="M15 15h2v2h-2z"/>
+                                        <path d="M19 19h2v2h-2z"/>
+                                        <path d="M19 15h2v2h-2z"/>
+                                        <path d="M15 19h2v2h-2z"/>
+                                    </svg>
+                                    <span>QR-Code</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    @click="removeHistoryItem(index)"
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                                    title="Aus Verlauf entfernen"
+                                >
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Inline QR Code expansion for history item (loaded on demand) --}}
+                        <div
+                            x-show="activeQrIndex === index"
+                            x-transition
+                            class="mt-3 flex flex-col items-center rounded-xl border border-zinc-200/70 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-950/50"
+                        >
+                            <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white p-2.5 shadow-2xs dark:border-zinc-700 dark:bg-white">
+                                <template x-if="activeQrIndex === index">
+                                    <img
+                                        :src="'{{ url('/v1/qr') }}?url=' + encodeURIComponent(item.short) + '&format=svg'"
+                                        :alt="'QR-Code für ' + item.short"
+                                        class="h-36 w-36 sm:h-40 sm:w-40"
+                                    />
+                                </template>
+                            </div>
+                            <p class="mt-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">Scannen mit Smartphone zum direkten Öffnen</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <a
+                                    :href="'{{ url('/v1/qr') }}?url=' + encodeURIComponent(item.short) + '&format=png'"
+                                    download="qr-code.png"
+                                    class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-semibold text-zinc-700 shadow-2xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                >
+                                    <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="7 10 12 15 17 10"/>
+                                        <line x1="12" y1="15" x2="12" y2="3"/>
+                                    </svg>
+                                    <span>PNG</span>
+                                </a>
+                                <a
+                                    :href="'{{ url('/v1/qr') }}?url=' + encodeURIComponent(item.short) + '&format=svg'"
+                                    download="qr-code.svg"
+                                    class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-semibold text-zinc-700 shadow-2xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                >
+                                    <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="7 10 12 15 17 10"/>
+                                        <line x1="12" y1="15" x2="12" y2="3"/>
+                                    </svg>
+                                    <span>SVG</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
     @endif
 </div>
