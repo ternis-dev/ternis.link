@@ -190,7 +190,7 @@
 
                 <h1 class="mt-6 font-display text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl sm:leading-tight lg:text-6xl dark:text-zinc-50" id="hero-title">
                     Lange URLs einfach <br class="hidden sm:inline" />
-                    <span class="bg-gradient-to-r from-red-600 via-rose-600 to-red-500 bg-clip-text text-transparent">kurz gemacht.</span>
+                    <span class="bg-[length:200%_auto] animate-shimmer bg-gradient-to-r from-red-600 via-rose-600 to-red-500 bg-clip-text text-transparent">kurz gemacht.</span>
                 </h1>
 
                 <p class="mx-auto mt-4 max-w-xl text-base text-zinc-600 sm:text-lg dark:text-zinc-400">
@@ -218,7 +218,7 @@
 
                 <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {{-- Card 1 --}}
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="animate-fade-in-up [animation-delay:100ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                         <div class="flex items-center gap-3">
                             <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -233,7 +233,7 @@
                     </div>
 
                     {{-- Card 2 --}}
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="animate-fade-in-up [animation-delay:200ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                         <div class="flex items-center gap-3">
                             <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -248,7 +248,7 @@
                     </div>
 
                     {{-- Card 3 --}}
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="animate-fade-in-up [animation-delay:300ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                         <div class="flex items-center gap-3">
                             <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -263,7 +263,7 @@
                     </div>
 
                     {{-- Card 4 --}}
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="animate-fade-in-up [animation-delay:400ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                         <div class="flex items-center gap-3">
                             <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -293,50 +293,85 @@
                     </p>
                 </div>
 
-                <div class="mt-12 space-y-4">
+                <div class="mt-12 space-y-4" x-data="{ active: null }">
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
-                            Wie kann ich einen Link auf meinlink.at kostenlos kürzen?
-                        </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                            Füge einfach deine lange Ziel-URL in das Eingabefeld ein, wähle bei Bedarf deine bevorzugte Domain (<code>meinlink.at</code> oder <code>href.nz</code>), die gewünschte Zeichenlänge (5 bis 9 Zeichen) sowie ein optionales Ablaufdatum und klicke auf „Kürzen“. Der Kurzlink wird sofort erstellt.
-                        </p>
+                        <button @click="active = active === 1 ? null : 1" type="button" class="flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                Wie kann ich einen Link auf meinlink.at kostenlos kürzen?
+                            </h3>
+                            <svg :class="active === 1 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="active === 1" x-transition x-cloak>
+                            <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                Füge einfach deine lange Ziel-URL in das Eingabefeld ein, wähle bei Bedarf deine bevorzugte Domain (<code>meinlink.at</code> oder <code>href.nz</code>), die gewünschte Zeichenlänge (5 bis 9 Zeichen) sowie ein optionales Ablaufdatum und klicke auf „Kürzen“. Der Kurzlink wird sofort erstellt.
+                            </p>
+                        </div>
                     </div>
 
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
-                            Ist meinlink.at kostenlos und ohne Registrierung nutzbar?
-                        </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                            Ja, als Gast kannst du bis zu 50 Links pro Tag völlig kostenlos und ohne Angabe von persönlichen Daten, E-Mail-Adresse oder Passwort kürzen.
-                        </p>
+                        <button @click="active = active === 2 ? null : 2" type="button" class="flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                Ist meinlink.at kostenlos und ohne Registrierung nutzbar?
+                            </h3>
+                            <svg :class="active === 2 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="active === 2" x-transition x-cloak>
+                            <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                Ja, als Gast kannst du bis zu 50 Links pro Tag völlig kostenlos und ohne Angabe von persönlichen Daten, E-Mail-Adresse oder Passwort kürzen.
+                            </p>
+                        </div>
                     </div>
 
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
-                            Wird automatisch ein QR-Code für den Link generiert?
-                        </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                            Ja! Zu jedem erstellten Kurzlink erhältst du direkt einen hochauflösenden QR-Code zum Scannen oder Herunterladen. Perfekt für Flyer, Präsentationen und Visitenkarten.
-                        </p>
+                        <button @click="active = active === 3 ? null : 3" type="button" class="flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                Wird automatisch ein QR-Code für den Link generiert?
+                            </h3>
+                            <svg :class="active === 3 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="active === 3" x-transition x-cloak>
+                            <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                Ja! Zu jedem erstellten Kurzlink erhältst du direkt einen hochauflösenden QR-Code zum Scannen oder Herunterladen. Perfekt für Flyer, Präsentationen und Visitenkarten.
+                            </p>
+                        </div>
                     </div>
 
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
-                            Wie schützt meinlink.at meine Privatsphäre?
-                        </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                            meinlink.at arbeitet nach strengen DSGVO-Richtlinien. Es werden keine Werbetracker oder Tracking-Cookies gesetzt, und IP-Adressen werden zur Missbrauchsprävention nur als Einweg-Hash verarbeitet.
-                        </p>
+                        <button @click="active = active === 4 ? null : 4" type="button" class="flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                Wie schützt meinlink.at meine Privatsphäre?
+                            </h3>
+                            <svg :class="active === 4 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="active === 4" x-transition x-cloak>
+                            <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                meinlink.at arbeitet nach strengen DSGVO-Richtlinien. Es werden keine Werbetracker oder Tracking-Cookies gesetzt, und IP-Adressen werden zur Missbrauchsprävention nur als Einweg-Hash verarbeitet.
+                            </p>
+                        </div>
                     </div>
 
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
-                            Welche Vorteile bietet ein kostenloses Mitgliedskonto?
-                        </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                            Registrierte Mitglieder können eigene Wunschkürzel vergeben, detaillierte Klick-Statistiken in Echtzeit abrufen und höhere Tageslimits nutzen. Die Anmeldung erfolgt schnell und sicher über Ternis Auth SSO.
-                        </p>
+                        <button @click="active = active === 5 ? null : 5" type="button" class="flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                Welche Vorteile bietet ein kostenloses Mitgliedskonto?
+                            </h3>
+                            <svg :class="active === 5 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="active === 5" x-transition x-cloak>
+                            <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                Registrierte Mitglieder können eigene Wunschkürzel vergeben, detaillierte Klick-Statistiken in Echtzeit abrufen und höhere Tageslimits nutzen. Die Anmeldung erfolgt schnell und sicher über Ternis Auth SSO.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -370,6 +405,8 @@
     <footer class="border-t border-zinc-200 bg-white py-12 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
         <div class="mx-auto flex max-w-5xl flex-col items-center justify-between gap-6 px-4 text-center sm:flex-row sm:px-6 sm:text-left">
             <div class="flex items-center gap-2">
+                <span class="font-semibold text-zinc-800 dark:text-zinc-200">&copy; {{ date('Y') }} Ternis</span>
+                <span class="text-zinc-400 dark:text-zinc-600">·</span>
                 <span class="font-semibold text-zinc-800 dark:text-zinc-200">meinlink.at</span>
                 <span class="text-zinc-400 dark:text-zinc-600">·</span>
                 <span>Ein Dienst der Ternis-Plattform</span>

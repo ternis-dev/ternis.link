@@ -16,11 +16,6 @@
         </h2>
         @if (! $minimal)
         <div class="sk-meter" title="{{ $this->t('meter.title') }}">
-            <span class="sk-meter-boxes" aria-hidden="true">
-                @for ($i = 0; $i < 10; $i++)
-                    <span class="sk-meter-box{{ $i < (int) ceil($this->quotaLeft / 5) ? ' is-full' : '' }}"></span>
-                @endfor
-            </span>
             <span class="sk-meter-text">{{ $this->t('meter.text', $this->quotaLeft, \App\Services\LinkService::ANONYMOUS_DAILY_LIMIT) }}</span>
         </div>
         @endif
@@ -35,7 +30,7 @@
             @endif
             <p class="sk-result-kicker">
                 {{-- check --}}
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="m8.2 12.3 2.5 2.5 5.1-5.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg class="sk-tada" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2"/><path d="m8.2 12.3 2.5 2.5 5.1-5.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Done — your short link is ready
             </p>
             <a href="{{ $shortUrl }}" target="_blank" rel="noopener" class="sk-ticket-link" data-sk-result-link>{{ $shortUrl }}</a>

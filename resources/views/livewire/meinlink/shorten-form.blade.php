@@ -138,7 +138,7 @@
             <form wire:submit="create" novalidate>
                 <div class="flex flex-col gap-4">
                     {{-- Options Bar: Domain, Length, Expiration --}}
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-3 dark:border-zinc-800/80">
+                    <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3 dark:border-zinc-800/80">
                         {{-- Domain Picker --}}
                         <div class="flex items-center gap-1.5">
                             <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Domain:</span>
