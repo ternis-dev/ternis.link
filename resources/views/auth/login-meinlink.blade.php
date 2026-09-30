@@ -19,13 +19,23 @@
 
     <div class="mx-auto flex min-h-screen max-w-xl flex-col justify-between px-4 py-8 sm:px-6">
         <header class="flex items-center justify-between">
-            <a href="/" class="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
-                meinlink<span class="text-red-600">.at</span>
+            <a href="/" class="group flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 via-rose-600 to-red-600 text-white shadow-md shadow-red-500/25 transition duration-200 group-hover:scale-105">
+                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>meinlink<span class="text-red-600">.at</span></span>
             </a>
 
             <nav aria-label="Navigation">
-                <a href="/" class="text-sm font-medium text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                    ← Zurück zum Kürzer
+                <a href="/" class="inline-flex items-center gap-1 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    <span>Zurück zum Kürzer</span>
                 </a>
             </nav>
         </header>
@@ -54,11 +64,12 @@
                 <div class="mt-6">
                     <a
                         href="{{ \App\Support\DomainUrls::dashboard('/login') }}"
-                        class="flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white shadow-md transition hover:bg-red-500 active:scale-[0.98]"
+                        class="group flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white shadow-md transition hover:bg-red-500 active:scale-[0.98]"
                     >
                         <span>Mit Ternis Auth anmelden</span>
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
                         </svg>
                     </a>
                 </div>

@@ -131,17 +131,32 @@
         Direkt zum Formular springen
     </a>
 
-    {{-- Subtle background decoration --}}
+    {{-- Subtle background decoration & ambient SVG grid --}}
     <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div class="absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-b from-red-500/10 via-rose-500/5 to-transparent blur-3xl"></div>
         <div class="absolute top-[600px] -left-40 h-[400px] w-[400px] rounded-full bg-zinc-200/50 blur-3xl dark:bg-zinc-800/20"></div>
+        <svg class="absolute inset-0 h-full w-full stroke-zinc-900/[0.035] [mask-image:radial-gradient(100%_70%_at_top_center,white,transparent_80%)] dark:stroke-white/[0.03]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="ml-ambient-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+                    <path d="M48 0L0 0 0 48" fill="none" stroke-width="1"/>
+                    <circle cx="48" cy="48" r="1" fill="currentColor" fill-opacity="0.3"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#ml-ambient-grid)" />
+        </svg>
     </div>
 
     {{-- Navigation Header --}}
     <header class="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/75 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/75">
         <div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-            <a href="/" class="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
-                meinlink<span class="text-red-600">.at</span>
+            <a href="/" class="group flex items-center gap-2.5 text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 via-rose-600 to-red-600 text-white shadow-md shadow-red-500/25 transition duration-200 group-hover:scale-105 group-hover:shadow-red-500/40">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>meinlink<span class="text-red-600">.at</span></span>
             </a>
 
             <nav class="flex items-center gap-3 sm:gap-6" aria-label="Hauptnavigation">
@@ -156,16 +171,16 @@
                 </a>
 
                 @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">
+                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="group inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">
                         <span>Dashboard</span>
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>
                     </a>
                 @else
-                    <a href="{{ url('/login') }}" class="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-800">
+                    <a href="{{ url('/login') }}" class="group inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-800">
                         <span>Mitglieder-Login</span>
-                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                     </a>
@@ -178,14 +193,17 @@
         {{-- Hero Section --}}
         <section class="relative px-4 pt-12 pb-16 sm:px-6 sm:pt-20 sm:pb-24">
             <div class="mx-auto max-w-3xl text-center">
-                {{-- Germany Flag Pill --}}
-                <div class="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3.5 py-1 text-xs font-semibold text-zinc-700 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
-                    <span class="inline-block h-2.5 w-3.5 overflow-hidden rounded-xs border border-zinc-300 dark:border-zinc-700 shadow-xs">
-                        <span class="block h-1/3 bg-black"></span>
-                        <span class="block h-1/3 bg-red-600"></span>
-                        <span class="block h-1/3 bg-amber-400"></span>
-                    </span>
+                {{-- Germany Flag & Verification Pill --}}
+                <div class="inline-flex items-center gap-2 rounded-full border border-zinc-200/90 bg-white/95 px-3.5 py-1 text-xs font-semibold text-zinc-700 shadow-xs backdrop-blur-sm transition hover:border-zinc-300 dark:border-zinc-800/90 dark:bg-zinc-900/95 dark:text-zinc-300 dark:hover:border-zinc-700">
+                    <svg class="h-3 w-4 shrink-0 overflow-hidden rounded-[2px] shadow-xs ring-1 ring-black/10" viewBox="0 0 20 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="20" height="5" fill="#18181B"/>
+                        <rect y="5" width="20" height="5" fill="#DC2626"/>
+                        <rect y="10" width="20" height="5" fill="#F59E0B"/>
+                    </svg>
                     <span>Moderne &amp; sichere Kurzlinks aus Deutschland</span>
+                    <svg class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 16 16" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm3.354-9.354a.5.5 0 0 0-.708 0L7 9.293 5.354 7.646a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l4-4a.5.5 0 0 0 0-.708z"/>
+                    </svg>
                 </div>
 
                 <h1 class="mt-6 font-display text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl sm:leading-tight lg:text-6xl dark:text-zinc-50" id="hero-title">
@@ -218,11 +236,12 @@
 
                 <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     {{-- Card 1 --}}
-                    <div class="animate-fade-in-up [animation-delay:100ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="group animate-fade-in-up [animation-delay:100ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <div class="flex items-center gap-3">
-                            <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-400">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-500/10 to-rose-500/20 text-red-600 ring-1 ring-red-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-red-950/60 dark:to-rose-900/40 dark:text-red-400 dark:ring-red-500/30">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13 2.5L3.5 13.5H12L11 21.5L20.5 10.5H12L13 2.5Z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+                                    <path d="M17 3.5L19 5.5M19.5 2.5L20.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 </svg>
                             </div>
                             <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Sofort einsatzbereit</h3>
@@ -233,11 +252,12 @@
                     </div>
 
                     {{-- Card 2 --}}
-                    <div class="animate-fade-in-up [animation-delay:200ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="group animate-fade-in-up [animation-delay:200ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <div class="flex items-center gap-3">
-                            <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/20 text-emerald-600 ring-1 ring-emerald-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-emerald-950/60 dark:to-teal-900/40 dark:text-emerald-400 dark:ring-emerald-500/30">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 3.25L4.5 6.75V11.5C4.5 16.5 7.7 21.1 12 22.25C16.3 21.1 19.5 16.5 19.5 11.5V6.75L12 3.25Z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 12.5L11 14.5L15 9.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
                             <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Datenschutz nach DSGVO</h3>
@@ -248,11 +268,20 @@
                     </div>
 
                     {{-- Card 3 --}}
-                    <div class="animate-fade-in-up [animation-delay:300ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="group animate-fade-in-up [animation-delay:300ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <div class="flex items-center gap-3">
-                            <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-400">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                            <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-500/20 text-sky-600 ring-1 ring-sky-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-sky-950/60 dark:to-blue-900/40 dark:text-sky-400 dark:ring-sky-500/30">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/>
+                                    <rect x="5.25" y="5.25" width="2.5" height="2.5" rx="0.5" fill="currentColor"/>
+                                    <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/>
+                                    <rect x="16.25" y="5.25" width="2.5" height="2.5" rx="0.5" fill="currentColor"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/>
+                                    <rect x="5.25" y="16.25" width="2.5" height="2.5" rx="0.5" fill="currentColor"/>
+                                    <rect x="14" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor"/>
+                                    <rect x="18.5" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor"/>
+                                    <rect x="14" y="18.5" width="2.5" height="2.5" rx="0.5" fill="currentColor"/>
+                                    <rect x="18.5" y="18.5" width="2.5" height="2.5" rx="0.5" fill="currentColor"/>
                                 </svg>
                             </div>
                             <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">QR-Codes inklusive</h3>
@@ -263,11 +292,15 @@
                     </div>
 
                     {{-- Card 4 --}}
-                    <div class="animate-fade-in-up [animation-delay:400ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="group animate-fade-in-up [animation-delay:400ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <div class="flex items-center gap-3">
-                            <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/10 to-indigo-500/20 text-purple-600 ring-1 ring-purple-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-purple-950/60 dark:to-indigo-900/40 dark:text-purple-400 dark:ring-purple-500/30">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="3" y="13" width="4" height="8" rx="1.5" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.8"/>
+                                    <rect x="10" y="8" width="4" height="13" rx="1.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.8"/>
+                                    <rect x="17" y="4" width="4" height="17" rx="1.5" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M4 11L11 6L16 9L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="21" cy="3" r="1.5" fill="currentColor"/>
                                 </svg>
                             </div>
                             <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Auswertungen &amp; Slugs</h3>
@@ -294,14 +327,16 @@
                 </div>
 
                 <div class="mt-12 space-y-4" x-data="{ active: null }">
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <button @click="active = active === 1 ? null : 1" type="button" class="flex w-full items-center justify-between text-left">
-                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                        <button @click="active = active === 1 ? null : 1" type="button" class="group flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 transition group-hover:text-red-600 dark:text-zinc-100 dark:group-hover:text-red-400">
                                 Wie kann ich einen Link auf meinlink.at kostenlos kürzen?
                             </h3>
-                            <svg :class="active === 1 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition-all duration-200 group-hover:bg-red-50 group-hover:text-red-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-red-950/60 dark:group-hover:text-red-400">
+                                <svg :class="active === 1 ? 'rotate-180 text-red-600 dark:text-red-400' : ''" class="h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
                         </button>
                         <div x-show="active === 1" x-transition x-cloak>
                             <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
@@ -310,14 +345,16 @@
                         </div>
                     </div>
 
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <button @click="active = active === 2 ? null : 2" type="button" class="flex w-full items-center justify-between text-left">
-                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                        <button @click="active = active === 2 ? null : 2" type="button" class="group flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 transition group-hover:text-red-600 dark:text-zinc-100 dark:group-hover:text-red-400">
                                 Ist meinlink.at kostenlos und ohne Registrierung nutzbar?
                             </h3>
-                            <svg :class="active === 2 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition-all duration-200 group-hover:bg-red-50 group-hover:text-red-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-red-950/60 dark:group-hover:text-red-400">
+                                <svg :class="active === 2 ? 'rotate-180 text-red-600 dark:text-red-400' : ''" class="h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
                         </button>
                         <div x-show="active === 2" x-transition x-cloak>
                             <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
@@ -326,14 +363,16 @@
                         </div>
                     </div>
 
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <button @click="active = active === 3 ? null : 3" type="button" class="flex w-full items-center justify-between text-left">
-                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                        <button @click="active = active === 3 ? null : 3" type="button" class="group flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 transition group-hover:text-red-600 dark:text-zinc-100 dark:group-hover:text-red-400">
                                 Wird automatisch ein QR-Code für den Link generiert?
                             </h3>
-                            <svg :class="active === 3 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition-all duration-200 group-hover:bg-red-50 group-hover:text-red-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-red-950/60 dark:group-hover:text-red-400">
+                                <svg :class="active === 3 ? 'rotate-180 text-red-600 dark:text-red-400' : ''" class="h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
                         </button>
                         <div x-show="active === 3" x-transition x-cloak>
                             <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
@@ -342,14 +381,16 @@
                         </div>
                     </div>
 
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <button @click="active = active === 4 ? null : 4" type="button" class="flex w-full items-center justify-between text-left">
-                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                        <button @click="active = active === 4 ? null : 4" type="button" class="group flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 transition group-hover:text-red-600 dark:text-zinc-100 dark:group-hover:text-red-400">
                                 Wie schützt meinlink.at meine Privatsphäre?
                             </h3>
-                            <svg :class="active === 4 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition-all duration-200 group-hover:bg-red-50 group-hover:text-red-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-red-950/60 dark:group-hover:text-red-400">
+                                <svg :class="active === 4 ? 'rotate-180 text-red-600 dark:text-red-400' : ''" class="h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
                         </button>
                         <div x-show="active === 4" x-transition x-cloak>
                             <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
@@ -358,14 +399,16 @@
                         </div>
                     </div>
 
-                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <button @click="active = active === 5 ? null : 5" type="button" class="flex w-full items-center justify-between text-left">
-                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                        <button @click="active = active === 5 ? null : 5" type="button" class="group flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 transition group-hover:text-red-600 dark:text-zinc-100 dark:group-hover:text-red-400">
                                 Welche Vorteile bietet ein kostenloses Mitgliedskonto?
                             </h3>
-                            <svg :class="active === 5 ? 'rotate-180' : ''" class="h-5 w-5 transform text-zinc-500 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                            </svg>
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition-all duration-200 group-hover:bg-red-50 group-hover:text-red-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-red-950/60 dark:group-hover:text-red-400">
+                                <svg :class="active === 5 ? 'rotate-180 text-red-600 dark:text-red-400' : ''" class="h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
                         </button>
                         <div x-show="active === 5" x-transition x-cloak>
                             <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
@@ -379,23 +422,36 @@
 
         {{-- Call To Action for Members --}}
         <section class="px-4 py-16 sm:px-6">
-            <div class="mx-auto max-w-4xl overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-8 text-center text-white shadow-xl sm:p-12 dark:border-zinc-800">
-                <h2 class="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-                    Möchtest du mehr Kontrolle über deine Links?
-                </h2>
-                <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
-                    Melde dich kostenlos an und erhalte eigene Kurzlink-Namen, erweiterte Klick-Statistiken, API-Zugriff und ein übersichtliches Dashboard.
-                </p>
-                <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
-                    <a href="{{ url('/login') }}" class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-red-500 active:scale-[0.98]">
-                        <span>Jetzt anmelden</span>
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                    </a>
-                    <a href="/new" class="inline-flex items-center rounded-xl border border-zinc-700 bg-zinc-800/80 px-6 py-3 font-semibold text-zinc-200 transition hover:bg-zinc-800 hover:text-white">
-                        Weiter als Gast
-                    </a>
+            <div class="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-8 text-center text-white shadow-xl sm:p-12 dark:border-zinc-800">
+                {{-- Ambient Vector Pattern --}}
+                <svg class="pointer-events-none absolute inset-0 -z-0 h-full w-full stroke-white/[0.06] [mask-image:radial-gradient(85%_85%_at_50%_40%,white,transparent)]" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="cta-mesh" width="36" height="36" patternUnits="userSpaceOnUse">
+                            <path d="M36 0H0V36" fill="none" stroke-width="1"/>
+                            <circle cx="36" cy="36" r="1.5" fill="white" fill-opacity="0.15"/>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#cta-mesh)" />
+                </svg>
+
+                <div class="relative z-10">
+                    <h2 class="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+                        Möchtest du mehr Kontrolle über deine Links?
+                    </h2>
+                    <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
+                        Melde dich kostenlos an und erhalte eigene Kurzlink-Namen, erweiterte Klick-Statistiken, API-Zugriff und ein übersichtliches Dashboard.
+                    </p>
+                    <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
+                        <a href="{{ url('/login') }}" class="group inline-flex items-center gap-2 rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition hover:bg-red-500 active:scale-[0.98]">
+                            <span>Jetzt anmelden</span>
+                            <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </a>
+                        <a href="/new" class="inline-flex items-center rounded-xl border border-zinc-700 bg-zinc-800/80 px-6 py-3 font-semibold text-zinc-200 transition hover:bg-zinc-800 hover:text-white">
+                            Weiter als Gast
+                        </a>
+                    </div>
                 </div>
             </div>
         </section>
@@ -407,7 +463,13 @@
             <div class="flex items-center gap-2">
                 <span class="font-semibold text-zinc-800 dark:text-zinc-200">&copy; {{ date('Y') }} Ternis</span>
                 <span class="text-zinc-400 dark:text-zinc-600">·</span>
-                <span class="font-semibold text-zinc-800 dark:text-zinc-200">meinlink.at</span>
+                <span class="inline-flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200">
+                    <svg class="h-3.5 w-3.5 text-red-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    meinlink.at
+                </span>
                 <span class="text-zinc-400 dark:text-zinc-600">·</span>
                 <span>Ein Dienst der Ternis-Plattform</span>
             </div>

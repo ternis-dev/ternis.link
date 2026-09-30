@@ -25,18 +25,30 @@
 
     <div class="mx-auto flex min-h-screen max-w-2xl flex-col justify-between px-4 py-8 sm:px-6">
         <header class="flex items-center justify-between">
-            <a href="/" class="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
-                meinlink<span class="text-red-600">.at</span>
+            <a href="/" class="group flex items-center gap-2 text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="meinlink.at Startseite">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 via-rose-600 to-red-600 text-white shadow-md shadow-red-500/25 transition duration-200 group-hover:scale-105">
+                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>meinlink<span class="text-red-600">.at</span></span>
             </a>
 
             <nav aria-label="Navigation">
                 @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="text-sm font-medium text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                        Dashboard →
+                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="group inline-flex items-center gap-1 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                        <span>Dashboard</span>
+                        <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
                     </a>
                 @else
-                    <a href="{{ url('/login') }}" class="text-sm font-medium text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
-                        Mitglieder-Login →
+                    <a href="{{ url('/login') }}" class="group inline-flex items-center gap-1 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+                        <span>Mitglieder-Login</span>
+                        <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
                     </a>
                 @endauth
             </nav>

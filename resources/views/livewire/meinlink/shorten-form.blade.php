@@ -34,9 +34,9 @@
             <div class="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl"></div>
 
             <div class="flex items-center gap-2.5">
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                <span class="relative inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/30 text-emerald-600 ring-1 ring-emerald-500/30 shadow-xs dark:from-emerald-950/80 dark:to-teal-900/60 dark:text-emerald-400">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 6L9 17L4 12" />
                     </svg>
                 </span>
                 <div>
@@ -64,11 +64,12 @@
                         class="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 px-5 font-semibold text-white shadow-sm transition hover:bg-red-500 active:scale-[0.98] sm:flex-initial"
                         aria-label="Kurzlink in Zwischenablage kopieren"
                     >
-                        <svg x-show="!copied" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        <svg x-show="!copied" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                         </svg>
-                        <svg x-show="copied" style="display: none;" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        <svg x-show="copied" style="display: none;" class="h-4 w-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 6L9 17L4 12" />
                         </svg>
                         <span x-text="copied ? 'Kopiert!' : 'Kopieren'">Kopieren</span>
                     </button>
@@ -77,11 +78,13 @@
                         href="{{ $shortUrl }}"
                         target="_blank"
                         rel="noopener"
-                        class="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+                        class="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-white"
                         title="Link testen"
                     >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            <polyline points="15 3 21 3 21 9"/>
+                            <line x1="10" y1="14" x2="21" y2="3"/>
                         </svg>
                     </a>
 
@@ -89,11 +92,17 @@
                         href="{{ url('/v1/qr?url='.urlencode($shortUrl).'&format=png') }}"
                         target="_blank"
                         rel="noopener"
-                        class="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+                        class="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98] dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-white"
                         title="QR-Code herunterladen"
                     >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="6" height="6" rx="1"/>
+                            <rect x="15" y="3" width="6" height="6" rx="1"/>
+                            <rect x="3" y="15" width="6" height="6" rx="1"/>
+                            <path d="M15 15h2v2h-2z"/>
+                            <path d="M19 19h2v2h-2z"/>
+                            <path d="M19 15h2v2h-2z"/>
+                            <path d="M15 19h2v2h-2z"/>
                         </svg>
                     </a>
                 </div>
@@ -103,6 +112,13 @@
             <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                 @if ($originalUrl)
                     <div class="flex items-center gap-1.5 truncate">
+                        <svg class="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="22" y1="12" x2="18" y2="12"/>
+                            <line x1="6" y1="12" x2="2" y2="12"/>
+                            <line x1="12" y1="6" x2="12" y2="2"/>
+                            <line x1="12" y1="22" x2="12" y2="18"/>
+                        </svg>
                         <span class="font-medium text-zinc-600 dark:text-zinc-300">Ziel:</span>
                         <span class="truncate font-mono" title="{{ $originalUrl }}">{{ $originalUrl }}</span>
                     </div>
@@ -110,8 +126,9 @@
 
                 @if ($linkExpiresAtFormatted)
                     <div class="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 font-medium text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
-                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
                         </svg>
                         <span>Gültig bis: {{ $linkExpiresAtFormatted }}</span>
                     </div>
@@ -123,10 +140,11 @@
                 <button
                     type="button"
                     wire:click="resetForm"
-                    class="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                    class="group inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
-                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    <svg class="h-3.5 w-3.5 transition-transform group-hover:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                     Weiteren Link kürzen
                 </button>
@@ -141,7 +159,14 @@
                     <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 border-b border-zinc-100 pb-3 dark:border-zinc-800/80">
                         {{-- Domain Picker --}}
                         <div class="flex items-center gap-1.5">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Domain:</span>
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <svg class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="2" y1="12" x2="22" y2="12"/>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                                </svg>
+                                <span>Domain:</span>
+                            </span>
                             <div class="inline-flex rounded-lg border border-zinc-200 bg-zinc-100/70 p-0.5 text-xs font-medium dark:border-zinc-700 dark:bg-zinc-800">
                                 <button
                                     type="button"
@@ -170,7 +195,15 @@
 
                         {{-- Length Picker: 5 to 9 --}}
                         <div class="flex items-center gap-1.5">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Länge:</span>
+                            <span class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <svg class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="4" y1="9" x2="20" y2="9"/>
+                                    <line x1="4" y1="15" x2="20" y2="15"/>
+                                    <line x1="10" y1="3" x2="8" y2="21"/>
+                                    <line x1="16" y1="3" x2="14" y2="21"/>
+                                </svg>
+                                <span>Länge:</span>
+                            </span>
                             <div class="inline-flex rounded-lg border border-zinc-200 bg-zinc-100/70 p-0.5 text-xs font-medium dark:border-zinc-700 dark:bg-zinc-800">
                                 @foreach ([5, 6, 7, 8, 9] as $len)
                                     <button
@@ -191,8 +224,14 @@
 
                         {{-- Optional Expiration Date --}}
                         <div class="flex items-center gap-1.5">
-                            <label for="expiresAt" class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                                Ablauf:
+                            <label for="expiresAt" class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <svg class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                <span>Ablauf:</span>
                             </label>
                             <div class="relative flex items-center">
                                 <input
@@ -211,8 +250,9 @@
                                         class="ml-1 rounded p-0.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
                                         title="Ablaufdatum entfernen"
                                     >
-                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
                                         </svg>
                                     </button>
                                 @endif
@@ -237,8 +277,9 @@
                         <div class="relative flex flex-col gap-2 sm:flex-row sm:items-center">
                             <div class="relative flex-1">
                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-400">
-                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                                     </svg>
                                 </div>
 
@@ -273,18 +314,23 @@
                                             class="rounded-lg p-1 text-zinc-400 hover:bg-zinc-200 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                                             title="Eingabe leeren"
                                         >
-                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                                <line x1="6" y1="6" x2="18" y2="18"/>
                                             </svg>
                                         </button>
                                     @else
                                         <button
                                             type="button"
                                             @click="pasteFromClipboard()"
-                                            class="rounded-lg px-2 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                                            class="group inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                                             title="Aus Zwischenablage einfügen"
                                         >
-                                            Einfügen
+                                            <svg class="h-3.5 w-3.5 text-zinc-400 transition group-hover:text-zinc-600 dark:text-zinc-500 dark:group-hover:text-zinc-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                                            </svg>
+                                            <span>Einfügen</span>
                                         </button>
                                     @endif
                                 </div>
@@ -295,16 +341,17 @@
                                 type="submit"
                                 wire:loading.attr="disabled"
                                 wire:target="create"
-                                class="inline-flex h-[46px] items-center justify-center gap-2 rounded-xl bg-red-600 px-6 font-semibold text-white shadow-md transition hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 dark:bg-red-600 dark:hover:bg-red-500"
+                                class="group inline-flex h-[46px] items-center justify-center gap-2 rounded-xl bg-red-600 px-6 font-semibold text-white shadow-md transition hover:bg-red-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 dark:bg-red-600 dark:hover:bg-red-500"
                             >
                                 <span wire:loading.remove wire:target="create" class="flex items-center gap-2">
                                     <span>Kürzen</span>
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    <svg class="h-4 w-4 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                        <polyline points="12 5 19 12 12 19"/>
                                     </svg>
                                 </span>
                                 <span wire:loading wire:target="create" class="flex items-center gap-2">
-                                    <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
@@ -317,8 +364,11 @@
                     {{-- Fix suggestion --}}
                     @if ($this->fixablePreview)
                         <div class="flex items-center justify-between rounded-xl border border-amber-500/20 bg-amber-500/5 px-3.5 py-2 text-xs text-amber-700 dark:text-amber-300">
-                            <span class="truncate">
-                                Meintest du <strong class="font-mono font-medium">{{ \Illuminate\Support\Str::limit($this->fixablePreview, 45) }}</strong>?
+                            <span class="inline-flex items-center gap-2 truncate">
+                                <svg class="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                                </svg>
+                                <span class="truncate">Meintest du <strong class="font-mono font-medium">{{ \Illuminate\Support\Str::limit($this->fixablePreview, 45) }}</strong>?</span>
                             </span>
                             <button
                                 type="button"
@@ -333,16 +383,25 @@
                     {{-- Duplicate notice --}}
                     @if ($this->duplicate)
                         <div class="flex items-center justify-between rounded-xl border border-sky-500/20 bg-sky-500/5 px-3.5 py-2.5 text-xs text-sky-800 dark:text-sky-300">
-                            <div>
+                            <div class="flex items-center gap-2 truncate">
+                                <svg class="h-4 w-4 shrink-0 text-sky-600 dark:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="16" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                </svg>
                                 <span class="font-semibold">Bereits gekürzt:</span>
-                                <span class="ml-1 font-mono">https://{{ $this->selectedDomain }}/{{ $this->duplicate->slug }}</span>
+                                <span class="truncate font-mono">https://{{ $this->selectedDomain }}/{{ $this->duplicate->slug }}</span>
                             </div>
                             <button
                                 type="button"
                                 @click="copyToClipboard('https://{{ $this->selectedDomain }}/{{ $this->duplicate->slug }}')"
-                                class="ml-2 shrink-0 rounded-lg bg-sky-100 px-2 py-1 font-semibold text-sky-800 transition hover:bg-sky-200 dark:bg-sky-900/60 dark:text-sky-200"
+                                class="inline-flex items-center gap-1 ml-2 shrink-0 rounded-lg bg-sky-100 px-2.5 py-1 font-semibold text-sky-800 transition hover:bg-sky-200 dark:bg-sky-900/60 dark:text-sky-200"
                             >
-                                Kopieren
+                                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                                <span>Kopieren</span>
                             </button>
                         </div>
                     @endif
