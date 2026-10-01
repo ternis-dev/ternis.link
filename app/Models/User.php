@@ -29,6 +29,7 @@ class User extends Authenticatable
         'notify_admin_security_email',
         'notify_server_error_email',
         'table_columns',
+        'deletion_requested_at',
     ];
 
     public const NAV_LAYOUTS = ['side', 'top'];
@@ -46,6 +47,7 @@ class User extends Authenticatable
         'notify_admin_security_email' => 'boolean',
         'notify_server_error_email' => 'boolean',
         'table_columns' => 'array',
+        'deletion_requested_at' => 'datetime',
     ];
 
     // No password, no remember_token — SSO only
@@ -88,6 +90,11 @@ class User extends Authenticatable
     public function bulkOperations(): HasMany
     {
         return $this->hasMany(BulkOperation::class);
+    }
+
+    public function privacyExports(): HasMany
+    {
+        return $this->hasMany(PrivacyExport::class);
     }
 
     public function isAdmin(): bool

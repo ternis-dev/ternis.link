@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\ActivityController;
+use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\ApiKeyController;
 use App\Http\Controllers\Api\V1\BulkOperationController;
 use App\Http\Controllers\Api\V1\ClickController;
@@ -69,6 +70,14 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::c
     // Click analytics
     Route::get('links/{link}/clicks', [ClickController::class, 'index']);
     Route::get('links/{link}/clicks/summary', [ClickController::class, 'summary']);
+
+    // Privacy self-service
+    Route::get('account/data-summary', [AccountController::class, 'dataSummary']);
+    Route::post('account/export', [AccountController::class, 'export']);
+    Route::get('account/exports', [AccountController::class, 'exports']);
+    Route::get('account/exports/{export}/download', [AccountController::class, 'download']);
+    Route::post('account/deletion', [AccountController::class, 'scheduleDeletion']);
+    Route::delete('account/deletion', [AccountController::class, 'cancelDeletion']);
 
     // Bulk operations (import + mutate, async with status polling)
     Route::post('links/import', [BulkOperationController::class, 'import']);
