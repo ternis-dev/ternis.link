@@ -192,6 +192,9 @@ paths:
                 slug: { type: string, pattern: "^[a-zA-Z0-9_-]+$", maxLength: 255 }
                 slug_length: { type: integer, minimum: 3, maximum: 64, description: Privileged users only; sizes auto-generated slugs, ignored with custom slug }
                 description: { type: string, maxLength: 500 }
+                og_title: { type: string, maxLength: 120, description: Social preview title (members only) }
+                og_description: { type: string, maxLength: 300, description: Social preview description }
+                og_image_url: { type: string, format: uri, maxLength: 2048, description: https image URL for shares }
                 tags: { type: array, maxItems: 10, items: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$" } }
                 expires_at: { type: string, format: date-time }
       responses:
@@ -215,7 +218,7 @@ paths:
         '404': { description: Unknown link or wrong host }
         '410': { description: Version retired }
     put:
-      summary: Update destination, activity, or expiry
+      summary: Update destination, activity, expiry, or social preview
       requestBody:
         required: true
         content:
@@ -225,6 +228,9 @@ paths:
               properties:
                 destination_url: { type: string, format: uri, maxLength: 2048 }
                 description: { type: string, maxLength: 500, nullable: true }
+                og_title: { type: string, maxLength: 120, nullable: true }
+                og_description: { type: string, maxLength: 300, nullable: true }
+                og_image_url: { type: string, format: uri, maxLength: 2048, nullable: true }
                 tags: { type: array, maxItems: 10, items: { type: string }, nullable: true }
                 is_active: { type: boolean }
                 expires_at: { type: string, format: date-time, nullable: true }

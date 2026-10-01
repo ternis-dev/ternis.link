@@ -17,6 +17,12 @@ class LinkEditForm extends Component
 
     public ?string $description = null;
 
+    public ?string $og_title = null;
+
+    public ?string $og_description = null;
+
+    public ?string $og_image_url = null;
+
     public ?string $tags = null;
 
     public ?string $expires_at = null;
@@ -40,6 +46,9 @@ class LinkEditForm extends Component
         return [
             'destination_url' => ['required', 'url', 'max:2048'],
             'description' => ['nullable', 'string', 'max:500'],
+            'og_title' => ['nullable', 'string', 'max:120'],
+            'og_description' => ['nullable', 'string', 'max:300'],
+            'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'tags' => ['nullable', 'string', 'max:255'],
             'expires_at' => $expires,
             'is_active' => ['boolean'],
@@ -76,6 +85,9 @@ class LinkEditForm extends Component
             $this->link = $linkService->update($link, [
                 'destination_url' => trim($this->destination_url),
                 'description' => $this->description,
+                'og_title' => $this->og_title,
+                'og_description' => $this->og_description,
+                'og_image_url' => $this->og_image_url,
                 'tags' => $this->tags !== null && trim($this->tags) !== '' ? LinkService::normalizeTags($this->tags) : null,
                 'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
                 'is_active' => $this->is_active,
@@ -116,6 +128,9 @@ class LinkEditForm extends Component
     {
         $this->destination_url = (string) $this->link->destination_url;
         $this->description = $this->link->description;
+        $this->og_title = $this->link->og_title;
+        $this->og_description = $this->link->og_description;
+        $this->og_image_url = $this->link->og_image_url;
         $this->tags = $this->link->tags ? implode(', ', $this->link->tags) : null;
         $this->expires_at = $this->link->expires_at?->format('Y-m-d\TH:i');
         $this->is_active = (bool) $this->link->is_active;

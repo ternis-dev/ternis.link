@@ -56,6 +56,7 @@ class PreviewController extends Controller
                 'destination' => $url,
                 'host' => (string) parse_url($url, PHP_URL_HOST),
                 'junkReasons' => $this->junkUrls->reasons($url),
+                'og' => ['title' => (string) parse_url($url, PHP_URL_HOST), 'description' => null, 'image' => null],
             ]);
         }
 
@@ -71,6 +72,7 @@ class PreviewController extends Controller
             'destination' => (string) $link->destination_url,
             'host' => (string) parse_url((string) $link->destination_url, PHP_URL_HOST),
             'junkReasons' => $this->junkUrls->reasons((string) $link->destination_url),
+            'og' => $link->effectiveSocialPreview(),
         ]);
     }
 }

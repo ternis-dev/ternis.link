@@ -16,6 +16,17 @@
             <p class="text-xs font-semibold tracking-widest text-neutral-500 uppercase dark:text-neutral-400">Goes to</p>
             <p class="mt-1 font-mono text-sm break-all">{{ $destination }}</p>
 
+            <div class="mt-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
+                <p class="text-xs font-semibold tracking-widest text-neutral-500 uppercase dark:text-neutral-400">Social preview</p>
+                <p class="mt-2 font-semibold">{{ $og['title'] ?? $destination }}</p>
+                @if(!empty($og['description']))<p class="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{{ $og['description'] }}</p>@endif
+                @if(!empty($og['image']))
+                    <img src="{{ $og['image'] }}" alt="" class="mt-3 max-h-48 rounded-lg" loading="lazy">
+                @else
+                    <p class="mt-1 text-xs text-neutral-500">No custom image — shares fall back to the destination site.</p>
+                @endif
+            </div>
+
             <dl class="mt-4 space-y-2 text-sm">
                 <div class="flex justify-between gap-4">
                     <dt class="text-neutral-500 dark:text-neutral-400">Host</dt>

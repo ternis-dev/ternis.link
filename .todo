@@ -46,3 +46,6 @@ TODO(macOS): menu-bar quick-shorten + global hotkey
 TODO(macOS): main window — links, analytics, QR, API keys, domains, notifications, activity, settings
 TODO(macOS): auth story (API key vs SSO OAuth w/ loopback) + Keychain storage
 TODO(macOS): updates (Sparkle) + distribution (notarized DMG vs App Store)
+
+
+link-in-bio page (with sub-pages)

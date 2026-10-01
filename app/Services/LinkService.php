@@ -115,6 +115,7 @@ class LinkService
         private SlugGeneratorService $slugGenerator,
         private JunkUrlDetector $junkUrls,
         private UnsafeUrlValidator $unsafeUrls,
+        private SocialPreviewValidator $socialPreview,
     ) {}
 
     /**
@@ -153,6 +154,9 @@ class LinkService
         array|string|null $tags = null,
         ?string $creatorIp = null,
         ?ApiKey $apiKey = null,
+        ?string $ogTitle = null,
+        ?string $ogDescription = null,
+        ?string $ogImageUrl = null,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -186,6 +190,14 @@ class LinkService
                 'slug' => 'Custom slugs are for logged-in users only. Guests get an auto-generated link.',
             ]);
         }
+
+        if ($user === null && ($ogTitle !== null || $ogDescription !== null || $ogImageUrl !== null)) {
+            throw ValidationException::withMessages([
+                'og_title' => 'Social previews are for logged-in users only.',
+            ]);
+        }
+
+        $og = $this->socialPreview->normalize($ogTitle, $ogDescription, $ogImageUrl);
 
         $minLength = $user?->plan?->min_slug_length ?? self::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
         // Explicit length choice (dashboard picker) wins over the plan
@@ -233,6 +245,9 @@ class LinkService
             'slug' => $slug,
             'destination_url' => $destinationUrl,
             'description' => $description !== null && trim($description) !== '' ? mb_substr(trim($description), 0, 500) : null,
+            'og_title' => $og['og_title'],
+            'og_description' => $og['og_description'],
+            'og_image_url' => $og['og_image_url'],
             'tags' => ($normalizedTags = self::normalizeTags($tags)) !== [] ? $normalizedTags : null,
             'domain_id' => $domain->id,
             'user_id' => $user?->id,
@@ -442,6 +457,17 @@ class LinkService
                 $this->unsafeUrls->rejectIfUnsafe($data['destination_url']);
             }
             $this->junkUrls->rejectIfJunk($data['destination_url']);
+        }
+
+        if (array_key_exists('og_title', $data) || array_key_exists('og_description', $data) || array_key_exists('og_image_url', $data)) {
+            $og = $this->socialPreview->normalize(
+                array_key_exists('og_title', $data) ? $data['og_title'] : $link->og_title,
+                array_key_exists('og_description', $data) ? $data['og_description'] : $link->og_description,
+                array_key_exists('og_image_url', $data) ? $data['og_image_url'] : $link->og_image_url,
+            );
+            $data['og_title'] = $og['og_title'];
+            $data['og_description'] = $og['og_description'];
+            $data['og_image_url'] = $og['og_image_url'];
         }
 
         if (array_key_exists('description', $data)) {

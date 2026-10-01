@@ -16,6 +16,9 @@ class UpdateLinkRequest extends FormRequest
         return [
             'destination_url' => ['sometimes', 'url', 'max:2048'],
             'description' => ['nullable', 'string', 'max:500'],
+            'og_title' => ['nullable', 'string', 'max:120'],
+            'og_description' => ['nullable', 'string', 'max:300'],
+            'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'tags' => ['nullable', 'array', 'max:10'],
             'tags.*' => ['string', 'max:30', 'regex:/^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$/'],
             'is_active' => ['sometimes', 'boolean'],

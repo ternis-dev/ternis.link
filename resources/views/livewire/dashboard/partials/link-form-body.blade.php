@@ -105,6 +105,15 @@
         maxlength="255"
     />
 
+    <details class="rounded-xl border border-neutral-200 dark:border-neutral-800">
+        <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Social preview (optional)</summary>
+        <div class="space-y-4 px-4 pb-4">
+            <x-ui.input label="Preview title" name="og_title" type="text" wire:model="og_title" placeholder="Launch day" maxlength="120" />
+            <x-ui.input label="Preview description" name="og_description" type="text" wire:model="og_description" placeholder="Short card text" maxlength="300" />
+            <x-ui.input label="Preview image URL" name="og_image_url" type="url" wire:model="og_image_url" placeholder="https://example.com/og.png" hint="https image only. Crawlers see this card; humans still get the 302." maxlength="2048" />
+        </div>
+    </details>
+
     <x-ui.input
         label="Expiration Date (optional)"
         name="expires_at"

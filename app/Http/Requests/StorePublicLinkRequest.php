@@ -23,6 +23,9 @@ class StorePublicLinkRequest extends FormRequest
             'domain_id' => ['nullable', 'exists:domains,id'],
             // Guests never get custom slugs — auto-generated 8-char only.
             'slug' => ['prohibited'],
+            'og_title' => ['prohibited'],
+            'og_description' => ['prohibited'],
+            'og_image_url' => ['prohibited'],
             'expires_at' => ['nullable', 'date', 'after:now', 'before:'.now()->addYear()->toDateTimeString()],
         ];
     }
@@ -31,6 +34,9 @@ class StorePublicLinkRequest extends FormRequest
     {
         return [
             'slug.prohibited' => 'Custom slugs are for logged-in users only. Guests get an auto-generated link.',
+            'og_title.prohibited' => 'Social previews are for logged-in users only.',
+            'og_description.prohibited' => 'Social previews are for logged-in users only.',
+            'og_image_url.prohibited' => 'Social previews are for logged-in users only.',
             'expires_at.before' => 'Guest links can live for at most a year.',
         ];
     }

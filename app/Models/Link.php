@@ -18,6 +18,9 @@ class Link extends Model
         'slug',
         'destination_url',
         'description',
+        'og_title',
+        'og_description',
+        'og_image_url',
         'tags',
         'domain_id',
         'user_id',
@@ -103,6 +106,30 @@ class Link extends Model
     public function isAccessible(): bool
     {
         return $this->is_active && ! $this->is_removed && ! $this->isExpired();
+    }
+
+    public function hasSocialPreview(): bool
+    {
+        return $this->og_title !== null
+            || $this->og_description !== null
+            || $this->og_image_url !== null;
+    }
+
+    /**
+     * Effective OG values for crawlers / preview cards.
+     *
+     * @return array{title: string, description: ?string, image: ?string}
+     */
+    public function effectiveSocialPreview(): array
+    {
+        $host = (string) parse_url((string) $this->destination_url, PHP_URL_HOST);
+        $fallback = $host !== '' ? $host : $this->slug;
+
+        return [
+            'title' => $this->og_title ?? $this->description ?? $fallback,
+            'description' => $this->og_description,
+            'image' => $this->og_image_url,
+        ];
     }
 
     /**

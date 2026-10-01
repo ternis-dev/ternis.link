@@ -44,7 +44,7 @@ curl "https://links.t-api.de/v1/links?api_key_id=<key-ulid>" \
 curl -X POST https://links.t-api.de/v1/links \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{"destination_url": "https://example.com/very-long-page", "domain_id": "<ulid>", "slug": "my-launch", "tags": ["launch"]}'
+  -d '{"destination_url": "https://example.com/very-long-page", "domain_id": "<ulid>", "slug": "my-launch", "tags": ["launch"], "og_title": "Launch day", "og_description": "Our new thing", "og_image_url": "https://example.com/og.png"}'
 ```
 
 Every link created with a personal key stores that key (`api_key_id`, exposed as `api_key` with name/prefix on responses) and logs it in the activity history (`link.created` with `api_key_id`, `api_key_name`, `api_key_prefix`, `auth_via`). SSO-token calls leave `api_key_id` empty. Filter the dashboard list by origin (All origins / Dashboard only / one key) or open a key's dedicated page under API keys.
@@ -55,9 +55,11 @@ curl https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_ke
 curl -X PUT https://links.t-api.de/v1/links/<ulid> \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{"description": "Launch page"}'
+  -d '{"description": "Launch page", "og_title": "Launch day"}'
 curl -X DELETE https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
 ```
+
+Social previews (members only): `og_title` (≤120), `og_description` (≤300), `og_image_url` (https image). Crawlers get a 200 HTML stub with OG tags (`?debug=og` forces it for testing); humans keep the 302 and crawler hits are not counted. Guests get 422 `prohibited` for any `og_*` field.
 
 No account and just scripting something quick? `POST /v1/links/public` creates guest links without any key — auto-generated slugs, fair-use limits, public system domains only:
 

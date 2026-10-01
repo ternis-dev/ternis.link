@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Domain;
 use App\Services\ClickTrackerService;
+use App\Services\CrawlerDetector;
 use App\Services\JunkUrlDetector;
 use App\Services\LinkService;
 use App\Services\SlugResolverService;
@@ -16,6 +17,7 @@ class RedirectController extends Controller
         private LinkService $linkService,
         private ClickTrackerService $clickTracker,
         private JunkUrlDetector $junkUrls,
+        private CrawlerDetector $crawlers,
     ) {}
 
     /**
@@ -77,6 +79,20 @@ class RedirectController extends Controller
 
         if (! $link) {
             return response()->view('redirect.not-found', ['slug' => $input, 'domain' => $domain->hostname], 404);
+        }
+
+        $isCrawler = $this->crawlers->isCrawler($request->userAgent());
+        $debugOg = $request->query('debug') === 'og';
+
+        if ($link->hasSocialPreview() && ($isCrawler || $debugOg)) {
+            // Crawlers (and ?debug=og) get a fast HTML stub — no click counted.
+            return response()
+                ->view('redirect.preview-stub', [
+                    'link' => $link->load('domain'),
+                    'og' => $link->effectiveSocialPreview(),
+                    'destination' => (string) $link->destination_url,
+                ], 200, ['Cache-Control' => 'public, max-age=300'])
+                ->header('Vary', 'User-Agent');
         }
 
         $this->clickTracker->track($link, $request);
