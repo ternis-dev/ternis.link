@@ -46,6 +46,12 @@
                         <option value="dark">Dark</option>
                         <option value="paper">Paper</option>
                     </x-ui.select>
+                    <x-ui.select label="Button style" name="button_style" wire:model="button_style">
+                        <option value="filled">Filled</option>
+                        <option value="outline">Outline</option>
+                        <option value="soft">Soft</option>
+                    </x-ui.select>
+                    <x-ui.input label="Page password" name="page_password" type="password" wire:model="page_password" placeholder="Min. 8 chars — blank keeps current" maxlength="72" autocomplete="new-password" />
                     <div class="grid grid-cols-2 gap-3">
                         <label class="block text-sm font-medium text-neutral-600 dark:text-neutral-400">Accent
                             <input type="color" wire:model="accent" value="{{ $accent ?? '#171717' }}" class="mt-1 block h-10 w-full cursor-pointer rounded-lg border border-neutral-300 dark:border-neutral-700">
@@ -77,6 +83,7 @@
                     </x-ui.select>
                     <x-ui.input label="Label" name="newLabel" type="text" wire:model="newLabel" maxlength="60" />
                     <x-ui.input label="URL" name="newUrl" type="url" wire:model="newUrl" maxlength="2048" />
+                    <x-ui.input label="Thumbnail URL" name="newThumbnail" type="url" wire:model="newThumbnail" maxlength="2048" />
                     @if ($newAction === 'subpage')
                         <x-ui.select label="Sub-page" name="newTargetPage" wire:model="newTargetPage">
                             <option value="">Pick…</option>

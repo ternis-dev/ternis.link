@@ -34,6 +34,10 @@ class VisualBuilder extends Component
 
     public ?string $theme_color = null;
 
+    public string $button_style = 'filled';
+
+    public ?string $page_password = null;
+
     public ?string $published_at = null;
 
     public string $newLabel = '';
@@ -43,6 +47,14 @@ class VisualBuilder extends Component
     public ?string $newUrl = '';
 
     public string $newKind = 'link';
+
+    public ?string $newIcon = null;
+
+    public ?string $newThumbnail = null;
+
+    public ?string $newStartsAt = null;
+
+    public ?string $newEndsAt = null;
 
     public string $newAction = 'url';
 
@@ -78,6 +90,8 @@ class VisualBuilder extends Component
             'locale' => ['required', 'in:en,de,fr,es,it'],
             'accent' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'button_style' => ['required', 'in:filled,outline,soft'],
+            'page_password' => ['nullable', 'string', 'min:8', 'max:72'],
             'published_at' => ['nullable', 'date'],
         ];
     }
@@ -98,6 +112,8 @@ class VisualBuilder extends Component
         $this->locale = $page->locale ?? 'en';
         $this->accent = $page->accent;
         $this->theme_color = $page->theme_color;
+        $this->button_style = $page->button_style ?? 'filled';
+        $this->page_password = null;
         $this->published_at = $page->published_at?->format('Y-m-d\TH:i');
         $this->draftUrl = null;
         $this->draftExpires = null;
@@ -122,8 +138,15 @@ class VisualBuilder extends Component
             'locale' => $this->locale,
             'accent' => $this->accent ?: null,
             'theme_color' => $this->theme_color ?: null,
+            'button_style' => $this->button_style,
             'published_at' => $this->published_at ? new \DateTime($this->published_at) : null,
         ]);
+
+        if ($this->page_password !== null && trim($this->page_password) !== '') {
+            $bio->setPassword($page->fresh(), $this->page_password);
+            $this->page_password = null;
+        }
+
         $bio->forgetCaches($page->fresh());
     }
 
@@ -140,6 +163,10 @@ class VisualBuilder extends Component
             'newSublabel' => ['nullable', 'string', 'max:120'],
             'newUrl' => ['nullable', 'url', 'max:2048'],
             'newKind' => ['required', 'in:link,header,divider,social'],
+            'newIcon' => ['nullable', 'in:instagram,tiktok,x,youtube,github,globe,mail,link'],
+            'newThumbnail' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
+            'newStartsAt' => ['nullable', 'date'],
+            'newEndsAt' => ['nullable', 'date', 'after:newStartsAt'],
             'newAction' => ['required', 'in:url,subpage,modal'],
             'newTargetPage' => ['required_if:newAction,subpage', 'nullable', 'string'],
             'newModalTitle' => ['required_if:newAction,modal', 'nullable', 'string', 'max:80'],
@@ -164,8 +191,12 @@ class VisualBuilder extends Component
             'target_page_id' => $this->newTargetPage ?: null,
             'modal_title' => $this->newModalTitle ?: null,
             'modal_body' => $this->newModalBody ?: null,
+            'icon' => $this->newIcon ?: null,
+            'thumbnail_url' => $this->newThumbnail ?: null,
             'sort_order' => count($current),
             'is_active' => true,
+            'starts_at' => $this->newStartsAt ?: null,
+            'ends_at' => $this->newEndsAt ?: null,
         ];
 
         try {
@@ -180,7 +211,7 @@ class VisualBuilder extends Component
             return;
         }
 
-        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newTargetPage', 'newModalTitle', 'newModalBody']);
+        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newThumbnail', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
         $this->newKind = 'link';
         $this->newAction = 'url';
     }

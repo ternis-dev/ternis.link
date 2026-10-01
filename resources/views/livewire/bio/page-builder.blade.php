@@ -78,8 +78,17 @@
             </x-ui.select>
             <x-ui.input label="Browser bar color" name="theme_color" type="text" wire:model="theme_color" placeholder="#ffffff" maxlength="7" />
             <x-ui.input label="Publish at (optional)" name="published_at" type="datetime-local" wire:model="published_at" hint="Future dates hide the page until then. Blank = visible now." />
-            <div class="flex items-end">
+            <x-ui.select label="Button style" name="button_style" wire:model="button_style">
+                <option value="filled">Filled</option>
+                <option value="outline">Outline</option>
+                <option value="soft">Soft</option>
+            </x-ui.select>
+            <x-ui.input label="Page password (optional)" name="page_password" type="password" wire:model="page_password" placeholder="Min. 8 characters — blank keeps current" maxlength="72" autocomplete="new-password" />
+            <div class="flex flex-wrap items-end gap-2">
                 <x-ui.button type="submit" variant="primary">Save page</x-ui.button>
+                @if ($editing->password_hash)
+                    <x-ui.button type="button" wire:click="removePassword" variant="ghost">Remove password</x-ui.button>
+                @endif
             </div>
         </form>
 
@@ -108,6 +117,7 @@
                 <x-ui.input label="Label" name="newLabel" type="text" wire:model="newLabel" maxlength="60" />
                 <x-ui.input label="Sublabel" name="newSublabel" type="text" wire:model="newSublabel" maxlength="120" />
                 <x-ui.input label="URL" name="newUrl" type="url" wire:model="newUrl" maxlength="2048" />
+                <x-ui.input label="Thumbnail URL" name="newThumbnail" type="url" wire:model="newThumbnail" placeholder="https://…" maxlength="2048" />
                 <x-ui.select label="Action" name="newAction" wire:model.live="newAction">
                     <option value="url">Open URL</option>
                     <option value="subpage">Go to sub-page</option>

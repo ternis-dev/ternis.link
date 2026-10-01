@@ -53,6 +53,37 @@ class PageAnalytics extends Component
             ]);
         }
 
+        $baseEvents = $this->page->events()->where('created_at', '>=', $since);
+
+        $topReferrers = (clone $baseEvents)
+            ->selectRaw('referrer, COUNT(*) as count')
+            ->whereNotNull('referrer')
+            ->groupBy('referrer')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get();
+
+        $topCountries = (clone $baseEvents)
+            ->selectRaw('country_code, COUNT(*) as count')
+            ->whereNotNull('country_code')
+            ->groupBy('country_code')
+            ->orderByDesc('count')
+            ->limit(10)
+            ->get();
+
+        $bySubpage = collect();
+        if ($this->page->parent_id === null) {
+            foreach ($this->page->children()->where('is_removed', false)->orderBy('sort_order')->get() as $sub) {
+                $bySubpage->push([
+                    'id' => $sub->id,
+                    'slug' => $sub->slug,
+                    'title' => $sub->title,
+                    'views' => $sub->events()->where('kind', 'view')->where('created_at', '>=', $since)->count(),
+                    'taps' => $sub->events()->where('kind', 'tap')->where('created_at', '>=', $since)->count(),
+                ]);
+            }
+        }
+
         return view('livewire.bio.page-analytics', [
             'views' => $views,
             'taps' => $taps,
@@ -60,6 +91,9 @@ class PageAnalytics extends Component
             'byButton' => $byButton,
             'byDay' => $byDay,
             'maxDaily' => max(1, (int) $byDay->max(fn ($d) => max($d['views'], $d['taps']))),
+            'topReferrers' => $topReferrers,
+            'topCountries' => $topCountries,
+            'bySubpage' => $bySubpage,
         ]);
     }
 }

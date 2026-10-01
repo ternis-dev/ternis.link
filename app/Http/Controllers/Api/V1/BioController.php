@@ -75,7 +75,20 @@ class BioController extends Controller
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'is_active' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date'],
+            'button_style' => ['nullable', 'in:filled,outline,soft'],
+            'password' => ['nullable', 'string', 'min:8', 'max:72'],
+            'remove_password' => ['nullable', 'boolean'],
         ]);
+
+        if (array_key_exists('password', $data) && $data['password'] !== null) {
+            $this->bio->setPassword($page, $data['password']);
+        }
+
+        if (! empty($data['remove_password'])) {
+            $this->bio->clearPassword($page);
+        }
+
+        unset($data['password'], $data['remove_password']);
 
         $page->update($data);
         $this->bio->forgetCaches($page->fresh());
@@ -148,12 +161,44 @@ class BioController extends Controller
             ];
         }
 
+        $baseEvents = $page->events()->where('created_at', '>=', $since);
+
+        $bySubpage = [];
+        if ($page->parent_id === null) {
+            foreach ($page->children()->where('is_removed', false)->orderBy('sort_order')->get() as $sub) {
+                $subViews = $sub->events()->where('created_at', '>=', $since)->where('kind', 'view')->count();
+                $subTaps = $sub->events()->where('created_at', '>=', $since)->where('kind', 'tap')->count();
+                $bySubpage[] = [
+                    'id' => $sub->id,
+                    'slug' => $sub->slug,
+                    'title' => $sub->title,
+                    'views' => $subViews,
+                    'taps' => $subTaps,
+                ];
+            }
+        }
+
         return response()->json([
             'views' => $views,
             'taps' => $taps,
             'ctr' => $views > 0 ? round($taps / $views * 100, 1) : null,
             'by_button' => $byButton,
             'by_day' => $byDay,
+            'by_subpage' => $bySubpage,
+            'top_referrers' => (clone $baseEvents)
+                ->selectRaw('referrer, COUNT(*) as count')
+                ->whereNotNull('referrer')
+                ->groupBy('referrer')
+                ->orderByDesc('count')
+                ->limit(10)
+                ->get(),
+            'top_countries' => (clone $baseEvents)
+                ->selectRaw('country_code, COUNT(*) as count')
+                ->whereNotNull('country_code')
+                ->groupBy('country_code')
+                ->orderByDesc('count')
+                ->limit(10)
+                ->get(),
         ]);
     }
 

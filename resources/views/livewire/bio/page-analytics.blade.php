@@ -32,4 +32,38 @@
             @endforeach
         </div>
     </x-ui.card>
+
+    @if ($bySubpage->isNotEmpty())
+        <x-ui.card title="Sub-pages" class="mt-6">
+            @foreach ($bySubpage as $sub)
+                <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-2 text-sm last:border-0 dark:border-neutral-800">
+                    <span class="truncate font-mono">/{{ $sub['slug'] }} <span class="font-sans text-neutral-500">{{ $sub['title'] }}</span></span>
+                    <span class="shrink-0 font-mono">{{ number_format($sub['views']) }} views · {{ number_format($sub['taps']) }} taps</span>
+                </div>
+            @endforeach
+        </x-ui.card>
+    @endif
+
+    <div class="mt-6 grid gap-6 md:grid-cols-2">
+        <x-ui.card title="Top referrers">
+            @forelse ($topReferrers as $row)
+                <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-2 text-sm last:border-0 dark:border-neutral-800">
+                    <span class="truncate font-mono">{{ $row->referrer }}</span>
+                    <span class="shrink-0 font-mono">{{ number_format($row->count) }}</span>
+                </div>
+            @empty
+                <p class="text-sm text-neutral-500">No referrer data yet.</p>
+            @endforelse
+        </x-ui.card>
+        <x-ui.card title="Top countries">
+            @forelse ($topCountries as $row)
+                <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-2 text-sm last:border-0 dark:border-neutral-800">
+                    <span class="truncate font-mono">{{ $row->country_code }}</span>
+                    <span class="shrink-0 font-mono">{{ number_format($row->count) }}</span>
+                </div>
+            @empty
+                <p class="text-sm text-neutral-500">No country data yet.</p>
+            @endforelse
+        </x-ui.card>
+    </div>
 </div>

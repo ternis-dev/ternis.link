@@ -8,6 +8,7 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class BioService
@@ -65,6 +66,9 @@ class BioService
 
         $themeColor = isset($data['theme_color']) && preg_match('/^#[0-9a-f]{6}$/i', trim((string) $data['theme_color'])) ? strtolower(trim((string) $data['theme_color'])) : null;
 
+        $buttonStyle = $data['button_style'] ?? 'filled';
+        $buttonStyle = in_array($buttonStyle, BioPage::BUTTON_STYLES, true) ? $buttonStyle : 'filled';
+
         $og = $this->socialPreview->normalize($data['og_title'] ?? null, $data['og_description'] ?? null, $data['og_image_url'] ?? null);
 
         if (! empty($data['avatar_url'])) {
@@ -82,6 +86,7 @@ class BioService
             'theme' => $theme,
             'locale' => $locale,
             'theme_color' => $themeColor,
+            'button_style' => $buttonStyle,
             'accent' => isset($data['accent']) && preg_match('/^#[0-9a-f]{6}$/i', trim((string) $data['accent'])) ? strtolower(trim((string) $data['accent'])) : null,
             'og_title' => $og['og_title'],
             'og_description' => $og['og_description'],
@@ -238,6 +243,33 @@ class BioService
         if ($page->domain_id) {
             Cache::forget(BioPage::cacheKeyRoot($page->domain_id));
         }
+    }
+
+    /**
+     * Set (or rotate) a page password. Minimum 8 chars; stored as a
+     * bcrypt hash, never in plain text.
+     *
+     * @throws ValidationException
+     */
+    public function setPassword(BioPage $page, string $password): void
+    {
+        if (mb_strlen($password) < 8) {
+            throw ValidationException::withMessages(['password' => 'The password must be at least 8 characters.']);
+        }
+
+        $page->update(['password_hash' => Hash::make($password)]);
+        $this->forgetCaches($page);
+    }
+
+    public function clearPassword(BioPage $page): void
+    {
+        $page->update(['password_hash' => null]);
+        $this->forgetCaches($page);
+    }
+
+    public static function sessionKey(string $pageId): string
+    {
+        return "bio_unlocked_{$pageId}";
     }
 
     /**

@@ -1,31 +1,59 @@
 {{-- Bio page body: shared by the public page and the dashboard live preview.
      Params: $page (BioPage-ish), $buttons (live BioButtons), $subs, $preview (bool).
      In preview mode links/modal interaction is inert and hrefs are neutralized. --}}
+@php
+$style = $page->button_style ?? 'filled';
+$btnExtra = $style === 'outline'
+    ? ';background:transparent'
+    : ($style === 'soft' ? ';background:#f0f0f0;border-color:transparent' : '');
+$socialButtons = $buttons->filter(fn ($b) => $b->kind === 'social')->values();
+$flowButtons = $buttons->filter(fn ($b) => $b->kind !== 'social')->values();
+$icons = [
+    'instagram' => '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/>',
+    'tiktok' => '<path d="M9 8v8.5a3.5 3.5 0 1 0 3.5-3.5M9 8V4.5c.8 2.3 2.6 3.5 5 3.5"/>',
+    'x' => '<path d="M4 4l16 16M20 4L4 20"/>',
+    'youtube' => '<rect x="2.5" y="6" width="19" height="12" rx="4"/><path d="M10.5 9.8v4.4L14.5 12z" fill="currentColor" stroke="none"/>',
+    'github' => '<path d="M12 3a9 9 0 1 0 2.8 17.5c.4.1.6-.2.6-.4v-1.5c-2.5.5-3-1-3-1-.4-1-1-1.3-1-1.3-.8-.6.1-.6.1-.6.9.1 1.4 1 1.4 1 .8 1.4 2.2 1 2.7.8.1-.7.3-1.2.6-1.5-2-.2-4.1-1-4.1-4.5 0-1 .3-1.8.9-2.4-.1-.2-.4-1.1.1-2.4 0 0 .7-.2 2.4.9a8 8 0 0 1 4.4 0c1.7-1.1 2.4-.9 2.4-.9.5 1.3.2 2.2.1 2.4.6.6.9 1.4.9 2.4 0 3.5-2.1 4.3-4.1 4.5.4.3.7.9.7 1.9v2.8c0 .2.2.5.6.4A9 9 0 0 0 12 3z"/>',
+    'globe' => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9s-1.4 6.4-3.9 9c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3z"/>',
+    'mail' => '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3.5 7l8.5 6 8.5-6"/>',
+    'link' => '<path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/>',
+];
+@endphp
 @if($page->avatar_url)<img class="avatar" src="{{ $page->avatar_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">@endif
 <h1 style="margin:12px 0 4px;font-size:24px">{{ $page->title }}</h1>
 @if($page->bio)<p class="muted">{{ $page->bio }}</p>@endif
 @if(($page->parent_id ?? null) !== null && isset($root) && $root)
-<a href="{{ $preview ? '#' : '/' }}" aria-label="Back to {{ $root->title }}" class="homebtn" style="display:inline-block;margin-top:10px;font-size:13px;padding:6px 14px;border-radius:9999px;border:1px solid #d4d4d4;text-decoration:none;color:inherit">← {{ $root->title }}</a>
+<a href="{{ $preview ? '#' : '/' }}" aria-label="Back to {{ $root->title }}" style="display:inline-block;margin-top:10px;font-size:13px;padding:6px 14px;border-radius:9999px;border:1px solid #d4d4d4;text-decoration:none;color:inherit">← {{ $root->title }}</a>
 @endif
 @if($subs->isNotEmpty())
 <nav class="subnav" aria-label="Sub-pages">
 @foreach($subs as $sub)<a href="{{ $preview ? '#' : '/' . $sub->slug }}">{{ $sub->title }}</a>@endforeach
 </nav>
 @endif
-@foreach($buttons as $button)
+@if($socialButtons->isNotEmpty())
+<div class="socialrow" aria-label="Social links">
+@foreach($socialButtons as $button)
+<a href="{{ $preview ? '#' : '/t/' . $button->id }}" aria-label="{{ $button->label }}" title="{{ $button->label }}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icons[$button->icon] ?? $icons['link'] !!}</svg></a>
+@endforeach
+</div>
+@endif
+@foreach($flowButtons as $button)
 @if($button->kind === 'divider')<hr style="margin:16px 0;opacity:.4">
 @elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8">{{ $button->label }}</h2>
 @elseif(($button->action ?? 'url') === 'modal')
-<button type="button" class="btn" style="width:100%;cursor:pointer" data-bio-modal="m-{{ $button->id }}" data-bio-button="{{ $button->id }}">{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif<span class="muted" style="font-size:11px">⧉ pop-up</span></button>
+<button type="button" class="btn" style="width:100%;cursor:pointer{{ $btnExtra }}" data-bio-modal="m-{{ $button->id }}" data-bio-button="{{ $button->id }}">@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif<span class="muted" style="font-size:11px">⧉ pop-up</span></button>
 <dialog id="m-{{ $button->id }}" class="bio-modal" aria-label="{{ $button->modal_title ?? $button->label }}">
 @if($button->modal_image_url)<img src="{{ $button->modal_image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:10px">@endif
 <h3 style="margin:12px 0 4px;font-size:19px">{{ $button->modal_title ?? $button->label }}</h3>
 @if($button->modal_body)<p class="muted" style="white-space:pre-line">{{ $button->modal_body }}</p>@endif
 <form method="dialog" style="margin-top:14px"><button class="btn" style="width:100%;cursor:pointer" value="close">Close</button></form>
 </dialog>
-@else<a class="btn" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</a>
+@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif<span style="vertical-align:middle">{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
 @endif
 @endforeach
+@if(! $preview)
+<button type="button" class="sharebtn" data-share data-title="{{ $page->title }}">⇪ Share</button>
+@endif
 <p class="muted" style="margin-top:32px;font-size:12px">Powered by ternis.link</p>
 @if(! $preview)
 <script>
@@ -38,5 +66,18 @@ document.querySelectorAll('[data-bio-modal]').forEach(function (btn) {
         }
     });
 });
+var shareBtn = document.querySelector('[data-share]');
+if (shareBtn) {
+    shareBtn.addEventListener('click', function () {
+        var data = { title: shareBtn.getAttribute('data-title'), url: location.href };
+        if (navigator.share) { navigator.share(data).catch(function () {}); }
+        else if (navigator.clipboard) {
+            navigator.clipboard.writeText(location.href).then(function () {
+                shareBtn.textContent = 'Copied!';
+                setTimeout(function () { shareBtn.textContent = '⇪ Share'; }, 2000);
+            });
+        }
+    });
+}
 </script>
 @endif

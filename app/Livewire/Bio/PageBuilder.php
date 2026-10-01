@@ -29,6 +29,10 @@ class PageBuilder extends Component
 
     public ?string $theme_color = null;
 
+    public string $button_style = 'filled';
+
+    public ?string $page_password = null;
+
     public ?string $parent_id = null;
 
     public string $slug = '';
@@ -47,6 +51,8 @@ class PageBuilder extends Component
     public string $newKind = 'link';
 
     public ?string $newIcon = null;
+
+    public ?string $newThumbnail = null;
 
     public string $newAction = 'url';
 
@@ -90,6 +96,8 @@ class PageBuilder extends Component
             'locale' => ['required', 'in:en,de,fr,es,it'],
             'accent' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'button_style' => ['required', 'in:filled,outline,soft'],
+            'page_password' => ['nullable', 'string', 'min:8', 'max:72'],
             'slug' => ['nullable', 'string', 'max:64'],
             'published_at' => ['nullable', 'date'],
         ];
@@ -111,6 +119,8 @@ class PageBuilder extends Component
         $this->locale = $page->locale ?? 'en';
         $this->accent = $page->accent;
         $this->theme_color = $page->theme_color;
+        $this->button_style = $page->button_style ?? 'filled';
+        $this->page_password = null;
         $this->published_at = $page->published_at?->format('Y-m-d\TH:i');
         $this->reset(['slug', 'subTitle', 'parent_id', 'draftUrl', 'draftExpires']);
         $this->resetValidation();
@@ -212,9 +222,27 @@ class PageBuilder extends Component
             'locale' => $this->locale,
             'accent' => $this->accent ?: null,
             'theme_color' => $this->theme_color ?: null,
+            'button_style' => $this->button_style,
             'published_at' => $this->published_at ? new \DateTime($this->published_at) : null,
         ]);
+
+        if ($this->page_password !== null && trim($this->page_password) !== '') {
+            $bio->setPassword($page->fresh(), $this->page_password);
+        }
+
+        $this->page_password = null;
         $bio->forgetCaches($page->fresh());
+    }
+
+    public function removePassword(BioService $bio): void
+    {
+        $page = $this->editingPageId ? $this->ownedPage($this->editingPageId) : null;
+
+        if (! $page) {
+            return;
+        }
+
+        $bio->clearPassword($page);
     }
 
     public function addButton(BioService $bio): void
@@ -231,6 +259,7 @@ class PageBuilder extends Component
             'newUrl' => ['nullable', 'url', 'max:2048'],
             'newKind' => ['required', 'in:link,header,divider,social'],
             'newIcon' => ['nullable', 'in:instagram,tiktok,x,youtube,github,globe,mail,link'],
+            'newThumbnail' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'newAction' => ['required', 'in:url,subpage,modal'],
             'newTargetPage' => ['required_if:newAction,subpage', 'nullable', 'string'],
             'newModalTitle' => ['required_if:newAction,modal', 'nullable', 'string', 'max:80'],
@@ -261,6 +290,7 @@ class PageBuilder extends Component
             'modal_title' => $this->newModalTitle ?: null,
             'modal_body' => $this->newModalBody ?: null,
             'icon' => $this->newIcon ?: null,
+            'thumbnail_url' => $this->newThumbnail ?: null,
             'sort_order' => count($current),
             'is_active' => true,
             'starts_at' => $this->newStartsAt ?: null,
@@ -279,7 +309,7 @@ class PageBuilder extends Component
             return;
         }
 
-        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
+        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newThumbnail', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
         $this->newKind = 'link';
         $this->newAction = 'url';
     }

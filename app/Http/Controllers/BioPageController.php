@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\BioButton;
 use App\Models\BioPage;
 use App\Models\Domain;
+use App\Services\BioService;
 use App\Services\BioTrackerService;
 use App\Services\CrawlerDetector;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 class BioPageController extends Controller
 {
@@ -68,6 +70,11 @@ class BioPageController extends Controller
             abort(404);
         }
 
+        // Locked pages leak nothing: no destinations, no taps.
+        if ($this->isLocked($button->page, $request)) {
+            abort(404);
+        }
+
         if (! $button->isLive() || $button->kind === 'divider' || $button->kind === 'header') {
             abort(404);
         }
@@ -109,6 +116,7 @@ class BioPageController extends Controller
         $button = BioButton::with('page')->find($button);
 
         if ($button && $button->page && ! $button->page->is_removed
+            && ! $this->isLocked($button->page, $request)
             && $button->isLive() && $button->action === 'modal') {
             $this->tracker->trackTap($button->page, $button, $request);
         }
@@ -162,6 +170,44 @@ class BioPageController extends Controller
         return "https://{$host}{$path}";
     }
 
+    public static function isLocked(BioPage $page, Request $request): bool
+    {
+        return $page->password_hash !== null
+            && $request->session()->get(BioService::sessionKey($page->id)) !== true;
+    }
+
+    /**
+     * Unlock a password-protected page for this session.
+     * Throttled (see route) so passwords can't be brute-forced.
+     */
+    public function unlock(Request $request, string $page)
+    {
+        $domain = $request->attributes->get('domain_model');
+
+        if (! $domain instanceof Domain || $domain->isSystemDomain()) {
+            abort(404);
+        }
+
+        $page = BioPage::where('id', $page)
+            ->where('is_removed', false)
+            ->where(fn ($q) => $q->where('domain_id', $domain->id)->orWhereHas('parent', fn ($p) => $p->where('domain_id', $domain->id)))
+            ->first();
+
+        if (! $page || $page->password_hash === null) {
+            abort(404);
+        }
+
+        $password = (string) $request->input('password', '');
+
+        if (! Hash::check($password, $page->password_hash)) {
+            return back()->withErrors(['password' => 'Wrong password — try again.']);
+        }
+
+        $request->session()->put(BioService::sessionKey($page->id), true);
+
+        return redirect()->away($this->pageUrl($page), 302);
+    }
+
     private function rootFor(Domain $domain): ?BioPage
     {
         $key = BioPage::cacheKeyRoot($domain->id);
@@ -194,6 +240,14 @@ class BioPageController extends Controller
 
         if (! $page->isVisible()) {
             abort(404);
+        }
+
+        // Password-protected pages show an interstitial: title only,
+        // no buttons, no tracking, no indexing.
+        if (self::isLocked($page, $request)) {
+            return response()->view('bio.locked', [
+                'page' => $page->load('domain'),
+            ], 200, ['Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
         }
 
         $buttons = $page->buttons()->where('is_active', true)->orderBy('sort_order')->get()->filter->isLive()->values();

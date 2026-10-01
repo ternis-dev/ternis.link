@@ -15,6 +15,8 @@ class BioPage extends Model
 
     public const LOCALES = ['en', 'de', 'fr', 'es', 'it'];
 
+    public const BUTTON_STYLES = ['filled', 'outline', 'soft'];
+
     protected $fillable = [
         'user_id',
         'domain_id',
@@ -27,6 +29,8 @@ class BioPage extends Model
         'locale',
         'accent',
         'theme_color',
+        'password_hash',
+        'button_style',
         'og_title',
         'og_description',
         'og_image_url',
@@ -36,6 +40,8 @@ class BioPage extends Model
         'sort_order',
         'view_count',
     ];
+
+    protected $hidden = ['password_hash'];
 
     protected $casts = [
         'is_active' => 'boolean',

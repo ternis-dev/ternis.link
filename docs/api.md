@@ -212,4 +212,4 @@ Button actions: `url` opens `destination_url`, `subpage` links to another page i
 
 Unpublished work can be previewed in-action: mint a 30-minute signed link (dashboard “Preview draft link”, `GET /draft/{page}` on the page's own domain) — no login needed, never tracked or indexed.
 
-Pages carry `locale` (`en/de/fr/es/it`, rendered as `<html lang>`), `theme_color` (browser bar), and full OG meta tags automatically. Image uploads via static.re — soon; paste image URLs for now (avatar, thumbnails, modal images).
+Pages carry `locale` (`en/de/fr/es/it`, rendered as `<html lang>`), `theme_color` (browser bar), `button_style` (`filled/outline/soft`), and full OG meta tags automatically. Pages can be password-protected (`password`, min 8 chars, bcrypt-hashed; `remove_password` clears) — locked pages show an interstitial, leak no destinations, count nothing, and unlock attempts are throttled. Image uploads via static.re — soon; paste image URLs for now (avatar, thumbnails, modal images).

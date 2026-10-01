@@ -607,6 +607,16 @@ Route::get('/draft/{page}', function (string $page) {
     return app(BioPageController::class)->draft(request(), $page);
 })->where('page', '[A-Za-z0-9]{20,30}')->middleware('signed')->name('bio.draft');
 
+Route::post('/unlock/{page}', function (string $page) {
+    $type = request()->attributes->get('domain_type');
+
+    if (! in_array($type, ['partner'], true)) {
+        abort(404);
+    }
+
+    return app(BioPageController::class)->unlock(request(), $page);
+})->where('page', '[A-Za-z0-9]{20,30}')->middleware('throttle:10,1')->name('bio.unlock');
+
 Route::get('/new', function () {
     $type = request()->attributes->get('domain_type');
 
