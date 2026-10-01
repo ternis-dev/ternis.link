@@ -119,7 +119,16 @@ class BioService
             }
 
             $url = isset($b['destination_url']) && trim((string) $b['destination_url']) !== '' ? trim((string) $b['destination_url']) : null;
-            if (in_array($kind, ['link', 'social'], true)) {
+
+            // Button action: plain URL (default), sub-page link, or modal pop-up.
+            $action = strtolower(trim((string) ($b['action'] ?? 'url')));
+            if (! in_array($kind, ['link', 'social'], true)) {
+                $action = 'url';
+            } elseif (! in_array($action, BioButton::ACTIONS, true)) {
+                throw ValidationException::withMessages(['buttons' => "Row {$i}: action must be url, subpage or modal."]);
+            }
+
+            if ($action === 'url' && in_array($kind, ['link', 'social'], true)) {
                 if ($url === null) {
                     throw ValidationException::withMessages(['buttons' => "Row {$i}: destination_url is required."]);
                 }
@@ -136,6 +145,39 @@ class BioService
                 throw ValidationException::withMessages(['buttons' => "Row {$i}: unknown icon."]);
             }
 
+            $targetPageId = null;
+            $modalTitle = null;
+            $modalBody = null;
+            $modalImage = null;
+
+            if ($action === 'subpage') {
+                $targetPageId = $b['target_page_id'] ?? null;
+                $target = $targetPageId !== null ? BioPage::find($targetPageId) : null;
+                if (! $target || $target->is_removed || $target->user_id !== $page->user_id) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: pick one of your pages."]);
+                }
+                $rootA = $page->parent_id ?? $page->id;
+                $rootB = $target->parent_id ?? $target->id;
+                if ($rootA !== $rootB || $target->id === $page->id) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: sub-page links stay inside the same bio page family."]);
+                }
+                $url = null;
+            }
+
+            if ($action === 'modal') {
+                $modalTitle = isset($b['modal_title']) ? trim((string) $b['modal_title']) : '';
+                if ($modalTitle === '') {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: modal needs a title."]);
+                }
+                $modalTitle = mb_substr($modalTitle, 0, 80);
+                $modalBody = isset($b['modal_body']) && trim((string) $b['modal_body']) !== '' ? mb_substr(trim((string) $b['modal_body']), 0, 1000) : null;
+                if (! empty($b['modal_image_url'])) {
+                    $modalImage = trim((string) $b['modal_image_url']);
+                    $this->unsafeUrls->rejectIfUnsafe($modalImage);
+                }
+                $url = null;
+            }
+
             if (! empty($b['thumbnail_url'])) {
                 $this->unsafeUrls->rejectIfUnsafe(trim((string) $b['thumbnail_url']));
             }
@@ -145,7 +187,12 @@ class BioService
                 'label' => mb_substr($label, 0, 60),
                 'sublabel' => isset($b['sublabel']) && trim((string) $b['sublabel']) !== '' ? mb_substr(trim((string) $b['sublabel']), 0, 120) : null,
                 'kind' => $kind,
+                'action' => $action,
                 'destination_url' => $url,
+                'target_page_id' => $targetPageId,
+                'modal_title' => $modalTitle,
+                'modal_body' => $modalBody,
+                'modal_image_url' => $modalImage,
                 'icon' => $icon,
                 'thumbnail_url' => ! empty($b['thumbnail_url']) ? trim((string) $b['thumbnail_url']) : null,
                 'sort_order' => isset($b['sort_order']) ? max(0, min(255, (int) $b['sort_order'])) : $i,

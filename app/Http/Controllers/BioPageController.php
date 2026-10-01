@@ -72,6 +72,25 @@ class BioPageController extends Controller
             abort(404);
         }
 
+        // Modal buttons open client-side; a crafted GET lands on the page.
+        if ($button->action === 'modal') {
+            return redirect()->away($this->pageUrl($button->page), 302);
+        }
+
+        if ($button->action === 'subpage') {
+            $target = $button->targetPage;
+
+            if (! $target || ! $target->isVisible()) {
+                abort(404);
+            }
+
+            $this->tracker->trackTap($button->page, $button, $request);
+
+            $host = $button->page->domain?->hostname ?? $request->getHost();
+
+            return redirect()->away("https://{$host}/{$target->slug}", 302);
+        }
+
         if ($button->destination_url === null) {
             abort(404);
         }
@@ -79,6 +98,68 @@ class BioPageController extends Controller
         $this->tracker->trackTap($button->page, $button, $request);
 
         return redirect()->away($button->destination_url, 302);
+    }
+
+    /**
+     * Tracking pixel for modal opens (GET so no CSRF token is needed).
+     * Fired by the public page script when a visitor opens a pop-up.
+     */
+    public function openPixel(Request $request, string $button)
+    {
+        $button = BioButton::with('page')->find($button);
+
+        if ($button && $button->page && ! $button->page->is_removed
+            && $button->isLive() && $button->action === 'modal') {
+            $this->tracker->trackTap($button->page, $button, $request);
+        }
+
+        $pixel = base64_decode('R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+
+        return response($pixel, 200, [
+            'Content-Type' => 'image/gif',
+            'Cache-Control' => 'no-store',
+            'Content-Length' => strlen($pixel),
+        ]);
+    }
+
+    /**
+     * Signed draft preview: renders an unpublished page in-action on
+     * its own domain (no login needed, signature is the auth). Never
+     * tracked, never indexed.
+     */
+    public function draft(Request $request, string $page)
+    {
+        $page = BioPage::with(['domain', 'children'])->findOrFail($page);
+
+        if ($page->is_removed) {
+            abort(404);
+        }
+
+        $buttons = $page->buttons()->orderBy('sort_order')->get()->filter->isLive()->values();
+        $root = $page->parent_id === null ? $page : $page->parent;
+        $subs = $root ? $root->children()->where('is_removed', false)->where('is_active', true)->orderBy('sort_order')->get() : collect();
+
+        return response()->view('bio.show', [
+            'page' => $page->load('domain'),
+            'root' => $root?->load('domain'),
+            'buttons' => $buttons,
+            'subs' => $subs,
+            'og' => [
+                'title' => $page->og_title ?? $page->title,
+                'description' => $page->og_description ?? $page->bio,
+                'image' => $page->og_image_url ?? $page->avatar_url,
+            ],
+            'domain' => $page->domain ?? $root?->domain,
+            'draft' => true,
+        ], 200, ['Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
+    }
+
+    private function pageUrl(BioPage $page): string
+    {
+        $host = $page->domain?->hostname ?? request()->getHost();
+        $path = $page->parent_id === null ? '' : '/'.$page->slug;
+
+        return "https://{$host}{$path}";
     }
 
     private function rootFor(Domain $domain): ?BioPage

@@ -586,6 +586,26 @@ Route::get('/t/{button}', function (string $button) {
     return app(BioPageController::class)->tap(request(), $button);
 })->where('button', '[A-Za-z0-9]{20,30}')->name('bio.tap');
 
+Route::get('/t/{button}/open.gif', function (string $button) {
+    $type = request()->attributes->get('domain_type');
+
+    if (! in_array($type, ['partner'], true)) {
+        abort(404);
+    }
+
+    return app(BioPageController::class)->openPixel(request(), $button);
+})->where('button', '[A-Za-z0-9]{20,30}')->name('bio.open-pixel');
+
+Route::get('/draft/{page}', function (string $page) {
+    $type = request()->attributes->get('domain_type');
+
+    if (! in_array($type, ['partner'], true)) {
+        abort(404);
+    }
+
+    return app(BioPageController::class)->draft(request(), $page);
+})->where('page', '[A-Za-z0-9]{20,30}')->middleware('signed')->name('bio.draft');
+
 Route::get('/new', function () {
     $type = request()->attributes->get('domain_type');
 

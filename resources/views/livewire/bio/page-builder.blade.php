@@ -36,6 +36,19 @@
 
 @if ($editing)
     <x-ui.card title="Editing: {{ $editing->title }}" class="mt-6">
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+            <x-ui.button href="{{ route('dashboard.bio.show', $editing->id) }}" variant="ghost">Stats</x-ui.button>
+            <x-ui.button wire:click="makeDraftLink" variant="ghost">Preview draft link</x-ui.button>
+            @if ($draftUrl)
+                <span class="inline-flex items-center gap-2 rounded-lg bg-amber-100 px-3 py-1.5 font-mono text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-200" x-data="{ copied: false }">
+                    <span class="select-all">{{ $draftUrl }}</span>
+                    <button type="button" class="cursor-pointer font-sans font-semibold underline" x-on:click="navigator.clipboard.writeText('{{ $draftUrl }}'); copied = true; setTimeout(() => copied = false, 2000)" x-text="copied ? 'Copied!' : 'Copy'">Copy</button>
+                    <span class="font-sans">expires {{ $draftExpires }}</span>
+                </span>
+            @endif
+        </div>
+        <div class="grid gap-8 lg:grid-cols-[1fr_300px]">
+            <div>
         <form wire:submit="savePage" class="grid gap-4 sm:grid-cols-2">
             <x-ui.input label="Title *" name="title" type="text" wire:model="title" required maxlength="80" />
             <x-ui.select label="Theme" name="theme" wire:model="theme">
@@ -76,6 +89,23 @@
                 <x-ui.input label="Label" name="newLabel" type="text" wire:model="newLabel" maxlength="60" />
                 <x-ui.input label="Sublabel" name="newSublabel" type="text" wire:model="newSublabel" maxlength="120" />
                 <x-ui.input label="URL" name="newUrl" type="url" wire:model="newUrl" maxlength="2048" />
+                <x-ui.select label="Action" name="newAction" wire:model.live="newAction">
+                    <option value="url">Open URL</option>
+                    <option value="subpage">Go to sub-page</option>
+                    <option value="modal">Open pop-up</option>
+                </x-ui.select>
+                @if ($newAction === 'subpage')
+                    <x-ui.select label="Sub-page" name="newTargetPage" wire:model="newTargetPage">
+                        <option value="">Pick…</option>
+                        @foreach ($actionTargets as $target)
+                            <option value="{{ $target->id }}">{{ $target->parent_id ? '/' . $target->slug : '(root)' }} — {{ $target->title }}</option>
+                        @endforeach
+                    </x-ui.select>
+                @endif
+                @if ($newAction === 'modal')
+                    <x-ui.input label="Pop-up title" name="newModalTitle" type="text" wire:model="newModalTitle" maxlength="80" />
+                    <x-ui.input label="Pop-up text" name="newModalBody" type="text" wire:model="newModalBody" maxlength="1000" />
+                @endif
                 <x-ui.select label="Icon" name="newIcon" wire:model="newIcon">
                     <option value="">None</option>
                     <option value="instagram">Instagram</option>
@@ -98,7 +128,7 @@
                 @foreach ($buttonList as $index => $b)
                     <li class="flex items-center justify-between gap-3 rounded-lg border border-neutral-100 px-3 py-2 text-sm dark:border-neutral-800">
                         <span class="min-w-0">
-                            <strong>{{ $b->kind }}</strong> — {{ $b->label }}
+                            <strong>{{ $b->kind }}</strong>@if(in_array($b->kind, ['link', 'social'], true))<span class="text-neutral-500"> · {{ $b->action }}</span>@endif — {{ $b->label }}
                             <span class="text-neutral-500">({{ number_format($b->tap_count) }} taps)</span>
                             @unless ($b->is_active)<span class="ml-1 rounded bg-neutral-200 px-1.5 py-0.5 text-[11px] font-semibold dark:bg-neutral-700">paused</span>@endunless
                             @if ($b->starts_at || $b->ends_at)<span class="ml-1 text-xs text-neutral-500">⏱ {{ $b->starts_at?->format('M j') ?? '…' }} → {{ $b->ends_at?->format('M j') ?? '…' }}</span>@endif
@@ -112,6 +142,22 @@
                     </li>
                 @endforeach
             </ul>
+        </div>
+            </div>
+            <div class="hidden lg:block">
+                <p class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Live preview</p>
+                <div class="mx-auto w-[280px] overflow-hidden rounded-[2rem] border-[10px] border-neutral-900 bg-white shadow-xl dark:border-black dark:bg-neutral-950">
+                    <div class="mx-auto mt-2 h-5 w-24 rounded-full bg-neutral-900 dark:bg-black"></div>
+                    @if ($previewPage)
+                        <div inert style="font-family:system-ui,sans-serif;background:{{ $previewPage->theme === 'dark' ? '#111' : ($previewPage->theme === 'paper' ? '#f7f3ea' : '#fff') }};color:{{ $previewPage->theme === 'dark' ? '#f5f5f5' : '#171717' }}">
+                            <div style="max-width:480px;margin:0 auto;padding:20px 14px 32px;text-align:center;transform:scale(.92);transform-origin:top center">
+                                @include('bio._page', ['page' => $previewPage, 'buttons' => $previewButtons, 'subs' => $editing->children()->where('is_removed', false)->where('is_active', true)->orderBy('sort_order')->get(), 'preview' => true])
+                            </div>
+                        </div>
+                    @endif
+                </div>
+                <p class="mt-2 text-center text-xs text-neutral-500">Title, bio, avatar &amp; theme update live. Buttons refresh on every change.</p>
+            </div>
         </div>
     </x-ui.card>
 @endif

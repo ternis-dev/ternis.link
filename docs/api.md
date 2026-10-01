@@ -207,3 +207,7 @@ curl "https://links.t-api.de/v1/bio-pages/<ulid>/events/export" -H "Authorizatio
 ```
 
 Button taps redirect via `/t/{button}` and count separately from page views (`ctr = taps/views`); crawler renders are not counted. Buttons support schedule windows (`starts_at`/`ends_at`), pause toggles, and pages support future `published_at` (hidden until then).
+
+Button actions: `url` opens `destination_url`, `subpage` links to another page in the same bio family (`target_page_id`, resolved through `/t/{button}` so taps still count), `modal` opens a pop-up (`modal_title`/`modal_body`/`modal_image_url`, opens tracked via `/t/{button}/open.gif`). Button edits preserve ids and tap counts.
+
+Unpublished work can be previewed in-action: mint a 30-minute signed link (dashboard “Preview draft link”, `GET /draft/{page}` on the page's own domain) — no login needed, never tracked or indexed.

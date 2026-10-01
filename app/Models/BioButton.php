@@ -13,6 +13,8 @@ class BioButton extends Model
 
     public const KINDS = ['link', 'header', 'divider', 'social'];
 
+    public const ACTIONS = ['url', 'subpage', 'modal'];
+
     public const ICONS = ['instagram', 'tiktok', 'x', 'youtube', 'github', 'globe', 'mail', 'link'];
 
     protected $fillable = [
@@ -20,7 +22,12 @@ class BioButton extends Model
         'label',
         'sublabel',
         'kind',
+        'action',
         'destination_url',
+        'target_page_id',
+        'modal_title',
+        'modal_body',
+        'modal_image_url',
         'icon',
         'thumbnail_url',
         'sort_order',
@@ -41,6 +48,11 @@ class BioButton extends Model
     public function page(): BelongsTo
     {
         return $this->belongsTo(BioPage::class, 'bio_page_id');
+    }
+
+    public function targetPage(): BelongsTo
+    {
+        return $this->belongsTo(BioPage::class, 'target_page_id');
     }
 
     public function events(): HasMany

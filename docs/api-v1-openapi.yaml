@@ -535,10 +535,16 @@ paths:
                     type: object
                     required: [kind]
                     properties:
+                      id: { type: string, description: ULID of an existing button (identity-preserving update; unknown ids rejected) }
                       label: { type: string, maxLength: 60 }
                       sublabel: { type: string, maxLength: 120 }
                       kind: { type: string, enum: [link, header, divider, social] }
+                      action: { type: string, enum: [url, subpage, modal], default: url, description: url = destination_url, subpage = target_page_id inside the same bio family, modal = pop-up }
                       destination_url: { type: string, format: uri, maxLength: 2048 }
+                      target_page_id: { type: string, description: ULID of a page in the same bio family }
+                      modal_title: { type: string, maxLength: 80 }
+                      modal_body: { type: string, maxLength: 1000 }
+                      modal_image_url: { type: string, format: uri, maxLength: 2048 }
                       icon: { type: string, enum: [instagram, tiktok, x, youtube, github, globe, mail, link] }
                       sort_order: { type: integer, minimum: 0, maximum: 255 }
                       is_active: { type: boolean }

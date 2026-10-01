@@ -6,6 +6,7 @@ use App\Models\BioButton;
 use App\Models\BioPage;
 use App\Models\Domain;
 use App\Services\BioService;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -44,11 +45,23 @@ class PageBuilder extends Component
 
     public ?string $newIcon = null;
 
+    public string $newAction = 'url';
+
+    public ?string $newTargetPage = null;
+
+    public ?string $newModalTitle = null;
+
+    public ?string $newModalBody = null;
+
     public ?string $newStartsAt = null;
 
     public ?string $newEndsAt = null;
 
     public ?string $published_at = null;
+
+    public ?string $draftUrl = null;
+
+    public ?string $draftExpires = null;
 
     public function mount(): void
     {
@@ -86,7 +99,7 @@ class PageBuilder extends Component
         $this->theme = $page->theme;
         $this->accent = $page->accent;
         $this->published_at = $page->published_at?->format('Y-m-d\TH:i');
-        $this->reset(['slug', 'subTitle', 'parent_id']);
+        $this->reset(['slug', 'subTitle', 'parent_id', 'draftUrl', 'draftExpires']);
         $this->resetValidation();
     }
 
@@ -200,12 +213,26 @@ class PageBuilder extends Component
         $this->validate([
             'newLabel' => ['required_unless:newKind,divider', 'string', 'max:60'],
             'newSublabel' => ['nullable', 'string', 'max:120'],
-            'newUrl' => ['required_if:newKind,link', 'required_if:newKind,social', 'nullable', 'url', 'max:2048'],
+            'newUrl' => ['nullable', 'url', 'max:2048'],
             'newKind' => ['required', 'in:link,header,divider,social'],
             'newIcon' => ['nullable', 'in:instagram,tiktok,x,youtube,github,globe,mail,link'],
+            'newAction' => ['required', 'in:url,subpage,modal'],
+            'newTargetPage' => ['required_if:newAction,subpage', 'nullable', 'string'],
+            'newModalTitle' => ['required_if:newAction,modal', 'nullable', 'string', 'max:80'],
+            'newModalBody' => ['nullable', 'string', 'max:1000'],
             'newStartsAt' => ['nullable', 'date'],
             'newEndsAt' => ['nullable', 'date', 'after:newStartsAt'],
         ]);
+
+        // URL is only required for plain URL buttons — sub-page and
+        // modal buttons carry their target in dedicated fields.
+        if (in_array($this->newKind, ['link', 'social'], true)
+            && $this->newAction === 'url'
+            && trim($this->newUrl) === '') {
+            $this->addError('newUrl', 'A URL is required for link buttons.');
+
+            return;
+        }
 
         $current = $this->buttonRows($page);
 
@@ -213,7 +240,11 @@ class PageBuilder extends Component
             'label' => $this->newLabel !== '' ? $this->newLabel : '—',
             'sublabel' => $this->newSublabel ?: null,
             'kind' => $this->newKind,
+            'action' => $this->newAction,
             'destination_url' => $this->newUrl !== '' ? $this->newUrl : null,
+            'target_page_id' => $this->newTargetPage ?: null,
+            'modal_title' => $this->newModalTitle ?: null,
+            'modal_body' => $this->newModalBody ?: null,
             'icon' => $this->newIcon ?: null,
             'sort_order' => count($current),
             'is_active' => true,
@@ -233,8 +264,9 @@ class PageBuilder extends Component
             return;
         }
 
-        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newStartsAt', 'newEndsAt']);
+        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
         $this->newKind = 'link';
+        $this->newAction = 'url';
     }
 
     public function toggleButton(BioService $bio, string $buttonId): void
@@ -314,6 +346,31 @@ class PageBuilder extends Component
         }
     }
 
+    /**
+     * Mint a 30-minute signed draft link that renders the page
+     * in-action on its own domain — saved but unpublished state,
+     * no login needed, never tracked or indexed.
+     */
+    public function makeDraftLink(): void
+    {
+        $page = $this->editingPageId ? $this->ownedPage($this->editingPageId) : null;
+
+        if (! $page || ! $page->domain) {
+            return;
+        }
+
+        $previous = URL::to('/');
+        URL::forceRootUrl('https://'.$page->domain->hostname);
+
+        try {
+            $expires = now()->addMinutes(30);
+            $this->draftUrl = URL::temporarySignedRoute('bio.draft', $expires, ['page' => $page->id]);
+            $this->draftExpires = $expires->format('H:i');
+        } finally {
+            URL::forceRootUrl($previous);
+        }
+    }
+
     private function ownedPage(string $pageId): ?BioPage
     {
         // Full domain model (not id+hostname): actions hand it to
@@ -333,7 +390,12 @@ class PageBuilder extends Component
             'label' => $b->label,
             'sublabel' => $b->sublabel,
             'kind' => $b->kind,
+            'action' => $b->action,
             'destination_url' => $b->destination_url,
+            'target_page_id' => $b->target_page_id,
+            'modal_title' => $b->modal_title,
+            'modal_body' => $b->modal_body,
+            'modal_image_url' => $b->modal_image_url,
             'icon' => $b->icon,
             'thumbnail_url' => $b->thumbnail_url,
             'sort_order' => $b->sort_order,
@@ -363,6 +425,34 @@ class PageBuilder extends Component
         $domains = $this->eligibleDomains();
         $editing = $this->editingPageId ? $this->ownedPage($this->editingPageId) : null;
 
-        return view('livewire.bio.page-builder', compact('pages', 'domains', 'editing'));
+        // Sub-page link targets: same bio family, never self.
+        $actionTargets = collect();
+        if ($editing) {
+            $rootId = $editing->parent_id ?? $editing->id;
+            $actionTargets = auth()->user()->bioPages()
+                ->where('is_removed', false)
+                ->where(fn ($q) => $q->where('id', $rootId)->orWhere('parent_id', $rootId))
+                ->where('id', '!=', $editing->id)
+                ->orderBy('sort_order')
+                ->get();
+        }
+
+        // Phone-mockup preview: a replica filled with the live form
+        // state (title/bio/avatar/theme/accent) over the saved buttons,
+        // so theme and copy changes preview instantly, unsaved.
+        $previewPage = null;
+        $previewButtons = collect();
+        if ($editing) {
+            $previewPage = $editing->replicate()->fill([
+                'title' => $this->title !== '' ? $this->title : $editing->title,
+                'bio' => $this->bio,
+                'avatar_url' => $this->avatar_url,
+                'theme' => $this->theme,
+                'accent' => $this->accent,
+            ]);
+            $previewButtons = $editing->buttons()->orderBy('sort_order')->get()->filter->isLive()->values();
+        }
+
+        return view('livewire.bio.page-builder', compact('pages', 'domains', 'editing', 'previewPage', 'previewButtons', 'actionTargets'));
     }
 }
