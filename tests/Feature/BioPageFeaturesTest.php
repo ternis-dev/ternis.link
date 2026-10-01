@@ -318,6 +318,78 @@ class BioPageFeaturesTest extends TestCase
         $stats->assertOk()->assertJsonFragment(['views' => 2, 'unique_visitors' => 1]);
     }
 
+    public function test_announcement_renders_with_link(): void
+    {
+        app(BioService::class)->createPage($this->user, $this->domain, [
+            'title' => 'Root',
+            'announcement_text' => 'Tour dates live!',
+            'announcement_url' => 'https://example.com/tour',
+        ]);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('Tour dates live!', escape: false)
+            ->assertSee('https://example.com/tour', escape: false);
+    }
+
+    public function test_open_new_renders_target_blank(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Blog', 'kind' => 'link', 'destination_url' => 'https://example.com/blog', 'open_new' => true],
+            ['label' => 'Home', 'kind' => 'link', 'destination_url' => 'https://example.com/home'],
+        ], $this->user);
+
+        $html = $this->get('http://bio.example.com/')->getContent();
+        $this->assertSame(1, substr_count($html, 'target="_blank"'));
+    }
+
+    public function test_auto_theme_uses_media_query(): void
+    {
+        app(BioService::class)->createPage($this->user, $this->domain, ['title' => 'Root', 'theme' => 'auto']);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('prefers-color-scheme', escape: false);
+    }
+
+    public function test_image_block_renders_and_needs_thumbnail(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Sunset', 'kind' => 'image', 'thumbnail_url' => 'https://example.com/sunset.jpg'],
+        ], $this->user);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('<figure', escape: false)
+            ->assertSee('https://example.com/sunset.jpg', escape: false);
+
+        $this->expectException(ValidationException::class);
+        $bio->syncButtons($page, [
+            ['label' => 'Empty', 'kind' => 'image'],
+        ], $this->user);
+    }
+
+    public function test_bio_domain_unknown_slug_gets_branded_404(): void
+    {
+        app(BioService::class)->createPage($this->user, $this->domain, ['title' => 'Root']);
+
+        $this->get('http://bio.example.com/does-not-exist')
+            ->assertNotFound()
+            ->assertSee('Nothing here', escape: false)
+            ->assertSee('Root', escape: false);
+    }
+
+    public function test_plain_domain_keeps_generic_404(): void
+    {
+        $this->get('http://href.nz/does-not-exist-xyz')
+            ->assertNotFound()
+            ->assertDontSee('Nothing here', escape: false);
+    }
+
     public function test_video_block_plays_behind_facade(): void
     {
         $bio = app(BioService::class);

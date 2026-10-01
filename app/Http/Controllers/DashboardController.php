@@ -276,7 +276,7 @@ class DashboardController extends Controller
         $host = $page->domain?->hostname ?? config('domains.public_host', 'href.nz');
         $url = 'https://'.$host.($page->parent_id === null ? '/' : '/'.$page->slug);
 
-        return response(\App\Support\LinkQrCode::pngForUrl($url), 200, [
+        return response(LinkQrCode::pngForUrl($url), 200, [
             'Content-Type' => 'image/png',
             'Content-Disposition' => 'attachment; filename="bio-qr-'.preg_replace('/[^a-z0-9-]+/i', '-', $page->title).'.png"',
         ]);

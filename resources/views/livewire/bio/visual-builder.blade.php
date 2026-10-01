@@ -36,6 +36,8 @@
                     <x-ui.input label="Avatar URL" name="avatar_url" type="url" wire:model="avatar_url" maxlength="2048" />
                     <x-ui.input label="Cover banner URL" name="cover_url" type="url" wire:model="cover_url" maxlength="2048" />
                     <x-ui.input label="Footer text" name="footer_text" type="text" wire:model="footer_text" maxlength="140" />
+                    <x-ui.input label="Announcement" name="announcement_text" type="text" wire:model="announcement_text" maxlength="140" />
+                    <x-ui.input label="Announcement link" name="announcement_url" type="url" wire:model="announcement_url" maxlength="2048" />
                     <x-ui.select label="Language" name="locale" wire:model="locale">
                         <option value="en">English</option>
                         <option value="de">Deutsch</option>
@@ -47,6 +49,7 @@
                         <option value="minimal">Minimal</option>
                         <option value="dark">Dark</option>
                         <option value="paper">Paper</option>
+                        <option value="auto">Auto (system)</option>
                     </x-ui.select>
                     <x-ui.select label="Button style" name="button_style" wire:model="button_style">
                         <option value="filled">Filled</option>
@@ -78,6 +81,7 @@
                         <option value="social">Social</option>
                         <option value="contact">Contact card</option>
                         <option value="video">Video</option>
+                        <option value="image">Image</option>
                         <option value="header">Header</option>
                         <option value="divider">Divider</option>
                     </x-ui.select>
@@ -87,12 +91,29 @@
                         <option value="modal">Open pop-up</option>
                     </x-ui.select>
                     <x-ui.input label="Label" name="newLabel" type="text" wire:model="newLabel" maxlength="60" />
+                    <x-ui.input label="Sublabel" name="newSublabel" type="text" wire:model="newSublabel" maxlength="120" />
                     <x-ui.input label="URL" name="newUrl" type="url" wire:model="newUrl" maxlength="2048" />
                     <x-ui.input label="Thumbnail URL" name="newThumbnail" type="url" wire:model="newThumbnail" maxlength="2048" />
+                    <x-ui.select label="Icon" name="newIcon" wire:model="newIcon">
+                        <option value="">None</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="x">X</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="github">GitHub</option>
+                        <option value="globe">Website</option>
+                        <option value="mail">Email</option>
+                        <option value="link">Link</option>
+                    </x-ui.select>
+                    <x-ui.input label="Show from" name="newStartsAt" type="datetime-local" wire:model="newStartsAt" />
+                    <x-ui.input label="Show until" name="newEndsAt" type="datetime-local" wire:model="newEndsAt" />
                     @if ($newKind === 'contact')
                         <x-ui.input label="Contact email" name="newContactEmail" type="email" wire:model="newContactEmail" maxlength="255" />
                         <x-ui.input label="Contact phone" name="newContactPhone" type="tel" wire:model="newContactPhone" maxlength="40" />
                     @endif
+                    <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                        <input type="checkbox" wire:model="newOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Open in new tab
+                    </label>
                     @if ($newAction === 'subpage')
                         <x-ui.select label="Sub-page" name="newTargetPage" wire:model="newTargetPage">
                             <option value="">Pick…</option>

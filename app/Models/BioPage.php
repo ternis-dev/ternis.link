@@ -12,7 +12,7 @@ class BioPage extends Model
 {
     use HasUlids;
 
-    public const THEMES = ['minimal', 'dark', 'paper'];
+    public const THEMES = ['minimal', 'dark', 'paper', 'auto'];
 
     public const LOCALES = ['en', 'de', 'fr', 'es', 'it'];
 
@@ -28,6 +28,8 @@ class BioPage extends Model
         'avatar_url',
         'cover_url',
         'footer_text',
+        'announcement_text',
+        'announcement_url',
         'theme',
         'locale',
         'accent',

@@ -3,9 +3,9 @@
      In preview mode links/modal interaction is inert and hrefs are neutralized. --}}
 @php
 $style = $page->button_style ?? 'filled';
-$btnExtra = $style === 'outline'
+$btnExtra = ($page->theme ?? 'minimal') === 'auto' ? '' : ($style === 'outline'
     ? ';background:transparent'
-    : ($style === 'soft' ? ';background:#f0f0f0;border-color:transparent' : '');
+    : ($style === 'soft' ? ';background:#f0f0f0;border-color:transparent' : ''));
 $socialButtons = $buttons->filter(fn ($b) => $b->kind === 'social')->values();
 $flowButtons = $buttons->filter(fn ($b) => $b->kind !== 'social')->values();
 $icons = [
@@ -19,6 +19,9 @@ $icons = [
     'link' => '<path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/>',
 ];
 @endphp
+@if($page->announcement_text)
+<div class="announce" role="note">@if($page->announcement_url)<a href="{{ $preview ? '#' : $page->announcement_url }}" @unless($preview) target="_blank" rel="noopener" @endunless>{{ $page->announcement_text }} →</a>@else{{ $page->announcement_text }}@endif</div>
+@endif
 @if($page->cover_url)<img src="{{ $page->cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:140px;border-radius:16px;object-fit:cover">@endif
 @if($page->avatar_url)<img class="avatar" src="{{ $page->avatar_url }}" alt="" loading="lazy" referrerpolicy="no-referrer"@if($page->cover_url) style="margin-top:-44px;border:4px solid #fff"@endif>@endif
 <h1 style="margin:12px 0 4px;font-size:24px">{{ $page->title }}</h1>
@@ -34,13 +37,14 @@ $icons = [
 @if($socialButtons->isNotEmpty())
 <div class="socialrow" aria-label="Social links">
 @foreach($socialButtons as $button)
-<a href="{{ $preview ? '#' : '/t/' . $button->id }}" aria-label="{{ $button->label }}" title="{{ $button->label }}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icons[$button->icon] ?? $icons['link'] !!}</svg></a>
+<a href="{{ $preview ? '#' : '/t/' . $button->id }}" @if(!$preview && ($button->open_new ?? false)) target="_blank" @endif aria-label="{{ $button->label }}" title="{{ $button->label }}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $icons[$button->icon] ?? $icons['link'] !!}</svg></a>
 @endforeach
 </div>
 @endif
 @foreach($flowButtons as $button)
 @if($button->kind === 'divider')<hr style="margin:16px 0;opacity:.4">
 @elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8">{{ $button->label }}</h2>
+@elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
 @elseif($button->kind === 'video' && ($embed = \App\Support\BioVideo::embed((string) $button->destination_url)))
 <div class="videofacade" data-video="{{ $button->id }}" data-src="{{ $embed['embed'] }}" data-bio-button="{{ $button->id }}" role="button" tabindex="0" aria-label="Play video: {{ $button->label }}" @unless($preview) style="cursor:pointer" @endunless>
 @if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@endif
@@ -54,7 +58,7 @@ $icons = [
 @if($button->modal_body)<p class="muted" style="white-space:pre-line">{{ $button->modal_body }}</p>@endif
 <form method="dialog" style="margin-top:14px"><button class="btn" style="width:100%;cursor:pointer" value="close">Close</button></form>
 </dialog>
-@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif<span style="vertical-align:middle">@if($button->kind === 'contact')⤓ @endif{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
+@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless @if(!$preview && ($button->open_new ?? false)) target="_blank" @endif>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif<span style="vertical-align:middle">@if($button->kind === 'contact')⤓ @endif{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
 @endif
 @endforeach
 @if(! $preview)

@@ -30,6 +30,10 @@ class VisualBuilder extends Component
 
     public ?string $footer_text = null;
 
+    public ?string $announcement_text = null;
+
+    public ?string $announcement_url = null;
+
     public string $theme = 'minimal';
 
     public string $locale = 'en';
@@ -68,6 +72,8 @@ class VisualBuilder extends Component
 
     public ?string $newContactPhone = null;
 
+    public bool $newOpenNew = false;
+
     public ?string $newTargetPage = null;
 
     public ?string $newModalTitle = null;
@@ -98,7 +104,9 @@ class VisualBuilder extends Component
             'avatar_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'cover_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'footer_text' => ['nullable', 'string', 'max:140'],
-            'theme' => ['required', 'in:minimal,dark,paper'],
+            'announcement_text' => ['nullable', 'string', 'max:140'],
+            'announcement_url' => ['nullable', 'url', 'max:2048'],
+            'theme' => ['required', 'in:minimal,dark,paper,auto'],
             'locale' => ['required', 'in:en,de,fr,es,it'],
             'accent' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
@@ -123,6 +131,8 @@ class VisualBuilder extends Component
         $this->avatar_url = $page->avatar_url;
         $this->cover_url = $page->cover_url;
         $this->footer_text = $page->footer_text;
+        $this->announcement_text = $page->announcement_text;
+        $this->announcement_url = $page->announcement_url;
         $this->theme = $page->theme;
         $this->locale = $page->locale ?? 'en';
         $this->accent = $page->accent;
@@ -152,6 +162,8 @@ class VisualBuilder extends Component
             'avatar_url' => $this->avatar_url ?: null,
             'cover_url' => $this->cover_url ?: null,
             'footer_text' => $this->footer_text ?: null,
+            'announcement_text' => $this->announcement_text ?: null,
+            'announcement_url' => $this->announcement_url ?: null,
             'theme' => $this->theme,
             'locale' => $this->locale,
             'accent' => $this->accent ?: null,
@@ -181,8 +193,9 @@ class VisualBuilder extends Component
             'newLabel' => ['required_unless:newKind,divider', 'string', 'max:60'],
             'newSublabel' => ['nullable', 'string', 'max:120'],
             'newUrl' => ['nullable', 'url', 'max:2048'],
-            'newKind' => ['required', 'in:link,header,divider,social,contact,video'],
+            'newKind' => ['required', 'in:link,header,divider,social,contact,video,image'],
             'newContactEmail' => ['nullable', 'email', 'max:255'],
+            'newOpenNew' => ['nullable', 'boolean'],
             'newContactPhone' => ['nullable', 'string', 'max:40'],
             'newIcon' => ['nullable', 'in:instagram,tiktok,x,youtube,github,globe,mail,link'],
             'newThumbnail' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
@@ -222,8 +235,10 @@ class VisualBuilder extends Component
             'modal_body' => $this->newModalBody ?: null,
             'icon' => $this->newIcon ?: null,
             'thumbnail_url' => $this->newThumbnail ?: null,
+            'open_new' => (bool) ($this->newOpenNew ?? false),
             'contact_email' => $this->newContactEmail ?: null,
             'contact_phone' => $this->newContactPhone ?: null,
+            'open_new' => $this->newOpenNew,
             'sort_order' => count($current),
             'is_active' => true,
             'starts_at' => $this->newStartsAt ?: null,
@@ -242,7 +257,7 @@ class VisualBuilder extends Component
             return;
         }
 
-        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newThumbnail', 'newContactEmail', 'newContactPhone', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
+        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newThumbnail', 'newContactEmail', 'newContactPhone', 'newOpenNew', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
         $this->newKind = 'link';
         $this->newAction = 'url';
     }

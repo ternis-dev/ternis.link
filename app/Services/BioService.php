@@ -83,6 +83,13 @@ class BioService
 
         $footerText = isset($data['footer_text']) && trim((string) $data['footer_text']) !== '' ? mb_substr(trim((string) $data['footer_text']), 0, 140) : null;
 
+        $announcementText = isset($data['announcement_text']) && trim((string) $data['announcement_text']) !== '' ? mb_substr(trim((string) $data['announcement_text']), 0, 140) : null;
+        $announcementUrl = isset($data['announcement_url']) && trim((string) $data['announcement_url']) !== '' ? trim((string) $data['announcement_url']) : null;
+        if ($announcementUrl !== null) {
+            $this->unsafeUrls->rejectIfUnsafe($announcementUrl);
+            $this->junkUrls->rejectIfJunk($announcementUrl);
+        }
+
         return BioPage::create([
             'user_id' => $user->id,
             'domain_id' => $domain->id,
@@ -93,6 +100,8 @@ class BioService
             'avatar_url' => ! empty($data['avatar_url']) ? trim((string) $data['avatar_url']) : null,
             'cover_url' => $coverUrl,
             'footer_text' => $footerText,
+            'announcement_text' => $announcementText,
+            'announcement_url' => $announcementUrl,
             'theme' => $theme,
             'locale' => $locale,
             'theme_color' => $themeColor,
@@ -154,6 +163,10 @@ class BioService
                 if ($contactEmail === '' && $contactPhone === '') {
                     throw ValidationException::withMessages(['buttons' => "Row {$i}: contact needs an email or a phone number."]);
                 }
+            }
+
+            if ($kind === 'image' && empty($b['thumbnail_url'])) {
+                throw ValidationException::withMessages(['buttons' => "Row {$i}: image blocks need a thumbnail URL."]);
             }
 
             $url = isset($b['destination_url']) && trim((string) $b['destination_url']) !== '' ? trim((string) $b['destination_url']) : null;
@@ -241,6 +254,7 @@ class BioService
                 'thumbnail_url' => ! empty($b['thumbnail_url']) ? trim((string) $b['thumbnail_url']) : null,
                 'sort_order' => isset($b['sort_order']) ? max(0, min(255, (int) $b['sort_order'])) : $i,
                 'is_active' => array_key_exists('is_active', $b) ? (bool) $b['is_active'] : true,
+                'open_new' => array_key_exists('open_new', $b) ? (bool) $b['open_new'] : false,
                 'starts_at' => $b['starts_at'] ?? null,
                 'ends_at' => $b['ends_at'] ?? null,
             ];
@@ -406,6 +420,7 @@ class BioService
             'thumbnail_url' => $b->thumbnail_url,
             'sort_order' => $b->sort_order,
             'is_active' => $b->is_active,
+            'open_new' => $b->open_new,
             'starts_at' => $b->starts_at?->format('Y-m-d\TH:i'),
             'ends_at' => $b->ends_at?->format('Y-m-d\TH:i'),
         ])->all();

@@ -69,11 +69,14 @@
                 <option value="minimal">Minimal</option>
                 <option value="dark">Dark</option>
                 <option value="paper">Paper</option>
+                <option value="auto">Auto (system)</option>
             </x-ui.select>
             <x-ui.input label="Bio" name="bio" type="text" wire:model="bio" maxlength="280" />
             <x-ui.input label="Avatar URL" name="avatar_url" type="url" wire:model="avatar_url" maxlength="2048" />
             <x-ui.input label="Cover banner URL" name="cover_url" type="url" wire:model="cover_url" placeholder="https://…" maxlength="2048" />
             <x-ui.input label="Footer text" name="footer_text" type="text" wire:model="footer_text" placeholder="Blank = Powered by ternis.link" maxlength="140" />
+            <x-ui.input label="Announcement" name="announcement_text" type="text" wire:model="announcement_text" placeholder="Banner line, e.g. New dates live!" maxlength="140" />
+            <x-ui.input label="Announcement link" name="announcement_url" type="url" wire:model="announcement_url" placeholder="https://… (optional)" maxlength="2048" />
             <x-ui.select label="Language" name="locale" wire:model="locale">
                 <option value="en">English</option>
                 <option value="de">Deutsch</option>
@@ -119,6 +122,7 @@
                     <option value="social">Social</option>
                     <option value="contact">Contact card</option>
                     <option value="video">Video</option>
+                    <option value="image">Image</option>
                     <option value="header">Header</option>
                     <option value="divider">Divider</option>
                 </x-ui.select>
@@ -130,6 +134,9 @@
                     <x-ui.input label="Contact email" name="newContactEmail" type="email" wire:model="newContactEmail" maxlength="255" />
                     <x-ui.input label="Contact phone" name="newContactPhone" type="tel" wire:model="newContactPhone" maxlength="40" />
                 @endif
+                <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                    <input type="checkbox" wire:model="newOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Open in new tab
+                </label>
                 <x-ui.select label="Action" name="newAction" wire:model.live="newAction">
                     <option value="url">Open URL</option>
                     <option value="subpage">Go to sub-page</option>

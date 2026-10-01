@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BioPage;
 use App\Models\Domain;
 use App\Services\ClickTrackerService;
 use App\Services\CrawlerDetector;
@@ -10,6 +11,7 @@ use App\Services\LinkService;
 use App\Services\SlugResolverService;
 use App\Services\TargetSelector;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class RedirectController extends Controller
 {
@@ -70,7 +72,7 @@ class RedirectController extends Controller
             if ($domain instanceof Domain && ! $domain->isSystemDomain()) {
                 try {
                     return app(BioPageController::class)->showSub($request, $input);
-                } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                } catch (NotFoundHttpException) {
                     // No sub-page — fall through to slug redirect below.
                 }
             }
@@ -96,6 +98,24 @@ class RedirectController extends Controller
         $link = $this->linkService->resolveSlug($input, $domain);
 
         if (! $link) {
+            // Bio-mode domains get a branded 404 pointing home instead
+            // of the generic dead-link page.
+            if (! $domain->isSystemDomain()) {
+                $root = BioPage::where('domain_id', $domain->id)
+                    ->whereNull('parent_id')
+                    ->where('is_removed', false)
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($root) {
+                    return response()->view('bio.not-found', [
+                        'page' => $root,
+                        'slug' => $input,
+                        'domain' => $domain->hostname,
+                    ], 404);
+                }
+            }
+
             return response()->view('redirect.not-found', ['slug' => $input, 'domain' => $domain->hostname], 404);
         }
 
