@@ -383,6 +383,76 @@ class BioPageFeaturesTest extends TestCase
             ->assertSee('Root', escape: false);
     }
 
+    public function test_badge_and_grid_layout_render(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root', 'layout' => 'grid']);
+        $bio->syncButtons($page, [
+            ['label' => 'Drop', 'kind' => 'link', 'destination_url' => 'https://example.com/drop', 'badge' => 'NEW'],
+        ], $this->user);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('NEW', escape: false)
+            ->assertSee('grid-template-columns', escape: false);
+    }
+
+    public function test_countdown_renders_target_and_ticks(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Launch', 'kind' => 'countdown', 'event_at' => now()->addDays(2)->toDateTimeString()],
+        ], $this->user);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('data-countdown', escape: false)
+            ->assertSee('Launch', escape: false);
+
+        $this->expectException(ValidationException::class);
+        $bio->syncButtons($page, [
+            ['label' => 'Nope', 'kind' => 'countdown'],
+        ], $this->user);
+    }
+
+    public function test_hide_branding_is_plan_gated(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root', 'hide_branding' => true]);
+
+        $this->assertTrue((bool) $page->fresh()->hide_branding);
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertDontSee('Powered by ternis.link', escape: false);
+
+        $free = User::factory()->create([
+            'plan_id' => Plan::where('name', 'free')->firstOrFail()->id,
+        ]);
+
+        // Free plans never qualify — the flag is stripped wherever set.
+        $this->assertFalse(BioService::canHideBranding($free));
+        $this->assertTrue(BioService::canHideBranding($this->user));
+    }
+
+    public function test_password_hint_shows_on_locked_page(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, [
+            'title' => 'Secret', 'password_hint' => 'Our dog’s name',
+        ]);
+        $bio->setPassword($page, 'correct-horse');
+
+        // API accepts the hint too.
+        $this->putJson("http://links.t-api.de/v1/bio-pages/{$page->id}", [
+            'password_hint' => 'Updated hint',
+        ], $this->headers())->assertOk();
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('Updated hint', escape: false);
+    }
+
     public function test_plain_domain_keeps_generic_404(): void
     {
         $this->get('http://href.nz/does-not-exist-xyz')

@@ -39,6 +39,12 @@ class PageBuilder extends Component
 
     public string $button_style = 'filled';
 
+    public string $layout = 'list';
+
+    public bool $hide_branding = false;
+
+    public ?string $password_hint = null;
+
     public ?string $page_password = null;
 
     public ?string $parent_id = null;
@@ -67,6 +73,10 @@ class PageBuilder extends Component
     public ?string $newContactPhone = null;
 
     public bool $newOpenNew = false;
+
+    public ?string $newBadge = null;
+
+    public ?string $newEventAt = null;
 
     public string $newAction = 'url';
 
@@ -117,6 +127,9 @@ class PageBuilder extends Component
             'accent' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'button_style' => ['required', 'in:filled,outline,soft'],
+            'layout' => ['required', 'in:list,grid'],
+            'hide_branding' => ['nullable', 'boolean'],
+            'password_hint' => ['nullable', 'string', 'max:120'],
             'page_password' => ['nullable', 'string', 'min:8', 'max:72'],
             'slug' => ['nullable', 'string', 'max:64'],
             'published_at' => ['nullable', 'date'],
@@ -145,6 +158,9 @@ class PageBuilder extends Component
         $this->accent = $page->accent;
         $this->theme_color = $page->theme_color;
         $this->button_style = $page->button_style ?? 'filled';
+        $this->layout = $page->layout ?? 'list';
+        $this->hide_branding = (bool) $page->hide_branding;
+        $this->password_hint = $page->password_hint;
         $this->page_password = null;
         $this->published_at = $page->published_at?->format('Y-m-d\TH:i');
         $this->expires_at = $page->expires_at?->format('Y-m-d\TH:i');
@@ -253,6 +269,9 @@ class PageBuilder extends Component
             'accent' => $this->accent ?: null,
             'theme_color' => $this->theme_color ?: null,
             'button_style' => $this->button_style,
+            'layout' => $this->layout,
+            'hide_branding' => $this->hide_branding && BioService::canHideBranding(auth()->user()),
+            'password_hint' => $this->password_hint ?: null,
             'published_at' => $this->published_at ? new \DateTime($this->published_at) : null,
             'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
         ]);
@@ -317,10 +336,12 @@ class PageBuilder extends Component
             'newLabel' => ['required_unless:newKind,divider', 'string', 'max:60'],
             'newSublabel' => ['nullable', 'string', 'max:120'],
             'newUrl' => ['nullable', 'url', 'max:2048'],
-            'newKind' => ['required', 'in:link,header,divider,social,contact,video,image'],
+            'newKind' => ['required', 'in:link,header,divider,social,contact,video,image,countdown'],
             'newContactEmail' => ['nullable', 'email', 'max:255'],
             'newContactPhone' => ['nullable', 'string', 'max:40'],
             'newOpenNew' => ['nullable', 'boolean'],
+            'newBadge' => ['nullable', 'string', 'max:12'],
+            'newEventAt' => ['nullable', 'date'],
             'newIcon' => ['nullable', 'in:instagram,tiktok,x,youtube,github,globe,mail,link'],
             'newThumbnail' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'newAction' => ['required', 'in:url,subpage,modal'],
@@ -365,6 +386,8 @@ class PageBuilder extends Component
             'contact_email' => $this->newContactEmail ?: null,
             'contact_phone' => $this->newContactPhone ?: null,
             'open_new' => $this->newOpenNew,
+            'badge' => $this->newBadge ?: null,
+            'event_at' => $this->newEventAt ?: null,
             'sort_order' => count($current),
             'is_active' => true,
             'starts_at' => $this->newStartsAt ?: null,
@@ -383,7 +406,7 @@ class PageBuilder extends Component
             return;
         }
 
-        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newThumbnail', 'newContactEmail', 'newContactPhone', 'newOpenNew', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
+        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newThumbnail', 'newContactEmail', 'newContactPhone', 'newOpenNew', 'newBadge', 'newEventAt', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
         $this->newKind = 'link';
         $this->newAction = 'url';
     }

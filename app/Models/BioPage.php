@@ -18,6 +18,8 @@ class BioPage extends Model
 
     public const BUTTON_STYLES = ['filled', 'outline', 'soft'];
 
+    public const LAYOUTS = ['list', 'grid'];
+
     protected $fillable = [
         'user_id',
         'domain_id',
@@ -35,7 +37,10 @@ class BioPage extends Model
         'accent',
         'theme_color',
         'password_hash',
+        'password_hint',
         'button_style',
+        'layout',
+        'hide_branding',
         'og_title',
         'og_description',
         'og_image_url',
@@ -52,6 +57,7 @@ class BioPage extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'is_removed' => 'boolean',
+        'hide_branding' => 'boolean',
         'published_at' => 'datetime',
         'expires_at' => 'datetime',
         'sort_order' => 'integer',

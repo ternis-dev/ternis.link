@@ -89,9 +89,17 @@ class BioController extends Controller
             'published_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date', 'after:now'],
             'button_style' => ['nullable', 'in:filled,outline,soft'],
+            'layout' => ['nullable', 'in:list,grid'],
+            'hide_branding' => ['nullable', 'boolean'],
+            'password_hint' => ['nullable', 'string', 'max:120'],
             'password' => ['nullable', 'string', 'min:8', 'max:72'],
             'remove_password' => ['nullable', 'boolean'],
         ]);
+
+        if (array_key_exists('hide_branding', $data)) {
+            $data['hide_branding'] = ! empty($data['hide_branding'])
+                && BioService::canHideBranding($request->user());
+        }
 
         if (array_key_exists('password', $data) && $data['password'] !== null) {
             $this->bio->setPassword($page, $data['password']);
@@ -154,10 +162,12 @@ class BioController extends Controller
             'buttons.*.id' => ['nullable', 'string'],
             'buttons.*.label' => ['required_unless:buttons.*.kind,divider', 'string', 'max:60'],
             'buttons.*.sublabel' => ['nullable', 'string', 'max:120'],
-            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact,video,image'],
+            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact,video,image,countdown'],
             'buttons.*.contact_email' => ['nullable', 'email', 'max:255'],
             'buttons.*.contact_phone' => ['nullable', 'string', 'max:40'],
             'buttons.*.open_new' => ['nullable', 'boolean'],
+            'buttons.*.badge' => ['nullable', 'string', 'max:12'],
+            'buttons.*.event_at' => ['nullable', 'date'],
             'buttons.*.action' => ['nullable', 'in:url,subpage,modal'],
             'buttons.*.target_page_id' => ['nullable', 'string'],
             'buttons.*.modal_title' => ['nullable', 'string', 'max:80'],

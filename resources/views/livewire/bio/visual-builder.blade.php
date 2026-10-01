@@ -56,7 +56,15 @@
                         <option value="outline">Outline</option>
                         <option value="soft">Soft</option>
                     </x-ui.select>
+                    <x-ui.select label="Layout" name="layout" wire:model="layout">
+                        <option value="list">List</option>
+                        <option value="grid">Grid</option>
+                    </x-ui.select>
                     <x-ui.input label="Page password" name="page_password" type="password" wire:model="page_password" placeholder="Min. 8 chars — blank keeps current" maxlength="72" autocomplete="new-password" />
+                    <x-ui.input label="Password hint" name="password_hint" type="text" wire:model="password_hint" maxlength="120" />
+                    <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                        <input type="checkbox" wire:model="hide_branding" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Hide footer
+                    </label>
                     <div class="grid grid-cols-2 gap-3">
                         <label class="block text-sm font-medium text-neutral-600 dark:text-neutral-400">Accent
                             <input type="color" wire:model="accent" value="{{ $accent ?? '#171717' }}" class="mt-1 block h-10 w-full cursor-pointer rounded-lg border border-neutral-300 dark:border-neutral-700">
@@ -82,6 +90,7 @@
                         <option value="contact">Contact card</option>
                         <option value="video">Video</option>
                         <option value="image">Image</option>
+                        <option value="countdown">Countdown</option>
                         <option value="header">Header</option>
                         <option value="divider">Divider</option>
                     </x-ui.select>
@@ -114,6 +123,8 @@
                     <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
                         <input type="checkbox" wire:model="newOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Open in new tab
                     </label>
+                    <x-ui.input label="Badge" name="newBadge" type="text" wire:model="newBadge" placeholder="NEW" maxlength="12" />
+                    <x-ui.input label="Countdown to" name="newEventAt" type="datetime-local" wire:model="newEventAt" hint="Only for countdown blocks." />
                     @if ($newAction === 'subpage')
                         <x-ui.select label="Sub-page" name="newTargetPage" wire:model="newTargetPage">
                             <option value="">Pick…</option>

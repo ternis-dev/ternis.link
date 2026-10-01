@@ -18,6 +18,7 @@ button{width:100%;padding:12px;border-radius:12px;border:1px solid #171717;backg
 <div class="wrap">
 <h1 style="font-size:22px">🔒 {{ $page->title }}</h1>
 <p class="muted">This page is password-protected.</p>
+@if($page->password_hint)<p class="muted">Hint: {{ $page->password_hint }}</p>@endif
 <form method="POST" action="/unlock/{{ $page->id }}">
 @csrf
 <input type="password" name="password" placeholder="Password" autocomplete="current-password" required autofocus>

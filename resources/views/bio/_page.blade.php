@@ -41,9 +41,11 @@ $icons = [
 @endforeach
 </div>
 @endif
+<div @if(($page->layout ?? 'list') === 'grid') style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start" @endif>
 @foreach($flowButtons as $button)
-@if($button->kind === 'divider')<hr style="margin:16px 0;opacity:.4">
-@elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8">{{ $button->label }}</h2>
+@if($button->kind === 'divider')<hr style="margin:16px 0;opacity:.4;grid-column:1/-1">
+@elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8;grid-column:1/-1">{{ $button->label }}</h2>
+@elseif($button->kind === 'countdown' && $button->event_at)<div class="countdown" data-countdown="{{ $button->event_at->toIso8601String() }}" style="margin:12px 0;padding:14px;border-radius:14px;border:1px dashed #a3a3a3"><div style="font-weight:700">{{ $button->label }}</div><div class="muted" data-countdown-label>…</div></div>
 @elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
 @elseif($button->kind === 'video' && ($embed = \App\Support\BioVideo::embed((string) $button->destination_url)))
 <div class="videofacade" data-video="{{ $button->id }}" data-src="{{ $embed['embed'] }}" data-bio-button="{{ $button->id }}" role="button" tabindex="0" aria-label="Play video: {{ $button->label }}" @unless($preview) style="cursor:pointer" @endunless>
@@ -58,13 +60,18 @@ $icons = [
 @if($button->modal_body)<p class="muted" style="white-space:pre-line">{{ $button->modal_body }}</p>@endif
 <form method="dialog" style="margin-top:14px"><button class="btn" style="width:100%;cursor:pointer" value="close">Close</button></form>
 </dialog>
-@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless @if(!$preview && ($button->open_new ?? false)) target="_blank" @endif>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif<span style="vertical-align:middle">@if($button->kind === 'contact')⤓ @endif{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
+@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless @if(!$preview && ($button->open_new ?? false)) target="_blank" @endif>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif<span style="vertical-align:middle">@if($button->kind === 'contact')⤓ @endif{{ $button->label }}@if(!empty($button->badge))<span style="display:inline-block;margin-left:8px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:9999px;background:#171717;color:#fff;vertical-align:middle">{{ $button->badge }}</span>@endif@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
 @endif
 @endforeach
+</div>
 @if(! $preview)
 <button type="button" class="sharebtn" data-share data-title="{{ $page->title }}">⇪ Share</button>
 @endif
+@if(empty($page->footer_text) && !empty($page->hide_branding))
+{{-- Attribution removed: premium perk. --}}
+@else
 <p class="muted" style="margin-top:32px;font-size:12px">{{ $page->footer_text ?? 'Powered by ternis.link' }}</p>
+@endif
 @if(! $preview)
 <script>
 document.querySelectorAll('[data-bio-modal]').forEach(function (btn) {
@@ -105,6 +112,24 @@ document.querySelectorAll('[data-video]').forEach(function (facade) {
     facade.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); }
     });
+});
+document.querySelectorAll('[data-countdown]').forEach(function (box) {
+    var label = box.querySelector('[data-countdown-label]');
+    var target = new Date(box.getAttribute('data-countdown')).getTime();
+    function tick() {
+        var diff = target - Date.now();
+        if (diff <= 0) {
+            if (label) { label.textContent = '● Live now'; }
+            return;
+        }
+        var d = Math.floor(diff / 86400000);
+        var h = Math.floor(diff % 86400000 / 3600000);
+        var m = Math.floor(diff % 3600000 / 60000);
+        var s = Math.floor(diff % 60000 / 1000);
+        if (label) { label.textContent = (d > 0 ? d + 'd ' : '') + h + 'h ' + m + 'm ' + s + 's'; }
+        setTimeout(tick, 1000);
+    }
+    tick();
 });
 </script>
 @endif

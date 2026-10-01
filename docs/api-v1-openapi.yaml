@@ -466,11 +466,14 @@ paths:
                 title: { type: string, maxLength: 80 }
                 bio: { type: string, maxLength: 280 }
                 avatar_url: { type: string, format: uri, maxLength: 2048 }
-                theme: { type: string, enum: [minimal, dark, paper] }
+                theme: { type: string, enum: [minimal, dark, paper, auto] }
                 locale: { type: string, enum: [en, de, fr, es, it] }
                 accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
                 theme_color: { type: string, pattern: "^#[0-9a-fA-F]{6}$", description: Browser address-bar color }
                 button_style: { type: string, enum: [filled, outline, soft] }
+                layout: { type: string, enum: [list, grid] }
+                hide_branding: { type: boolean, description: Eligible plans only; silently ignored otherwise }
+                password_hint: { type: string, maxLength: 120 }
                 cover_url: { type: string, format: uri, maxLength: 2048 }
                 footer_text: { type: string, maxLength: 140 }
                 og_title: { type: string, maxLength: 120 }
@@ -501,11 +504,14 @@ paths:
                 title: { type: string, maxLength: 80 }
                 bio: { type: string, maxLength: 280, nullable: true }
                 avatar_url: { type: string, format: uri, maxLength: 2048, nullable: true }
-                theme: { type: string, enum: [minimal, dark, paper] }
+                theme: { type: string, enum: [minimal, dark, paper, auto] }
                 locale: { type: string, enum: [en, de, fr, es, it] }
                 accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$", nullable: true }
                 theme_color: { type: string, pattern: "^#[0-9a-fA-F]{6}$", nullable: true }
                 button_style: { type: string, enum: [filled, outline, soft] }
+                layout: { type: string, enum: [list, grid] }
+                hide_branding: { type: boolean, description: Eligible plans only; silently ignored otherwise }
+                password_hint: { type: string, maxLength: 120, nullable: true }
                 cover_url: { type: string, format: uri, maxLength: 2048, nullable: true }
                 footer_text: { type: string, maxLength: 140, nullable: true }
                 password: { type: string, minLength: 8, maxLength: 72, description: Sets (or rotates) the page password }
@@ -550,7 +556,7 @@ paths:
                       id: { type: string, description: ULID of an existing button (identity-preserving update; unknown ids rejected) }
                       label: { type: string, maxLength: 60 }
                       sublabel: { type: string, maxLength: 120 }
-                      kind: { type: string, enum: [link, header, divider, social, contact] }
+                      kind: { type: string, enum: [link, header, divider, social, contact, video, image, countdown] }
                       action: { type: string, enum: [url, subpage, modal], default: url, description: url = destination_url, subpage = target_page_id inside the same bio family, modal = pop-up }
                       destination_url: { type: string, format: uri, maxLength: 2048 }
                       target_page_id: { type: string, description: ULID of a page in the same bio family }
@@ -559,6 +565,9 @@ paths:
                       modal_image_url: { type: string, format: uri, maxLength: 2048 }
                       contact_email: { type: string, format: email, maxLength: 255, description: Required for contact buttons (email or phone) }
                       contact_phone: { type: string, maxLength: 40 }
+                      open_new: { type: boolean, description: Open in a new tab }
+                      badge: { type: string, maxLength: 12 }
+                      event_at: { type: string, format: date-time, description: Required for countdown blocks }
                       icon: { type: string, enum: [instagram, tiktok, x, youtube, github, globe, mail, link] }
                       sort_order: { type: integer, minimum: 0, maximum: 255 }
                       is_active: { type: boolean }

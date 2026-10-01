@@ -92,7 +92,16 @@
                 <option value="outline">Outline</option>
                 <option value="soft">Soft</option>
             </x-ui.select>
+            <x-ui.select label="Layout" name="layout" wire:model="layout">
+                <option value="list">List</option>
+                <option value="grid">Grid</option>
+            </x-ui.select>
             <x-ui.input label="Page password (optional)" name="page_password" type="password" wire:model="page_password" placeholder="Min. 8 characters — blank keeps current" maxlength="72" autocomplete="new-password" />
+            <x-ui.input label="Password hint (optional)" name="password_hint" type="text" wire:model="password_hint" placeholder="Shown on the locked page" maxlength="120" />
+            <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <input type="checkbox" wire:model="hide_branding" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Hide “Powered by” footer
+                <span class="font-normal text-neutral-500">(eligible plans only)</span>
+            </label>
             <div class="flex flex-wrap items-end gap-2">
                 <x-ui.button type="submit" variant="primary">Save page</x-ui.button>
                 @if ($editing->password_hash)
@@ -123,6 +132,7 @@
                     <option value="contact">Contact card</option>
                     <option value="video">Video</option>
                     <option value="image">Image</option>
+                    <option value="countdown">Countdown</option>
                     <option value="header">Header</option>
                     <option value="divider">Divider</option>
                 </x-ui.select>
@@ -137,6 +147,8 @@
                 <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
                     <input type="checkbox" wire:model="newOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Open in new tab
                 </label>
+                <x-ui.input label="Badge" name="newBadge" type="text" wire:model="newBadge" placeholder="NEW" maxlength="12" />
+                <x-ui.input label="Countdown to" name="newEventAt" type="datetime-local" wire:model="newEventAt" hint="Only for countdown blocks." />
                 <x-ui.select label="Action" name="newAction" wire:model.live="newAction">
                     <option value="url">Open URL</option>
                     <option value="subpage">Go to sub-page</option>

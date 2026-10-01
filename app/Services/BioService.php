@@ -69,6 +69,15 @@ class BioService
         $buttonStyle = $data['button_style'] ?? 'filled';
         $buttonStyle = in_array($buttonStyle, BioPage::BUTTON_STYLES, true) ? $buttonStyle : 'filled';
 
+        $layout = $data['layout'] ?? 'list';
+        $layout = in_array($layout, BioPage::LAYOUTS, true) ? $layout : 'list';
+
+        // Removing the "Powered by" line is a premium perk (same gate
+        // as custom domains); everyone else keeps the attribution.
+        $hideBranding = ! empty($data['hide_branding']) && self::canHideBranding($user);
+
+        $passwordHint = isset($data['password_hint']) && trim((string) $data['password_hint']) !== '' ? mb_substr(trim((string) $data['password_hint']), 0, 120) : null;
+
         $og = $this->socialPreview->normalize($data['og_title'] ?? null, $data['og_description'] ?? null, $data['og_image_url'] ?? null);
 
         if (! empty($data['avatar_url'])) {
@@ -106,6 +115,9 @@ class BioService
             'locale' => $locale,
             'theme_color' => $themeColor,
             'button_style' => $buttonStyle,
+            'layout' => $layout,
+            'hide_branding' => $hideBranding,
+            'password_hint' => $passwordHint,
             'accent' => isset($data['accent']) && preg_match('/^#[0-9a-f]{6}$/i', trim((string) $data['accent'])) ? strtolower(trim((string) $data['accent'])) : null,
             'og_title' => $og['og_title'],
             'og_description' => $og['og_description'],
@@ -167,6 +179,29 @@ class BioService
 
             if ($kind === 'image' && empty($b['thumbnail_url'])) {
                 throw ValidationException::withMessages(['buttons' => "Row {$i}: image blocks need a thumbnail URL."]);
+            }
+
+            $badge = isset($b['badge']) ? trim((string) $b['badge']) : '';
+            if (mb_strlen($badge) > 12) {
+                throw ValidationException::withMessages(['buttons' => "Row {$i}: badges are 12 characters max."]);
+            }
+
+            $eventAt = $b['event_at'] ?? null;
+            if ($kind === 'countdown') {
+                if ($eventAt === null || $eventAt === '') {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: countdowns need a date and time."]);
+                }
+                try {
+                    $eventAt = new \DateTimeImmutable((string) $eventAt);
+                } catch (\Throwable) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: countdown date is invalid."]);
+                }
+                $eventAt = $eventAt->format('Y-m-d H:i:s');
+            } elseif ($eventAt !== null && $eventAt !== '') {
+                // Stray dates on other kinds are dropped, not stored.
+                $eventAt = null;
+            } else {
+                $eventAt = null;
             }
 
             $url = isset($b['destination_url']) && trim((string) $b['destination_url']) !== '' ? trim((string) $b['destination_url']) : null;
@@ -255,6 +290,8 @@ class BioService
                 'sort_order' => isset($b['sort_order']) ? max(0, min(255, (int) $b['sort_order'])) : $i,
                 'is_active' => array_key_exists('is_active', $b) ? (bool) $b['is_active'] : true,
                 'open_new' => array_key_exists('open_new', $b) ? (bool) $b['open_new'] : false,
+                'badge' => $badge !== '' ? mb_substr($badge, 0, 12) : null,
+                'event_at' => $eventAt,
                 'starts_at' => $b['starts_at'] ?? null,
                 'ends_at' => $b['ends_at'] ?? null,
             ];
@@ -309,6 +346,11 @@ class BioService
     public static function sessionKey(string $pageId): string
     {
         return "bio_unlocked_{$pageId}";
+    }
+
+    public static function canHideBranding(User $user): bool
+    {
+        return $user->isAdmin() || (bool) $user->plan?->allowsCustomSubdomain();
     }
 
     /**
@@ -421,6 +463,8 @@ class BioService
             'sort_order' => $b->sort_order,
             'is_active' => $b->is_active,
             'open_new' => $b->open_new,
+            'badge' => $b->badge,
+            'event_at' => $b->event_at?->format('Y-m-d\TH:i'),
             'starts_at' => $b->starts_at?->format('Y-m-d\TH:i'),
             'ends_at' => $b->ends_at?->format('Y-m-d\TH:i'),
         ])->all();
