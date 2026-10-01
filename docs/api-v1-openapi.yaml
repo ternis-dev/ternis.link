@@ -471,6 +471,8 @@ paths:
                 accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
                 theme_color: { type: string, pattern: "^#[0-9a-fA-F]{6}$", description: Browser address-bar color }
                 button_style: { type: string, enum: [filled, outline, soft] }
+                cover_url: { type: string, format: uri, maxLength: 2048 }
+                footer_text: { type: string, maxLength: 140 }
                 og_title: { type: string, maxLength: 120 }
                 og_description: { type: string, maxLength: 300 }
                 og_image_url: { type: string, format: uri, maxLength: 2048 }
@@ -504,6 +506,8 @@ paths:
                 accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$", nullable: true }
                 theme_color: { type: string, pattern: "^#[0-9a-fA-F]{6}$", nullable: true }
                 button_style: { type: string, enum: [filled, outline, soft] }
+                cover_url: { type: string, format: uri, maxLength: 2048, nullable: true }
+                footer_text: { type: string, maxLength: 140, nullable: true }
                 password: { type: string, minLength: 8, maxLength: 72, description: Sets (or rotates) the page password }
                 remove_password: { type: boolean, description: Clears the page password }
                 og_title: { type: string, maxLength: 120, nullable: true }
@@ -546,18 +550,42 @@ paths:
                       id: { type: string, description: ULID of an existing button (identity-preserving update; unknown ids rejected) }
                       label: { type: string, maxLength: 60 }
                       sublabel: { type: string, maxLength: 120 }
-                      kind: { type: string, enum: [link, header, divider, social] }
+                      kind: { type: string, enum: [link, header, divider, social, contact] }
                       action: { type: string, enum: [url, subpage, modal], default: url, description: url = destination_url, subpage = target_page_id inside the same bio family, modal = pop-up }
                       destination_url: { type: string, format: uri, maxLength: 2048 }
                       target_page_id: { type: string, description: ULID of a page in the same bio family }
                       modal_title: { type: string, maxLength: 80 }
                       modal_body: { type: string, maxLength: 1000 }
                       modal_image_url: { type: string, format: uri, maxLength: 2048 }
+                      contact_email: { type: string, format: email, maxLength: 255, description: Required for contact buttons (email or phone) }
+                      contact_phone: { type: string, maxLength: 40 }
                       icon: { type: string, enum: [instagram, tiktok, x, youtube, github, globe, mail, link] }
                       sort_order: { type: integer, minimum: 0, maximum: 255 }
                       is_active: { type: boolean }
       responses:
         '200': { description: Updated button list }
+        '422': { description: Validation error (`{ message, errors }`) }
+  /bio-pages/{page}/duplicate:
+    parameters:
+      - { name: page, in: path, required: true, schema: { type: string, description: ULID } }
+    post:
+      summary: Duplicate a page with its buttons (counters zeroed, starts inactive)
+      description: |
+        Pass `domain_id` for a root copy on another domain, or `parent_id`
+        for a sub-page copy. Sub-page button links freeze to their original
+        absolute URLs. Slugs auto-suffix when taken.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                domain_id: { type: string, description: ULID }
+                parent_id: { type: string, description: ULID of the new parent root }
+      responses:
+        '201': { description: Created copy }
+        '403': { description: "{ message: 'You do not own this page.' }" }
         '422': { description: Validation error (`{ message, errors }`) }
   /bio-pages/{page}/stats:
     parameters:
@@ -579,6 +607,7 @@ paths:
                 properties:
                   views: { type: integer }
                   taps: { type: integer }
+                  unique_visitors: { type: integer }
                   ctr: { type: number, nullable: true }
                   by_button: { type: array, items: { type: object } }
                   by_day: { type: array, items: { type: object } }

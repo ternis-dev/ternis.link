@@ -75,6 +75,14 @@ class BioService
             $this->unsafeUrls->rejectIfUnsafe(trim((string) $data['avatar_url']));
         }
 
+        $coverUrl = null;
+        if (! empty($data['cover_url'])) {
+            $coverUrl = trim((string) $data['cover_url']);
+            $this->unsafeUrls->rejectIfUnsafe($coverUrl);
+        }
+
+        $footerText = isset($data['footer_text']) && trim((string) $data['footer_text']) !== '' ? mb_substr(trim((string) $data['footer_text']), 0, 140) : null;
+
         return BioPage::create([
             'user_id' => $user->id,
             'domain_id' => $domain->id,
@@ -83,6 +91,8 @@ class BioService
             'title' => mb_substr(trim((string) ($data['title'] ?? '')), 0, 80) ?: 'Links',
             'bio' => isset($data['bio']) && trim((string) $data['bio']) !== '' ? mb_substr(trim((string) $data['bio']), 0, 280) : null,
             'avatar_url' => ! empty($data['avatar_url']) ? trim((string) $data['avatar_url']) : null,
+            'cover_url' => $coverUrl,
+            'footer_text' => $footerText,
             'theme' => $theme,
             'locale' => $locale,
             'theme_color' => $themeColor,
@@ -128,6 +138,21 @@ class BioService
             $label = trim((string) ($b['label'] ?? ($kind === 'divider' ? '—' : '')));
             if ($kind !== 'divider' && $label === '') {
                 throw ValidationException::withMessages(['buttons' => "Row {$i}: label is required."]);
+            }
+
+            $contactEmail = isset($b['contact_email']) ? trim((string) $b['contact_email']) : '';
+            $contactPhone = isset($b['contact_phone']) ? trim((string) $b['contact_phone']) : '';
+
+            if ($kind === 'contact') {
+                if ($contactEmail !== '' && ! filter_var($contactEmail, FILTER_VALIDATE_EMAIL)) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: contact email is invalid."]);
+                }
+                if ($contactPhone !== '' && ! preg_match('/^[+0-9][0-9 .()\/-]{3,38}$/', $contactPhone)) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: contact phone is invalid."]);
+                }
+                if ($contactEmail === '' && $contactPhone === '') {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: contact needs an email or a phone number."]);
+                }
             }
 
             $url = isset($b['destination_url']) && trim((string) $b['destination_url']) !== '' ? trim((string) $b['destination_url']) : null;
@@ -205,6 +230,8 @@ class BioService
                 'modal_title' => $modalTitle,
                 'modal_body' => $modalBody,
                 'modal_image_url' => $modalImage,
+                'contact_email' => $contactEmail !== '' ? mb_substr($contactEmail, 0, 255) : null,
+                'contact_phone' => $contactPhone !== '' ? mb_substr($contactPhone, 0, 40) : null,
                 'icon' => $icon,
                 'thumbnail_url' => ! empty($b['thumbnail_url']) ? trim((string) $b['thumbnail_url']) : null,
                 'sort_order' => isset($b['sort_order']) ? max(0, min(255, (int) $b['sort_order'])) : $i,
@@ -270,6 +297,92 @@ class BioService
     public static function sessionKey(string $pageId): string
     {
         return "bio_unlocked_{$pageId}";
+    }
+
+    /**
+     * Build a vCard 3.0 payload for a contact button.
+     */
+    public static function vcard(BioButton $button): string
+    {
+        $lines = ['BEGIN:VCARD', 'VERSION:3.0'];
+        $name = $button->modal_title ?: $button->label;
+        $lines[] = 'FN:'.self::escapeVcard($name);
+        $parts = preg_split('/\s+/', trim($name), 2);
+        $lines[] = 'N:'.self::escapeVcard(($parts[1] ?? '').';'.($parts[0] ?? ''));
+        if ($button->contact_email) {
+            $lines[] = 'EMAIL:'.self::escapeVcard($button->contact_email);
+        }
+        if ($button->contact_phone) {
+            $lines[] = 'TEL;TYPE=CELL:'.self::escapeVcard($button->contact_phone);
+        }
+        if ($button->modal_body) {
+            $lines[] = 'NOTE:'.self::escapeVcard(mb_substr($button->modal_body, 0, 500));
+        }
+        $lines[] = 'END:VCARD';
+
+        return implode("\r\n", $lines)."\r\n";
+    }
+
+    private static function escapeVcard(string $value): string
+    {
+        return str_replace(['\\', "\r\n", "\n", ',', ';'], ['\\\\', '\\n', '\\n', '\\,', '\\;'], $value);
+    }
+
+    /**
+     * Duplicate a page (fields + buttons, zeroed counters) onto a
+     * target domain/root. Sub-page slugs auto-suffix when taken.
+     *
+     * @throws ValidationException
+     */
+    public function duplicatePage(User $actor, BioPage $page, Domain $domain, ?BioPage $parent = null): BioPage
+    {
+        if ($parent !== null && ($parent->parent_id !== null || $parent->user_id !== $actor->id)) {
+            throw ValidationException::withMessages(['parent_id' => 'Unknown page.']);
+        }
+
+        $copy = $this->createPage($actor, $domain, [
+            'slug' => $parent === null ? null : $this->freeSubSlug($parent, $page->slug),
+            'title' => mb_substr($page->title.' (copy)', 0, 80),
+            'bio' => $page->bio,
+            'avatar_url' => $page->avatar_url,
+            'cover_url' => $page->cover_url,
+            'footer_text' => $page->footer_text,
+            'theme' => $page->theme,
+            'locale' => $page->locale,
+            'accent' => $page->accent,
+            'theme_color' => $page->theme_color,
+            'button_style' => $page->button_style,
+            'og_title' => $page->og_title,
+            'og_description' => $page->og_description,
+            'og_image_url' => $page->og_image_url,
+            'is_active' => false,
+        ], $parent);
+
+        $rows = collect($this->buttonRows($page->fresh()))->map(function (array $row) use ($page) {
+            unset($row['id']);
+
+            // Sub-page links can't cross over: freeze them as plain
+            // URLs to the original location. Modals copy verbatim.
+            if (($row['action'] ?? 'url') === 'subpage') {
+                $target = $row['target_page_id'] ? BioPage::find($row['target_page_id']) : null;
+                $host = $page->domain?->hostname;
+                if ($target && $host) {
+                    $path = $target->parent_id === null ? '' : '/'.$target->slug;
+                    $row['action'] = 'url';
+                    $row['destination_url'] = "https://{$host}{$path}";
+                } else {
+                    $row['action'] = 'url';
+                    $row['destination_url'] = "https://{$host}";
+                }
+                $row['target_page_id'] = null;
+            }
+
+            return $row;
+        })->all();
+
+        $this->syncButtons($copy, $rows, $actor);
+
+        return $copy->fresh();
     }
 
     /**
@@ -364,6 +477,24 @@ class BioService
     private function cleanSlug(string $slug): string
     {
         return strtolower(trim($slug));
+    }
+
+    /**
+     * First free `{slug}`, `{slug}-copy`, `{slug}-copy-2`, … under a parent.
+     */
+    private function freeSubSlug(BioPage $parent, string $slug): string
+    {
+        $base = $this->cleanSlug($slug) !== '' ? $this->cleanSlug($slug) : 'page';
+        $candidate = $base;
+        $n = 1;
+
+        while (BioPage::where('parent_id', $parent->id)->where('slug', $candidate)->where('is_removed', false)->exists()
+            || Link::where('domain_id', $parent->domain_id)->where('slug', $candidate)->exists()) {
+            $n++;
+            $candidate = "{$base}-copy".($n > 2 ? "-{$n}" : '');
+        }
+
+        return $candidate;
     }
 
     /**

@@ -33,10 +33,13 @@ class BioController extends Controller
             'title' => ['required', 'string', 'max:80'],
             'bio' => ['nullable', 'string', 'max:280'],
             'avatar_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
+            'cover_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
+            'footer_text' => ['nullable', 'string', 'max:140'],
             'theme' => ['nullable', 'in:minimal,dark,paper'],
             'locale' => ['nullable', 'in:en,de,fr,es,it'],
             'accent' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'button_style' => ['nullable', 'in:filled,outline,soft'],
             'og_title' => ['nullable', 'string', 'max:120'],
             'og_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
@@ -66,10 +69,13 @@ class BioController extends Controller
             'title' => ['sometimes', 'string', 'max:80'],
             'bio' => ['nullable', 'string', 'max:280'],
             'avatar_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
+            'cover_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
+            'footer_text' => ['nullable', 'string', 'max:140'],
             'theme' => ['nullable', 'in:minimal,dark,paper'],
             'locale' => ['nullable', 'in:en,de,fr,es,it'],
             'accent' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'theme_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'button_style' => ['nullable', 'in:filled,outline,soft'],
             'og_title' => ['nullable', 'string', 'max:120'],
             'og_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
@@ -105,6 +111,33 @@ class BioController extends Controller
         return response()->json(null, 204);
     }
 
+    /**
+     * Duplicate a page (fields + buttons, zeroed counters) onto a
+     * target domain/root. Starts inactive for review.
+     */
+    public function duplicate(Request $request, BioPage $page): JsonResponse
+    {
+        $this->authorizePage($request, $page);
+
+        $data = $request->validate([
+            'domain_id' => ['required_without:parent_id', 'exists:domains,id'],
+            'parent_id' => ['nullable', 'exists:bio_pages,id'],
+        ]);
+
+        $domain = isset($data['domain_id'])
+            ? Domain::findOrFail($data['domain_id'])
+            : $page->domain;
+        $parent = isset($data['parent_id']) ? BioPage::findOrFail($data['parent_id']) : null;
+
+        if ($parent && ($parent->parent_id !== null || $parent->user_id !== $request->user()->id)) {
+            abort(403, 'Unknown parent page.');
+        }
+
+        $copy = $this->bio->duplicatePage($request->user(), $page, $domain, $parent);
+
+        return response()->json($copy->load(['domain:id,hostname', 'buttons']), 201);
+    }
+
     public function syncButtons(Request $request, BioPage $page): JsonResponse
     {
         $this->authorizePage($request, $page);
@@ -114,7 +147,9 @@ class BioController extends Controller
             'buttons.*.id' => ['nullable', 'string'],
             'buttons.*.label' => ['required_unless:buttons.*.kind,divider', 'string', 'max:60'],
             'buttons.*.sublabel' => ['nullable', 'string', 'max:120'],
-            'buttons.*.kind' => ['required', 'in:link,header,divider,social'],
+            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact'],
+            'buttons.*.contact_email' => ['nullable', 'email', 'max:255'],
+            'buttons.*.contact_phone' => ['nullable', 'string', 'max:40'],
             'buttons.*.action' => ['nullable', 'in:url,subpage,modal'],
             'buttons.*.target_page_id' => ['nullable', 'string'],
             'buttons.*.modal_title' => ['nullable', 'string', 'max:80'],
@@ -144,6 +179,7 @@ class BioController extends Controller
 
         $views = $page->events()->where('kind', 'view')->where('created_at', '>=', $since)->count();
         $taps = $page->events()->where('kind', 'tap')->where('created_at', '>=', $since)->count();
+        $uniqueVisitors = $page->events()->where('created_at', '>=', $since)->distinct('ip_hash')->count('ip_hash');
 
         $byButton = $page->buttons()->orderBy('sort_order')->get()->map(function (BioButton $b) use ($page, $since, $taps) {
             $count = $page->events()->where('kind', 'tap')->where('bio_button_id', $b->id)->where('created_at', '>=', $since)->count();
@@ -181,6 +217,7 @@ class BioController extends Controller
         return response()->json([
             'views' => $views,
             'taps' => $taps,
+            'unique_visitors' => $uniqueVisitors,
             'ctr' => $views > 0 ? round($taps / $views * 100, 1) : null,
             'by_button' => $byButton,
             'by_day' => $byDay,

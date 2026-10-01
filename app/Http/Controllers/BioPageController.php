@@ -79,6 +79,18 @@ class BioPageController extends Controller
             abort(404);
         }
 
+        // Contact buttons download a vCard (tracked like a tap).
+        if ($button->kind === 'contact') {
+            $this->tracker->trackTap($button->page, $button, $request);
+
+            $filename = preg_replace('/[^a-z0-9]+/i', '-', strtolower($button->modal_title ?: $button->label)).'.vcf';
+
+            return response(BioService::vcard($button), 200, [
+                'Content-Type' => 'text/vcard; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            ]);
+        }
+
         // Modal buttons open client-side; a crafted GET lands on the page.
         if ($button->action === 'modal') {
             return redirect()->away($this->pageUrl($button->page), 302);

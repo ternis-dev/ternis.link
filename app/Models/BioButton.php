@@ -11,7 +11,7 @@ class BioButton extends Model
 {
     use HasUlids;
 
-    public const KINDS = ['link', 'header', 'divider', 'social'];
+    public const KINDS = ['link', 'header', 'divider', 'social', 'contact'];
 
     public const ACTIONS = ['url', 'subpage', 'modal'];
 
@@ -28,6 +28,8 @@ class BioButton extends Model
         'modal_title',
         'modal_body',
         'modal_image_url',
+        'contact_email',
+        'contact_phone',
         'icon',
         'thumbnail_url',
         'sort_order',

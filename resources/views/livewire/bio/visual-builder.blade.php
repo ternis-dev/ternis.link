@@ -34,6 +34,8 @@
                     <x-ui.input label="Title *" name="title" type="text" wire:model="title" required maxlength="80" />
                     <x-ui.input label="Bio" name="bio" type="text" wire:model="bio" maxlength="280" />
                     <x-ui.input label="Avatar URL" name="avatar_url" type="url" wire:model="avatar_url" maxlength="2048" />
+                    <x-ui.input label="Cover banner URL" name="cover_url" type="url" wire:model="cover_url" maxlength="2048" />
+                    <x-ui.input label="Footer text" name="footer_text" type="text" wire:model="footer_text" maxlength="140" />
                     <x-ui.select label="Language" name="locale" wire:model="locale">
                         <option value="en">English</option>
                         <option value="de">Deutsch</option>
@@ -73,6 +75,7 @@
                     <x-ui.select label="Kind" name="newKind" wire:model.live="newKind">
                         <option value="link">Link</option>
                         <option value="social">Social</option>
+                        <option value="contact">Contact card</option>
                         <option value="header">Header</option>
                         <option value="divider">Divider</option>
                     </x-ui.select>
@@ -84,6 +87,10 @@
                     <x-ui.input label="Label" name="newLabel" type="text" wire:model="newLabel" maxlength="60" />
                     <x-ui.input label="URL" name="newUrl" type="url" wire:model="newUrl" maxlength="2048" />
                     <x-ui.input label="Thumbnail URL" name="newThumbnail" type="url" wire:model="newThumbnail" maxlength="2048" />
+                    @if ($newKind === 'contact')
+                        <x-ui.input label="Contact email" name="newContactEmail" type="email" wire:model="newContactEmail" maxlength="255" />
+                        <x-ui.input label="Contact phone" name="newContactPhone" type="tel" wire:model="newContactPhone" maxlength="40" />
+                    @endif
                     @if ($newAction === 'subpage')
                         <x-ui.select label="Sub-page" name="newTargetPage" wire:model="newTargetPage">
                             <option value="">Pick…</option>

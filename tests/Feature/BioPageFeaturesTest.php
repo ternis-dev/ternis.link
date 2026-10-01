@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\DomainType;
 use App\Livewire\Bio\PageBuilder;
 use App\Models\ApiKey;
+use App\Models\BioPage;
 use App\Models\Domain;
 use App\Models\Plan;
 use App\Models\User;
@@ -14,6 +15,7 @@ use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -201,5 +203,117 @@ class BioPageFeaturesTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertNull($page->fresh()->password_hash);
+    }
+
+    public function test_cover_and_footer_render(): void
+    {
+        $page = app(BioService::class)->createPage($this->user, $this->domain, [
+            'title' => 'Root',
+            'cover_url' => 'https://example.com/cover.jpg',
+            'footer_text' => '© My Brand 2026',
+        ]);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('https://example.com/cover.jpg', escape: false)
+            ->assertSee('© My Brand 2026', escape: false)
+            ->assertDontSee('Powered by ternis.link', escape: false);
+    }
+
+    public function test_contact_button_downloads_vcard(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Jane Doe', 'kind' => 'contact', 'contact_email' => 'jane@example.com', 'contact_phone' => '+49123456789'],
+        ], $this->user);
+
+        $button = $page->fresh()->buttons()->firstOrFail();
+
+        $response = $this->get("http://bio.example.com/t/{$button->id}");
+        $response->assertOk()->assertHeader('Content-Type', 'text/vcard; charset=utf-8');
+        $this->assertStringContainsString('FN:Jane Doe', $response->getContent());
+        $this->assertStringContainsString('EMAIL:jane@example.com', $response->getContent());
+        $this->assertSame(1, $button->fresh()->tap_count);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('⤓', escape: false);
+    }
+
+    public function test_contact_requires_email_or_phone(): void
+    {
+        $page = app(BioService::class)->createPage($this->user, $this->domain, ['title' => 'Root']);
+
+        $this->expectException(ValidationException::class);
+        app(BioService::class)->syncButtons($page, [
+            ['label' => 'Nobody', 'kind' => 'contact'],
+        ], $this->user);
+    }
+
+    public function test_duplicate_sub_page_in_builder(): void
+    {
+        $bio = app(BioService::class);
+        $root = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $sub = $bio->createPage($this->user, $this->domain, ['slug' => 'socials', 'title' => 'Socials'], $root);
+        $bio->syncButtons($sub, [
+            ['label' => 'Shop', 'kind' => 'link', 'destination_url' => 'https://example.com/shop'],
+        ], $this->user);
+
+        // A tap on the original, so the copy must start at zero.
+        $button = $sub->fresh()->buttons()->firstOrFail();
+        $this->get("http://bio.example.com/t/{$button->id}")->assertRedirect();
+
+        Livewire::actingAs($this->user)
+            ->test(PageBuilder::class)
+            ->call('duplicateSub', $sub->id)
+            ->assertHasNoErrors();
+
+        $copy = BioPage::where('parent_id', $root->id)->where('slug', 'socials-copy')->firstOrFail();
+        $this->assertSame('Socials (copy)', $copy->title);
+        $this->assertFalse((bool) $copy->is_active);
+        $this->assertSame(1, $copy->buttons()->count());
+        $this->assertSame(0, $copy->buttons()->firstOrFail()->tap_count);
+    }
+
+    public function test_api_duplicates_root_to_another_domain(): void
+    {
+        $second = Domain::create([
+            'hostname' => 'bio2.example.com',
+            'user_id' => $this->user->id,
+            'verification_token' => Str::random(32),
+            'type' => DomainType::Partner,
+            'is_active' => true,
+            'verified_at' => now(),
+        ]);
+
+        $bio = app(BioService::class);
+        $root = $bio->createPage($this->user, $this->domain, ['title' => 'Root', 'footer_text' => 'Hi']);
+        $bio->syncButtons($root, [
+            ['label' => 'Shop', 'kind' => 'link', 'destination_url' => 'https://example.com/shop'],
+        ], $this->user);
+
+        $response = $this->postJson("http://links.t-api.de/v1/bio-pages/{$root->id}/duplicate", [
+            'domain_id' => $second->id,
+        ], $this->headers());
+
+        $response->assertCreated();
+        $this->assertSame('Hi', $response->json('footer_text'));
+
+        $copy = BioPage::findOrFail($response->json('id'));
+        $this->assertSame($second->id, $copy->domain_id);
+        $this->assertFalse((bool) $copy->is_active);
+        $this->assertSame(1, $copy->buttons()->count());
+    }
+
+    public function test_stats_include_unique_visitors(): void
+    {
+        $root = app(BioService::class)->createPage($this->user, $this->domain, ['title' => 'Root']);
+
+        $this->get('http://bio.example.com/');
+        $this->get('http://bio.example.com/');
+
+        $stats = $this->getJson("http://links.t-api.de/v1/bio-pages/{$root->id}/stats?days=7", $this->headers());
+        $stats->assertOk()->assertJsonFragment(['views' => 2, 'unique_visitors' => 1]);
     }
 }

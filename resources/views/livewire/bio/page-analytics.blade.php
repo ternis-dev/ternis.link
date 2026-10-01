@@ -5,9 +5,10 @@
         @endforeach
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-4">
         <x-ui.stat label="Views" :value="number_format($views)" />
         <x-ui.stat label="Taps" :value="number_format($taps)" />
+        <x-ui.stat label="Visitors" :value="number_format($uniqueVisitors)" />
         <x-ui.stat label="CTR" :value="$ctr === null ? '—' : $ctr . '%'" />
     </div>
 

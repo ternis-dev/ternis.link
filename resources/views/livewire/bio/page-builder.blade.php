@@ -33,6 +33,9 @@
                 </div>
                 <div class="flex shrink-0 gap-2">
                     <x-ui.button wire:click="selectPage('{{ $p->id }}')" variant="ghost">Edit</x-ui.button>
+                    @if ($p->parent_id !== null)
+                        <x-ui.button wire:click="duplicateSub('{{ $p->id }}')" variant="ghost">Duplicate</x-ui.button>
+                    @endif
                     @if (Route::has('dashboard.bio.build'))
                         <x-ui.button href="{{ route('dashboard.bio.build', $p->id) }}" variant="ghost">Visual</x-ui.button>
                     @endif
@@ -69,6 +72,8 @@
             </x-ui.select>
             <x-ui.input label="Bio" name="bio" type="text" wire:model="bio" maxlength="280" />
             <x-ui.input label="Avatar URL" name="avatar_url" type="url" wire:model="avatar_url" maxlength="2048" />
+            <x-ui.input label="Cover banner URL" name="cover_url" type="url" wire:model="cover_url" placeholder="https://…" maxlength="2048" />
+            <x-ui.input label="Footer text" name="footer_text" type="text" wire:model="footer_text" placeholder="Blank = Powered by ternis.link" maxlength="140" />
             <x-ui.select label="Language" name="locale" wire:model="locale">
                 <option value="en">English</option>
                 <option value="de">Deutsch</option>
@@ -111,6 +116,7 @@
                 <x-ui.select label="Kind" name="newKind" wire:model.live="newKind">
                     <option value="link">Link</option>
                     <option value="social">Social</option>
+                    <option value="contact">Contact card</option>
                     <option value="header">Header</option>
                     <option value="divider">Divider</option>
                 </x-ui.select>
@@ -118,6 +124,10 @@
                 <x-ui.input label="Sublabel" name="newSublabel" type="text" wire:model="newSublabel" maxlength="120" />
                 <x-ui.input label="URL" name="newUrl" type="url" wire:model="newUrl" maxlength="2048" />
                 <x-ui.input label="Thumbnail URL" name="newThumbnail" type="url" wire:model="newThumbnail" placeholder="https://…" maxlength="2048" />
+                @if ($newKind === 'contact')
+                    <x-ui.input label="Contact email" name="newContactEmail" type="email" wire:model="newContactEmail" maxlength="255" />
+                    <x-ui.input label="Contact phone" name="newContactPhone" type="tel" wire:model="newContactPhone" maxlength="40" />
+                @endif
                 <x-ui.select label="Action" name="newAction" wire:model.live="newAction">
                     <option value="url">Open URL</option>
                     <option value="subpage">Go to sub-page</option>

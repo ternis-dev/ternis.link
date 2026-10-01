@@ -19,7 +19,8 @@ $icons = [
     'link' => '<path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/>',
 ];
 @endphp
-@if($page->avatar_url)<img class="avatar" src="{{ $page->avatar_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">@endif
+@if($page->cover_url)<img src="{{ $page->cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:140px;border-radius:16px;object-fit:cover">@endif
+@if($page->avatar_url)<img class="avatar" src="{{ $page->avatar_url }}" alt="" loading="lazy" referrerpolicy="no-referrer"@if($page->cover_url) style="margin-top:-44px;border:4px solid #fff"@endif>@endif
 <h1 style="margin:12px 0 4px;font-size:24px">{{ $page->title }}</h1>
 @if($page->bio)<p class="muted">{{ $page->bio }}</p>@endif
 @if(($page->parent_id ?? null) !== null && isset($root) && $root)
@@ -48,13 +49,13 @@ $icons = [
 @if($button->modal_body)<p class="muted" style="white-space:pre-line">{{ $button->modal_body }}</p>@endif
 <form method="dialog" style="margin-top:14px"><button class="btn" style="width:100%;cursor:pointer" value="close">Close</button></form>
 </dialog>
-@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif<span style="vertical-align:middle">{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
+@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif<span style="vertical-align:middle">@if($button->kind === 'contact')⤓ @endif{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
 @endif
 @endforeach
 @if(! $preview)
 <button type="button" class="sharebtn" data-share data-title="{{ $page->title }}">⇪ Share</button>
 @endif
-<p class="muted" style="margin-top:32px;font-size:12px">Powered by ternis.link</p>
+<p class="muted" style="margin-top:32px;font-size:12px">{{ $page->footer_text ?? 'Powered by ternis.link' }}</p>
 @if(! $preview)
 <script>
 document.querySelectorAll('[data-bio-modal]').forEach(function (btn) {

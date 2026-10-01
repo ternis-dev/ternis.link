@@ -92,6 +92,7 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::c
     Route::get('bio-pages/{page}', [BioController::class, 'show']);
     Route::put('bio-pages/{page}', [BioController::class, 'update']);
     Route::delete('bio-pages/{page}', [BioController::class, 'destroy']);
+    Route::post('bio-pages/{page}/duplicate', [BioController::class, 'duplicate']);
     Route::put('bio-pages/{page}/buttons', [BioController::class, 'syncButtons']);
     Route::get('bio-pages/{page}/stats', [BioController::class, 'stats']);
     Route::get('bio-pages/{page}/events/export', [BioController::class, 'exportEvents']);

@@ -201,12 +201,23 @@ curl -X PUT https://links.t-api.de/v1/bio-pages/<ulid>/buttons \
   -H "Content-Type: application/json" \
   -d '{"buttons": [{"label": "Shop", "kind": "link", "destination_url": "https://example.com/shop"}]}'
 
+# Add a contact card + duplicate the page
+curl -X PUT https://links.t-api.de/v1/bio-pages/<ulid>/buttons \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"buttons": [{"label": "Jane Doe", "kind": "contact", "contact_email": "jane@example.com"}]}'
+
+curl -X POST https://links.t-api.de/v1/bio-pages/<ulid>/duplicate \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"domain_id": "<other-ulid>"}'
+
 # Per-button analytics + CSV export
 curl "https://links.t-api.de/v1/bio-pages/<ulid>/stats?days=30" -H "Authorization: Bearer tl_your_key_here"
 curl "https://links.t-api.de/v1/bio-pages/<ulid>/events/export" -H "Authorization: Bearer tl_your_key_here"
 ```
 
-Button taps redirect via `/t/{button}` and count separately from page views (`ctr = taps/views`); crawler renders are not counted. Buttons support schedule windows (`starts_at`/`ends_at`), pause toggles, and pages support future `published_at` (hidden until then).
+Button taps redirect via `/t/{button}` and count separately from page views (`ctr = taps/views`, plus `unique_visitors`); crawler renders are not counted. Pages support cover banners, custom footers, thumbnails, social icon rows, button styles, schedule windows, and future `published_at`. Buttons support schedule windows (`starts_at`/`ends_at`), pause toggles, and pages support future `published_at` (hidden until then).
 
 Button actions: `url` opens `destination_url`, `subpage` links to another page in the same bio family (`target_page_id`, resolved through `/t/{button}` so taps still count), `modal` opens a pop-up (`modal_title`/`modal_body`/`modal_image_url`, opens tracked via `/t/{button}/open.gif`). Button edits preserve ids and tap counts.
 

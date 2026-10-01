@@ -29,6 +29,7 @@ class PageAnalytics extends Component
 
         $views = $this->page->events()->where('kind', 'view')->where('created_at', '>=', $since)->count();
         $taps = $this->page->events()->where('kind', 'tap')->where('created_at', '>=', $since)->count();
+        $uniqueVisitors = $this->page->events()->where('created_at', '>=', $since)->distinct('ip_hash')->count('ip_hash');
 
         $byButton = $this->page->buttons()->orderBy('sort_order')->get()->map(function ($b) use ($since, $taps) {
             $count = $this->page->events()->where('kind', 'tap')->where('bio_button_id', $b->id)->where('created_at', '>=', $since)->count();
@@ -87,6 +88,7 @@ class PageAnalytics extends Component
         return view('livewire.bio.page-analytics', [
             'views' => $views,
             'taps' => $taps,
+            'uniqueVisitors' => $uniqueVisitors,
             'ctr' => $views > 0 ? round($taps / $views * 100, 1) : null,
             'byButton' => $byButton,
             'byDay' => $byDay,

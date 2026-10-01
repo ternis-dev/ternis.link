@@ -25,6 +25,8 @@ class BioPage extends Model
         'title',
         'bio',
         'avatar_url',
+        'cover_url',
+        'footer_text',
         'theme',
         'locale',
         'accent',
