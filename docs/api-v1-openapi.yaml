@@ -474,6 +474,8 @@ paths:
                 layout: { type: string, enum: [list, grid] }
                 hide_branding: { type: boolean, description: Eligible plans only; silently ignored otherwise }
                 password_hint: { type: string, maxLength: 120 }
+                gone_url: { type: string, format: uri, maxLength: 2048, description: Redirect target after expiry }
+                show_stats: { type: boolean, description: Show a public view counter }
                 cover_url: { type: string, format: uri, maxLength: 2048 }
                 footer_text: { type: string, maxLength: 140 }
                 og_title: { type: string, maxLength: 120 }
@@ -512,6 +514,8 @@ paths:
                 layout: { type: string, enum: [list, grid] }
                 hide_branding: { type: boolean, description: Eligible plans only; silently ignored otherwise }
                 password_hint: { type: string, maxLength: 120, nullable: true }
+                gone_url: { type: string, format: uri, maxLength: 2048, nullable: true }
+                show_stats: { type: boolean }
                 cover_url: { type: string, format: uri, maxLength: 2048, nullable: true }
                 footer_text: { type: string, maxLength: 140, nullable: true }
                 password: { type: string, minLength: 8, maxLength: 72, description: Sets (or rotates) the page password }
@@ -556,7 +560,7 @@ paths:
                       id: { type: string, description: ULID of an existing button (identity-preserving update; unknown ids rejected) }
                       label: { type: string, maxLength: 60 }
                       sublabel: { type: string, maxLength: 120 }
-                      kind: { type: string, enum: [link, header, divider, social, contact, video, image, countdown] }
+                      kind: { type: string, enum: [link, header, divider, social, contact, video, image, countdown, quote, coupon] }
                       action: { type: string, enum: [url, subpage, modal], default: url, description: url = destination_url, subpage = target_page_id inside the same bio family, modal = pop-up }
                       destination_url: { type: string, format: uri, maxLength: 2048 }
                       target_page_id: { type: string, description: ULID of a page in the same bio family }
@@ -623,6 +627,14 @@ paths:
                   by_subpage: { type: array, items: { type: object } }
                   top_referrers: { type: array, items: { type: object } }
                   top_countries: { type: array, items: { type: object } }
+  /bio-pages/{page}/export:
+    parameters:
+      - { name: page, in: path, required: true, schema: { type: string, description: ULID } }
+    get:
+      summary: Export the full page definition as JSON (no secrets, no counters)
+      responses:
+        '200': { description: Page definition JSON }
+        '403': { description: "{ message: 'You do not own this page.' }" }
   /bio-pages/{page}/events/export:
     parameters:
       - { name: page, in: path, required: true, schema: { type: string, description: ULID } }

@@ -32,10 +32,10 @@ class PageAnalytics extends Component
         $taps = $this->page->events()->where('kind', 'tap')->where('created_at', '>=', $since)->count();
         $uniqueVisitors = $this->page->events()->where('created_at', '>=', $since)->distinct('ip_hash')->count('ip_hash');
 
-        $byButton = $this->page->buttons()->orderBy('sort_order')->get()->map(function ($b) use ($since, $taps) {
+        $byButton = $this->page->buttons()->orderBy('sort_order')->get()->map(function ($b) use ($since, $taps, $views) {
             $count = $this->page->events()->where('kind', 'tap')->where('bio_button_id', $b->id)->where('created_at', '>=', $since)->count();
 
-            return ['label' => $b->label, 'taps' => $count, 'share' => $taps > 0 ? round($count / $taps * 100, 1) : 0];
+            return ['label' => $b->label, 'taps' => $count, 'share' => $taps > 0 ? round($count / $taps * 100, 1) : 0, 'ctr' => $views > 0 ? round($count / $views * 100, 1) : null];
         });
 
         $counts = $this->page->events()

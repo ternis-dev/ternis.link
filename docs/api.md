@@ -212,6 +212,12 @@ curl -X POST https://links.t-api.de/v1/bio-pages/<ulid>/duplicate \
   -H "Content-Type: application/json" \
   -d '{"domain_id": "<other-ulid>"}'
 
+# Quote, coupon, video, image, countdown blocks
+curl -X PUT https://links.t-api.de/v1/bio-pages/<ulid>/buttons \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"buttons": [{"label": "Ship fast", "sublabel": "A founder", "kind": "quote"}, {"label": "Deal", "sublabel": "SHIP20", "kind": "coupon"}, {"label": "Talk", "kind": "video", "destination_url": "https://www.youtube.com/watch?v=…"}]}'
+
 # Per-button analytics + CSV export
 curl "https://links.t-api.de/v1/bio-pages/<ulid>/stats?days=30" -H "Authorization: Bearer tl_your_key_here"
 curl "https://links.t-api.de/v1/bio-pages/<ulid>/events/export" -H "Authorization: Bearer tl_your_key_here"

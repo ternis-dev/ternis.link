@@ -48,6 +48,8 @@ class BioPage extends Model
         'is_removed',
         'published_at',
         'expires_at',
+        'gone_url',
+        'show_stats',
         'sort_order',
         'view_count',
     ];
@@ -58,6 +60,7 @@ class BioPage extends Model
         'is_active' => 'boolean',
         'is_removed' => 'boolean',
         'hide_branding' => 'boolean',
+        'show_stats' => 'boolean',
         'published_at' => 'datetime',
         'expires_at' => 'datetime',
         'sort_order' => 'integer',

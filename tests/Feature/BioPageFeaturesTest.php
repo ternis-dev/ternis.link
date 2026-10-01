@@ -460,6 +460,94 @@ class BioPageFeaturesTest extends TestCase
             ->assertDontSee('Nothing here', escape: false);
     }
 
+    public function test_quote_and_coupon_blocks(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Ship fast', 'sublabel' => 'A founder', 'kind' => 'quote'],
+            ['label' => 'Launch deal', 'sublabel' => 'SHIP20', 'kind' => 'coupon'],
+        ], $this->user);
+
+        $coupon = $page->fresh()->buttons()->where('kind', 'coupon')->firstOrFail();
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('Ship fast', escape: false)
+            ->assertSee('SHIP20', escape: false)
+            ->assertSee('data-coupon-copy', escape: false);
+
+        // Crafted GET on a coupon lands back on the page, untracked.
+        $this->get("http://bio.example.com/t/{$coupon->id}")
+            ->assertRedirect('https://bio.example.com');
+        $this->assertSame(0, $coupon->fresh()->tap_count);
+
+        // Copy beacon tracks.
+        $this->get("http://bio.example.com/t/{$coupon->id}/open.gif")->assertOk();
+        $this->assertSame(1, $coupon->fresh()->tap_count);
+    }
+
+    public function test_coupon_requires_code(): void
+    {
+        $page = app(BioService::class)->createPage($this->user, $this->domain, ['title' => 'Root']);
+
+        $this->expectException(ValidationException::class);
+        app(BioService::class)->syncButtons($page, [
+            ['label' => 'Empty deal', 'kind' => 'coupon'],
+        ], $this->user);
+    }
+
+    public function test_expired_page_redirects_to_gone_url(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, [
+            'title' => 'Event',
+            'expires_at' => now()->addHour()->toDateTimeString(),
+            'gone_url' => 'https://example.com/next',
+        ]);
+
+        $this->get('http://bio.example.com/')->assertOk();
+
+        $page->update(['expires_at' => now()->subMinute()]);
+
+        $this->get('http://bio.example.com/')
+            ->assertRedirect('https://example.com/next');
+    }
+
+    public function test_show_stats_toggles_public_counter(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root', 'show_stats' => true]);
+
+        $this->get('http://bio.example.com/');
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('views', escape: false);
+
+        $page->update(['show_stats' => false]);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertDontSee('views', escape: false);
+    }
+
+    public function test_definition_export_omits_secrets_and_counters(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Shop', 'kind' => 'link', 'destination_url' => 'https://example.com/shop'],
+        ], $this->user);
+        $bio->setPassword($page, 'correct-horse');
+
+        $export = $this->getJson("http://links.t-api.de/v1/bio-pages/{$page->id}/export", $this->headers());
+        $export->assertOk()->assertJsonFragment(['title' => 'Root', 'label' => 'Shop']);
+
+        $content = $export->getContent();
+        $this->assertStringNotContainsString('password_hash', $content);
+        $this->assertStringNotContainsString('tap_count', $content);
+    }
+
     public function test_video_block_plays_behind_facade(): void
     {
         $bio = app(BioService::class);

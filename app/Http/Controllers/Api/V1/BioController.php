@@ -48,6 +48,8 @@ class BioController extends Controller
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
             'expires_at' => ['nullable', 'date', 'after:now'],
+            'gone_url' => ['nullable', 'url', 'max:2048'],
+            'show_stats' => ['nullable', 'boolean'],
         ]);
 
         $domain = Domain::findOrFail($data['domain_id']);
@@ -88,7 +90,8 @@ class BioController extends Controller
             'is_active' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date', 'after:now'],
-            'button_style' => ['nullable', 'in:filled,outline,soft'],
+            'gone_url' => ['nullable', 'url', 'max:2048'],
+            'show_stats' => ['nullable', 'boolean'],
             'layout' => ['nullable', 'in:list,grid'],
             'hide_branding' => ['nullable', 'boolean'],
             'password_hint' => ['nullable', 'string', 'max:120'],
@@ -162,7 +165,7 @@ class BioController extends Controller
             'buttons.*.id' => ['nullable', 'string'],
             'buttons.*.label' => ['required_unless:buttons.*.kind,divider', 'string', 'max:60'],
             'buttons.*.sublabel' => ['nullable', 'string', 'max:120'],
-            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact,video,image,countdown'],
+            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact,video,image,countdown,quote,coupon'],
             'buttons.*.contact_email' => ['nullable', 'email', 'max:255'],
             'buttons.*.contact_phone' => ['nullable', 'string', 'max:40'],
             'buttons.*.open_new' => ['nullable', 'boolean'],
@@ -199,10 +202,10 @@ class BioController extends Controller
         $taps = $page->events()->where('kind', 'tap')->where('created_at', '>=', $since)->count();
         $uniqueVisitors = $page->events()->where('created_at', '>=', $since)->distinct('ip_hash')->count('ip_hash');
 
-        $byButton = $page->buttons()->orderBy('sort_order')->get()->map(function (BioButton $b) use ($page, $since, $taps) {
+        $byButton = $page->buttons()->orderBy('sort_order')->get()->map(function (BioButton $b) use ($page, $since, $taps, $views) {
             $count = $page->events()->where('kind', 'tap')->where('bio_button_id', $b->id)->where('created_at', '>=', $since)->count();
 
-            return ['id' => $b->id, 'label' => $b->label, 'taps' => $count, 'share' => $taps > 0 ? round($count / $taps * 100, 1) : null];
+            return ['id' => $b->id, 'label' => $b->label, 'taps' => $count, 'share' => $taps > 0 ? round($count / $taps * 100, 1) : null, 'ctr' => $views > 0 ? round($count / $views * 100, 1) : null];
         })->values()->all();
 
         $byDay = [];
@@ -271,6 +274,30 @@ class BioController extends Controller
             }
             fclose($out);
         }, 'bio-'.$page->id.'-events.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * Full page definition as JSON (fields + buttons, no counters, no
+     * secrets) — portability backup, pairs with duplicate/import flows.
+     */
+    public function exportDefinition(Request $request, BioPage $page): JsonResponse
+    {
+        $this->authorizePage($request, $page);
+        $page->load(['domain:id,hostname', 'buttons', 'children']);
+
+        $pageData = collect($page->makeHidden(['password_hash'])->toArray())
+            ->except(['buttons', 'children', 'domain', 'view_count', 'created_at', 'updated_at'])
+            ->all();
+        $pageData['domain_hostname'] = $page->domain?->hostname;
+
+        $stripCounters = fn ($b) => collect($b->toArray())->except(['tap_count', 'created_at', 'updated_at'])->all();
+
+        return response()->json([
+            'exported_at' => now()->toIso8601String(),
+            'page' => $pageData,
+            'buttons' => $page->buttons->map($stripCounters)->all(),
+            'children' => $page->children->map(fn ($c) => collect($c->makeHidden(['password_hash'])->toArray())->except(['children', 'domain', 'view_count', 'created_at', 'updated_at'])->all())->all(),
+        ]);
     }
 
     /**

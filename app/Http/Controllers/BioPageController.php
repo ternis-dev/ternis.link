@@ -96,8 +96,9 @@ class BioPageController extends Controller
             ]);
         }
 
-        // Modal buttons open client-side; a crafted GET lands on the page.
-        if ($button->action === 'modal') {
+        // Modal pop-ups and coupon codes open client-side; a crafted
+        // GET lands back on the page, untracked.
+        if ($button->action === 'modal' || $button->kind === 'coupon') {
             return redirect()->away($this->pageUrl($button->page), 302);
         }
 
@@ -125,8 +126,8 @@ class BioPageController extends Controller
     }
 
     /**
-     * Tracking pixel for client-side opens (modal pop-ups, video plays).
-     * GET so no CSRF token is needed. Fired by the public page script.
+     * Tracking pixel for client-side opens (modal pop-ups, video plays,
+     * coupon copies). GET so no CSRF token is needed.
      */
     public function openPixel(Request $request, string $button)
     {
@@ -136,7 +137,7 @@ class BioPageController extends Controller
             && $button->page->isVisible()
             && ! $this->isLocked($button->page, $request)
             && $button->isLive()
-            && ($button->action === 'modal' || $button->kind === 'video')) {
+            && ($button->action === 'modal' || in_array($button->kind, ['video', 'coupon'], true))) {
             $this->tracker->trackTap($button->page, $button, $request);
         }
 
@@ -256,6 +257,12 @@ class BioPageController extends Controller
     private function renderPage(Request $request, BioPage $page, ?BioPage $root = null)
     {
         $root ??= $page->parent_id === null ? $page : $page->parent;
+
+        // Expired pages with a destination hand off instead of 404ing
+        // (event pages → follow-up page). Untracked: the page is gone.
+        if ($page->isExpired() && $page->gone_url) {
+            return redirect()->away($page->gone_url, 302);
+        }
 
         if (! $page->isVisible()) {
             abort(404);

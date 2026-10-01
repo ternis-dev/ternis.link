@@ -16,7 +16,7 @@
         @forelse ($byButton as $row)
             <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-2 text-sm last:border-0 dark:border-neutral-800">
                 <span class="truncate">{{ $row['label'] }}</span>
-                <span class="shrink-0 font-mono">{{ number_format($row['taps']) }} · {{ $row['share'] }}%</span>
+                <span class="shrink-0 font-mono">{{ number_format($row['taps']) }} · {{ $row['share'] }}% · {{ $row['ctr'] === null ? '—' : $row['ctr'] . '%' }} CTR</span>
             </div>
         @empty
             <p class="text-sm text-neutral-500">No buttons yet.</p>

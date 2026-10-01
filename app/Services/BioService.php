@@ -78,6 +78,12 @@ class BioService
 
         $passwordHint = isset($data['password_hint']) && trim((string) $data['password_hint']) !== '' ? mb_substr(trim((string) $data['password_hint']), 0, 120) : null;
 
+        $goneUrl = isset($data['gone_url']) && trim((string) $data['gone_url']) !== '' ? trim((string) $data['gone_url']) : null;
+        if ($goneUrl !== null) {
+            $this->unsafeUrls->rejectIfUnsafe($goneUrl);
+            $this->junkUrls->rejectIfJunk($goneUrl);
+        }
+
         $og = $this->socialPreview->normalize($data['og_title'] ?? null, $data['og_description'] ?? null, $data['og_image_url'] ?? null);
 
         if (! empty($data['avatar_url'])) {
@@ -118,6 +124,8 @@ class BioService
             'layout' => $layout,
             'hide_branding' => $hideBranding,
             'password_hint' => $passwordHint,
+            'gone_url' => $goneUrl,
+            'show_stats' => ! empty($data['show_stats']),
             'accent' => isset($data['accent']) && preg_match('/^#[0-9a-f]{6}$/i', trim((string) $data['accent'])) ? strtolower(trim((string) $data['accent'])) : null,
             'og_title' => $og['og_title'],
             'og_description' => $og['og_description'],
@@ -179,6 +187,10 @@ class BioService
 
             if ($kind === 'image' && empty($b['thumbnail_url'])) {
                 throw ValidationException::withMessages(['buttons' => "Row {$i}: image blocks need a thumbnail URL."]);
+            }
+
+            if ($kind === 'coupon' && trim((string) ($b['sublabel'] ?? '')) === '') {
+                throw ValidationException::withMessages(['buttons' => "Row {$i}: coupon blocks need the code in the sublabel."]);
             }
 
             $badge = isset($b['badge']) ? trim((string) $b['badge']) : '';

@@ -87,6 +87,10 @@
             <x-ui.input label="Browser bar color" name="theme_color" type="text" wire:model="theme_color" placeholder="#ffffff" maxlength="7" />
             <x-ui.input label="Publish at (optional)" name="published_at" type="datetime-local" wire:model="published_at" hint="Future dates hide the page until then. Blank = visible now." />
             <x-ui.input label="Expires at (optional)" name="expires_at" type="datetime-local" wire:model="expires_at" hint="Page stops resolving after this. Blank = never." />
+            <x-ui.input label="After expiry, go to (optional)" name="gone_url" type="url" wire:model="gone_url" placeholder="https://… — redirect instead of 404" maxlength="2048" />
+            <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                <input type="checkbox" wire:model="show_stats" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Show public view counter
+            </label>
             <x-ui.select label="Button style" name="button_style" wire:model="button_style">
                 <option value="filled">Filled</option>
                 <option value="outline">Outline</option>
@@ -133,6 +137,8 @@
                     <option value="video">Video</option>
                     <option value="image">Image</option>
                     <option value="countdown">Countdown</option>
+                    <option value="quote">Quote</option>
+                    <option value="coupon">Coupon code</option>
                     <option value="header">Header</option>
                     <option value="divider">Divider</option>
                 </x-ui.select>

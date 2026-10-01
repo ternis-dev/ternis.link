@@ -26,6 +26,7 @@ $icons = [
 @if($page->avatar_url)<img class="avatar" src="{{ $page->avatar_url }}" alt="" loading="lazy" referrerpolicy="no-referrer"@if($page->cover_url) style="margin-top:-44px;border:4px solid #fff"@endif>@endif
 <h1 style="margin:12px 0 4px;font-size:24px">{{ $page->title }}</h1>
 @if($page->bio)<p class="muted">{{ $page->bio }}</p>@endif
+@if(!empty($page->show_stats))<p class="muted" style="font-size:13px">👁 {{ number_format($page->view_count) }} views</p>@endif
 @if(($page->parent_id ?? null) !== null && isset($root) && $root)
 <a href="{{ $preview ? '#' : '/' }}" aria-label="Back to {{ $root->title }}" style="display:inline-block;margin-top:10px;font-size:13px;padding:6px 14px;border-radius:9999px;border:1px solid #d4d4d4;text-decoration:none;color:inherit">← {{ $root->title }}</a>
 @endif
@@ -47,6 +48,8 @@ $icons = [
 @elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8;grid-column:1/-1">{{ $button->label }}</h2>
 @elseif($button->kind === 'countdown' && $button->event_at)<div class="countdown" data-countdown="{{ $button->event_at->toIso8601String() }}" style="margin:12px 0;padding:14px;border-radius:14px;border:1px dashed #a3a3a3"><div style="font-weight:700">{{ $button->label }}</div><div class="muted" data-countdown-label>…</div></div>
 @elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
+@elseif($button->kind === 'quote')<blockquote style="margin:12px 0;padding:12px 16px;border-left:3px solid #a3a3a3;text-align:left;font-style:italic">“{{ $button->label }}”@if($button->sublabel)<footer class="muted" style="margin-top:4px;font-size:13px;font-style:normal">— {{ $button->sublabel }}</footer>@endif</blockquote>
+@elseif($button->kind === 'coupon' && $button->sublabel)<div class="coupon" style="margin:12px 0;padding:14px;border-radius:14px;border:1.5px dashed #a3a3a3"><div style="font-weight:700">{{ $button->label }}</div><div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px"><code data-coupon="{{ $button->sublabel }}" style="font-family:monospace;font-size:16px;letter-spacing:2px">{{ $button->sublabel }}</code>@unless($preview)<button type="button" data-coupon-copy="{{ $button->id }}" style="font-size:12px;padding:6px 12px;border-radius:9999px;border:1px solid #d4d4d4;background:transparent;color:inherit;cursor:pointer">Copy</button>@endunless</div></div>
 @elseif($button->kind === 'video' && ($embed = \App\Support\BioVideo::embed((string) $button->destination_url)))
 <div class="videofacade" data-video="{{ $button->id }}" data-src="{{ $embed['embed'] }}" data-bio-button="{{ $button->id }}" role="button" tabindex="0" aria-label="Play video: {{ $button->label }}" @unless($preview) style="cursor:pointer" @endunless>
 @if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@endif
@@ -130,6 +133,22 @@ document.querySelectorAll('[data-countdown]').forEach(function (box) {
         setTimeout(tick, 1000);
     }
     tick();
+});
+document.querySelectorAll('[data-coupon-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var codeEl = btn.closest('.coupon').querySelector('[data-coupon]');
+        var code = codeEl ? codeEl.getAttribute('data-coupon') : '';
+        function done() {
+            btn.textContent = 'Copied!';
+            new Image().src = '/t/' + btn.getAttribute('data-coupon-copy') + '/open.gif';
+            setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+        }
+        if (code && navigator.clipboard) {
+            navigator.clipboard.writeText(code).then(done).catch(function () {});
+        } else {
+            done();
+        }
+    });
 });
 </script>
 @endif

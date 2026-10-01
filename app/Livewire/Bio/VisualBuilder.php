@@ -56,6 +56,10 @@ class VisualBuilder extends Component
 
     public ?string $expires_at = null;
 
+    public ?string $gone_url = null;
+
+    public bool $show_stats = false;
+
     public string $newLabel = '';
 
     public ?string $newSublabel = null;
@@ -127,6 +131,8 @@ class VisualBuilder extends Component
             'page_password' => ['nullable', 'string', 'min:8', 'max:72'],
             'published_at' => ['nullable', 'date'],
             'expires_at' => ['nullable', 'date', 'after:now'],
+            'gone_url' => ['nullable', 'url', 'max:2048'],
+            'show_stats' => ['nullable', 'boolean'],
         ];
     }
 
@@ -157,6 +163,8 @@ class VisualBuilder extends Component
         $this->page_password = null;
         $this->published_at = $page->published_at?->format('Y-m-d\TH:i');
         $this->expires_at = $page->expires_at?->format('Y-m-d\TH:i');
+        $this->gone_url = $page->gone_url;
+        $this->show_stats = (bool) $page->show_stats;
         $this->draftUrl = null;
         $this->draftExpires = null;
         $this->resetValidation();
@@ -190,6 +198,8 @@ class VisualBuilder extends Component
             'password_hint' => $this->password_hint ?: null,
             'published_at' => $this->published_at ? new \DateTime($this->published_at) : null,
             'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
+            'gone_url' => $this->gone_url ?: null,
+            'show_stats' => $this->show_stats,
         ]);
 
         if ($this->page_password !== null && trim($this->page_password) !== '') {
