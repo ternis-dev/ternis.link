@@ -307,8 +307,8 @@ class PageBuilder extends Component
             return;
         }
 
-        $rows = array_values($this->buttonRows($page));
-        $index = collect($rows)->search(fn (array $row) => $row['id'] === $buttonId);
+        $ids = $page->buttons()->orderBy('sort_order')->pluck('id')->all();
+        $index = array_search($buttonId, $ids, true);
 
         if ($index === false) {
             return;
@@ -316,17 +316,28 @@ class PageBuilder extends Component
 
         $swap = $direction === 'up' ? $index - 1 : $index + 1;
 
-        if (! isset($rows[$swap])) {
+        if (! isset($ids[$swap])) {
             return;
         }
 
-        [$rows[$index], $rows[$swap]] = [$rows[$swap], $rows[$index]];
+        [$ids[$index], $ids[$swap]] = [$ids[$swap], $ids[$index]];
 
-        foreach ($rows as $i => &$row) {
-            $row['sort_order'] = $i;
+        $bio->reorderButtons($page, $ids, auth()->user());
+    }
+
+    public function reorder(BioService $bio, array $orderedIds): void
+    {
+        $page = $this->editingPageId ? $this->ownedPage($this->editingPageId) : null;
+
+        if (! $page) {
+            return;
         }
 
-        $bio->syncButtons($page, $rows, auth()->user());
+        try {
+            $bio->reorderButtons($page, $orderedIds, auth()->user());
+        } catch (ValidationException $e) {
+            $this->addError('buttons', 'Could not apply the new order — please retry.');
+        }
     }
 
     public function removeButton(BioService $bio, string $buttonId): void

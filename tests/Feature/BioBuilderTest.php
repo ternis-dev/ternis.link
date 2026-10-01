@@ -230,6 +230,54 @@ class BioBuilderTest extends TestCase
             ->assertSee('Open the page-builder', escape: false);
     }
 
+    public function test_reorder_persists_new_sequence(): void
+    {
+        $user = $this->userOnPlan('business');
+        $domain = $this->ownDomain($user);
+
+        $bio = app(BioService::class);
+        $page = $bio->createPage($user, $domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'One', 'kind' => 'link', 'destination_url' => 'https://example.com/1'],
+            ['label' => 'Two', 'kind' => 'link', 'destination_url' => 'https://example.com/2'],
+            ['label' => 'Three', 'kind' => 'link', 'destination_url' => 'https://example.com/3'],
+        ], $user);
+
+        $ids = $page->fresh()->buttons()->orderBy('sort_order')->pluck('id')->all();
+
+        $component = Livewire::actingAs($user)
+            ->test(PageBuilder::class)
+            ->call('selectPage', $page->id)
+            ->call('reorder', [$ids[2], $ids[0], $ids[1]])
+            ->assertHasNoErrors();
+
+        $this->assertSame(
+            [$ids[2], $ids[0], $ids[1]],
+            $page->fresh()->buttons()->orderBy('sort_order')->pluck('id')->all()
+        );
+
+        // Drag handles render on the list.
+        $component->assertSee('draggable', escape: false);
+    }
+
+    public function test_reorder_rejects_unknown_ids(): void
+    {
+        $user = $this->userOnPlan('business');
+        $domain = $this->ownDomain($user);
+
+        $bio = app(BioService::class);
+        $page = $bio->createPage($user, $domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'One', 'kind' => 'link', 'destination_url' => 'https://example.com/1'],
+        ], $user);
+
+        Livewire::actingAs($user)
+            ->test(PageBuilder::class)
+            ->call('selectPage', $page->id)
+            ->call('reorder', ['01JXXXXXXXXXXXXXXXXXXXXXXXXX'])
+            ->assertHasErrors('buttons');
+    }
+
     public function test_deactivate_keeps_analytics(): void
     {
         $user = $this->userOnPlan('business');

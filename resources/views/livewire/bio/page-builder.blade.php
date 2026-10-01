@@ -142,11 +142,27 @@
                     <x-ui.button type="submit" variant="primary">Add</x-ui.button>
                 </div>
             </form>
-            <ul class="mt-4 space-y-2">
+            <ul class="mt-4 space-y-2" x-data="{ dragging: null }"
+                x-on:dragover.prevent="$event.dataTransfer.dropEffect = 'move'">
                 @php($buttonList = $editing->buttons()->orderBy('sort_order')->get())
                 @foreach ($buttonList as $index => $b)
-                    <li class="flex items-center justify-between gap-3 rounded-lg border border-neutral-100 px-3 py-2 text-sm dark:border-neutral-800">
+                    <li draggable="true" data-bid="{{ $b->id }}"
+                        x-on:dragstart="dragging = '{{ $b->id }}'; $event.dataTransfer.effectAllowed = 'move'; $el.classList.add('opacity-40')"
+                        x-on:dragend="$el.classList.remove('opacity-40'); dragging = null"
+                        x-on:drop.prevent="
+                            const list = $el.closest('ul');
+                            const dragged = list.querySelector('[data-bid=\'' + dragging + '\']');
+                            const row = $el.closest('li');
+                            if (dragged && row && dragged !== row) {
+                                const rect = row.getBoundingClientRect();
+                                ($event.clientY - rect.top) > rect.height / 2 ? row.after(dragged) : row.before(dragged);
+                                $wire.reorder([...list.querySelectorAll('[data-bid]')].map(el => el.dataset.bid));
+                            }
+                            dragging = null;
+                        "
+                        class="flex cursor-grab items-center justify-between gap-3 rounded-lg border border-neutral-100 px-3 py-2 text-sm active:cursor-grabbing dark:border-neutral-800">
                         <span class="min-w-0">
+                            <span class="text-neutral-400" aria-hidden="true">⠿</span>
                             <strong>{{ $b->kind }}</strong>@if(in_array($b->kind, ['link', 'social'], true))<span class="text-neutral-500"> · {{ $b->action }}</span>@endif — {{ $b->label }}
                             <span class="text-neutral-500">({{ number_format($b->tap_count) }} taps)</span>
                             @unless ($b->is_active)<span class="ml-1 rounded bg-neutral-200 px-1.5 py-0.5 text-[11px] font-semibold dark:bg-neutral-700">paused</span>@endunless
@@ -161,6 +177,7 @@
                     </li>
                 @endforeach
             </ul>
+            <p class="mt-2 text-xs text-neutral-500">Drag rows to reorder — order saves automatically (↑↓ buttons work everywhere, including touch).</p>
         </div>
             </div>
             <div class="hidden lg:block">
