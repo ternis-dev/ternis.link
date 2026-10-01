@@ -7,6 +7,7 @@ use App\Exceptions\UnsafeUrlException;
 use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\LinkTarget;
 use App\Models\User;
 use App\Support\IpCapture;
 use App\Support\IpHash;
@@ -485,6 +486,78 @@ class LinkService
         Link::forgetCachedSlug($link->domain_id, $link->slug);
 
         return $link->fresh();
+    }
+
+    /**
+     * Replace a link's targeting rules (full replace; [] clears).
+     *
+     * @param  list<array{label?: ?string, destination_url: string, country_codes?: ?array, device?: ?string, weight?: int, sort_order?: int, is_active?: bool}>  $targets
+     */
+    public function syncTargets(Link $link, array $targets, ?User $actor = null): void
+    {
+        if (count($targets) > LinkTarget::MAX_PER_LINK) {
+            throw ValidationException::withMessages([
+                'targets' => 'At most '.LinkTarget::MAX_PER_LINK.' destinations per link.',
+            ]);
+        }
+
+        $rows = [];
+        foreach (array_values($targets) as $i => $t) {
+            $url = trim((string) ($t['destination_url'] ?? ''));
+            if ($url === '' || strlen($url) > 2048) {
+                throw ValidationException::withMessages(['targets' => "Row {$i}: destination_url is required (max 2048)."]);
+            }
+            $actingUser = $actor ?? $link->user;
+            if ($actingUser === null || ! $actingUser->isAdmin()) {
+                $this->unsafeUrls->rejectIfUnsafe($url);
+            }
+            $this->junkUrls->rejectIfJunk($url);
+
+            $codes = $t['country_codes'] ?? null;
+            if ($codes !== null) {
+                $codes = array_values(array_unique(array_map(fn ($c) => strtoupper(trim((string) $c)), (array) $codes)));
+                $codes = array_filter($codes, fn ($c) => $c !== '');
+                if (count($codes) > 50) {
+                    throw ValidationException::withMessages(['targets' => "Row {$i}: at most 50 country codes."]);
+                }
+                foreach ($codes as $c) {
+                    if (! preg_match('/^[A-Z]{2}$/', $c)) {
+                        throw ValidationException::withMessages(['targets' => "Row {$i}: invalid country code '{$c}'."]);
+                    }
+                }
+                $codes = $codes === [] ? null : $codes;
+            }
+
+            $device = $t['device'] ?? null;
+            $device = $device !== null && trim((string) $device) !== '' ? strtolower(trim((string) $device)) : null;
+            if ($device !== null && ! in_array($device, LinkTarget::DEVICES, true)) {
+                throw ValidationException::withMessages(['targets' => "Row {$i}: device must be desktop, mobile or tablet."]);
+            }
+
+            $weight = isset($t['weight']) ? (int) $t['weight'] : 100;
+            if ($weight < 0 || $weight > 10000) {
+                throw ValidationException::withMessages(['targets' => "Row {$i}: weight must be 0–10000."]);
+            }
+
+            $rows[] = [
+                'label' => isset($t['label']) && trim((string) $t['label']) !== '' ? mb_substr(trim((string) $t['label']), 0, 60) : null,
+                'destination_url' => $url,
+                'country_codes' => $codes,
+                'device' => $device,
+                'weight' => $weight,
+                'sort_order' => isset($t['sort_order']) ? max(0, min(255, (int) $t['sort_order'])) : $i,
+                'is_active' => array_key_exists('is_active', $t) ? (bool) $t['is_active'] : true,
+            ];
+        }
+
+        \DB::transaction(function () use ($link, $rows) {
+            $link->targets()->delete();
+            foreach ($rows as $row) {
+                $link->targets()->create($row);
+            }
+            TargetSelector::forgetCached($link->id);
+            Link::forgetCachedSlug($link->domain_id, $link->slug);
+        });
     }
 
     /**

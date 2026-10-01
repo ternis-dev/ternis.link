@@ -62,6 +62,16 @@ class Link extends Model
         return $this->hasMany(Click::class);
     }
 
+    public function targets(): HasMany
+    {
+        return $this->hasMany(LinkTarget::class)->orderBy('sort_order');
+    }
+
+    public function hasTargeting(): bool
+    {
+        return $this->targets()->where('is_active', true)->exists();
+    }
+
     /**
      * Cache key for a hot slug lookup (scoped per domain).
      */

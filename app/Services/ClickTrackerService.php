@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Jobs\RecordClick;
 use App\Models\Link;
+use App\Models\LinkTarget;
 use App\Support\IpCapture;
 use App\Support\IpHash;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class ClickTrackerService
      *
      * @param  bool  $isDirectUrl  True for href.nz/url/* redirects (admin-only visibility)
      */
-    public function track(Link $link, Request $request, bool $isDirectUrl = false): void
+    public function track(Link $link, Request $request, bool $isDirectUrl = false, ?LinkTarget $target = null): void
     {
         $geo = $this->geoIp->lookup($request);
 
@@ -32,6 +33,7 @@ class ClickTrackerService
             countryCode: $geo['country_code'],
             city: $geo['city'],
             ip: IpCapture::enabled() ? $request->ip() : null,
+            linkTargetId: $target?->id,
         );
     }
 }

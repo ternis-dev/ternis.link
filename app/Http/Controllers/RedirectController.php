@@ -8,6 +8,7 @@ use App\Services\CrawlerDetector;
 use App\Services\JunkUrlDetector;
 use App\Services\LinkService;
 use App\Services\SlugResolverService;
+use App\Services\TargetSelector;
 use Illuminate\Http\Request;
 
 class RedirectController extends Controller
@@ -18,6 +19,7 @@ class RedirectController extends Controller
         private ClickTrackerService $clickTracker,
         private JunkUrlDetector $junkUrls,
         private CrawlerDetector $crawlers,
+        private TargetSelector $targets,
     ) {}
 
     /**
@@ -95,8 +97,21 @@ class RedirectController extends Controller
                 ->header('Vary', 'User-Agent');
         }
 
-        $this->clickTracker->track($link, $request);
+        $debugTarget = $request->query('target') === 'debug';
+        $target = $this->targets->pick($link, $request);
+        $destination = $target?->destination_url ?? (string) $link->destination_url;
 
-        return redirect()->away($link->destination_url, 302);
+        if ($debugTarget) {
+            return response()->json([
+                'slug' => $link->slug,
+                'destination' => $destination,
+                'target_id' => $target?->id,
+                'target_label' => $target?->label,
+            ]);
+        }
+
+        $this->clickTracker->track($link, $request, target: $target);
+
+        return redirect()->away($destination, 302);
     }
 }

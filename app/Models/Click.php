@@ -15,6 +15,7 @@ class Click extends Model
 
     protected $fillable = [
         'link_id',
+        'link_target_id',
         'referrer',
         'user_agent',
         'ip_hash',
@@ -34,6 +35,11 @@ class Click extends Model
     public function link(): BelongsTo
     {
         return $this->belongsTo(Link::class);
+    }
+
+    public function target(): BelongsTo
+    {
+        return $this->belongsTo(LinkTarget::class, 'link_target_id');
     }
 
     /**

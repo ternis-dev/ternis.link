@@ -51,7 +51,7 @@ class ClickController extends Controller
 
         $summary = [
             'total_clicks' => $baseQuery->count(),
-            'unique_visitors' => $baseQuery->distinct('ip_hash')->count('ip_hash'),
+            'unique_visitors' => (clone $baseQuery)->distinct('ip_hash')->count('ip_hash'),
             'top_referrers' => (clone $baseQuery)
                 ->selectRaw('referrer, COUNT(*) as count')
                 ->whereNotNull('referrer')
@@ -72,7 +72,24 @@ class ClickController extends Controller
                 ->orderBy('date')
                 ->limit(30)
                 ->get(),
+            'by_target' => $link->targets()->orderBy('sort_order')->get()->map(function ($t) use ($link) {
+                $clicks = $link->clicks()->where('link_target_id', $t->id)->count();
+
+                return [
+                    'id' => $t->id,
+                    'label' => $t->label,
+                    'clicks' => $clicks,
+                    'share' => null,
+                ];
+            })->values()->all(),
         ];
+
+        $total = (int) ($summary['total_clicks'] ?? 0);
+        if ($total > 0) {
+            foreach ($summary['by_target'] as &$row) {
+                $row['share'] = round($row['clicks'] / $total * 100, 1);
+            }
+        }
 
         return response()->json($summary);
     }

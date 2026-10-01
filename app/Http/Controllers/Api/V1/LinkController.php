@@ -124,7 +124,11 @@ class LinkController extends Controller
             abort(403, 'You do not own this link.');
         }
 
-        return response()->json($link->load(['domain', 'apiKey:id,name,key_prefix']));
+        $link->load(['domain', 'apiKey:id,name,key_prefix', 'targets']);
+        $data = $link->toArray();
+        $data['has_targeting'] = collect($data['targets'] ?? [])->where('is_active', true)->isNotEmpty();
+
+        return response()->json($data);
     }
 
     /**
@@ -172,7 +176,16 @@ class LinkController extends Controller
             abort(403, 'You do not own this link.');
         }
 
-        $link = $this->linkService->update($link, $request->validated(), $request->user());
+        $validated = $request->validated();
+        $targets = $validated['targets'] ?? null;
+        unset($validated['targets']);
+
+        $link = $this->linkService->update($link, $validated, $request->user());
+
+        if ($targets !== null) {
+            $this->linkService->syncTargets($link, $targets, $request->user());
+            $link = $link->fresh();
+        }
 
         /** @var ApiKey|null $apiKey */
         $apiKey = $request->attributes->get('api_key');
@@ -185,7 +198,7 @@ class LinkController extends Controller
             'api_key_prefix' => $apiKey?->key_prefix,
         ], fn ($value) => $value !== null));
 
-        return response()->json($link->load(['domain', 'apiKey:id,name,key_prefix']));
+        return response()->json($link->load(['domain', 'apiKey:id,name,key_prefix', 'targets']));
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Click;
 use App\Models\Link;
+use App\Models\LinkTarget;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -24,12 +25,14 @@ class RecordClick implements ShouldQueue
         public ?string $city = null,
         /** Raw visitor IP (or null when capture is off); the model's encrypted cast encrypts it on write. */
         public ?string $ip = null,
+        public ?string $linkTargetId = null,
     ) {}
 
     public function handle(): void
     {
         Click::create([
             'link_id' => $this->linkId,
+            'link_target_id' => $this->linkTargetId,
             'referrer' => $this->referrer,
             'user_agent' => $this->userAgent,
             'ip_hash' => $this->ipHash,
@@ -41,5 +44,9 @@ class RecordClick implements ShouldQueue
 
         // Increment denormalized counter
         Link::where('id', $this->linkId)->increment('click_count');
+
+        if ($this->linkTargetId !== null) {
+            LinkTarget::where('id', $this->linkTargetId)->increment('click_count');
+        }
     }
 }
