@@ -29,14 +29,26 @@ class PageBuilder extends Component
 
     public string $slug = '';
 
+    public string $subTitle = '';
+
     /** @var list<array{label: string, sublabel: ?string, kind: string, destination_url: ?string, icon: ?string, sort_order: int, is_active: bool}> */
     public array $buttons = [];
 
     public string $newLabel = '';
 
+    public ?string $newSublabel = null;
+
     public string $newUrl = '';
 
     public string $newKind = 'link';
+
+    public ?string $newIcon = null;
+
+    public ?string $newStartsAt = null;
+
+    public ?string $newEndsAt = null;
+
+    public ?string $published_at = null;
 
     public function mount(): void
     {
@@ -55,6 +67,7 @@ class PageBuilder extends Component
             'theme' => ['required', 'in:minimal,dark,paper'],
             'accent' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'slug' => ['nullable', 'string', 'max:64'],
+            'published_at' => ['nullable', 'date'],
         ];
     }
 
@@ -72,6 +85,8 @@ class PageBuilder extends Component
         $this->avatar_url = $page->avatar_url;
         $this->theme = $page->theme;
         $this->accent = $page->accent;
+        $this->published_at = $page->published_at?->format('Y-m-d\TH:i');
+        $this->reset(['slug', 'subTitle', 'parent_id']);
         $this->resetValidation();
     }
 
@@ -112,10 +127,16 @@ class PageBuilder extends Component
 
     public function createSub(BioService $bio): void
     {
+        // The sub-page form lives inside the editing card, so the
+        // edited root is the parent unless explicitly overridden.
+        if (($this->parent_id === null || trim($this->parent_id) === '') && $this->editingPageId !== null) {
+            $this->parent_id = $this->editingPageId;
+        }
+
         $this->validate([
             'parent_id' => ['required', 'string'],
             'slug' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9-]{1,64}$/'],
-            'title' => ['required', 'string', 'max:80'],
+            'subTitle' => ['required', 'string', 'max:80'],
         ]);
 
         $parent = $this->ownedPage((string) $this->parent_id);
@@ -129,21 +150,21 @@ class PageBuilder extends Component
         try {
             $page = $bio->createPage(auth()->user(), $parent->domain, [
                 'slug' => strtolower($this->slug),
-                'title' => $this->title,
+                'title' => $this->subTitle,
                 'bio' => $this->bio,
                 'theme' => $this->theme,
             ], $parent);
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
                 foreach ((array) $messages as $message) {
-                    $this->addError($field === 'slug' ? 'slug' : 'title', $message);
+                    $this->addError($field === 'slug' ? 'slug' : 'subTitle', $message);
                 }
             }
 
             return;
         }
 
-        $this->reset(['slug', 'title', 'bio']);
+        $this->reset(['slug', 'subTitle']);
         $this->selectPage($page->id);
     }
 
@@ -163,6 +184,7 @@ class PageBuilder extends Component
             'avatar_url' => $this->avatar_url ?: null,
             'theme' => $this->theme,
             'accent' => $this->accent ?: null,
+            'published_at' => $this->published_at ? new \DateTime($this->published_at) : null,
         ]);
         $bio->forgetCaches($page->fresh());
     }
@@ -177,26 +199,26 @@ class PageBuilder extends Component
 
         $this->validate([
             'newLabel' => ['required_unless:newKind,divider', 'string', 'max:60'],
+            'newSublabel' => ['nullable', 'string', 'max:120'],
             'newUrl' => ['required_if:newKind,link', 'required_if:newKind,social', 'nullable', 'url', 'max:2048'],
             'newKind' => ['required', 'in:link,header,divider,social'],
+            'newIcon' => ['nullable', 'in:instagram,tiktok,x,youtube,github,globe,mail,link'],
+            'newStartsAt' => ['nullable', 'date'],
+            'newEndsAt' => ['nullable', 'date', 'after:newStartsAt'],
         ]);
 
-        $current = $page->buttons()->orderBy('sort_order')->get()->map(fn (BioButton $b) => [
-            'label' => $b->label,
-            'sublabel' => $b->sublabel,
-            'kind' => $b->kind,
-            'destination_url' => $b->destination_url,
-            'icon' => $b->icon,
-            'sort_order' => $b->sort_order,
-            'is_active' => $b->is_active,
-        ])->all();
+        $current = $this->buttonRows($page);
 
         $current[] = [
             'label' => $this->newLabel !== '' ? $this->newLabel : '—',
+            'sublabel' => $this->newSublabel ?: null,
             'kind' => $this->newKind,
             'destination_url' => $this->newUrl !== '' ? $this->newUrl : null,
+            'icon' => $this->newIcon ?: null,
             'sort_order' => count($current),
             'is_active' => true,
+            'starts_at' => $this->newStartsAt ?: null,
+            'ends_at' => $this->newEndsAt ?: null,
         ];
 
         try {
@@ -211,8 +233,53 @@ class PageBuilder extends Component
             return;
         }
 
-        $this->reset(['newLabel', 'newUrl']);
+        $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newStartsAt', 'newEndsAt']);
         $this->newKind = 'link';
+    }
+
+    public function toggleButton(BioService $bio, string $buttonId): void
+    {
+        $page = $this->editingPageId ? $this->ownedPage($this->editingPageId) : null;
+
+        if (! $page) {
+            return;
+        }
+
+        $current = collect($this->buttonRows($page))->map(
+            fn (array $row) => $row['id'] === $buttonId ? [...$row, 'is_active' => ! $row['is_active']] : $row
+        )->all();
+
+        $bio->syncButtons($page, $current, auth()->user());
+    }
+
+    public function moveButton(BioService $bio, string $buttonId, string $direction): void
+    {
+        $page = $this->editingPageId ? $this->ownedPage($this->editingPageId) : null;
+
+        if (! $page || ! in_array($direction, ['up', 'down'], true)) {
+            return;
+        }
+
+        $rows = array_values($this->buttonRows($page));
+        $index = collect($rows)->search(fn (array $row) => $row['id'] === $buttonId);
+
+        if ($index === false) {
+            return;
+        }
+
+        $swap = $direction === 'up' ? $index - 1 : $index + 1;
+
+        if (! isset($rows[$swap])) {
+            return;
+        }
+
+        [$rows[$index], $rows[$swap]] = [$rows[$swap], $rows[$index]];
+
+        foreach ($rows as $i => &$row) {
+            $row['sort_order'] = $i;
+        }
+
+        $bio->syncButtons($page, $rows, auth()->user());
     }
 
     public function removeButton(BioService $bio, string $buttonId): void
@@ -223,15 +290,10 @@ class PageBuilder extends Component
             return;
         }
 
-        $current = $page->buttons()->orderBy('sort_order')->where('id', '!=', $buttonId)->get()->map(fn (BioButton $b) => [
-            'label' => $b->label,
-            'sublabel' => $b->sublabel,
-            'kind' => $b->kind,
-            'destination_url' => $b->destination_url,
-            'icon' => $b->icon,
-            'sort_order' => $b->sort_order,
-            'is_active' => $b->is_active,
-        ])->values()->all();
+        $current = collect($this->buttonRows($page))
+            ->reject(fn (array $row) => $row['id'] === $buttonId)
+            ->values()
+            ->all();
 
         $bio->syncButtons($page, $current, auth()->user());
     }
@@ -254,7 +316,31 @@ class PageBuilder extends Component
 
     private function ownedPage(string $pageId): ?BioPage
     {
-        return auth()->user()->bioPages()->with(['domain:id,hostname', 'buttons', 'children'])->find($pageId);
+        // Full domain model (not id+hostname): actions hand it to
+        // BioService, whose usability checks read is_active/verified_at.
+        return auth()->user()->bioPages()->with(['domain', 'buttons', 'children'])->find($pageId);
+    }
+
+    /**
+     * Full button rows for sync round-trips (add/remove/toggle/move).
+     * Carries every service-managed field so unrelated attributes
+     * (schedules, icons, thumbnails) survive any single-button op.
+     */
+    private function buttonRows(BioPage $page): array
+    {
+        return $page->buttons()->orderBy('sort_order')->get()->map(fn (BioButton $b) => [
+            'id' => $b->id,
+            'label' => $b->label,
+            'sublabel' => $b->sublabel,
+            'kind' => $b->kind,
+            'destination_url' => $b->destination_url,
+            'icon' => $b->icon,
+            'thumbnail_url' => $b->thumbnail_url,
+            'sort_order' => $b->sort_order,
+            'is_active' => $b->is_active,
+            'starts_at' => $b->starts_at?->format('Y-m-d\TH:i'),
+            'ends_at' => $b->ends_at?->format('Y-m-d\TH:i'),
+        ])->all();
     }
 
     private function ownedDomain(string $domainId): ?Domain

@@ -502,6 +502,7 @@ paths:
                 og_description: { type: string, maxLength: 300, nullable: true }
                 og_image_url: { type: string, format: uri, maxLength: 2048, nullable: true }
                 is_active: { type: boolean }
+                published_at: { type: string, format: date-time, nullable: true, description: Future dates hide the page until then }
       responses:
         '200': { description: Updated }
         '403': { description: "{ message: 'You do not own this page.' }" }

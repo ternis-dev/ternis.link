@@ -70,6 +70,7 @@ class BioController extends Controller
             'og_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'is_active' => ['sometimes', 'boolean'],
+            'published_at' => ['nullable', 'date'],
         ]);
 
         $page->update($data);
@@ -93,6 +94,7 @@ class BioController extends Controller
 
         $data = $request->validate([
             'buttons' => ['required', 'array', 'max:25'],
+            'buttons.*.id' => ['nullable', 'string'],
             'buttons.*.label' => ['required_unless:buttons.*.kind,divider', 'string', 'max:60'],
             'buttons.*.sublabel' => ['nullable', 'string', 'max:120'],
             'buttons.*.kind' => ['required', 'in:link,header,divider,social'],

@@ -93,8 +93,21 @@ class BioService
             throw ValidationException::withMessages(['buttons' => 'At most '.self::MAX_BUTTONS_PER_PAGE.' buttons per page.']);
         }
 
+        $existing = $page->buttons()->get()->keyBy('id');
+
         $rows = [];
+        $seenIds = [];
         foreach (array_values($buttons) as $i => $b) {
+            $id = $b['id'] ?? null;
+            if ($id !== null) {
+                if (! $existing->has($id)) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: unknown button."]);
+                }
+                if (in_array($id, $seenIds, true)) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: duplicate button."]);
+                }
+                $seenIds[] = $id;
+            }
             $kind = $b['kind'] ?? 'link';
             if (! in_array($kind, BioButton::KINDS, true)) {
                 throw ValidationException::withMessages(['buttons' => "Row {$i}: unknown kind."]);
@@ -128,6 +141,7 @@ class BioService
             }
 
             $rows[] = [
+                'id' => $id,
                 'label' => mb_substr($label, 0, 60),
                 'sublabel' => isset($b['sublabel']) && trim((string) $b['sublabel']) !== '' ? mb_substr(trim((string) $b['sublabel']), 0, 120) : null,
                 'kind' => $kind,
@@ -141,10 +155,20 @@ class BioService
             ];
         }
 
-        \DB::transaction(function () use ($page, $rows) {
-            $page->buttons()->delete();
+        \DB::transaction(function () use ($page, $rows, $seenIds) {
+            // Identity-preserving replace: update rows that carry a
+            // known id (tap counts + event links survive), create the
+            // rest, drop anything missing from the payload.
+            $page->buttons()->whereNotIn('id', $seenIds)->delete();
             foreach ($rows as $row) {
-                $page->buttons()->create($row);
+                $id = $row['id'];
+                unset($row['id']);
+
+                if ($id !== null) {
+                    $page->buttons()->where('id', $id)->update($row);
+                } else {
+                    $page->buttons()->create($row);
+                }
             }
             $this->forgetCaches($page);
         });

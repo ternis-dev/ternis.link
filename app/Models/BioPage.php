@@ -78,7 +78,15 @@ class BioPage extends Model
 
     public function isVisible(): bool
     {
-        return $this->is_active && ! $this->is_removed;
+        if (! $this->is_active || $this->is_removed) {
+            return false;
+        }
+
+        if ($this->published_at !== null && $this->published_at->isFuture()) {
+            return false;
+        }
+
+        return true;
     }
 
     public static function cacheKeyRoot(string $domainId): string

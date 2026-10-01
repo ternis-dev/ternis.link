@@ -116,7 +116,9 @@ class BioPageController extends Controller
         }
 
         $buttons = $page->buttons()->where('is_active', true)->orderBy('sort_order')->get()->filter->isLive()->values();
-        $subs = $root ? $root->children()->where('is_removed', false)->where('is_active', true)->orderBy('sort_order')->get() : collect();
+        $subs = $root ? $root->children()->where('is_removed', false)->where('is_active', true)
+            ->where(fn ($q) => $q->whereNull('published_at')->orWhere('published_at', '<=', now()))
+            ->orderBy('sort_order')->get() : collect();
 
         $og = [
             'title' => $page->og_title ?? $page->title,

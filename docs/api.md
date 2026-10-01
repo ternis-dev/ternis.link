@@ -206,4 +206,4 @@ curl "https://links.t-api.de/v1/bio-pages/<ulid>/stats?days=30" -H "Authorizatio
 curl "https://links.t-api.de/v1/bio-pages/<ulid>/events/export" -H "Authorization: Bearer tl_your_key_here"
 ```
 
-Button taps redirect via `/t/{button}` and count separately from page views (`ctr = taps/views`); crawler renders are not counted.
+Button taps redirect via `/t/{button}` and count separately from page views (`ctr = taps/views`); crawler renders are not counted. Buttons support schedule windows (`starts_at`/`ends_at`), pause toggles, and pages support future `published_at` (hidden until then).
