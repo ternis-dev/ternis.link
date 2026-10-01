@@ -63,6 +63,7 @@
                         </label>
                     </div>
                     <x-ui.input label="Publish at" name="published_at" type="datetime-local" wire:model="published_at" hint="Future dates hide the page until then. Meta tags: assets-upload via static.re — soon." />
+                    <x-ui.input label="Expires at" name="expires_at" type="datetime-local" wire:model="expires_at" hint="Page stops resolving after this. Blank = never." />
                     <div class="flex items-end">
                         <x-ui.button type="submit" variant="primary">Save</x-ui.button>
                     </div>
@@ -76,6 +77,7 @@
                         <option value="link">Link</option>
                         <option value="social">Social</option>
                         <option value="contact">Contact card</option>
+                        <option value="video">Video</option>
                         <option value="header">Header</option>
                         <option value="divider">Divider</option>
                     </x-ui.select>

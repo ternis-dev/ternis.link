@@ -248,6 +248,7 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::get('/bio', [DashboardController::class, 'bio'])->name('dashboard.bio');
     Route::get('/bio/{page}', [DashboardController::class, 'showBio'])->name('dashboard.bio.show');
     Route::get('/bio/{page}/build', [DashboardController::class, 'buildBio'])->name('dashboard.bio.build');
+    Route::get('/bio/{page}/qr', [DashboardController::class, 'bioQr'])->name('dashboard.bio.qr');
     Route::get('/domains', [DashboardController::class, 'domains'])->name('dashboard.domains');
     Route::get('/notifications', [DashboardController::class, 'notifications'])->name('dashboard.notifications');
     Route::post('/notifications/read', [DashboardController::class, 'markAllNotificationsRead'])->name('dashboard.notifications.read-all');

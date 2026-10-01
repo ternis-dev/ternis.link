@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\DomainType;
+use App\Livewire\Bio\PageAnalytics;
 use App\Livewire\Bio\PageBuilder;
 use App\Models\ApiKey;
 use App\Models\BioPage;
@@ -315,5 +316,94 @@ class BioPageFeaturesTest extends TestCase
 
         $stats = $this->getJson("http://links.t-api.de/v1/bio-pages/{$root->id}/stats?days=7", $this->headers());
         $stats->assertOk()->assertJsonFragment(['views' => 2, 'unique_visitors' => 1]);
+    }
+
+    public function test_video_block_plays_behind_facade(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Talk', 'kind' => 'video', 'destination_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
+        ], $this->user);
+
+        $button = $page->fresh()->buttons()->firstOrFail();
+
+        $response = $this->get('http://bio.example.com/');
+        $response->assertOk()
+            ->assertSee('youtube-nocookie.com/embed/dQw4w9WgXcQ', escape: false)
+            ->assertDontSee('<iframe', escape: false);
+
+        // No-JS fallback: tap goes to the watch page, tracked.
+        $this->get("http://bio.example.com/t/{$button->id}")
+            ->assertRedirect('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+        $this->assertSame(1, $button->fresh()->tap_count);
+    }
+
+    public function test_video_rejects_non_allowlisted_hosts(): void
+    {
+        $page = app(BioService::class)->createPage($this->user, $this->domain, ['title' => 'Root']);
+
+        $this->expectException(ValidationException::class);
+        app(BioService::class)->syncButtons($page, [
+            ['label' => 'Evil', 'kind' => 'video', 'destination_url' => 'https://evil.example/video.mp4'],
+        ], $this->user);
+    }
+
+    public function test_expired_page_resolves_nothing(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, [
+            'title' => 'Gone',
+            'expires_at' => now()->addHour()->toDateTimeString(),
+        ]);
+        $bio->syncButtons($page, [
+            ['label' => 'Shop', 'kind' => 'link', 'destination_url' => 'https://example.com/shop'],
+        ], $this->user);
+
+        $button = $page->fresh()->buttons()->firstOrFail();
+
+        $this->get('http://bio.example.com/')->assertOk()->assertSee('Shop', escape: false);
+
+        $page->update(['expires_at' => now()->subMinute()]);
+
+        // Expired roots fall back to landing (like unpublished ones);
+        // the bio content and its taps are gone.
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertDontSee('Shop', escape: false);
+        $this->get("http://bio.example.com/t/{$button->id}")->assertNotFound();
+    }
+
+    public function test_bio_qr_endpoints(): void
+    {
+        $page = app(BioService::class)->createPage($this->user, $this->domain, ['title' => 'Root']);
+
+        $png = $this->actingAs($this->user)->get("http://dash.ternis.link/bio/{$page->id}/qr");
+        $png->assertOk()->assertHeader('Content-Type', 'image/png');
+        $this->assertStringStartsWith("\x89PNG", $png->getContent());
+
+        $svg = $this->getJson("http://links.t-api.de/v1/bio-pages/{$page->id}/qr", $this->headers());
+        $svg->assertOk()->assertHeader('Content-Type', 'image/svg+xml');
+
+        $this->getJson("http://links.t-api.de/v1/bio-pages/{$page->id}/qr?format=gif", $this->headers())
+            ->assertStatus(422);
+    }
+
+    public function test_analytics_shows_browsers_and_recent(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Shop', 'kind' => 'link', 'destination_url' => 'https://example.com/shop'],
+        ], $this->user);
+
+        $button = $page->fresh()->buttons()->firstOrFail();
+        $this->get('http://bio.example.com/', ['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0']);
+        $this->get("http://bio.example.com/t/{$button->id}", ['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0']);
+
+        Livewire::actingAs($this->user)
+            ->test(PageAnalytics::class, ['page' => $page])
+            ->assertSee('Chrome', escape: false)
+            ->assertSee('Shop', escape: false);
     }
 }

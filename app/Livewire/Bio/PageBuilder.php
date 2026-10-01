@@ -76,6 +76,8 @@ class PageBuilder extends Component
 
     public ?string $published_at = null;
 
+    public ?string $expires_at = null;
+
     public ?string $draftUrl = null;
 
     public ?string $draftExpires = null;
@@ -110,6 +112,7 @@ class PageBuilder extends Component
             'page_password' => ['nullable', 'string', 'min:8', 'max:72'],
             'slug' => ['nullable', 'string', 'max:64'],
             'published_at' => ['nullable', 'date'],
+            'expires_at' => ['nullable', 'date', 'after:now'],
         ];
     }
 
@@ -134,6 +137,7 @@ class PageBuilder extends Component
         $this->button_style = $page->button_style ?? 'filled';
         $this->page_password = null;
         $this->published_at = $page->published_at?->format('Y-m-d\TH:i');
+        $this->expires_at = $page->expires_at?->format('Y-m-d\TH:i');
         $this->reset(['slug', 'subTitle', 'parent_id', 'draftUrl', 'draftExpires']);
         $this->resetValidation();
     }
@@ -238,6 +242,7 @@ class PageBuilder extends Component
             'theme_color' => $this->theme_color ?: null,
             'button_style' => $this->button_style,
             'published_at' => $this->published_at ? new \DateTime($this->published_at) : null,
+            'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
         ]);
 
         if ($this->page_password !== null && trim($this->page_password) !== '') {
@@ -300,7 +305,7 @@ class PageBuilder extends Component
             'newLabel' => ['required_unless:newKind,divider', 'string', 'max:60'],
             'newSublabel' => ['nullable', 'string', 'max:120'],
             'newUrl' => ['nullable', 'url', 'max:2048'],
-            'newKind' => ['required', 'in:link,header,divider,social,contact'],
+            'newKind' => ['required', 'in:link,header,divider,social,contact,video'],
             'newContactEmail' => ['nullable', 'email', 'max:255'],
             'newContactPhone' => ['nullable', 'string', 'max:40'],
             'newIcon' => ['nullable', 'in:instagram,tiktok,x,youtube,github,globe,mail,link'],

@@ -21,6 +21,8 @@ body{font-family:system-ui,sans-serif;margin:0;background:{{ $page->theme === 'd
 .socialrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:16px 0}
 .socialrow a{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:9999px;border:1px solid #d4d4d4;color:inherit}
 .sharebtn{display:inline-block;margin-top:8px;font-size:13px;padding:6px 14px;border-radius:9999px;border:1px solid #d4d4d4;background:transparent;color:inherit;cursor:pointer}
+.videofacade{margin:12px 0;border-radius:14px;border:1px solid #d4d4d4;overflow:hidden}
+.videofacade iframe{width:100%;aspect-ratio:16/9;border:0;display:block}
 .muted{opacity:.65;font-size:14px}
 .bio-modal{border:1px solid #d4d4d4;border-radius:16px;padding:20px;max-width:min(420px,90vw);text-align:center}
 .bio-modal::backdrop{background:rgba(0,0,0,.5)}

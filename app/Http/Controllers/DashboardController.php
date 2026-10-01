@@ -266,6 +266,23 @@ class DashboardController extends Controller
     }
 
     /**
+     * Download the page's QR code as PNG (encodes the public page URL).
+     * Strictly per-user, like all dashboard routes.
+     */
+    public function bioQr(string $page)
+    {
+        $page = auth()->user()->bioPages()->with('domain')->findOrFail($page);
+
+        $host = $page->domain?->hostname ?? config('domains.public_host', 'href.nz');
+        $url = 'https://'.$host.($page->parent_id === null ? '/' : '/'.$page->slug);
+
+        return response(\App\Support\LinkQrCode::pngForUrl($url), 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'attachment; filename="bio-qr-'.preg_replace('/[^a-z0-9-]+/i', '-', $page->title).'.png"',
+        ]);
+    }
+
+    /**
      * Settings page (Livewire: SettingsForm).
      */
     public function settings()

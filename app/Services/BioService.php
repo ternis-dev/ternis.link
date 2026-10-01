@@ -7,7 +7,7 @@ use App\Models\BioPage;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
+use App\Support\BioVideo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -103,6 +103,7 @@ class BioService
             'og_image_url' => $og['og_image_url'],
             'is_active' => $data['is_active'] ?? true,
             'published_at' => $data['published_at'] ?? null,
+            'expires_at' => $data['expires_at'] ?? null,
         ]);
     }
 
@@ -165,7 +166,7 @@ class BioService
                 throw ValidationException::withMessages(['buttons' => "Row {$i}: action must be url, subpage or modal."]);
             }
 
-            if ($action === 'url' && in_array($kind, ['link', 'social'], true)) {
+            if ($action === 'url' && in_array($kind, ['link', 'social', 'video'], true)) {
                 if ($url === null) {
                     throw ValidationException::withMessages(['buttons' => "Row {$i}: destination_url is required."]);
                 }
@@ -174,6 +175,10 @@ class BioService
                     $this->unsafeUrls->rejectIfUnsafe($url);
                 }
                 $this->junkUrls->rejectIfJunk($url);
+
+                if ($kind === 'video' && ! BioVideo::isVideoUrl($url)) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: video links must be YouTube or Vimeo URLs."]);
+                }
             }
 
             $icon = $b['icon'] ?? null;
@@ -262,14 +267,7 @@ class BioService
 
     public function forgetCaches(BioPage $page): void
     {
-        Cache::forget(BioPage::cacheKeyPage($page->id));
-        $root = $page->parent_id === null ? $page : $page->parent;
-        if ($root && $root->domain_id) {
-            Cache::forget(BioPage::cacheKeyRoot($root->domain_id));
-        }
-        if ($page->domain_id) {
-            Cache::forget(BioPage::cacheKeyRoot($page->domain_id));
-        }
+        BioPage::flushCaches($page->fresh() ?? $page);
     }
 
     /**

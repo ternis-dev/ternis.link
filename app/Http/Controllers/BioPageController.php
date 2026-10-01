@@ -75,6 +75,11 @@ class BioPageController extends Controller
             abort(404);
         }
 
+        // Expired, deactivated, or scheduled pages resolve nothing.
+        if (! $button->page->isVisible()) {
+            abort(404);
+        }
+
         if (! $button->isLive() || $button->kind === 'divider' || $button->kind === 'header') {
             abort(404);
         }
@@ -120,16 +125,18 @@ class BioPageController extends Controller
     }
 
     /**
-     * Tracking pixel for modal opens (GET so no CSRF token is needed).
-     * Fired by the public page script when a visitor opens a pop-up.
+     * Tracking pixel for client-side opens (modal pop-ups, video plays).
+     * GET so no CSRF token is needed. Fired by the public page script.
      */
     public function openPixel(Request $request, string $button)
     {
         $button = BioButton::with('page')->find($button);
 
         if ($button && $button->page && ! $button->page->is_removed
+            && $button->page->isVisible()
             && ! $this->isLocked($button->page, $request)
-            && $button->isLive() && $button->action === 'modal') {
+            && $button->isLive()
+            && ($button->action === 'modal' || $button->kind === 'video')) {
             $this->tracker->trackTap($button->page, $button, $request);
         }
 
@@ -265,6 +272,7 @@ class BioPageController extends Controller
         $buttons = $page->buttons()->where('is_active', true)->orderBy('sort_order')->get()->filter->isLive()->values();
         $subs = $root ? $root->children()->where('is_removed', false)->where('is_active', true)
             ->where(fn ($q) => $q->whereNull('published_at')->orWhere('published_at', '<=', now()))
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
             ->orderBy('sort_order')->get() : collect();
 
         $og = [

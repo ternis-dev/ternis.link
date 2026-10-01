@@ -67,4 +67,27 @@
             @endforelse
         </x-ui.card>
     </div>
+
+    <div class="mt-6 grid gap-6 md:grid-cols-2">
+        <x-ui.card title="Browsers">
+            @forelse ($topBrowsers as $row)
+                <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-2 text-sm last:border-0 dark:border-neutral-800">
+                    <span class="truncate">{{ $row['browser'] }}</span>
+                    <span class="shrink-0 font-mono">{{ number_format($row['count']) }}</span>
+                </div>
+            @empty
+                <p class="text-sm text-neutral-500">No browser data yet.</p>
+            @endforelse
+        </x-ui.card>
+        <x-ui.card title="Recent activity">
+            @forelse ($recentEvents as $event)
+                <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-2 text-sm last:border-0 dark:border-neutral-800">
+                    <span class="truncate">{{ $event->kind === 'tap' ? '⤷' : '👁' }} {{ $event->button?->label ?? 'page view' }}</span>
+                    <span class="shrink-0 font-mono text-xs text-neutral-500">{{ $event->created_at?->diffForHumans() }}</span>
+                </div>
+            @empty
+                <p class="text-sm text-neutral-500">No activity yet.</p>
+            @endforelse
+        </x-ui.card>
+    </div>
 </div>

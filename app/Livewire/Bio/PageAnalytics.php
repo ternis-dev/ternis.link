@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Bio;
 
+use App\Livewire\Dashboard\LinkAnalytics;
 use App\Models\BioPage;
 use Livewire\Component;
 
@@ -85,6 +86,26 @@ class PageAnalytics extends Component
             }
         }
 
+        $browsers = $this->page->events()
+            ->selectRaw('user_agent, COUNT(*) as count')
+            ->where('created_at', '>=', $since)
+            ->groupBy('user_agent')
+            ->orderByDesc('count')
+            ->limit(50)
+            ->get()
+            ->groupBy(fn ($row) => LinkAnalytics::browserFamily($row->user_agent))
+            ->map(fn ($rows, $browser) => ['browser' => $browser, 'count' => (int) $rows->sum('count')])
+            ->sortByDesc('count')
+            ->take(6)
+            ->values();
+
+        $recent = $this->page->events()
+            ->with('button:id,label')
+            ->where('created_at', '>=', $since)
+            ->orderByDesc('created_at')
+            ->limit(15)
+            ->get();
+
         return view('livewire.bio.page-analytics', [
             'views' => $views,
             'taps' => $taps,
@@ -96,6 +117,8 @@ class PageAnalytics extends Component
             'topReferrers' => $topReferrers,
             'topCountries' => $topCountries,
             'bySubpage' => $bySubpage,
+            'topBrowsers' => $browsers,
+            'recentEvents' => $recent,
         ]);
     }
 }

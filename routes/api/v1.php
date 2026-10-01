@@ -96,4 +96,5 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::c
     Route::put('bio-pages/{page}/buttons', [BioController::class, 'syncButtons']);
     Route::get('bio-pages/{page}/stats', [BioController::class, 'stats']);
     Route::get('bio-pages/{page}/events/export', [BioController::class, 'exportEvents']);
+    Route::get('bio-pages/{page}/qr', [BioController::class, 'qr']);
 });

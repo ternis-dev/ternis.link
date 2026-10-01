@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class BioPage extends Model
 {
@@ -39,6 +40,7 @@ class BioPage extends Model
         'is_active',
         'is_removed',
         'published_at',
+        'expires_at',
         'sort_order',
         'view_count',
     ];
@@ -49,6 +51,7 @@ class BioPage extends Model
         'is_active' => 'boolean',
         'is_removed' => 'boolean',
         'published_at' => 'datetime',
+        'expires_at' => 'datetime',
         'sort_order' => 'integer',
         'view_count' => 'integer',
     ];
@@ -98,7 +101,16 @@ class BioPage extends Model
             return false;
         }
 
+        if ($this->isExpired()) {
+            return false;
+        }
+
         return true;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
     }
 
     public static function cacheKeyRoot(string $domainId): string
@@ -109,5 +121,32 @@ class BioPage extends Model
     public static function cacheKeyPage(string $pageId): string
     {
         return "bio:{$pageId}";
+    }
+
+    /**
+     * Keep the public render cache coherent for every model-based
+     * write (deactivate, expiry passing via update, settings saves).
+     */
+    protected static function booted(): void
+    {
+        static::updated(fn (BioPage $page) => self::flushCaches($page));
+        static::deleted(fn (BioPage $page) => self::flushCaches($page));
+    }
+
+    public static function flushCaches(BioPage $page): void
+    {
+        Cache::forget(self::cacheKeyPage($page->id));
+
+        if ($page->domain_id) {
+            Cache::forget(self::cacheKeyRoot($page->domain_id));
+        }
+
+        if ($page->parent_id) {
+            $rootDomainId = self::where('id', $page->parent_id)->value('domain_id');
+
+            if ($rootDomainId) {
+                Cache::forget(self::cacheKeyRoot($rootDomainId));
+            }
+        }
     }
 }

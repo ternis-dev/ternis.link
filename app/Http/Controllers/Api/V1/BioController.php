@@ -7,6 +7,7 @@ use App\Models\BioButton;
 use App\Models\BioPage;
 use App\Models\Domain;
 use App\Services\BioService;
+use App\Support\LinkQrCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -44,6 +45,7 @@ class BioController extends Controller
             'og_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'is_active' => ['nullable', 'boolean'],
+            'expires_at' => ['nullable', 'date', 'after:now'],
         ]);
 
         $domain = Domain::findOrFail($data['domain_id']);
@@ -81,6 +83,7 @@ class BioController extends Controller
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'is_active' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date'],
+            'expires_at' => ['nullable', 'date', 'after:now'],
             'button_style' => ['nullable', 'in:filled,outline,soft'],
             'password' => ['nullable', 'string', 'min:8', 'max:72'],
             'remove_password' => ['nullable', 'boolean'],
@@ -147,7 +150,7 @@ class BioController extends Controller
             'buttons.*.id' => ['nullable', 'string'],
             'buttons.*.label' => ['required_unless:buttons.*.kind,divider', 'string', 'max:60'],
             'buttons.*.sublabel' => ['nullable', 'string', 'max:120'],
-            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact'],
+            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact,video'],
             'buttons.*.contact_email' => ['nullable', 'email', 'max:255'],
             'buttons.*.contact_phone' => ['nullable', 'string', 'max:40'],
             'buttons.*.action' => ['nullable', 'in:url,subpage,modal'],
@@ -253,6 +256,37 @@ class BioController extends Controller
             }
             fclose($out);
         }, 'bio-'.$page->id.'-events.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * Page QR code (SVG default, `?format=png` for PNG). Encodes the
+     * public page URL — always https so scans work from any phone.
+     */
+    public function qr(Request $request, BioPage $page)
+    {
+        $this->authorizePage($request, $page);
+        $page->load('domain');
+
+        $format = strtolower((string) $request->query('format', 'svg'));
+
+        if (! in_array($format, ['svg', 'png'], true)) {
+            return response()->json(['message' => 'The format must be svg or png.'], 422);
+        }
+
+        $host = $page->domain?->hostname ?? config('domains.public_host', 'href.nz');
+        $url = 'https://'.$host.($page->parent_id === null ? '/' : '/'.$page->slug);
+
+        if ($format === 'png') {
+            return response(LinkQrCode::pngForUrl($url), 200, [
+                'Content-Type' => 'image/png',
+                'Content-Disposition' => 'inline; filename="bio-qr-'.$page->id.'.png"',
+            ]);
+        }
+
+        return response(LinkQrCode::svgForUrl($url), 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Content-Disposition' => 'inline; filename="bio-qr-'.$page->id.'.svg"',
+        ]);
     }
 
     private function authorizePage(Request $request, BioPage $page): void

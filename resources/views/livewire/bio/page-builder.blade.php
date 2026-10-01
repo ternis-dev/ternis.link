@@ -83,6 +83,7 @@
             </x-ui.select>
             <x-ui.input label="Browser bar color" name="theme_color" type="text" wire:model="theme_color" placeholder="#ffffff" maxlength="7" />
             <x-ui.input label="Publish at (optional)" name="published_at" type="datetime-local" wire:model="published_at" hint="Future dates hide the page until then. Blank = visible now." />
+            <x-ui.input label="Expires at (optional)" name="expires_at" type="datetime-local" wire:model="expires_at" hint="Page stops resolving after this. Blank = never." />
             <x-ui.select label="Button style" name="button_style" wire:model="button_style">
                 <option value="filled">Filled</option>
                 <option value="outline">Outline</option>
@@ -117,6 +118,7 @@
                     <option value="link">Link</option>
                     <option value="social">Social</option>
                     <option value="contact">Contact card</option>
+                    <option value="video">Video</option>
                     <option value="header">Header</option>
                     <option value="divider">Divider</option>
                 </x-ui.select>

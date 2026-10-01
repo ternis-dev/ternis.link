@@ -41,6 +41,11 @@ $icons = [
 @foreach($flowButtons as $button)
 @if($button->kind === 'divider')<hr style="margin:16px 0;opacity:.4">
 @elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8">{{ $button->label }}</h2>
+@elseif($button->kind === 'video' && ($embed = \App\Support\BioVideo::embed((string) $button->destination_url)))
+<div class="videofacade" data-video="{{ $button->id }}" data-src="{{ $embed['embed'] }}" data-bio-button="{{ $button->id }}" role="button" tabindex="0" aria-label="Play video: {{ $button->label }}" @unless($preview) style="cursor:pointer" @endunless>
+@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@endif
+<div style="padding:10px 4px 2px;font-weight:600">▶ {{ $button->label }}</div>
+</div>
 @elseif(($button->action ?? 'url') === 'modal')
 <button type="button" class="btn" style="width:100%;cursor:pointer{{ $btnExtra }}" data-bio-modal="m-{{ $button->id }}" data-bio-button="{{ $button->id }}">@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif<span class="muted" style="font-size:11px">⧉ pop-up</span></button>
 <dialog id="m-{{ $button->id }}" class="bio-modal" aria-label="{{ $button->modal_title ?? $button->label }}">
@@ -80,5 +85,22 @@ if (shareBtn) {
         }
     });
 }
+document.querySelectorAll('[data-video]').forEach(function (facade) {
+    function play() {
+        if (facade.querySelector('iframe')) { return; }
+        var frame = document.createElement('iframe');
+        frame.src = facade.getAttribute('data-src');
+        frame.allow = 'accelerometer; encrypted-media; picture-in-picture';
+        frame.allowFullscreen = true;
+        frame.title = facade.getAttribute('aria-label') || 'Embedded video';
+        facade.innerHTML = '';
+        facade.appendChild(frame);
+        new Image().src = '/t/' + facade.getAttribute('data-bio-button') + '/open.gif';
+    }
+    facade.addEventListener('click', play);
+    facade.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); }
+    });
+});
 </script>
 @endif
