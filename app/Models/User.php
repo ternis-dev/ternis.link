@@ -85,6 +85,11 @@ class User extends Authenticatable
         return $this->hasMany(ApiKey::class);
     }
 
+    public function bulkOperations(): HasMany
+    {
+        return $this->hasMany(BulkOperation::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;

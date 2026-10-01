@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\ApiKeyController;
+use App\Http\Controllers\Api\V1\BulkOperationController;
 use App\Http\Controllers\Api\V1\ClickController;
 use App\Http\Controllers\Api\V1\DomainController;
 use App\Http\Controllers\Api\V1\LinkController;
@@ -68,4 +69,10 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::c
     // Click analytics
     Route::get('links/{link}/clicks', [ClickController::class, 'index']);
     Route::get('links/{link}/clicks/summary', [ClickController::class, 'summary']);
+
+    // Bulk operations (import + mutate, async with status polling)
+    Route::post('links/import', [BulkOperationController::class, 'import']);
+    Route::post('links/bulk', [BulkOperationController::class, 'bulk']);
+    Route::get('bulk-operations', [BulkOperationController::class, 'index']);
+    Route::get('bulk-operations/{operation}', [BulkOperationController::class, 'show']);
 });
