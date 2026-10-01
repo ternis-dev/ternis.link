@@ -13,6 +13,8 @@ class BioPage extends Model
 
     public const THEMES = ['minimal', 'dark', 'paper'];
 
+    public const LOCALES = ['en', 'de', 'fr', 'es', 'it'];
+
     protected $fillable = [
         'user_id',
         'domain_id',
@@ -22,7 +24,9 @@ class BioPage extends Model
         'bio',
         'avatar_url',
         'theme',
+        'locale',
         'accent',
+        'theme_color',
         'og_title',
         'og_description',
         'og_image_url',

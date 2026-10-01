@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Bio;
 
-use App\Models\BioButton;
 use App\Models\BioPage;
 use App\Models\Domain;
 use App\Services\BioService;
@@ -24,7 +23,11 @@ class PageBuilder extends Component
 
     public string $theme = 'minimal';
 
+    public string $locale = 'en';
+
     public ?string $accent = null;
+
+    public ?string $theme_color = null;
 
     public ?string $parent_id = null;
 
@@ -84,7 +87,9 @@ class PageBuilder extends Component
             'bio' => ['nullable', 'string', 'max:280'],
             'avatar_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'theme' => ['required', 'in:minimal,dark,paper'],
+            'locale' => ['required', 'in:en,de,fr,es,it'],
             'accent' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'theme_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'slug' => ['nullable', 'string', 'max:64'],
             'published_at' => ['nullable', 'date'],
         ];
@@ -103,7 +108,9 @@ class PageBuilder extends Component
         $this->bio = $page->bio;
         $this->avatar_url = $page->avatar_url;
         $this->theme = $page->theme;
+        $this->locale = $page->locale ?? 'en';
         $this->accent = $page->accent;
+        $this->theme_color = $page->theme_color;
         $this->published_at = $page->published_at?->format('Y-m-d\TH:i');
         $this->reset(['slug', 'subTitle', 'parent_id', 'draftUrl', 'draftExpires']);
         $this->resetValidation();
@@ -202,7 +209,9 @@ class PageBuilder extends Component
             'bio' => $this->bio ?: null,
             'avatar_url' => $this->avatar_url ?: null,
             'theme' => $this->theme,
+            'locale' => $this->locale,
             'accent' => $this->accent ?: null,
+            'theme_color' => $this->theme_color ?: null,
             'published_at' => $this->published_at ? new \DateTime($this->published_at) : null,
         ]);
         $bio->forgetCaches($page->fresh());
@@ -384,31 +393,9 @@ class PageBuilder extends Component
         return auth()->user()->bioPages()->with(['domain', 'buttons', 'children'])->find($pageId);
     }
 
-    /**
-     * Full button rows for sync round-trips (add/remove/toggle/move).
-     * Carries every service-managed field so unrelated attributes
-     * (schedules, icons, thumbnails) survive any single-button op.
-     */
     private function buttonRows(BioPage $page): array
     {
-        return $page->buttons()->orderBy('sort_order')->get()->map(fn (BioButton $b) => [
-            'id' => $b->id,
-            'label' => $b->label,
-            'sublabel' => $b->sublabel,
-            'kind' => $b->kind,
-            'action' => $b->action,
-            'destination_url' => $b->destination_url,
-            'target_page_id' => $b->target_page_id,
-            'modal_title' => $b->modal_title,
-            'modal_body' => $b->modal_body,
-            'modal_image_url' => $b->modal_image_url,
-            'icon' => $b->icon,
-            'thumbnail_url' => $b->thumbnail_url,
-            'sort_order' => $b->sort_order,
-            'is_active' => $b->is_active,
-            'starts_at' => $b->starts_at?->format('Y-m-d\TH:i'),
-            'ends_at' => $b->ends_at?->format('Y-m-d\TH:i'),
-        ])->all();
+        return app(BioService::class)->buttonRows($page);
     }
 
     private function ownedDomain(string $domainId): ?Domain

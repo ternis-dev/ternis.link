@@ -5,6 +5,7 @@
             <h1 class="mt-2 text-xl font-semibold">{{ $page->title }}</h1>
             <p class="mt-1 font-mono text-sm text-neutral-500">{{ $page->domain?->hostname }}{{ $page->parent_id ? '/' . $page->slug : '' }}</p>
         </div>
+        <x-ui.button href="{{ route('dashboard.bio.build', $page->id) }}" variant="primary">Visual builder</x-ui.button>
         <x-ui.button href="{{ route('dashboard.bio', ['edit' => $page->id]) }}" variant="secondary">Open in page-builder</x-ui.button>
     </div>
 

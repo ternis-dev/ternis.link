@@ -33,6 +33,7 @@
                 </div>
                 <div class="flex shrink-0 gap-2">
                     <x-ui.button wire:click="selectPage('{{ $p->id }}')" variant="ghost">Edit</x-ui.button>
+                    <x-ui.button href="{{ route('dashboard.bio.build', $p->id) }}" variant="ghost">Visual</x-ui.button>
                     <x-ui.button href="{{ route('dashboard.bio.show', $p->id) }}" variant="ghost">Stats</x-ui.button>
                 </div>
             </div>
@@ -66,6 +67,14 @@
             </x-ui.select>
             <x-ui.input label="Bio" name="bio" type="text" wire:model="bio" maxlength="280" />
             <x-ui.input label="Avatar URL" name="avatar_url" type="url" wire:model="avatar_url" maxlength="2048" />
+            <x-ui.select label="Language" name="locale" wire:model="locale">
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="it">Italiano</option>
+            </x-ui.select>
+            <x-ui.input label="Browser bar color" name="theme_color" type="text" wire:model="theme_color" placeholder="#ffffff" maxlength="7" />
             <x-ui.input label="Publish at (optional)" name="published_at" type="datetime-local" wire:model="published_at" hint="Future dates hide the page until then. Blank = visible now." />
             <div class="flex items-end">
                 <x-ui.button type="submit" variant="primary">Save page</x-ui.button>

@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ $page->locale ?? 'en' }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $page->title }}</title>
+@if($page->theme_color)<meta name="theme-color" content="{{ $page->theme_color }}">@endif
 @if($draft ?? false)<meta name="robots" content="noindex">@endif
 @if($og['description'])<meta name="description" content="{{ $og['description'] }}">@endif
 <meta property="og:title" content="{{ $og['title'] }}">
@@ -16,6 +17,7 @@ body{font-family:system-ui,sans-serif;margin:0;background:{{ $page->theme === 'd
 .btn{display:block;margin:12px 0;padding:14px 16px;border-radius:14px;border:1px solid #d4d4d4;text-decoration:none;color:inherit;background:{{ $page->theme === 'dark' ? '#1c1c1c' : '#fff' }}{{ $page->accent ? ';border-color:'.$page->accent : '' }}
 .subnav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0}
 .subnav a{font-size:13px;padding:6px 12px;border-radius:9999px;border:1px solid #d4d4d4;text-decoration:none;color:inherit}
+.homebtn{display:inline-block;margin-top:10px;font-size:13px;padding:6px 14px;border-radius:9999px;border:1px solid #d4d4d4;text-decoration:none;color:inherit}
 .muted{opacity:.65;font-size:14px}
 .bio-modal{border:1px solid #d4d4d4;border-radius:16px;padding:20px;max-width:min(420px,90vw);text-align:center}
 .bio-modal::backdrop{background:rgba(0,0,0,.5)}

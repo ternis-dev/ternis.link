@@ -60,6 +60,11 @@ class BioService
         $theme = $data['theme'] ?? 'minimal';
         $theme = in_array($theme, BioPage::THEMES, true) ? $theme : 'minimal';
 
+        $locale = strtolower(trim((string) ($data['locale'] ?? 'en')));
+        $locale = in_array($locale, BioPage::LOCALES, true) ? $locale : 'en';
+
+        $themeColor = isset($data['theme_color']) && preg_match('/^#[0-9a-f]{6}$/i', trim((string) $data['theme_color'])) ? strtolower(trim((string) $data['theme_color'])) : null;
+
         $og = $this->socialPreview->normalize($data['og_title'] ?? null, $data['og_description'] ?? null, $data['og_image_url'] ?? null);
 
         if (! empty($data['avatar_url'])) {
@@ -75,6 +80,8 @@ class BioService
             'bio' => isset($data['bio']) && trim((string) $data['bio']) !== '' ? mb_substr(trim((string) $data['bio']), 0, 280) : null,
             'avatar_url' => ! empty($data['avatar_url']) ? trim((string) $data['avatar_url']) : null,
             'theme' => $theme,
+            'locale' => $locale,
+            'theme_color' => $themeColor,
             'accent' => isset($data['accent']) && preg_match('/^#[0-9a-f]{6}$/i', trim((string) $data['accent'])) ? strtolower(trim((string) $data['accent'])) : null,
             'og_title' => $og['og_title'],
             'og_description' => $og['og_description'],
@@ -231,6 +238,75 @@ class BioService
         if ($page->domain_id) {
             Cache::forget(BioPage::cacheKeyRoot($page->domain_id));
         }
+    }
+
+    /**
+     * Full button rows for sync round-trips (add/remove/toggle/move/
+     * reorder). Carries every service-managed field so unrelated
+     * attributes (schedules, icons, actions, thumbnails) survive any
+     * single-button op.
+     */
+    public function buttonRows(BioPage $page): array
+    {
+        return $page->buttons()->orderBy('sort_order')->get()->map(fn (BioButton $b) => [
+            'id' => $b->id,
+            'label' => $b->label,
+            'sublabel' => $b->sublabel,
+            'kind' => $b->kind,
+            'action' => $b->action,
+            'destination_url' => $b->destination_url,
+            'target_page_id' => $b->target_page_id,
+            'modal_title' => $b->modal_title,
+            'modal_body' => $b->modal_body,
+            'modal_image_url' => $b->modal_image_url,
+            'icon' => $b->icon,
+            'thumbnail_url' => $b->thumbnail_url,
+            'sort_order' => $b->sort_order,
+            'is_active' => $b->is_active,
+            'starts_at' => $b->starts_at?->format('Y-m-d\TH:i'),
+            'ends_at' => $b->ends_at?->format('Y-m-d\TH:i'),
+        ])->all();
+    }
+
+    /**
+     * Reorder buttons to the given id sequence (drag-and-drop).
+     * Unknown or duplicate ids are rejected; omitted buttons stay
+     * untouched at the end in their current order.
+     *
+     * @param  list<string>  $orderedIds
+     *
+     * @throws ValidationException
+     */
+    public function reorderButtons(BioPage $page, array $orderedIds, ?User $actor = null): void
+    {
+        $rows = collect($this->buttonRows($page))->keyBy('id');
+
+        $seen = [];
+        foreach ($orderedIds as $id) {
+            if (! is_string($id) || ! $rows->has($id)) {
+                throw ValidationException::withMessages(['buttons' => 'Unknown button in order.']);
+            }
+            if (in_array($id, $seen, true)) {
+                throw ValidationException::withMessages(['buttons' => 'Duplicate button in order.']);
+            }
+            $seen[] = $id;
+        }
+
+        $ordered = [];
+        foreach ($orderedIds as $id) {
+            $ordered[] = $rows->get($id);
+        }
+        foreach ($rows as $id => $row) {
+            if (! in_array($id, $seen, true)) {
+                $ordered[] = $row;
+            }
+        }
+
+        foreach ($ordered as $i => &$row) {
+            $row['sort_order'] = $i;
+        }
+
+        $this->syncButtons($page, $ordered, $actor);
     }
 
     private function ensureCanUseDomain(User $user, Domain $domain): void

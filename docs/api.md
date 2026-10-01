@@ -211,3 +211,5 @@ Button taps redirect via `/t/{button}` and count separately from page views (`ct
 Button actions: `url` opens `destination_url`, `subpage` links to another page in the same bio family (`target_page_id`, resolved through `/t/{button}` so taps still count), `modal` opens a pop-up (`modal_title`/`modal_body`/`modal_image_url`, opens tracked via `/t/{button}/open.gif`). Button edits preserve ids and tap counts.
 
 Unpublished work can be previewed in-action: mint a 30-minute signed link (dashboard “Preview draft link”, `GET /draft/{page}` on the page's own domain) — no login needed, never tracked or indexed.
+
+Pages carry `locale` (`en/de/fr/es/it`, rendered as `<html lang>`), `theme_color` (browser bar), and full OG meta tags automatically. Image uploads via static.re — soon; paste image URLs for now (avatar, thumbnails, modal images).

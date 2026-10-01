@@ -467,7 +467,9 @@ paths:
                 bio: { type: string, maxLength: 280 }
                 avatar_url: { type: string, format: uri, maxLength: 2048 }
                 theme: { type: string, enum: [minimal, dark, paper] }
+                locale: { type: string, enum: [en, de, fr, es, it] }
                 accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+                theme_color: { type: string, pattern: "^#[0-9a-fA-F]{6}$", description: Browser address-bar color }
                 og_title: { type: string, maxLength: 120 }
                 og_description: { type: string, maxLength: 300 }
                 og_image_url: { type: string, format: uri, maxLength: 2048 }
@@ -497,7 +499,9 @@ paths:
                 bio: { type: string, maxLength: 280, nullable: true }
                 avatar_url: { type: string, format: uri, maxLength: 2048, nullable: true }
                 theme: { type: string, enum: [minimal, dark, paper] }
+                locale: { type: string, enum: [en, de, fr, es, it] }
                 accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$", nullable: true }
+                theme_color: { type: string, pattern: "^#[0-9a-fA-F]{6}$", nullable: true }
                 og_title: { type: string, maxLength: 120, nullable: true }
                 og_description: { type: string, maxLength: 300, nullable: true }
                 og_image_url: { type: string, format: uri, maxLength: 2048, nullable: true }

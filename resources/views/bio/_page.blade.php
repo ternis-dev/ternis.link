@@ -4,6 +4,9 @@
 @if($page->avatar_url)<img class="avatar" src="{{ $page->avatar_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">@endif
 <h1 style="margin:12px 0 4px;font-size:24px">{{ $page->title }}</h1>
 @if($page->bio)<p class="muted">{{ $page->bio }}</p>@endif
+@if(($page->parent_id ?? null) !== null && isset($root) && $root)
+<a href="{{ $preview ? '#' : '/' }}" aria-label="Back to {{ $root->title }}" class="homebtn" style="display:inline-block;margin-top:10px;font-size:13px;padding:6px 14px;border-radius:9999px;border:1px solid #d4d4d4;text-decoration:none;color:inherit">← {{ $root->title }}</a>
+@endif
 @if($subs->isNotEmpty())
 <nav class="subnav" aria-label="Sub-pages">
 @foreach($subs as $sub)<a href="{{ $preview ? '#' : '/' . $sub->slug }}">{{ $sub->title }}</a>@endforeach

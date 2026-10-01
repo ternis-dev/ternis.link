@@ -255,6 +255,17 @@ class DashboardController extends Controller
     }
 
     /**
+     * Visual page-builder: phone preview, drag-and-drop buttons,
+     * sub-page tabs, settings (Livewire: Bio\VisualBuilder).
+     */
+    public function buildBio(string $page)
+    {
+        $page = auth()->user()->bioPages()->with(['domain:id,hostname'])->findOrFail($page);
+
+        return view('dashboard.bio.build', compact('page'));
+    }
+
+    /**
      * Settings page (Livewire: SettingsForm).
      */
     public function settings()
