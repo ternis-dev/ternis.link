@@ -190,6 +190,46 @@ class BioBuilderTest extends TestCase
             ->assertSee('CTR', escape: false);
     }
 
+    public function test_stats_page_links_into_builder_preselected(): void
+    {
+        $user = $this->userOnPlan('business');
+        $domain = $this->ownDomain($user);
+
+        $page = app(BioService::class)->createPage($user, $domain, ['title' => 'Root']);
+
+        $this->actingAs($user)
+            ->get("http://dash.ternis.link/bio/{$page->id}")
+            ->assertOk()
+            ->assertSee('Open in page-builder', escape: false)
+            ->assertSee(route('dashboard.bio', ['edit' => $page->id]), escape: false);
+
+        // Deep-link pre-selects the page in the builder.
+        $this->actingAs($user)
+            ->get("http://dash.ternis.link/bio?edit={$page->id}")
+            ->assertOk()
+            ->assertSee('Editing: Root', escape: false);
+    }
+
+    public function test_builder_explains_missing_domain(): void
+    {
+        $user = $this->userOnPlan('business');
+
+        Livewire::actingAs($user)
+            ->test(PageBuilder::class)
+            ->assertSee('verified custom domain', escape: false)
+            ->assertSee(route('dashboard.domains'), escape: false);
+    }
+
+    public function test_domains_page_links_to_builder(): void
+    {
+        $user = $this->userOnPlan('business');
+
+        $this->actingAs($user)
+            ->get('http://dash.ternis.link/domains')
+            ->assertOk()
+            ->assertSee('Open the page-builder', escape: false);
+    }
+
     public function test_deactivate_keeps_analytics(): void
     {
         $user = $this->userOnPlan('business');

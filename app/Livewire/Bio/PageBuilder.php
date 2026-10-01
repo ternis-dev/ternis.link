@@ -69,6 +69,12 @@ class PageBuilder extends Component
         if ($first) {
             $this->domain_id = $first->id;
         }
+
+        // Deep-link from the stats page ("Open in page-builder").
+        $edit = request()->query('edit');
+        if (is_string($edit) && $edit !== '' && $this->ownedPage($edit)) {
+            $this->selectPage($edit);
+        }
     }
 
     protected function rules(): array

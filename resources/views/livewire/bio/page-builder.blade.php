@@ -1,5 +1,13 @@
+<div>
 <div class="grid gap-6 lg:grid-cols-2">
     <x-ui.card title="New bio page">
+        @if ($domains->isEmpty())
+            <x-ui.alert tone="info" class="mb-4">
+                Bio pages need your own verified custom domain (eligible plans only).
+                <a href="{{ route('dashboard.domains') }}" class="font-semibold underline">Register and verify one under Domains</a>,
+                then come back here.
+            </x-ui.alert>
+        @endif
         <p class="mb-4 text-sm text-neutral-500">Needs one of your verified custom domains. System domains can't host bio pages.</p>
         <form wire:submit="createRoot" class="space-y-4">
             <x-ui.select label="Domain *" name="domain_id" wire:model="domain_id" required>
@@ -161,3 +169,4 @@
         </div>
     </x-ui.card>
 @endif
+</div>
