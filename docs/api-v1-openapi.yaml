@@ -537,10 +537,10 @@ paths:
     parameters:
       - { name: page, in: path, required: true, schema: { type: string, description: ULID } }
     put:
-      summary: Replace all buttons on a page (max 25)
+      summary: Replace all buttons on a page (max 25, [] clears)
       description: |
-        Full replace; kinds `link|header|divider|social`. Link/social
-        buttons require `destination_url` (junk + unsafe validators run).
+        Full replace; `[]` removes every button. Kinds `link|header|divider|social|contact|video|image|countdown|quote|coupon`. Link/social/video
+        buttons require `destination_url` (junk + unsafe validators run, video hosts limited to YouTube/Vimeo).
         Schedule windows via `starts_at`/`ends_at`.
       requestBody:
         required: true
