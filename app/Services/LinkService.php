@@ -376,6 +376,13 @@ class LinkService
                 'slug' => 'This slug is already taken on the selected domain.',
             ]);
         }
+
+        // First-write-wins against bio sub-pages on the same domain.
+        if (\App\Models\BioPage::where('domain_id', $domainId)->whereNotNull('parent_id')->where('slug', strtolower($slug))->where('is_removed', false)->exists()) {
+            throw ValidationException::withMessages([
+                'slug' => 'Slug taken by a bio sub-page on this domain.',
+            ]);
+        }
     }
 
     protected function rateLimitKey(User $user): string

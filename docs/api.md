@@ -178,3 +178,32 @@ curl -X PATCH https://links.t-api.de/v1/settings \
   -H "Content-Type: application/json" \
   -d '{"theme": "dark", "nav_layout": "top", "notify_security_email": true}'
 ```
+
+## Bio pages
+
+Link-in-bio pages on your own verified domain (eligible plans only; system domains never host bio in v1). One domain hosts one root page at `/`, plus sub-pages at `/{sub}` (first-write-wins against short-link slugs both ways).
+
+```bash
+# Create a root page on your domain
+curl -X POST https://links.t-api.de/v1/bio-pages \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"domain_id": "<ulid>", "title": "My links", "bio": "All my things", "theme": "minimal"}'
+
+# Add a sub-page, then set buttons (full replace, max 25)
+curl -X POST https://links.t-api.de/v1/bio-pages \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"domain_id": "<ulid>", "parent_id": "<page-ulid>", "slug": "socials", "title": "Socials"}'
+
+curl -X PUT https://links.t-api.de/v1/bio-pages/<ulid>/buttons \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"buttons": [{"label": "Shop", "kind": "link", "destination_url": "https://example.com/shop"}]}'
+
+# Per-button analytics + CSV export
+curl "https://links.t-api.de/v1/bio-pages/<ulid>/stats?days=30" -H "Authorization: Bearer tl_your_key_here"
+curl "https://links.t-api.de/v1/bio-pages/<ulid>/events/export" -H "Authorization: Bearer tl_your_key_here"
+```
+
+Button taps redirect via `/t/{button}` and count separately from page views (`ctr = taps/views`); crawler renders are not counted.

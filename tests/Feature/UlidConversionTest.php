@@ -37,6 +37,7 @@ class UlidConversionTest extends TestCase
 
     /** @var list<string> */
     private array $tables = [
+        'bio_events', 'bio_buttons', 'bio_pages',
         'clicks', 'api_keys', 'error_encounters', 'oauth_identities',
         'links', 'sessions', 'domains', 'users', 'plans', 'api_versions',
     ];

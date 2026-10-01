@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\V1\PublicQrCodeController;
 use App\Http\Controllers\Auth\TernisAuthController;
+use App\Http\Controllers\BioPageController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
@@ -242,6 +243,8 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::get('/links/{link}/qr', [DashboardController::class, 'qrCode'])->name('dashboard.links.qr');
     Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
     Route::get('/api-keys/{key}', [DashboardController::class, 'showApiKey'])->name('dashboard.api-keys.show');
+    Route::get('/bio', [DashboardController::class, 'bio'])->name('dashboard.bio');
+    Route::get('/bio/{page}', [DashboardController::class, 'showBio'])->name('dashboard.bio.show');
     Route::get('/domains', [DashboardController::class, 'domains'])->name('dashboard.domains');
     Route::get('/notifications', [DashboardController::class, 'notifications'])->name('dashboard.notifications');
     Route::post('/notifications/read', [DashboardController::class, 'markAllNotificationsRead'])->name('dashboard.notifications.read-all');
@@ -549,8 +552,37 @@ Route::get('/', function () {
         return view('landing.public');
     }
 
+    // Custom-domain bio root: a verified user domain in bio mode serves
+    // its page at `/` instead of the generic landing. System domains
+    // never host bio in v1.
+    if ($type === 'partner') {
+        $domainModel = request()->attributes->get('domain_model');
+
+        if ($domainModel instanceof \App\Models\Domain && ! $domainModel->isSystemDomain()) {
+            try {
+                $root = app(BioPageController::class)->showRoot(request());
+
+                return $root;
+            } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                // No bio page — fall through to landing below.
+            } catch (\Throwable) {
+                // Never break landing on bio errors.
+            }
+        }
+    }
+
     return view('landing.index', ['stats' => NetworkStats::overview()]);
 })->name('home');
+
+Route::get('/t/{button}', function (string $button) {
+    $type = request()->attributes->get('domain_type');
+
+    if (! in_array($type, ['partner'], true)) {
+        abort(404);
+    }
+
+    return app(BioPageController::class)->tap(request(), $button);
+})->where('button', '[A-Za-z0-9]{20,30}')->name('bio.tap');
 
 Route::get('/new', function () {
     $type = request()->attributes->get('domain_type');

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\ApiKeyController;
+use App\Http\Controllers\Api\V1\BioController;
 use App\Http\Controllers\Api\V1\BulkOperationController;
 use App\Http\Controllers\Api\V1\ClickController;
 use App\Http\Controllers\Api\V1\DomainController;
@@ -84,4 +85,14 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::c
     Route::post('links/bulk', [BulkOperationController::class, 'bulk']);
     Route::get('bulk-operations', [BulkOperationController::class, 'index']);
     Route::get('bulk-operations/{operation}', [BulkOperationController::class, 'show']);
+
+    // Link-in-bio pages (custom domains only, v1)
+    Route::get('bio-pages', [BioController::class, 'index']);
+    Route::post('bio-pages', [BioController::class, 'store']);
+    Route::get('bio-pages/{page}', [BioController::class, 'show']);
+    Route::put('bio-pages/{page}', [BioController::class, 'update']);
+    Route::delete('bio-pages/{page}', [BioController::class, 'destroy']);
+    Route::put('bio-pages/{page}/buttons', [BioController::class, 'syncButtons']);
+    Route::get('bio-pages/{page}/stats', [BioController::class, 'stats']);
+    Route::get('bio-pages/{page}/events/export', [BioController::class, 'exportEvents']);
 });

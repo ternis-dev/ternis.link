@@ -237,6 +237,24 @@ class DashboardController extends Controller
     }
 
     /**
+     * Link-in-bio pages (Livewire: Bio\PageBuilder).
+     */
+    public function bio()
+    {
+        return view('dashboard.bio.index');
+    }
+
+    /**
+     * Bio page detail + per-button analytics (Livewire: Bio\PageAnalytics).
+     */
+    public function showBio(string $page)
+    {
+        $page = auth()->user()->bioPages()->with(['domain:id,hostname', 'buttons', 'children'])->findOrFail($page);
+
+        return view('dashboard.bio.show', compact('page'));
+    }
+
+    /**
      * Settings page (Livewire: SettingsForm).
      */
     public function settings()

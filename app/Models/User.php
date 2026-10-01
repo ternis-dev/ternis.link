@@ -97,6 +97,11 @@ class User extends Authenticatable
         return $this->hasMany(PrivacyExport::class);
     }
 
+    public function bioPages(): HasMany
+    {
+        return $this->hasMany(BioPage::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;

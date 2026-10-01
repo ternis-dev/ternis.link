@@ -40,6 +40,11 @@ class Domain extends Model
         return $this->hasMany(Link::class);
     }
 
+    public function bioPages(): HasMany
+    {
+        return $this->hasMany(\App\Models\BioPage::class);
+    }
+
     public function isSystemDomain(): bool
     {
         return $this->user_id === null;

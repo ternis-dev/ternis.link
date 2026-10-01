@@ -439,6 +439,144 @@ paths:
       responses:
         '200': { description: Updated preferences }
         '422': { description: Validation error (`{ message, errors }`) }
+  /bio-pages:
+    get:
+      summary: List own bio pages (owner or admin)
+      responses:
+        '200': { description: Paginated bio pages }
+        '401': { description: "{ message } — missing/invalid Bearer key or SSO token" }
+    post:
+      summary: Create a bio page on a verified custom domain
+      description: |
+        Custom user domains only (eligible plans, verified, active);
+        system domains are rejected (422). One root page per domain;
+        sub-pages pass `parent_id` + `slug` (`[a-z0-9-]{1,64}`, reserved
+        slugs and live link slugs rejected). Max 3 roots, 10 subs each.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain_id, title]
+              properties:
+                domain_id: { type: string, description: ULID }
+                parent_id: { type: string, description: ULID of root page for sub-pages }
+                slug: { type: string, pattern: "^[a-z0-9-]{1,64}$" }
+                title: { type: string, maxLength: 80 }
+                bio: { type: string, maxLength: 280 }
+                avatar_url: { type: string, format: uri, maxLength: 2048 }
+                theme: { type: string, enum: [minimal, dark, paper] }
+                accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$" }
+                og_title: { type: string, maxLength: 120 }
+                og_description: { type: string, maxLength: 300 }
+                og_image_url: { type: string, format: uri, maxLength: 2048 }
+                is_active: { type: boolean }
+      responses:
+        '201': { description: Created }
+        '422': { description: Validation error (`{ message, errors }`) }
+  /bio-pages/{page}:
+    parameters:
+      - { name: page, in: path, required: true, schema: { type: string, description: ULID } }
+    get:
+      summary: Get a bio page with buttons + sub-pages (owner or admin)
+      responses:
+        '200': { description: Bio page }
+        '403': { description: "{ message: 'You do not own this page.' }" }
+        '404': { description: Unknown page or wrong host }
+    put:
+      summary: Update page fields (title, bio, avatar, theme, OG, activity)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string, maxLength: 80 }
+                bio: { type: string, maxLength: 280, nullable: true }
+                avatar_url: { type: string, format: uri, maxLength: 2048, nullable: true }
+                theme: { type: string, enum: [minimal, dark, paper] }
+                accent: { type: string, pattern: "^#[0-9a-fA-F]{6}$", nullable: true }
+                og_title: { type: string, maxLength: 120, nullable: true }
+                og_description: { type: string, maxLength: 300, nullable: true }
+                og_image_url: { type: string, format: uri, maxLength: 2048, nullable: true }
+                is_active: { type: boolean }
+      responses:
+        '200': { description: Updated }
+        '403': { description: "{ message: 'You do not own this page.' }" }
+    delete:
+      summary: Deactivate a bio page (analytics preserved)
+      responses:
+        '204': { description: Deactivated }
+        '403': { description: "{ message: 'You do not own this page.' }" }
+  /bio-pages/{page}/buttons:
+    parameters:
+      - { name: page, in: path, required: true, schema: { type: string, description: ULID } }
+    put:
+      summary: Replace all buttons on a page (max 25)
+      description: |
+        Full replace; kinds `link|header|divider|social`. Link/social
+        buttons require `destination_url` (junk + unsafe validators run).
+        Schedule windows via `starts_at`/`ends_at`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [buttons]
+              properties:
+                buttons:
+                  type: array
+                  maxItems: 25
+                  items:
+                    type: object
+                    required: [kind]
+                    properties:
+                      label: { type: string, maxLength: 60 }
+                      sublabel: { type: string, maxLength: 120 }
+                      kind: { type: string, enum: [link, header, divider, social] }
+                      destination_url: { type: string, format: uri, maxLength: 2048 }
+                      icon: { type: string, enum: [instagram, tiktok, x, youtube, github, globe, mail, link] }
+                      sort_order: { type: integer, minimum: 0, maximum: 255 }
+                      is_active: { type: boolean }
+      responses:
+        '200': { description: Updated button list }
+        '422': { description: Validation error (`{ message, errors }`) }
+  /bio-pages/{page}/stats:
+    parameters:
+      - { name: page, in: path, required: true, schema: { type: string, description: ULID } }
+    get:
+      summary: Bio analytics (views, taps, CTR, per-button, per-day)
+      parameters:
+        - name: days
+          in: query
+          required: false
+          schema: { type: integer, enum: [7, 30, 90], default: 30 }
+      responses:
+        '200':
+          description: Views, taps, CTR, by_button shares, by_day series
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  views: { type: integer }
+                  taps: { type: integer }
+                  ctr: { type: number, nullable: true }
+                  by_button: { type: array, items: { type: object } }
+                  by_day: { type: array, items: { type: object } }
+  /bio-pages/{page}/events/export:
+    parameters:
+      - { name: page, in: path, required: true, schema: { type: string, description: ULID } }
+    get:
+      summary: Export bio events as CSV (no raw IPs)
+      responses:
+        '200':
+          description: CSV download
+          content:
+            text/csv: { schema: { type: string } }
 components:
   securitySchemes:
     bearerAuth:

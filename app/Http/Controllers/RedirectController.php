@@ -56,10 +56,26 @@ class RedirectController extends Controller
     }
 
     /**
-     * Handle /{input} — detect if URL or slug, then redirect.
+     * Handle /{input} — bio sub-page first (custom partner domains),
+     * then URL-vs-slug redirect as before.
      */
     public function resolve(Request $request, string $input)
     {
+        // Bio sub-pages win over short links on custom partner domains
+        // (first-write-wins is enforced at creation: slugs colliding
+        // either way get 422, so this is just a read-order choice).
+        if (preg_match('/^[a-z0-9-]{1,64}$/', strtolower($input))) {
+            $domain = $request->attributes->get('domain_model');
+
+            if ($domain instanceof Domain && ! $domain->isSystemDomain()) {
+                try {
+                    return app(BioPageController::class)->showSub($request, $input);
+                } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                    // No sub-page — fall through to slug redirect below.
+                }
+            }
+        }
+
         $type = $this->slugResolver->classify($input);
 
         if ($type === 'url') {

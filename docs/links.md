@@ -38,3 +38,7 @@ The explicit forms always work: `href.nz/url/<url>` (preferred) and `href.nz/go/
 ## If a link stops working
 
 A short link stops resolving when it is deactivated by its owner, expires, or is removed by an admin (usually abuse). Removed links stay in the owner's dashboard history with their stats; permanently deleted ones keep contributing to network totals as anonymized counts, as described in [How it works](./architecture).
+
+## Bio pages
+
+Point a verified custom domain at ternis.link and it can serve a link-in-bio page at `/` with sub-pages at `/{sub}` — built under [dash.ternis.link/bio](https://dash.ternis.link/bio), every button tap tracked with per-button CTR. Slugs shared with short links are first-write-wins: a sub-page can't take a live link slug and vice versa.
