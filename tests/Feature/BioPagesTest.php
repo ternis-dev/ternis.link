@@ -2,16 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Enums\DomainType;
 use App\Models\ApiKey;
 use App\Models\BioPage;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\Plan;
 use App\Models\User;
+use App\Services\BioService;
+use App\Services\LinkService;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class BioPagesTest extends TestCase
@@ -29,13 +34,13 @@ class BioPagesTest extends TestCase
         parent::setUp();
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
 
-        $business = \App\Models\Plan::where('name', 'business')->firstOrFail();
+        $business = Plan::where('name', 'business')->firstOrFail();
         $this->user = User::factory()->create(['plan_id' => $business->id]);
 
         $this->domain = Domain::create([
             'hostname' => 'bio.example.com',
             'user_id' => $this->user->id,
-            'type' => \App\Enums\DomainType::Partner,
+            'type' => DomainType::Partner,
             'is_active' => true,
             'verified_at' => now(),
             'verification_token' => Str::random(32),
@@ -88,7 +93,7 @@ class BioPagesTest extends TestCase
 
     public function test_crawler_gets_no_view_count(): void
     {
-        $page = app(\App\Services\BioService::class)->createPage($this->user, $this->domain, ['title' => 'Bots']);
+        $page = app(BioService::class)->createPage($this->user, $this->domain, ['title' => 'Bots']);
 
         $this->get('http://bio.example.com/', ['User-Agent' => 'Slackbot-LinkExpanding 1.0'])->assertOk();
         $this->assertSame(0, $page->fresh()->view_count);
@@ -96,7 +101,7 @@ class BioPagesTest extends TestCase
 
     public function test_sub_page_and_slug_collision(): void
     {
-        $bio = app(\App\Services\BioService::class);
+        $bio = app(BioService::class);
         $root = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
 
         Link::create([
@@ -120,13 +125,13 @@ class BioPagesTest extends TestCase
         $this->get('http://bio.example.com/socials')->assertOk()->assertSee('Socials', escape: false);
 
         // Link can't steal a bio sub slug either.
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
-        app(\App\Services\LinkService::class)->create('https://example.com/x', $this->domain, $this->user, 'socials');
+        $this->expectException(ValidationException::class);
+        app(LinkService::class)->create('https://example.com/x', $this->domain, $this->user, 'socials');
     }
 
     public function test_button_tap_tracks_and_redirects(): void
     {
-        $bio = app(\App\Services\BioService::class);
+        $bio = app(BioService::class);
         $root = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
         $bio->syncButtons($root, [
             ['label' => 'Shop', 'kind' => 'link', 'destination_url' => 'https://example.com/shop'],
@@ -147,7 +152,7 @@ class BioPagesTest extends TestCase
 
     public function test_stats_ctr_and_export(): void
     {
-        $bio = app(\App\Services\BioService::class);
+        $bio = app(BioService::class);
         $root = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
         $bio->syncButtons($root, [
             ['label' => 'A', 'kind' => 'link', 'destination_url' => 'https://example.com/a'],

@@ -78,7 +78,6 @@ class PageBuilder extends Component
     public function createRoot(BioService $bio): void
     {
         $this->validateOnly('title');
-        $this->validateOnly('domain_id');
 
         $domain = $this->ownedDomain((string) $this->domain_id);
 

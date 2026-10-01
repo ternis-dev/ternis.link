@@ -18,10 +18,12 @@ use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
+use App\Models\Domain;
 use App\Support\ContentCollection;
 use App\Support\NetworkStats;
 use App\Support\PublicHost;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /*
 |--------------------------------------------------------------------------
@@ -558,14 +560,14 @@ Route::get('/', function () {
     if ($type === 'partner') {
         $domainModel = request()->attributes->get('domain_model');
 
-        if ($domainModel instanceof \App\Models\Domain && ! $domainModel->isSystemDomain()) {
+        if ($domainModel instanceof Domain && ! $domainModel->isSystemDomain()) {
             try {
                 $root = app(BioPageController::class)->showRoot(request());
 
                 return $root;
-            } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+            } catch (NotFoundHttpException) {
                 // No bio page — fall through to landing below.
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Never break landing on bio errors.
             }
         }

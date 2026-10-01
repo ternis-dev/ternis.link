@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\AccountController;
+use App\Http\Controllers\Api\V1\ActivityController;
 use App\Http\Controllers\Api\V1\ApiKeyController;
 use App\Http\Controllers\Api\V1\BioController;
 use App\Http\Controllers\Api\V1\BulkOperationController;
