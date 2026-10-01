@@ -33,7 +33,9 @@
                 </div>
                 <div class="flex shrink-0 gap-2">
                     <x-ui.button wire:click="selectPage('{{ $p->id }}')" variant="ghost">Edit</x-ui.button>
-                    <x-ui.button href="{{ route('dashboard.bio.build', $p->id) }}" variant="ghost">Visual</x-ui.button>
+                    @if (Route::has('dashboard.bio.build'))
+                        <x-ui.button href="{{ route('dashboard.bio.build', $p->id) }}" variant="ghost">Visual</x-ui.button>
+                    @endif
                     <x-ui.button href="{{ route('dashboard.bio.show', $p->id) }}" variant="ghost">Stats</x-ui.button>
                 </div>
             </div>

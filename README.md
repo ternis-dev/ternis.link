@@ -71,6 +71,12 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
    The app trusts the proxy via `TRUSTED_PROXIES` so client IPs stay correct.
 6. **Health check**: point monitoring at `GET /healthz` — `200 {"status":"ok"}`
    when the database is reachable, `503` otherwise. Answers on any Host/IP.
+7. **On every update** (`git pull`): refresh everything code-derived, or new
+   routes/views/config won't take effect (stale caches 500 with
+   `Route […] not defined` while serving new Blade):
+   `php artisan migrate --force && php artisan optimize:clear && php artisan optimize && php artisan view:clear && npm run build`
+   and restart the queue worker (`supervisorctl restart` or equivalent —
+   long-running workers boot the app once and never see new job classes).
 
 **Rate-limit layers**: HTTP `throttle:api` (60/min) on API v1, `throttle:10,1` on
 OAuth entry points, plus per-plan per-minute/daily quotas enforced in
