@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
+use App\Models\Link;
 use App\Services\LinkService;
 use App\Support\Activity;
 use Livewire\Component;
@@ -39,6 +40,19 @@ class LinkTable extends Component
     public string $sortBy = 'created_at';
 
     public string $sortDir = 'desc';
+
+    /**
+     * Selected link ids for bulk actions (page-scoped, verified
+     * against ownership at execution time).
+     *
+     * @var list<string>
+     */
+    public array $selected = [];
+
+    public ?string $bulkNotice = null;
+
+    /** @var list<string> Ids on the current page (for select-all). */
+    public array $pageIds = [];
 
     /**
      * Columns allowed for sorting (prevents arbitrary orderBy injection
@@ -125,6 +139,45 @@ class LinkTable extends Component
         ]);
     }
 
+    public function toggleSelectAll(bool $select): void
+    {
+        $this->selected = $select ? $this->pageIds : [];
+    }
+
+    public function bulkSetActive(LinkService $links, bool $active): void
+    {
+        $user = auth()->user();
+        $ids = array_slice(array_unique($this->selected), 0, 200);
+        $done = 0;
+        $skipped = 0;
+
+        foreach ($ids as $id) {
+            $link = $user->links()->notRemoved()->find($id);
+
+            if (! $link) {
+                $skipped++;
+
+                continue;
+            }
+
+            $link->update(['is_active' => $active]);
+            Link::forgetCachedSlug($link->domain_id, $link->slug);
+            $done++;
+        }
+
+        Activity::record(
+            $active ? ActivityLog::LINK_UPDATED : ActivityLog::LINK_DEACTIVATED,
+            $user,
+            null,
+            ['via' => 'dashboard', 'bulk' => true, 'count' => $done, 'is_active' => $active]
+        );
+
+        $this->selected = [];
+        $this->bulkNotice = $done === 0
+            ? 'No eligible links selected.'
+            : "{$done} link(s) ".($active ? 'activated' : 'deactivated').($skipped > 0 ? " ({$skipped} skipped)." : '.');
+    }
+
     public function render()
     {
         $sortBy = in_array($this->sortBy, self::SORTABLE, true) ? $this->sortBy : 'created_at';
@@ -177,6 +230,8 @@ class LinkTable extends Component
         // Preserve the back-link context (per-key page) on row links.
         $fromApiKey = $this->lockedApiKeyId ?? ($effectiveFilter !== '' && $effectiveFilter !== 'none' ? $effectiveFilter : null);
 
+        $this->pageIds = $links->getCollection()->pluck('id')->all();
+
         return view('livewire.dashboard.link-table', [
             'links' => $links,
             'availableTags' => $this->availableTags($base),
@@ -184,7 +239,7 @@ class LinkTable extends Component
             'fromApiKey' => $fromApiKey,
             'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visibleColumns,
-            'columnCount' => count($visibleColumns) + 1, // + fixed Actions column
+            'columnCount' => count($visibleColumns) + 2, // + checkbox + fixed Actions column
         ]);
     }
 

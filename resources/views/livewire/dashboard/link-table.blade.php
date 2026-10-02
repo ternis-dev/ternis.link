@@ -37,6 +37,13 @@
     <x-ui.table>
         <thead>
             <tr>
+                <th class="w-8">
+                    <input type="checkbox"
+                        aria-label="Select all on this page"
+                        @checked(count($selected) > 0 && count(array_intersect($selected, $pageIds)) === count($pageIds) && count($pageIds) > 0)
+                        wire:change="toggleSelectAll($event.target.checked)"
+                        class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                </th>
                 @foreach ($visibleColumns as $column)
                     @if ($column === 'slug')
                         <th wire:click="sort('slug')" class="sortable">
@@ -70,6 +77,9 @@
                     $rowQuery = isset($fromApiKey) && $fromApiKey ? ['from_api_key' => $fromApiKey] : [];
                 @endphp
                 <tr>
+                    <td>
+                        <input type="checkbox" wire:model="selected" value="{{ $link->id }}" aria-label="Select this link" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                    </td>
                     @foreach ($visibleColumns as $column)
                         @if ($column === 'slug')
                             <td>
@@ -153,4 +163,16 @@
     <div class="mt-6">
         {{ $links->links() }}
     </div>
+
+    @if (count($selected) > 0)
+        <div class="sticky bottom-4 mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+            <span class="text-sm font-medium">{{ count($selected) }} selected</span>
+            <x-ui.button wire:click="bulkSetActive(true)" size="sm" variant="secondary">Activate</x-ui.button>
+            <x-ui.button wire:click="bulkSetActive(false)" size="sm" variant="danger" wire:confirm="Deactivate the selected links?">Deactivate</x-ui.button>
+            <button type="button" wire:click="$set('selected', [])" class="cursor-pointer text-xs text-neutral-500 hover:underline">Clear</button>
+            @if ($bulkNotice)<span class="text-xs text-neutral-500">{{ $bulkNotice }}</span>@endif
+        </div>
+    @elseif ($bulkNotice)
+        <p class="mt-4 text-xs text-neutral-500">{{ $bulkNotice }}</p>
+    @endif
 </div>

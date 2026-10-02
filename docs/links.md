@@ -25,6 +25,8 @@ Sign in and the training wheels come off:
 
 Manage everything from [dash.ternis.link/links](https://dash.ternis.link/links), where you can also deactivate a link (stops resolving, keeps stats) or let it expire on its own.
 
+Need many at once? [Import CSV](https://dash.ternis.link/links/import) pastes `destination_url,domain_hostname,slug,expires_at,description,tags` rows (200 max) with per-row validation results. On the list itself, tick rows to activate or deactivate them in bulk.
+
 ## How a URL is handled
 
 Paste a full URL and the app decides what you meant:

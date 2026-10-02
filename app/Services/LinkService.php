@@ -164,6 +164,12 @@ class LinkService
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
+        if ($destinationUrl === '' || filter_var($destinationUrl, FILTER_VALIDATE_URL) === false) {
+            throw ValidationException::withMessages([
+                'destination_url' => 'The destination must be a valid URL.',
+            ]);
+        }
+
         // Guests additionally get structural safety checks (intranet /
         // non-public targets, embedded credentials) plus a max lifetime.
         // Safety runs before junk so intranet targets get the accurate

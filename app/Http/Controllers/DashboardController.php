@@ -54,6 +54,14 @@ class DashboardController extends Controller
     }
 
     /**
+     * CSV import page (Livewire: Dashboard\LinkImport).
+     */
+    public function importLinks()
+    {
+        return view('dashboard.links.import');
+    }
+
+    /**
      * Link detail + analytics page (Livewire: LinkAnalytics).
      *
      * Strictly per-user: admins manage other users' links from the

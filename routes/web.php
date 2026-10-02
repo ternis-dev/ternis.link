@@ -238,6 +238,7 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
         ->get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
     Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
+    Route::get('/links/import', [DashboardController::class, 'importLinks'])->name('dashboard.links.import');
     Route::get('/links/export', [DashboardController::class, 'exportLinks'])->name('dashboard.links.export-all');
     Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
     Route::get('/links/{link}/edit', [DashboardController::class, 'editLink'])->name('dashboard.links.edit');
