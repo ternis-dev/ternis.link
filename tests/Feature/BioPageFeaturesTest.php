@@ -460,6 +460,35 @@ class BioPageFeaturesTest extends TestCase
             ->assertDontSee('Nothing here', escape: false);
     }
 
+    public function test_favicon_and_og_cover_fallback(): void
+    {
+        app(BioService::class)->createPage($this->user, $this->domain, [
+            'title' => 'Root',
+            'avatar_url' => 'https://example.com/avatar.png',
+            'cover_url' => 'https://example.com/cover.jpg',
+        ]);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('<link rel="icon" href="https://example.com/avatar.png">', escape: false)
+            ->assertSee('<meta property="og:image" content="https://example.com/cover.jpg">', escape: false);
+    }
+
+    public function test_image_lightbox_and_back_to_top(): void
+    {
+        $bio = app(BioService::class);
+        $page = $bio->createPage($this->user, $this->domain, ['title' => 'Root']);
+        $bio->syncButtons($page, [
+            ['label' => 'Sunset', 'kind' => 'image', 'thumbnail_url' => 'https://example.com/sunset.jpg'],
+        ], $this->user);
+
+        $this->get('http://bio.example.com/')
+            ->assertOk()
+            ->assertSee('data-lightbox="https://example.com/sunset.jpg"', escape: false)
+            ->assertSee('id="bio-lightbox"', escape: false)
+            ->assertSee('href="#top"', escape: false);
+    }
+
     public function test_quote_and_coupon_blocks(): void
     {
         $bio = app(BioService::class);

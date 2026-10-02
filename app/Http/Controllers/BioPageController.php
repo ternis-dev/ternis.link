@@ -204,7 +204,7 @@ class BioPageController extends Controller
             'og' => [
                 'title' => $page->og_title ?? $page->title,
                 'description' => $page->og_description ?? $page->bio,
-                'image' => $page->og_image_url ?? $page->avatar_url,
+                'image' => $page->og_image_url ?? $page->cover_url ?? $page->avatar_url,
             ],
             'domain' => $page->domain ?? $root?->domain,
             'draft' => true,
@@ -314,7 +314,7 @@ class BioPageController extends Controller
         $og = [
             'title' => $page->og_title ?? $page->title,
             'description' => $page->og_description ?? $page->bio,
-            'image' => $page->og_image_url ?? $page->avatar_url,
+            'image' => $page->og_image_url ?? $page->cover_url ?? $page->avatar_url,
         ];
 
         if (! $this->crawlers->isCrawler($request->userAgent())) {

@@ -50,7 +50,7 @@ $icons = [
 @if($button->kind === 'divider')<hr style="margin:16px 0;opacity:.4;grid-column:1/-1">
 @elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8;grid-column:1/-1">{{ $button->label }}</h2>
 @elseif($button->kind === 'countdown' && $button->event_at)<div class="countdown" data-countdown="{{ $button->event_at->toIso8601String() }}" style="margin:12px 0;padding:14px;border-radius:14px;border:1px dashed #a3a3a3;grid-column:1/-1"><div style="font-weight:700">{{ $button->label }}</div><div class="muted" data-countdown-label>…</div></div>
-@elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0;grid-column:1/-1"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
+@elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0;grid-column:1/-1"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block;@unless($preview)cursor:zoom-in;@endunless" @unless($preview) data-lightbox="{{ $button->thumbnail_url }}" data-lightbox-alt="{{ $button->label }}" tabindex="0" role="button" aria-label="Enlarge image: {{ $button->label }}"@endunless>@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
 @elseif($button->kind === 'location')
 @if($button->destination_url)<a class="btn" style="{{ ltrim($btnExtra, ';') }};text-align:left" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>@else<div class="btn" style="{{ ltrim($btnExtra, ';') }};text-align:left;cursor:default">@endif<span style="font-size:18px;vertical-align:middle">📍 </span><span style="vertical-align:middle">{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span>@if($button->destination_url)</a>@else</div>@endif
 @elseif($button->kind === 'audio' && $button->destination_url)<div style="margin:12px 0;padding:12px 14px;border-radius:14px;border:1px solid #d4d4d4;text-align:left;grid-column:1/-1"><div style="font-weight:600">🎧 {{ $button->label }}</div><audio controls preload="none" src="{{ $button->destination_url }}" data-audio-bid="{{ $button->id }}" style="width:100%;margin-top:8px"></audio></div>
@@ -89,6 +89,11 @@ $icons = [
 </div>
 @if(! $preview)
 <button type="button" class="sharebtn" data-share data-title="{{ $page->title }}">⇪ Share</button>
+<a href="#top" class="sharebtn" style="text-decoration:none">↑ Top</a>
+<dialog id="bio-lightbox" class="bio-modal" aria-label="Image preview" style="max-width:min(640px,94vw)">
+<img id="bio-lightbox-img" src="" alt="" style="width:100%;border-radius:10px">
+<form method="dialog" style="margin-top:12px"><button class="btn" style="width:100%;cursor:pointer" value="close">Close</button></form>
+</dialog>
 @endif
 @if(empty($page->footer_text) && !empty($page->hide_branding))
 {{-- Attribution removed: premium perk. --}}
@@ -175,6 +180,21 @@ document.querySelectorAll('[data-coupon-copy]').forEach(function (btn) {
         } else {
             done();
         }
+    });
+});
+document.querySelectorAll('[data-lightbox]').forEach(function (img) {
+    function open() {
+        var dialog = document.getElementById('bio-lightbox');
+        var full = document.getElementById('bio-lightbox-img');
+        if (dialog && full && dialog.showModal) {
+            full.src = img.getAttribute('data-lightbox');
+            full.alt = img.getAttribute('data-lightbox-alt') || '';
+            dialog.showModal();
+        }
+    }
+    img.addEventListener('click', open);
+    img.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
     });
 });
 </script>

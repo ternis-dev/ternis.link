@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $page->title }}</title>
+@if($page->avatar_url)<link rel="icon" href="{{ $page->avatar_url }}">@endif
 @if($page->theme_color)<meta name="theme-color" content="{{ $page->theme_color }}">@endif
 @if($draft ?? false)<meta name="robots" content="noindex">@endif
 @if($og['description'])<meta name="description" content="{{ $og['description'] }}">@endif
@@ -38,7 +39,7 @@ body{font-family:system-ui,sans-serif;margin:0;background:{{ $page->theme === 'd
 </head>
 <body>
 @if($draft ?? false)<div class="draft-banner">Draft preview — only people with this link can see it. Not counted in analytics.</div>@endif
-<div class="wrap">
+<div class="wrap" id="top">
 @include('bio._page', ['page' => $page, 'buttons' => $buttons, 'subs' => $subs, 'preview' => false])
 </div>
 </body>
