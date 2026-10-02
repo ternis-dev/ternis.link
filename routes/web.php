@@ -738,4 +738,9 @@ Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(funct
     Route::middleware('ensure.domain:public,business,ternis,partner')->get('/{input}', [RedirectController::class, 'resolve'])
         ->where('input', '^(?!v\d+$)[a-zA-Z0-9_-]+$')
         ->name('redirect.resolve');
+
+    // Password unlock for protected slugs (POST only, throttled).
+    Route::middleware(['ensure.domain:public,business,ternis,partner', 'throttle:10,1'])->post('/{input}/unlock', [RedirectController::class, 'unlock'])
+        ->where('input', '^(?!v\d+$)[a-zA-Z0-9_-]+$')
+        ->name('redirect.unlock');
 });

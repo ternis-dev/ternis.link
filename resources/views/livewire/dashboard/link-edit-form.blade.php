@@ -44,6 +44,24 @@
             maxlength="255"
         />
 
+        <x-ui.input
+            label="Link password"
+            name="password"
+            type="password"
+            wire:model="password"
+            placeholder="Min. 8 characters — blank keeps current"
+            hint="Visitors must enter this before redirecting."
+            maxlength="72"
+            autocomplete="new-password"
+        />
+
+        @if ($has_password)
+            <div>
+                <p class="text-xs text-neutral-500">This link is currently password-protected.</p>
+                <button type="button" wire:click="removePassword" class="mt-1 cursor-pointer text-xs font-semibold text-red-600 hover:underline">Remove password</button>
+            </div>
+        @endif
+
         <details class="rounded-xl border border-neutral-200 dark:border-neutral-800" open>
             <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Social preview</summary>
             <div class="space-y-4 px-4 pb-4">

@@ -26,6 +26,7 @@ class StorePublicLinkRequest extends FormRequest
             'og_title' => ['prohibited'],
             'og_description' => ['prohibited'],
             'og_image_url' => ['prohibited'],
+            'password' => ['prohibited'],
             'expires_at' => ['nullable', 'date', 'after:now', 'before:'.now()->addYear()->toDateTimeString()],
         ];
     }
@@ -37,6 +38,7 @@ class StorePublicLinkRequest extends FormRequest
             'og_title.prohibited' => 'Social previews are for logged-in users only.',
             'og_description.prohibited' => 'Social previews are for logged-in users only.',
             'og_image_url.prohibited' => 'Social previews are for logged-in users only.',
+            'password.prohibited' => 'Link passwords are for logged-in users only.',
             'expires_at.before' => 'Guest links can live for at most a year.',
         ];
     }

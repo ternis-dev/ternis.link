@@ -59,7 +59,7 @@ curl -X PUT https://links.t-api.de/v1/links/<ulid> \
 curl -X DELETE https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
 ```
 
-Social previews (members only): `og_title` (≤120), `og_description` (≤300), `og_image_url` (https image). Crawlers get a 200 HTML stub with OG tags (`?debug=og` forces it for testing); humans keep the 302 and crawler hits are not counted. Guests get 422 `prohibited` for any `og_*` field.
+Social previews (members only): `og_title` (≤120), `og_description` (≤300), `og_image_url` (https image). Crawlers get a 200 HTML stub with OG tags (`?debug=og` forces it for testing); humans keep the 302 and crawler hits are not counted. Password protection (members only): `password` (min 8 chars, bcrypt-hashed; `remove_password` clears) — locked links show an interstitial, count nothing until unlock, and unlock attempts are throttled. Guests get 422 `prohibited` for any `og_*` or `password` field.
 
 No account and just scripting something quick? `POST /v1/links/public` creates guest links without any key — auto-generated slugs, fair-use limits, public system domains only:
 

@@ -44,6 +44,7 @@ class LinkForm extends Component
         $this->og_title = null;
         $this->og_description = null;
         $this->og_image_url = null;
+        $this->password = null;
         $this->tags = null;
         $this->expires_at = null;
         $this->resetErrorBag();
@@ -64,6 +65,8 @@ class LinkForm extends Component
     public ?string $og_description = null;
 
     public ?string $og_image_url = null;
+
+    public ?string $password = null;
 
     public ?string $tags = null;
 
@@ -93,6 +96,7 @@ class LinkForm extends Component
             'og_title' => ['nullable', 'string', 'max:120'],
             'og_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
+            'password' => ['nullable', 'string', 'min:8', 'max:72'],
             'tags' => ['nullable', 'string', 'max:255'],
         ];
 
@@ -207,6 +211,7 @@ class LinkForm extends Component
                 ogTitle: $this->og_title,
                 ogDescription: $this->og_description,
                 ogImageUrl: $this->og_image_url,
+                password: $this->password ?: null,
             );
         } catch (ValidationException $e) {
             // Service-level rejections (scanner junk, slug races) land
@@ -244,6 +249,7 @@ class LinkForm extends Component
         $this->og_title = null;
         $this->og_description = null;
         $this->og_image_url = null;
+        $this->password = null;
         $this->tags = null;
         $this->expires_at = null;
     }

@@ -96,6 +96,7 @@ class LinkController extends Controller
             ogTitle: $request->validated('og_title'),
             ogDescription: $request->validated('og_description'),
             ogImageUrl: $request->validated('og_image_url'),
+            password: $request->validated('password'),
         );
 
         Activity::record(ActivityLog::LINK_CREATED, $user, $link, array_filter([

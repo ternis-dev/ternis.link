@@ -11,6 +11,7 @@ use App\Services\LinkService;
 use App\Services\SlugResolverService;
 use App\Services\TargetSelector;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class RedirectController extends Controller
@@ -119,6 +120,17 @@ class RedirectController extends Controller
             return response()->view('redirect.not-found', ['slug' => $input, 'domain' => $domain->hostname], 404);
         }
 
+        // Password-protected links show an interstitial: slug and host
+        // only, no destination, no tracking, no indexing.
+        if ($link->password_hash !== null
+            && $request->session()->get(LinkService::sessionKey($link->id)) !== true) {
+            return response()->view('redirect.locked', [
+                'slug' => $link->slug,
+                'domain' => $domain->hostname,
+                'link' => $link->id,
+            ], 200, ['Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
+        }
+
         $isCrawler = $this->crawlers->isCrawler($request->userAgent());
         $debugOg = $request->query('debug') === 'og';
 
@@ -149,5 +161,38 @@ class RedirectController extends Controller
         $this->clickTracker->track($link, $request, target: $target);
 
         return redirect()->away($destination, 302);
+    }
+
+    /**
+     * Unlock a password-protected short link for this session.
+     * Throttled (see route) so passwords can't be brute-forced.
+     */
+    public function unlock(Request $request, string $input)
+    {
+        $domain = $request->attributes->get('domain_model');
+
+        if (! $domain) {
+            $domain = Domain::where('hostname', 'href.nz')->first();
+        }
+
+        if (! $domain) {
+            abort(404);
+        }
+
+        $link = $this->linkService->resolveSlug($input, $domain);
+
+        if (! $link || $link->password_hash === null) {
+            abort(404);
+        }
+
+        $password = (string) $request->input('password', '');
+
+        if (! Hash::check($password, $link->password_hash)) {
+            return back()->withErrors(['password' => 'Wrong password — try again.']);
+        }
+
+        $request->session()->put(LinkService::sessionKey($link->id), true);
+
+        return redirect()->away($link->short_url, 302);
     }
 }

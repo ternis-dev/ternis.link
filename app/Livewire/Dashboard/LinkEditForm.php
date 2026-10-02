@@ -23,6 +23,10 @@ class LinkEditForm extends Component
 
     public ?string $og_image_url = null;
 
+    public ?string $password = null;
+
+    public bool $has_password = false;
+
     public ?string $tags = null;
 
     public ?string $expires_at = null;
@@ -49,6 +53,7 @@ class LinkEditForm extends Component
             'og_title' => ['nullable', 'string', 'max:120'],
             'og_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
+            'password' => ['nullable', 'string', 'min:8', 'max:72'],
             'tags' => ['nullable', 'string', 'max:255'],
             'expires_at' => $expires,
             'is_active' => ['boolean'],
@@ -88,6 +93,7 @@ class LinkEditForm extends Component
                 'og_title' => $this->og_title,
                 'og_description' => $this->og_description,
                 'og_image_url' => $this->og_image_url,
+                'password' => $this->password !== null && trim($this->password) !== '' ? $this->password : null,
                 'tags' => $this->tags !== null && trim($this->tags) !== '' ? LinkService::normalizeTags($this->tags) : null,
                 'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
                 'is_active' => $this->is_active,
@@ -108,6 +114,15 @@ class LinkEditForm extends Component
         Activity::record(ActivityLog::LINK_UPDATED, auth()->user(), $this->link, [
             'slug' => $this->link->slug,
         ]);
+    }
+
+    public function removePassword(LinkService $linkService): void
+    {
+        $link = $this->editableLink($this->link->id);
+        $linkService->clearPassword($link);
+        $this->link = $link->fresh();
+        $this->syncFromModel();
+        $this->saved = true;
     }
 
     public function render()
@@ -131,6 +146,8 @@ class LinkEditForm extends Component
         $this->og_title = $this->link->og_title;
         $this->og_description = $this->link->og_description;
         $this->og_image_url = $this->link->og_image_url;
+        $this->password = null;
+        $this->has_password = $this->link->password_hash !== null;
         $this->tags = $this->link->tags ? implode(', ', $this->link->tags) : null;
         $this->expires_at = $this->link->expires_at?->format('Y-m-d\TH:i');
         $this->is_active = (bool) $this->link->is_active;

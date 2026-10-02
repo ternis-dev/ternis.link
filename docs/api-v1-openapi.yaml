@@ -195,6 +195,7 @@ paths:
                 og_title: { type: string, maxLength: 120, description: Social preview title (members only) }
                 og_description: { type: string, maxLength: 300, description: Social preview description }
                 og_image_url: { type: string, format: uri, maxLength: 2048, description: https image URL for shares }
+                password: { type: string, minLength: 8, maxLength: 72, description: Password-protect the link (members only) }
                 tags: { type: array, maxItems: 10, items: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$" } }
                 expires_at: { type: string, format: date-time }
       responses:
@@ -218,7 +219,7 @@ paths:
         '404': { description: Unknown link or wrong host }
         '410': { description: Version retired }
     put:
-      summary: Update destination, activity, expiry, or social preview
+      summary: Update destination, activity, expiry, social preview, or password
       requestBody:
         required: true
         content:
@@ -231,6 +232,8 @@ paths:
                 og_title: { type: string, maxLength: 120, nullable: true }
                 og_description: { type: string, maxLength: 300, nullable: true }
                 og_image_url: { type: string, format: uri, maxLength: 2048, nullable: true }
+                password: { type: string, minLength: 8, maxLength: 72, nullable: true, description: Sets (or rotates) the link password }
+                remove_password: { type: boolean, description: Clears the link password }
                 tags: { type: array, maxItems: 10, items: { type: string }, nullable: true }
                 is_active: { type: boolean }
                 expires_at: { type: string, format: date-time, nullable: true }

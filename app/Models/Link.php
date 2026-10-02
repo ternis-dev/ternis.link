@@ -27,11 +27,14 @@ class Link extends Model
         'api_key_id',
         'creator_ip_hash',
         'creator_ip_encrypted',
+        'password_hash',
         'click_count',
         'is_active',
         'is_removed',
         'expires_at',
     ];
+
+    protected $hidden = ['password_hash', 'creator_ip_encrypted'];
 
     protected $casts = [
         'tags' => 'array',

@@ -114,6 +114,13 @@
         </div>
     </details>
 
+    <details class="rounded-xl border border-neutral-200 dark:border-neutral-800">
+        <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Password protection (optional)</summary>
+        <div class="space-y-4 px-4 pb-4">
+            <x-ui.input label="Link password" name="password" type="password" wire:model="password" placeholder="Min. 8 characters — blank for public" maxlength="72" autocomplete="new-password" hint="Visitors must enter this before redirecting. Nothing is tracked until unlock." />
+        </div>
+    </details>
+
     <x-ui.input
         label="Expiration Date (optional)"
         name="expires_at"

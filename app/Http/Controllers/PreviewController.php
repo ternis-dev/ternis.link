@@ -66,6 +66,17 @@ class PreviewController extends Controller
             return response()->view('redirect.not-found', ['slug' => $input, 'domain' => $domain->hostname], 404);
         }
 
+        // Password-protected links stay opaque here too — the sandbox
+        // must not become a destination oracle.
+        if ($link->password_hash !== null
+            && $request->session()->get(LinkService::sessionKey($link->id)) !== true) {
+            return response()->view('redirect.locked', [
+                'slug' => $link->slug,
+                'domain' => $domain->hostname,
+                'link' => $link->id,
+            ], 200, ['Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
+        }
+
         return view('preview.show', [
             'mode' => 'slug',
             'link' => $link->load('domain'),

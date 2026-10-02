@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
 use App\Models\ApiKey;
+use App\Models\BioPage;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\LinkTarget;
@@ -14,6 +15,7 @@ use App\Support\IpHash;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -158,6 +160,7 @@ class LinkService
         ?string $ogTitle = null,
         ?string $ogDescription = null,
         ?string $ogImageUrl = null,
+        ?string $password = null,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -195,6 +198,18 @@ class LinkService
         if ($user === null && ($ogTitle !== null || $ogDescription !== null || $ogImageUrl !== null)) {
             throw ValidationException::withMessages([
                 'og_title' => 'Social previews are for logged-in users only.',
+            ]);
+        }
+
+        if ($user === null && $password !== null) {
+            throw ValidationException::withMessages([
+                'password' => 'Link passwords are for logged-in users only.',
+            ]);
+        }
+
+        if ($password !== null && mb_strlen($password) < 8) {
+            throw ValidationException::withMessages([
+                'password' => 'The password must be at least 8 characters.',
             ]);
         }
 
@@ -257,6 +272,7 @@ class LinkService
             'creator_ip_encrypted' => IpCapture::enabled() ? $creatorIp : null,
             'is_active' => true,
             'expires_at' => $expiresAt,
+            'password_hash' => $password !== null ? Hash::make($password) : null,
         ]);
 
         if ($user) {
@@ -378,7 +394,7 @@ class LinkService
         }
 
         // First-write-wins against bio sub-pages on the same domain.
-        if (\App\Models\BioPage::where('domain_id', $domainId)->whereNotNull('parent_id')->where('slug', strtolower($slug))->where('is_removed', false)->exists()) {
+        if (BioPage::where('domain_id', $domainId)->whereNotNull('parent_id')->where('slug', strtolower($slug))->where('is_removed', false)->exists()) {
             throw ValidationException::withMessages([
                 'slug' => 'Slug taken by a bio sub-page on this domain.',
             ]);
@@ -489,10 +505,46 @@ class LinkService
             $data['tags'] = $normalized !== [] ? $normalized : null;
         }
 
+        if (array_key_exists('password', $data) && $data['password'] !== null) {
+            $this->setPassword($link->fresh() ?? $link, (string) $data['password']);
+        }
+
+        if (! empty($data['remove_password'])) {
+            $this->clearPassword($link->fresh() ?? $link);
+        }
+
+        unset($data['password'], $data['remove_password']);
+
         $link->update($data);
         Link::forgetCachedSlug($link->domain_id, $link->slug);
 
         return $link->fresh();
+    }
+
+    public static function sessionKey(string $linkId): string
+    {
+        return "link_unlocked_{$linkId}";
+    }
+
+    /**
+     * Set (or rotate) a link password. Minimum 8 chars; bcrypt hash only.
+     *
+     * @throws ValidationException
+     */
+    public function setPassword(Link $link, string $password): void
+    {
+        if (mb_strlen($password) < 8) {
+            throw ValidationException::withMessages(['password' => 'The password must be at least 8 characters.']);
+        }
+
+        $link->update(['password_hash' => Hash::make($password)]);
+        Link::forgetCachedSlug($link->domain_id, $link->slug);
+    }
+
+    public function clearPassword(Link $link): void
+    {
+        $link->update(['password_hash' => null]);
+        Link::forgetCachedSlug($link->domain_id, $link->slug);
     }
 
     /**
