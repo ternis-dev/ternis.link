@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\LinkService;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateLinkRequest extends FormRequest
@@ -21,6 +22,9 @@ class UpdateLinkRequest extends FormRequest
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'max:72'],
             'remove_password' => ['nullable', 'boolean'],
+            'utm_source' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'utm_medium' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'array', 'max:10'],
             'tags.*' => ['string', 'max:30', 'regex:/^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$/'],
             'is_active' => ['sometimes', 'boolean'],

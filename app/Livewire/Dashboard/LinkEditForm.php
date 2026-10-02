@@ -27,6 +27,12 @@ class LinkEditForm extends Component
 
     public bool $has_password = false;
 
+    public ?string $utm_source = null;
+
+    public ?string $utm_medium = null;
+
+    public ?string $utm_campaign = null;
+
     public ?string $tags = null;
 
     public ?string $expires_at = null;
@@ -54,6 +60,9 @@ class LinkEditForm extends Component
             'og_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'max:72'],
+            'utm_source' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'utm_medium' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'string', 'max:255'],
             'expires_at' => $expires,
             'is_active' => ['boolean'],
@@ -94,6 +103,9 @@ class LinkEditForm extends Component
                 'og_description' => $this->og_description,
                 'og_image_url' => $this->og_image_url,
                 'password' => $this->password !== null && trim($this->password) !== '' ? $this->password : null,
+                'utm_source' => $this->utm_source,
+                'utm_medium' => $this->utm_medium,
+                'utm_campaign' => $this->utm_campaign,
                 'tags' => $this->tags !== null && trim($this->tags) !== '' ? LinkService::normalizeTags($this->tags) : null,
                 'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
                 'is_active' => $this->is_active,
@@ -148,6 +160,9 @@ class LinkEditForm extends Component
         $this->og_image_url = $this->link->og_image_url;
         $this->password = null;
         $this->has_password = $this->link->password_hash !== null;
+        $this->utm_source = $this->link->utm_source;
+        $this->utm_medium = $this->link->utm_medium;
+        $this->utm_campaign = $this->link->utm_campaign;
         $this->tags = $this->link->tags ? implode(', ', $this->link->tags) : null;
         $this->expires_at = $this->link->expires_at?->format('Y-m-d\TH:i');
         $this->is_active = (bool) $this->link->is_active;

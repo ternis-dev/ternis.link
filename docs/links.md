@@ -18,6 +18,7 @@ Sign in and the training wheels come off:
 - **Custom slugs** — pick your own, within your plan's minimum length. Taken slugs are rejected on the spot.
 - **Shorter auto slugs** — generated links use your plan's length range.
 - **Expiry dates** — links can stop resolving automatically.
+- **Campaign tagging** — optional `utm_source` / `utm_medium` / `utm_campaign` appended at redirect time (your destination's own parameters win).
 - **Descriptions and tags** — keep large collections searchable.
 - **Social previews** — custom `og_title` / `og_description` / `og_image_url` so Slack/X/WhatsApp render your card; `/{slug}?debug=og` shows the crawler stub.
 - **QR codes** — every short link has one: via the dashboard, or directly as `href.nz/qr/<url>` (PNG), `href.nz/qr/<url>/svg`, or `href.nz/<slug>.png` for an existing short link.

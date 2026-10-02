@@ -80,7 +80,7 @@ class PreviewController extends Controller
         return view('preview.show', [
             'mode' => 'slug',
             'link' => $link->load('domain'),
-            'destination' => (string) $link->destination_url,
+            'destination' => LinkService::destinationWithUtm($link),
             'host' => (string) parse_url((string) $link->destination_url, PHP_URL_HOST),
             'junkReasons' => $this->junkUrls->reasons((string) $link->destination_url),
             'og' => $link->effectiveSocialPreview(),

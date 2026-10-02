@@ -115,6 +115,15 @@
     </details>
 
     <details class="rounded-xl border border-neutral-200 dark:border-neutral-800">
+        <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Campaign tagging (optional)</summary>
+        <div class="space-y-4 px-4 pb-4">
+            <x-ui.input label="UTM source" name="utm_source" type="text" wire:model="utm_source" placeholder="newsletter" maxlength="100" />
+            <x-ui.input label="UTM medium" name="utm_medium" type="text" wire:model="utm_medium" placeholder="email" maxlength="100" />
+            <x-ui.input label="UTM campaign" name="utm_campaign" type="text" wire:model="utm_campaign" placeholder="spring-launch" maxlength="100" hint="Appended at redirect time. Parameters your destination already sets are left alone." />
+        </div>
+    </details>
+
+    <details class="rounded-xl border border-neutral-200 dark:border-neutral-800">
         <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Password protection (optional)</summary>
         <div class="space-y-4 px-4 pb-4">
             <x-ui.input label="Link password" name="password" type="password" wire:model="password" placeholder="Min. 8 characters — blank for public" maxlength="72" autocomplete="new-password" hint="Visitors must enter this before redirecting. Nothing is tracked until unlock." />

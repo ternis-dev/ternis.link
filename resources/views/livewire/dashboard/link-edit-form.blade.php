@@ -62,6 +62,34 @@
             </div>
         @endif
 
+        <x-ui.input
+            label="UTM source"
+            name="utm_source"
+            type="text"
+            wire:model="utm_source"
+            placeholder="newsletter"
+            maxlength="100"
+        />
+
+        <x-ui.input
+            label="UTM medium"
+            name="utm_medium"
+            type="text"
+            wire:model="utm_medium"
+            placeholder="email"
+            maxlength="100"
+        />
+
+        <x-ui.input
+            label="UTM campaign"
+            name="utm_campaign"
+            type="text"
+            wire:model="utm_campaign"
+            placeholder="spring-launch"
+            hint="Appended at redirect time. Parameters your destination already sets are left alone."
+            maxlength="100"
+        />
+
         <details class="rounded-xl border border-neutral-200 dark:border-neutral-800" open>
             <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Social preview</summary>
             <div class="space-y-4 px-4 pb-4">

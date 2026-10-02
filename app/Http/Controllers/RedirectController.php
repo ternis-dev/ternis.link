@@ -147,7 +147,7 @@ class RedirectController extends Controller
 
         $debugTarget = $request->query('target') === 'debug';
         $target = $this->targets->pick($link, $request);
-        $destination = $target?->destination_url ?? (string) $link->destination_url;
+        $destination = LinkService::destinationWithUtm($link, $target?->destination_url ?? (string) $link->destination_url);
 
         if ($debugTarget) {
             return response()->json([

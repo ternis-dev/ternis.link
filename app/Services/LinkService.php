@@ -57,6 +57,13 @@ class LinkService
     public const TAG_PATTERN = '/^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$/';
 
     /**
+     * UTM values: letters, numbers, spaces, dots, dashes, underscores.
+     */
+    public const UTM_PATTERN = '/^[A-Za-z0-9 _.\-]+$/';
+
+    public const UTM_FIELDS = ['utm_source', 'utm_medium', 'utm_campaign'];
+
+    /**
      * @deprecated Use GUEST_SLUG_LENGTH. Kept for backwards compat.
      */
     public const ANONYMOUS_MIN_SLUG_LENGTH = 8;
@@ -88,6 +95,70 @@ class LinkService
         }
 
         return array_slice($tags, 0, self::MAX_TAGS);
+    }
+
+    /**
+     * Normalize optional UTM fields: trim, drop empties, cap length.
+     *
+     * @return array{utm_source: ?string, utm_medium: ?string, utm_campaign: ?string}
+     */
+    public static function normalizeUtm(array $input): array
+    {
+        $out = [];
+
+        foreach (self::UTM_FIELDS as $field) {
+            $value = isset($input[$field]) ? trim((string) $input[$field]) : '';
+
+            if ($value === '' || preg_match(self::UTM_PATTERN, $value) !== 1) {
+                $out[$field] = null;
+            } else {
+                $out[$field] = mb_substr($value, 0, 100);
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Append the link's UTM tags to a destination URL. Parameters the
+     * destination already sets win — stored tags only fill gaps, so
+     * advertiser-crafted URLs are never rewritten.
+     */
+    public static function destinationWithUtm(Link $link, ?string $destination = null): string
+    {
+        $destination ??= (string) $link->destination_url;
+
+        $tags = array_filter([
+            'utm_source' => $link->utm_source,
+            'utm_medium' => $link->utm_medium,
+            'utm_campaign' => $link->utm_campaign,
+        ]);
+
+        if ($tags === []) {
+            return $destination;
+        }
+
+        $parts = parse_url($destination);
+
+        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])) {
+            return $destination;
+        }
+
+        parse_str($parts['query'] ?? '', $query);
+
+        foreach ($tags as $key => $value) {
+            if (! array_key_exists($key, $query)) {
+                $query[$key] = $value;
+            }
+        }
+
+        $rebuilt = $parts['scheme'].'://'.($parts['host'] ?? '');
+        $rebuilt .= isset($parts['port']) ? ':'.$parts['port'] : '';
+        $rebuilt .= $parts['path'] ?? '';
+        $rebuilt .= $query !== [] ? '?'.http_build_query($query) : '';
+        $rebuilt .= isset($parts['fragment']) ? '#'.$parts['fragment'] : '';
+
+        return $rebuilt;
     }
 
     /**
@@ -161,6 +232,7 @@ class LinkService
         ?string $ogDescription = null,
         ?string $ogImageUrl = null,
         ?string $password = null,
+        ?array $utm = null,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -210,6 +282,12 @@ class LinkService
         if ($user === null && $password !== null) {
             throw ValidationException::withMessages([
                 'password' => 'Link passwords are for logged-in users only.',
+            ]);
+        }
+
+        if ($user === null && $utm !== null) {
+            throw ValidationException::withMessages([
+                'utm_source' => 'Campaign tagging is for logged-in users only.',
             ]);
         }
 
@@ -270,6 +348,7 @@ class LinkService
             'og_title' => $og['og_title'],
             'og_description' => $og['og_description'],
             'og_image_url' => $og['og_image_url'],
+            ...self::normalizeUtm($utm ?? []),
             'tags' => ($normalizedTags = self::normalizeTags($tags)) !== [] ? $normalizedTags : null,
             'domain_id' => $domain->id,
             'user_id' => $user?->id,
@@ -509,6 +588,12 @@ class LinkService
         if (array_key_exists('tags', $data)) {
             $normalized = self::normalizeTags($data['tags']);
             $data['tags'] = $normalized !== [] ? $normalized : null;
+        }
+
+        foreach (self::UTM_FIELDS as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = self::normalizeUtm([$field => $data[$field]])[$field];
+            }
         }
 
         if (array_key_exists('password', $data) && $data['password'] !== null) {

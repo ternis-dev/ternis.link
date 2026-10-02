@@ -45,6 +45,9 @@ class LinkForm extends Component
         $this->og_description = null;
         $this->og_image_url = null;
         $this->password = null;
+        $this->utm_source = null;
+        $this->utm_medium = null;
+        $this->utm_campaign = null;
         $this->tags = null;
         $this->expires_at = null;
         $this->resetErrorBag();
@@ -67,6 +70,12 @@ class LinkForm extends Component
     public ?string $og_image_url = null;
 
     public ?string $password = null;
+
+    public ?string $utm_source = null;
+
+    public ?string $utm_medium = null;
+
+    public ?string $utm_campaign = null;
 
     public ?string $tags = null;
 
@@ -97,6 +106,9 @@ class LinkForm extends Component
             'og_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'max:72'],
+            'utm_source' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'utm_medium' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'string', 'max:255'],
         ];
 
@@ -212,6 +224,11 @@ class LinkForm extends Component
                 ogDescription: $this->og_description,
                 ogImageUrl: $this->og_image_url,
                 password: $this->password ?: null,
+                utm: [
+                    'utm_source' => $this->utm_source,
+                    'utm_medium' => $this->utm_medium,
+                    'utm_campaign' => $this->utm_campaign,
+                ],
             );
         } catch (ValidationException $e) {
             // Service-level rejections (scanner junk, slug races) land
@@ -250,6 +267,9 @@ class LinkForm extends Component
         $this->og_description = null;
         $this->og_image_url = null;
         $this->password = null;
+        $this->utm_source = null;
+        $this->utm_medium = null;
+        $this->utm_campaign = null;
         $this->tags = null;
         $this->expires_at = null;
     }

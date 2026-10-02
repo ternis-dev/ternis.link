@@ -27,6 +27,9 @@ class StorePublicLinkRequest extends FormRequest
             'og_description' => ['prohibited'],
             'og_image_url' => ['prohibited'],
             'password' => ['prohibited'],
+            'utm_source' => ['prohibited'],
+            'utm_medium' => ['prohibited'],
+            'utm_campaign' => ['prohibited'],
             'expires_at' => ['nullable', 'date', 'after:now', 'before:'.now()->addYear()->toDateTimeString()],
         ];
     }
@@ -39,6 +42,9 @@ class StorePublicLinkRequest extends FormRequest
             'og_description.prohibited' => 'Social previews are for logged-in users only.',
             'og_image_url.prohibited' => 'Social previews are for logged-in users only.',
             'password.prohibited' => 'Link passwords are for logged-in users only.',
+            'utm_source.prohibited' => 'Campaign tagging is for logged-in users only.',
+            'utm_medium.prohibited' => 'Campaign tagging is for logged-in users only.',
+            'utm_campaign.prohibited' => 'Campaign tagging is for logged-in users only.',
             'expires_at.before' => 'Guest links can live for at most a year.',
         ];
     }
