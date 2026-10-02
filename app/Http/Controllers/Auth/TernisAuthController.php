@@ -146,6 +146,16 @@ class TernisAuthController extends Controller
         // Log in via Laravel session
         auth()->login($user);
 
+        // Freshness marker for destructive self-service (account
+        // deletion requires a login younger than 15 minutes).
+        $request->session()->put('sso_login_at', now()->toIso8601String());
+
+        // Signing back in cancels a scheduled self-deletion.
+        if ($user->deletion_requested_at !== null) {
+            $user->update(['deletion_requested_at' => null]);
+            $request->session()->flash('info', 'Welcome back — your scheduled account deletion was cancelled.');
+        }
+
         Activity::record(ActivityLog::AUTH_LOGIN, $user, $user);
 
         return redirect()->intended(route('dashboard'));
@@ -234,6 +244,8 @@ class TernisAuthController extends Controller
         );
 
         auth()->login($user);
+
+        $request->session()->put('sso_login_at', now()->toIso8601String());
 
         Activity::record(ActivityLog::AUTH_LOGIN, $user, $user, ['via' => 'demo']);
 

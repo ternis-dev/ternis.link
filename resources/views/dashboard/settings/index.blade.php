@@ -5,4 +5,6 @@
     />
 
     <livewire:dashboard.settings-form />
+
+    <livewire:dashboard.privacy-settings />
 </x-layouts.dashboard>

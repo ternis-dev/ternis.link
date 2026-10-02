@@ -55,7 +55,7 @@ We do not sell data and share nothing for marketing. Data is processed on infras
 
 ## Your rights
 
-Access, rectification, erasure, restriction, portability and objection (GDPR Art. 15–21), plus the right to complain to your supervisory authority. Because guest links carry no account, include the short URL(s) in erasure requests so we can find them. The API request log is excluded from erasure (see Retention). Contact: [legal@ternis.dev](mailto:legal@ternis.dev) or [platforms@ternis.dev](mailto:platforms@ternis.dev). Abuse reports: [abuse@ternis.dev](mailto:abuse@ternis.dev).
+Access, rectification, erasure, restriction, portability and objection (GDPR Art. 15–21), plus the right to complain to your supervisory authority. Self-service lives in your [dashboard settings](https://dash.ternis.link/settings): download a full export of your data at any time, or schedule complete account erasure (14-day grace period, cancellable, requires a fresh sign-in). Because guest links carry no account, include the short URL(s) in erasure requests so we can find them. The API request log is excluded from erasure (see Retention). Contact: [legal@ternis.dev](mailto:legal@ternis.dev) or [platforms@ternis.dev](mailto:platforms@ternis.dev). Abuse reports: [abuse@ternis.dev](mailto:abuse@ternis.dev).
 
 ## Changes
 

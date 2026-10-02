@@ -256,6 +256,7 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::post('/notifications/{id}/read', [DashboardController::class, 'markNotificationRead'])->name('dashboard.notifications.read');
     Route::get('/activity', [DashboardController::class, 'activity'])->name('dashboard.activity');
     Route::get('/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
+    Route::get('/settings/export/{export}/download', [DashboardController::class, 'downloadExport'])->name('dashboard.settings.export-download');
 });
 
 /*

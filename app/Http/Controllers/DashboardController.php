@@ -7,6 +7,7 @@ use App\Models\Click;
 use App\Models\Link;
 use App\Support\LinkQrCode;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
@@ -296,6 +297,26 @@ class DashboardController extends Controller
     public function settings()
     {
         return view('dashboard.settings.index');
+    }
+
+    /**
+     * Download an own privacy export ZIP (owner only, before expiry).
+     */
+    public function downloadExport(string $export)
+    {
+        $user = auth()->user();
+        $export = $user->privacyExports()->findOrFail($export);
+
+        if ($export->status !== 'done' || ! $export->path
+            || ! Storage::disk('local')->exists($export->path)) {
+            abort(404, 'Export not ready.');
+        }
+
+        if ($export->expires_at && $export->expires_at->isPast()) {
+            abort(410, 'Export expired.');
+        }
+
+        return Storage::disk('local')->download($export->path, 'ternis-export.zip');
     }
 
     /**
