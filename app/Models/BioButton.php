@@ -11,7 +11,7 @@ class BioButton extends Model
 {
     use HasUlids;
 
-    public const KINDS = ['link', 'header', 'divider', 'social', 'contact', 'video', 'image', 'countdown', 'quote', 'coupon'];
+    public const KINDS = ['link', 'header', 'divider', 'social', 'contact', 'video', 'image', 'countdown', 'quote', 'coupon', 'rsvp'];
 
     public const ACTIONS = ['url', 'subpage', 'modal'];
 
@@ -50,6 +50,7 @@ class BioButton extends Model
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
         'tap_count' => 'integer',
+        'rsvp_count' => 'integer',
     ];
 
     public function page(): BelongsTo

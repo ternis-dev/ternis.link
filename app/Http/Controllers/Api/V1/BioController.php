@@ -165,7 +165,7 @@ class BioController extends Controller
             'buttons.*.id' => ['nullable', 'string'],
             'buttons.*.label' => ['required_unless:buttons.*.kind,divider', 'string', 'max:60'],
             'buttons.*.sublabel' => ['nullable', 'string', 'max:120'],
-            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact,video,image,countdown,quote,coupon'],
+            'buttons.*.kind' => ['required', 'in:link,header,divider,social,contact,video,image,countdown,quote,coupon,rsvp'],
             'buttons.*.contact_email' => ['nullable', 'email', 'max:255'],
             'buttons.*.contact_phone' => ['nullable', 'string', 'max:40'],
             'buttons.*.open_new' => ['nullable', 'boolean'],

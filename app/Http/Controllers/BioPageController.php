@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\BioButton;
+use App\Models\BioEvent;
 use App\Models\BioPage;
 use App\Models\Domain;
 use App\Services\BioService;
 use App\Services\BioTrackerService;
 use App\Services\CrawlerDetector;
+use App\Support\IpHash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -96,9 +98,9 @@ class BioPageController extends Controller
             ]);
         }
 
-        // Modal pop-ups and coupon codes open client-side; a crafted
+        // Modal pop-ups, coupons, and RSVPs open client-side; a crafted
         // GET lands back on the page, untracked.
-        if ($button->action === 'modal' || $button->kind === 'coupon') {
+        if ($button->action === 'modal' || in_array($button->kind, ['coupon', 'rsvp'], true)) {
             return redirect()->away($this->pageUrl($button->page), 302);
         }
 
@@ -151,6 +153,28 @@ class BioPageController extends Controller
     }
 
     /**
+     * RSVP headcount for event blocks (one per visitor hash, no PII
+     * collected). GET so it works without JavaScript.
+     */
+    public function rsvp(Request $request, string $button)
+    {
+        $button = BioButton::with('page.domain')->find($button);
+
+        if (! $button || ! $button->page || $button->page->is_removed
+            || ! $button->page->isVisible()
+            || self::isLocked($button->page, $request)
+            || ! $button->isLive() || $button->kind !== 'rsvp') {
+            abort(404);
+        }
+
+        if (! $this->tracker->hasRsvpd($button, $request)) {
+            $this->tracker->trackRsvp($button->page, $button, $request);
+        }
+
+        return redirect()->away($this->pageUrl($button->page).'?rsvpd=1', 302);
+    }
+
+    /**
      * Signed draft preview: renders an unpublished page in-action on
      * its own domain (no login needed, signature is the auth). Never
      * tracked, never indexed.
@@ -185,7 +209,7 @@ class BioPageController extends Controller
     private function pageUrl(BioPage $page): string
     {
         $host = $page->domain?->hostname ?? request()->getHost();
-        $path = $page->parent_id === null ? '' : '/'.$page->slug;
+        $path = $page->parent_id === null ? '/' : '/'.$page->slug;
 
         return "https://{$host}{$path}";
     }
@@ -292,6 +316,20 @@ class BioPageController extends Controller
             $this->tracker->trackView($page, $request);
         }
 
+        // RSVP state per button for this visitor (single indexed query).
+        $rsvpd = [];
+        $rsvpButtons = $buttons->filter(fn ($b) => $b->kind === 'rsvp');
+        if ($rsvpButtons->isNotEmpty()) {
+            $hash = IpHash::make($request->ip());
+            if ($hash !== null) {
+                $rsvpd = BioEvent::whereIn('bio_button_id', $rsvpButtons->pluck('id'))
+                    ->where('kind', 'rsvp')
+                    ->where('ip_hash', $hash)
+                    ->pluck('bio_button_id')
+                    ->all();
+            }
+        }
+
         return response()->view('bio.show', [
             'page' => $page->load('domain'),
             'root' => $root?->load('domain'),
@@ -299,6 +337,8 @@ class BioPageController extends Controller
             'subs' => $subs,
             'og' => $og,
             'domain' => $page->domain ?? $root?->domain,
-        ], 200, ['Cache-Control' => 'public, max-age=60']);
+            'rsvpd' => $rsvpd,
+            // Per-visitor RSVP state must never sit in a shared cache.
+        ], 200, ['Cache-Control' => $rsvpButtons->isNotEmpty() ? 'private, max-age=60' : 'public, max-age=60']);
     }
 }

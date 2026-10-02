@@ -46,5 +46,9 @@ class RecordBioEvent implements ShouldQueue
         if ($this->kind === 'tap' && $this->bioButtonId !== null) {
             BioButton::where('id', $this->bioButtonId)->increment('tap_count');
         }
+
+        if ($this->kind === 'rsvp' && $this->bioButtonId !== null) {
+            BioButton::where('id', $this->bioButtonId)->increment('rsvp_count');
+        }
     }
 }

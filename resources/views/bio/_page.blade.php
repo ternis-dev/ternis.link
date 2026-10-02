@@ -22,6 +22,9 @@ $icons = [
 @if($page->announcement_text)
 <div class="announce" role="note">@if($page->announcement_url)<a href="{{ $preview ? '#' : $page->announcement_url }}" @unless($preview) target="_blank" rel="noopener" @endunless>{{ $page->announcement_text }} →</a>@else{{ $page->announcement_text }}@endif</div>
 @endif
+@if(!$preview && request()->query('rsvpd') === '1')
+<div class="announce" role="status">✓ You're on the list!</div>
+@endif
 @if($page->cover_url)<img src="{{ $page->cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:140px;border-radius:16px;object-fit:cover">@endif
 @if($page->avatar_url)<img class="avatar" src="{{ $page->avatar_url }}" alt="" loading="lazy" referrerpolicy="no-referrer"@if($page->cover_url) style="margin-top:-44px;border:4px solid #fff"@endif>@endif
 <h1 style="margin:12px 0 4px;font-size:24px">{{ $page->title }}</h1>
@@ -48,6 +51,20 @@ $icons = [
 @elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8;grid-column:1/-1">{{ $button->label }}</h2>
 @elseif($button->kind === 'countdown' && $button->event_at)<div class="countdown" data-countdown="{{ $button->event_at->toIso8601String() }}" style="margin:12px 0;padding:14px;border-radius:14px;border:1px dashed #a3a3a3"><div style="font-weight:700">{{ $button->label }}</div><div class="muted" data-countdown-label>…</div></div>
 @elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
+@elseif($button->kind === 'rsvp')
+@php($mine = in_array($button->id, $rsvpd ?? [], true))
+<div style="margin:12px 0;padding:14px;border-radius:14px;border:1px solid #d4d4d4;text-align:center">
+<div style="font-weight:700">{{ $button->label }}</div>
+@if($button->sublabel)<div class="muted" style="font-size:13px">{{ $button->sublabel }}</div>@endif
+<div class="muted" style="margin:6px 0;font-size:13px">{{ number_format($button->rsvp_count ?? 0) }} going</div>
+@if($preview)
+<span class="muted" style="font-size:12px">RSVP button preview</span>
+@elseif($mine)
+<span style="font-size:13px;font-weight:600">✓ You're in</span>
+@else
+<a class="btn" style="margin:8px 0 0" href="/t/{{ $button->id }}/rsvp">✓ I'm in</a>
+@endif
+</div>
 @elseif($button->kind === 'quote')<blockquote style="margin:12px 0;padding:12px 16px;border-left:3px solid #a3a3a3;text-align:left;font-style:italic">“{{ $button->label }}”@if($button->sublabel)<footer class="muted" style="margin-top:4px;font-size:13px;font-style:normal">— {{ $button->sublabel }}</footer>@endif</blockquote>
 @elseif($button->kind === 'coupon' && $button->sublabel)<div class="coupon" style="margin:12px 0;padding:14px;border-radius:14px;border:1.5px dashed #a3a3a3"><div style="font-weight:700">{{ $button->label }}</div><div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px"><code data-coupon="{{ $button->sublabel }}" style="font-family:monospace;font-size:16px;letter-spacing:2px">{{ $button->sublabel }}</code>@unless($preview)<button type="button" data-coupon-copy="{{ $button->id }}" style="font-size:12px;padding:6px 12px;border-radius:9999px;border:1px solid #d4d4d4;background:transparent;color:inherit;cursor:pointer">Copy</button>@endunless</div></div>
 @elseif($button->kind === 'video' && ($embed = \App\Support\BioVideo::embed((string) $button->destination_url)))

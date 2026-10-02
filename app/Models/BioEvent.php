@@ -12,7 +12,7 @@ class BioEvent extends Model
 
     public $timestamps = false;
 
-    public const KINDS = ['view', 'tap'];
+    public const KINDS = ['view', 'tap', 'rsvp'];
 
     protected $fillable = [
         'bio_page_id',

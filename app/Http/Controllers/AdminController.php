@@ -81,6 +81,14 @@ class AdminController extends Controller
     }
 
     /**
+     * Bio page moderation (Livewire: Admin\BioModeration).
+     */
+    public function bio()
+    {
+        return view('admin.bio');
+    }
+
+    /**
      * Error encounters page (Livewire: Admin\ErrorEncounterTable).
      */
     public function errors()

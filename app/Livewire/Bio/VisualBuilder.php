@@ -98,6 +98,26 @@ class VisualBuilder extends Component
 
     public ?string $draftExpires = null;
 
+    public ?string $editingButtonId = null;
+
+    public string $editLabel = '';
+
+    public ?string $editSublabel = null;
+
+    public ?string $editUrl = null;
+
+    public ?string $editThumbnail = null;
+
+    public ?string $editIcon = null;
+
+    public bool $editOpenNew = false;
+
+    public ?string $editBadge = null;
+
+    public ?string $editStartsAt = null;
+
+    public ?string $editEndsAt = null;
+
     public function mount(BioPage $page): void
     {
         $page = auth()->user()->bioPages()->with('domain')->find($page->id);
@@ -222,7 +242,7 @@ class VisualBuilder extends Component
             'newLabel' => ['required_unless:newKind,divider', 'string', 'max:60'],
             'newSublabel' => ['nullable', 'string', 'max:120'],
             'newUrl' => ['nullable', 'url', 'max:2048'],
-            'newKind' => ['required', 'in:link,header,divider,social,contact,video,image,countdown'],
+            'newKind' => ['required', 'in:link,header,divider,social,contact,video,image,countdown,quote,coupon,rsvp'],
             'newContactEmail' => ['nullable', 'email', 'max:255'],
             'newContactPhone' => ['nullable', 'string', 'max:40'],
             'newOpenNew' => ['nullable', 'boolean'],
@@ -325,6 +345,98 @@ class VisualBuilder extends Component
             ->all();
 
         $bio->syncButtons($page, $rows, auth()->user());
+
+        if ($this->editingButtonId === $buttonId) {
+            $this->cancelEditButton();
+        }
+    }
+
+    public function startEditButton(string $buttonId): void
+    {
+        $page = $this->editing();
+
+        if (! $page) {
+            return;
+        }
+
+        $button = $page->buttons()->find($buttonId);
+
+        if (! $button) {
+            return;
+        }
+
+        $this->editingButtonId = $button->id;
+        $this->editLabel = $button->label;
+        $this->editSublabel = $button->sublabel;
+        $this->editUrl = $button->destination_url;
+        $this->editThumbnail = $button->thumbnail_url;
+        $this->editIcon = $button->icon;
+        $this->editOpenNew = (bool) $button->open_new;
+        $this->editBadge = $button->badge;
+        $this->editStartsAt = $button->starts_at?->format('Y-m-d\TH:i');
+        $this->editEndsAt = $button->ends_at?->format('Y-m-d\TH:i');
+        $this->resetValidation();
+    }
+
+    public function cancelEditButton(): void
+    {
+        $this->editingButtonId = null;
+        $this->reset(['editLabel', 'editSublabel', 'editUrl', 'editThumbnail', 'editIcon', 'editBadge', 'editStartsAt', 'editEndsAt']);
+        $this->editOpenNew = false;
+        $this->resetValidation();
+    }
+
+    public function updateButton(BioService $bio): void
+    {
+        $page = $this->editing();
+
+        if (! $page || $this->editingButtonId === null) {
+            return;
+        }
+
+        $this->validate([
+            'editLabel' => ['required', 'string', 'max:60'],
+            'editSublabel' => ['nullable', 'string', 'max:120'],
+            'editUrl' => ['nullable', 'url', 'max:2048'],
+            'editThumbnail' => ['nullable', 'url', 'starts_with:https', 'max:2048'],
+            'editIcon' => ['nullable', 'in:instagram,tiktok,x,youtube,github,globe,mail,link'],
+            'editOpenNew' => ['nullable', 'boolean'],
+            'editBadge' => ['nullable', 'string', 'max:12'],
+            'editStartsAt' => ['nullable', 'date'],
+            'editEndsAt' => ['nullable', 'date', 'after:editStartsAt'],
+        ]);
+
+        $rows = collect($bio->buttonRows($page))->map(function (array $row) {
+            if ($row['id'] !== $this->editingButtonId) {
+                return $row;
+            }
+
+            return [...$row,
+                'label' => $this->editLabel,
+                'sublabel' => $this->editSublabel ?: null,
+                'destination_url' => $this->editUrl ?: null,
+                'thumbnail_url' => $this->editThumbnail ?: null,
+                'icon' => $this->editIcon ?: null,
+                'open_new' => $this->editOpenNew,
+                'badge' => $this->editBadge ?: null,
+                'starts_at' => $this->editStartsAt ?: null,
+                'ends_at' => $this->editEndsAt ?: null,
+            ];
+        })->all();
+
+        try {
+            $bio->syncButtons($page, $rows, auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $messages) {
+                foreach ((array) $messages as $message) {
+                    $this->addError('editUrl', $message);
+                }
+            }
+
+            return;
+        }
+
+        $this->cancelEditButton();
     }
 
     public function reorder(BioService $bio, array $orderedIds): void

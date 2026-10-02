@@ -272,6 +272,7 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
     ->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('dashboard');
         Route::get('/links', [AdminController::class, 'links'])->name('links');
+        Route::get('/bio', [AdminController::class, 'bio'])->name('bio');
         Route::get('/users', [AdminController::class, 'users'])->name('users');
         Route::get('/domains', [AdminController::class, 'domains'])->name('domains');
         Route::get('/activity', [AdminController::class, 'activity'])->name('activity');
@@ -597,6 +598,16 @@ Route::get('/t/{button}/open.gif', function (string $button) {
 
     return app(BioPageController::class)->openPixel(request(), $button);
 })->where('button', '[A-Za-z0-9]{20,30}')->name('bio.open-pixel');
+
+Route::get('/t/{button}/rsvp', function (string $button) {
+    $type = request()->attributes->get('domain_type');
+
+    if (! in_array($type, ['partner'], true)) {
+        abort(404);
+    }
+
+    return app(BioPageController::class)->rsvp(request(), $button);
+})->where('button', '[A-Za-z0-9]{20,30}')->name('bio.rsvp');
 
 Route::get('/draft/{page}', function (string $page) {
     $type = request()->attributes->get('domain_type');

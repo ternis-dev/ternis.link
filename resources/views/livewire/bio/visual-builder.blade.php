@@ -97,6 +97,7 @@
                         <option value="countdown">Countdown</option>
                         <option value="quote">Quote</option>
                         <option value="coupon">Coupon code</option>
+                        <option value="rsvp">RSVP headcount</option>
                         <option value="header">Header</option>
                         <option value="divider">Divider</option>
                     </x-ui.select>
@@ -151,6 +152,37 @@
                 <ul class="mt-4 space-y-2" x-data="{ dragging: null }"
                     x-on:dragover.prevent="$event.dataTransfer.dropEffect = 'move'">
                     @foreach ($editing->buttons()->orderBy('sort_order')->get() as $b)
+                        @if ($editingButtonId === $b->id)
+                            <li class="rounded-lg border-2 border-neutral-900 px-3 py-3 dark:border-white">
+                                <form wire:submit="updateButton" class="grid gap-2 sm:grid-cols-2">
+                                    <x-ui.input label="Label" name="editLabel" type="text" wire:model="editLabel" maxlength="60" />
+                                    <x-ui.input label="Sublabel" name="editSublabel" type="text" wire:model="editSublabel" maxlength="120" />
+                                    <x-ui.input label="URL" name="editUrl" type="url" wire:model="editUrl" maxlength="2048" />
+                                    <x-ui.input label="Thumbnail URL" name="editThumbnail" type="url" wire:model="editThumbnail" maxlength="2048" />
+                                    <x-ui.select label="Icon" name="editIcon" wire:model="editIcon">
+                                        <option value="">None</option>
+                                        <option value="instagram">Instagram</option>
+                                        <option value="tiktok">TikTok</option>
+                                        <option value="x">X</option>
+                                        <option value="youtube">YouTube</option>
+                                        <option value="github">GitHub</option>
+                                        <option value="globe">Website</option>
+                                        <option value="mail">Email</option>
+                                        <option value="link">Link</option>
+                                    </x-ui.select>
+                                    <x-ui.input label="Badge" name="editBadge" type="text" wire:model="editBadge" maxlength="12" />
+                                    <x-ui.input label="Show from" name="editStartsAt" type="datetime-local" wire:model="editStartsAt" />
+                                    <x-ui.input label="Show until" name="editEndsAt" type="datetime-local" wire:model="editEndsAt" />
+                                    <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                                        <input type="checkbox" wire:model="editOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Open in new tab
+                                    </label>
+                                    <div class="flex items-end gap-2">
+                                        <x-ui.button type="submit" variant="primary">Save</x-ui.button>
+                                        <x-ui.button type="button" wire:click="cancelEditButton">Cancel</x-ui.button>
+                                    </div>
+                                </form>
+                            </li>
+                        @else
                         <li draggable="true" data-bid="{{ $b->id }}"
                             x-on:dragstart="dragging = '{{ $b->id }}'; $event.dataTransfer.effectAllowed = 'move'; $el.classList.add('opacity-40')"
                             x-on:dragend="$el.classList.remove('opacity-40'); dragging = null"
@@ -173,12 +205,14 @@
                                 @unless ($b->is_active)<span class="ml-1 rounded bg-neutral-200 px-1.5 py-0.5 text-[11px] font-semibold dark:bg-neutral-700">paused</span>@endunless
                             </span>
                             <span class="flex shrink-0 items-center gap-1.5 text-xs">
+                                <button type="button" wire:click="startEditButton('{{ $b->id }}')" class="cursor-pointer hover:underline">Edit</button>
                                 <button type="button" wire:click="move('{{ $b->id }}', 'up')" class="cursor-pointer hover:underline" title="Move up">↑</button>
                                 <button type="button" wire:click="move('{{ $b->id }}', 'down')" class="cursor-pointer hover:underline" title="Move down">↓</button>
                                 <button type="button" wire:click="toggleButton('{{ $b->id }}')" class="cursor-pointer hover:underline">{{ $b->is_active ? 'Pause' : 'Resume' }}</button>
                                 <button type="button" wire:click="removeButton('{{ $b->id }}')" class="cursor-pointer text-red-600 hover:underline">Remove</button>
                             </span>
                         </li>
+                        @endif
                     @endforeach
                 </ul>
                 <p class="mt-2 text-xs text-neutral-500">Drag rows to reorder — order saves automatically (↑↓ buttons work everywhere, including touch).</p>

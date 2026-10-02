@@ -87,7 +87,7 @@ class BioPageFeaturesTest extends TestCase
 
         // Right password unlocks the session.
         $this->post('http://bio.example.com/unlock/'.$page->id, ['password' => 'correct-horse'])
-            ->assertRedirect('https://bio.example.com');
+            ->assertRedirect('https://bio.example.com/');
 
         $this->get('http://bio.example.com/')
             ->assertOk()
@@ -479,7 +479,7 @@ class BioPageFeaturesTest extends TestCase
 
         // Crafted GET on a coupon lands back on the page, untracked.
         $this->get("http://bio.example.com/t/{$coupon->id}")
-            ->assertRedirect('https://bio.example.com');
+            ->assertRedirect('https://bio.example.com/');
         $this->assertSame(0, $coupon->fresh()->tap_count);
 
         // Copy beacon tracks.

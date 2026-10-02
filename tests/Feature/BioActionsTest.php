@@ -98,7 +98,7 @@ class BioActionsTest extends TestCase
 
         // Crafted GET on a modal tap lands back on the page, untracked.
         $this->get("http://bio.example.com/t/{$button->id}")
-            ->assertRedirect('https://bio.example.com');
+            ->assertRedirect('https://bio.example.com/');
         $this->assertSame(0, $button->fresh()->tap_count);
 
         // Client-side open beacon tracks + returns a gif.
