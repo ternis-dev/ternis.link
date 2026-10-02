@@ -190,6 +190,7 @@ paths:
                 destination_url: { type: string, format: uri, maxLength: 2048 }
                 domain_id: { type: string, description: ULID }
                 slug: { type: string, pattern: "^[a-zA-Z0-9_-]+$", maxLength: 255 }
+                targets: { type: array, maxItems: 20, description: Full replace; rows with known ids update in place (click counts survive), unknown ids rejected, [] clears }
                 slug_length: { type: integer, minimum: 3, maximum: 64, description: Privileged users only; sizes auto-generated slugs, ignored with custom slug }
                 description: { type: string, maxLength: 500 }
                 og_title: { type: string, maxLength: 120, description: Social preview title (members only) }

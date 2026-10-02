@@ -560,8 +560,21 @@ class LinkService
             ]);
         }
 
+        $existing = $link->targets()->get()->keyBy('id');
+
         $rows = [];
+        $seenIds = [];
         foreach (array_values($targets) as $i => $t) {
+            $id = $t['id'] ?? null;
+            if ($id !== null) {
+                if (! $existing->has($id)) {
+                    throw ValidationException::withMessages(['targets' => "Row {$i}: unknown target."]);
+                }
+                if (in_array($id, $seenIds, true)) {
+                    throw ValidationException::withMessages(['targets' => "Row {$i}: duplicate target."]);
+                }
+                $seenIds[] = $id;
+            }
             $url = trim((string) ($t['destination_url'] ?? ''));
             if ($url === '' || strlen($url) > 2048) {
                 throw ValidationException::withMessages(['targets' => "Row {$i}: destination_url is required (max 2048)."]);
@@ -599,6 +612,7 @@ class LinkService
             }
 
             $rows[] = [
+                'id' => $id,
                 'label' => isset($t['label']) && trim((string) $t['label']) !== '' ? mb_substr(trim((string) $t['label']), 0, 60) : null,
                 'destination_url' => $url,
                 'country_codes' => $codes,
@@ -609,10 +623,20 @@ class LinkService
             ];
         }
 
-        \DB::transaction(function () use ($link, $rows) {
-            $link->targets()->delete();
+        \DB::transaction(function () use ($link, $rows, $seenIds) {
+            // Identity-preserving replace: known ids update in place
+            // (per-target click counts survive), the rest is created,
+            // and anything missing from the payload is dropped.
+            $link->targets()->whereNotIn('id', $seenIds)->delete();
             foreach ($rows as $row) {
-                $link->targets()->create($row);
+                $id = $row['id'];
+                unset($row['id']);
+
+                if ($id !== null) {
+                    $link->targets()->where('id', $id)->update($row);
+                } else {
+                    $link->targets()->create($row);
+                }
             }
             TargetSelector::forgetCached($link->id);
             Link::forgetCachedSlug($link->domain_id, $link->slug);

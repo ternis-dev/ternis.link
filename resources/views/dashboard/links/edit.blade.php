@@ -9,4 +9,8 @@
     <div class="max-w-2xl">
         <livewire:dashboard.link-edit-form :link="$link" />
     </div>
+
+    <div class="mt-6 max-w-2xl">
+        <livewire:dashboard.link-targeting :link="$link" />
+    </div>
 </x-layouts.dashboard>

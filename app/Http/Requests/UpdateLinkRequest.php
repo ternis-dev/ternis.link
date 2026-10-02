@@ -26,6 +26,7 @@ class UpdateLinkRequest extends FormRequest
             'is_active' => ['sometimes', 'boolean'],
             'expires_at' => ['nullable', 'date', 'after:now'],
             'targets' => ['nullable', 'array', 'max:20'],
+            'targets.*.id' => ['nullable', 'string'],
             'targets.*.label' => ['nullable', 'string', 'max:60'],
             'targets.*.destination_url' => ['required_with:targets', 'url', 'max:2048'],
             'targets.*.country_codes' => ['nullable', 'array', 'max:50'],
