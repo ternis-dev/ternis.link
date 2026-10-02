@@ -249,7 +249,7 @@ class DashboardController extends Controller
      */
     public function showBio(string $page)
     {
-        $page = auth()->user()->bioPages()->with(['domain:id,hostname', 'buttons', 'children'])->findOrFail($page);
+        $page = auth()->user()->bioPages()->with(['domain:id,hostname', 'buttons', 'children'])->where('is_removed', false)->findOrFail($page);
 
         return view('dashboard.bio.show', compact('page'));
     }
@@ -260,7 +260,7 @@ class DashboardController extends Controller
      */
     public function buildBio(string $page)
     {
-        $page = auth()->user()->bioPages()->with(['domain:id,hostname'])->findOrFail($page);
+        $page = auth()->user()->bioPages()->with(['domain:id,hostname'])->where('is_removed', false)->findOrFail($page);
 
         return view('dashboard.bio.build', compact('page'));
     }

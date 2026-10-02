@@ -130,11 +130,41 @@
                         <x-ui.button type="submit" variant="primary">Add sub-page</x-ui.button>
                     </div>
                 </form>
+                @foreach ($editing->children()->where('is_removed', false)->orderBy('sort_order')->get() as $sub)
+                    <div class="mt-2 flex items-center justify-between gap-3 rounded-lg border border-neutral-100 px-3 py-2 text-sm dark:border-neutral-800">
+                        <span class="font-mono">/{{ $sub->slug }} <span class="font-sans text-neutral-500">{{ $sub->title }}</span></span>
+                        @if ($confirmingSubDelete === $sub->id)
+                            <span class="flex shrink-0 gap-2 text-xs">
+                                <span class="text-neutral-500">Delete with its buttons?</span>
+                                <button type="button" wire:click="deleteSub('{{ $sub->id }}')" class="cursor-pointer font-semibold text-red-600 hover:underline">Confirm</button>
+                            </span>
+                        @else
+                            <button type="button" wire:click="deleteSub('{{ $sub->id }}')" class="shrink-0 cursor-pointer text-xs text-red-600 hover:underline">Delete</button>
+                        @endif
+                    </div>
+                @endforeach
             </div>
         @endif
 
         <div class="mt-8 border-t border-neutral-100 pt-6 dark:border-neutral-800">
-            <h3 class="font-semibold">Buttons ({{ $editing->buttons->count() }}/25)</h3>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h3 class="font-semibold">Buttons ({{ $editing->buttons->count() }}/25)</h3>
+                <x-ui.button type="button" wire:click="checkLinks" variant="ghost" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="checkLinks">Check links</span>
+                    <span wire:loading wire:target="checkLinks">Checking…</span>
+                </x-ui.button>
+            </div>
+            @if ($linkHealth !== [])
+                <ul class="mt-3 space-y-1 text-sm">
+                    @foreach ($linkHealth as $result)
+                        <li class="flex items-center gap-2">
+                            <span aria-hidden="true">{{ $result['ok'] ? '✅' : '❌' }}</span>
+                            <span class="truncate">{{ $result['label'] }}</span>
+                            <span class="shrink-0 font-mono text-xs text-neutral-500">{{ $result['status'] ?? 'unreachable' }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
             <form wire:submit="addButton" class="mt-3 grid gap-3 sm:grid-cols-4">
                 <x-ui.select label="Kind" name="newKind" wire:model.live="newKind">
                     <option value="link">Link</option>
@@ -255,6 +285,7 @@
                         </span>
                         <span class="flex shrink-0 items-center gap-1.5 text-xs">
                             <button type="button" wire:click="startEditButton('{{ $b->id }}')" class="cursor-pointer hover:underline">Edit</button>
+                            <button type="button" wire:click="duplicateButton('{{ $b->id }}')" class="cursor-pointer hover:underline" title="Duplicate">⧉</button>
                             <button type="button" wire:click="moveButton('{{ $b->id }}', 'up')" class="cursor-pointer hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === 0)>↑</button>
                             <button type="button" wire:click="moveButton('{{ $b->id }}', 'down')" class="cursor-pointer hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === $buttonList->count() - 1)>↓</button>
                             <button type="button" wire:click="toggleButton('{{ $b->id }}')" class="cursor-pointer hover:underline">{{ $b->is_active ? 'Pause' : 'Resume' }}</button>
@@ -271,6 +302,24 @@
                     <textarea wire:model="quickAdd" rows="4" placeholder="My blog | https://example.com/blog&#10;https://example.com/shop" class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-xs dark:border-neutral-700 dark:bg-neutral-950"></textarea>
                     @error('quickAdd')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
                     <x-ui.button type="button" wire:click="quickAddButtons" variant="ghost">Add lines as buttons</x-ui.button>
+                </div>
+            </details>
+            <details class="mt-4">
+                <summary class="cursor-pointer text-sm font-medium">Import from my short links</summary>
+                <div class="mt-2 space-y-2">
+                    @php($importable = auth()->user()->links()->notRemoved()->with('domain:id,hostname')->orderByDesc('created_at')->limit(50)->get())
+                    @forelse ($importable as $link)
+                        <label class="flex cursor-pointer items-center gap-2 text-sm">
+                            <input type="checkbox" wire:model="importLinkIds" value="{{ $link->id }}" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                            <span class="truncate">{{ $link->description ?: $link->slug }}</span>
+                            <span class="shrink-0 font-mono text-xs text-neutral-500">{{ $link->domain?->hostname }}</span>
+                        </label>
+                    @empty
+                        <p class="text-sm text-neutral-500">No short links yet.</p>
+                    @endforelse
+                    @if ($importable->isNotEmpty())
+                        <x-ui.button type="button" wire:click="importLinks" variant="ghost">Import selected as buttons</x-ui.button>
+                    @endif
                 </div>
             </details>
         </div>

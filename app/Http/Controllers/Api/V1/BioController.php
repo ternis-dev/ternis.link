@@ -355,6 +355,10 @@ class BioController extends Controller
 
     private function authorizePage(Request $request, BioPage $page): void
     {
+        if ($page->is_removed) {
+            abort(404);
+        }
+
         if ($page->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
             abort(403, 'You do not own this page.');
         }

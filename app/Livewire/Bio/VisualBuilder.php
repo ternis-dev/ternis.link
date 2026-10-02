@@ -351,6 +351,93 @@ class VisualBuilder extends Component
         }
     }
 
+    public function duplicateButton(BioService $bio, string $buttonId): void
+    {
+        $page = $this->editing();
+
+        if (! $page) {
+            return;
+        }
+
+        $rows = $bio->buttonRows($page);
+        $index = collect($rows)->search(fn (array $row) => $row['id'] === $buttonId);
+
+        if ($index === false) {
+            return;
+        }
+
+        if (count($rows) >= BioService::MAX_BUTTONS_PER_PAGE) {
+            $this->addError('buttons', 'At most '.BioService::MAX_BUTTONS_PER_PAGE.' buttons per page.');
+
+            return;
+        }
+
+        $copy = $rows[$index];
+        unset($copy['id']);
+        $copy['label'] = mb_substr($copy['label'].' (copy)', 0, 60);
+        array_splice($rows, $index + 1, 0, [$copy]);
+
+        foreach ($rows as $i => &$row) {
+            $row['sort_order'] = $i;
+        }
+
+        $bio->syncButtons($page, $rows, auth()->user());
+    }
+
+    public function importLinks(BioService $bio): void
+    {
+        $page = $this->editing();
+
+        if (! $page || $this->importLinkIds === []) {
+            return;
+        }
+
+        $links = auth()->user()->links()->notRemoved()
+            ->with('domain:id,hostname')
+            ->whereIn('id', array_slice($this->importLinkIds, 0, BioService::MAX_BUTTONS_PER_PAGE))
+            ->get();
+
+        $current = $bio->buttonRows($page);
+
+        foreach ($links as $link) {
+            if (count($current) >= BioService::MAX_BUTTONS_PER_PAGE) {
+                break;
+            }
+
+            $host = $link->domain?->hostname ?? config('domains.public_host', 'href.nz');
+            $current[] = [
+                'label' => $link->description !== null && trim($link->description) !== ''
+                    ? mb_substr(trim($link->description), 0, 60)
+                    : $link->slug,
+                'kind' => 'link',
+                'destination_url' => "https://{$host}/{$link->slug}",
+                'sort_order' => count($current),
+                'is_active' => true,
+            ];
+        }
+
+        try {
+            $bio->syncButtons($page, $current, auth()->user());
+        } catch (ValidationException $e) {
+            $this->addError('importLinkIds', 'Some links could not be imported.');
+
+            return;
+        }
+
+        $this->importLinkIds = [];
+    }
+
+    public function checkLinks(BioService $bio): void
+    {
+        $page = $this->editing();
+
+        if (! $page) {
+            return;
+        }
+
+        $this->linkHealth = $bio->checkLinks($page);
+    }
+
     public function startEditButton(string $buttonId): void
     {
         $page = $this->editing();
@@ -480,6 +567,12 @@ class VisualBuilder extends Component
     }
 
     public ?string $quickAdd = null;
+
+    /** @var list<array{id: string, label: string, url: string, ok: bool, status: ?int}> */
+    public array $linkHealth = [];
+
+    /** @var list<string> */
+    public array $importLinkIds = [];
 
     /**
      * Bulk-add buttons from pasted lines: "Label | https://…" or a

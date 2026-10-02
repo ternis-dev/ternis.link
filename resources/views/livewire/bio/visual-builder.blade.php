@@ -146,8 +146,41 @@
                     @endif
                     <div class="flex items-end">
                         <x-ui.button type="submit" variant="primary">Add button</x-ui.button>
+                        <x-ui.button type="button" wire:click="checkLinks" variant="ghost" wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="checkLinks">Check links</span>
+                            <span wire:loading wire:target="checkLinks">Checking…</span>
+                        </x-ui.button>
                     </div>
                 </form>
+                @if ($linkHealth !== [])
+                    <ul class="mt-3 space-y-1 text-sm">
+                        @foreach ($linkHealth as $result)
+                            <li class="flex items-center gap-2">
+                                <span aria-hidden="true">{{ $result['ok'] ? '✅' : '❌' }}</span>
+                                <span class="truncate">{{ $result['label'] }}</span>
+                                <span class="shrink-0 font-mono text-xs text-neutral-500">{{ $result['status'] ?? 'unreachable' }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+                <details class="mt-3">
+                    <summary class="cursor-pointer text-sm font-medium">Import from my short links</summary>
+                    <div class="mt-2 space-y-2">
+                        @php($importable = auth()->user()->links()->notRemoved()->with('domain:id,hostname')->orderByDesc('created_at')->limit(50)->get())
+                        @forelse ($importable as $link)
+                            <label class="flex cursor-pointer items-center gap-2 text-sm">
+                                <input type="checkbox" wire:model="importLinkIds" value="{{ $link->id }}" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                                <span class="truncate">{{ $link->description ?: $link->slug }}</span>
+                                <span class="shrink-0 font-mono text-xs text-neutral-500">{{ $link->domain?->hostname }}</span>
+                            </label>
+                        @empty
+                            <p class="text-sm text-neutral-500">No short links yet.</p>
+                        @endforelse
+                        @if ($importable->isNotEmpty())
+                            <x-ui.button type="button" wire:click="importLinks" variant="ghost">Import selected as buttons</x-ui.button>
+                        @endif
+                    </div>
+                </details>
 
                 <ul class="mt-4 space-y-2" x-data="{ dragging: null }"
                     x-on:dragover.prevent="$event.dataTransfer.dropEffect = 'move'">
@@ -206,6 +239,7 @@
                             </span>
                             <span class="flex shrink-0 items-center gap-1.5 text-xs">
                                 <button type="button" wire:click="startEditButton('{{ $b->id }}')" class="cursor-pointer hover:underline">Edit</button>
+                                <button type="button" wire:click="duplicateButton('{{ $b->id }}')" class="cursor-pointer hover:underline" title="Duplicate">⧉</button>
                                 <button type="button" wire:click="move('{{ $b->id }}', 'up')" class="cursor-pointer hover:underline" title="Move up">↑</button>
                                 <button type="button" wire:click="move('{{ $b->id }}', 'down')" class="cursor-pointer hover:underline" title="Move down">↓</button>
                                 <button type="button" wire:click="toggleButton('{{ $b->id }}')" class="cursor-pointer hover:underline">{{ $b->is_active ? 'Pause' : 'Resume' }}</button>

@@ -8,7 +8,9 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
 use App\Support\BioVideo;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 
 class BioService
@@ -400,6 +402,66 @@ class BioService
     public function forgetCaches(BioPage $page): void
     {
         BioPage::flushCaches($page->fresh() ?? $page);
+    }
+
+    /**
+     * HEAD-check every button destination on a page. Concurrent pool,
+     * 5s timeouts; 2xx–3xx counts as alive, anything else broken.
+     *
+     * @return list<array{id: string, label: string, url: string, ok: bool, status: ?int}>
+     */
+    public function checkLinks(BioPage $page): array
+    {
+        $targets = $page->buttons()
+            ->whereNotNull('destination_url')
+            ->orderBy('sort_order')
+            ->get(['id', 'label', 'destination_url']);
+
+        if ($targets->isEmpty()) {
+            return [];
+        }
+
+        $responses = Http::pool(
+            fn ($pool) => $targets->map(fn ($button) => $pool->timeout(5)->head($button->destination_url))->all()
+        );
+        $responses = array_values($responses);
+
+        $results = [];
+        foreach ($targets->values()->all() as $i => $button) {
+            $response = $responses[$i] ?? null;
+            $status = null;
+            $ok = false;
+
+            if ($response !== null) {
+                try {
+                    $status = $response->status();
+                    $ok = $status >= 200 && $status < 400;
+                } catch (\Throwable) {
+                    $ok = false;
+                }
+            }
+
+            $results[] = [
+                'id' => $button->id,
+                'label' => $button->label,
+                'url' => $button->destination_url,
+                'ok' => $ok,
+                'status' => $status,
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Recent own short links as button candidates for import.
+     */
+    public function importableLinks(User $user, int $limit = 50): Collection
+    {
+        return $user->links()->notRemoved()->with('domain:id,hostname')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get(['id', 'slug', 'description', 'domain_id']);
     }
 
     /**
