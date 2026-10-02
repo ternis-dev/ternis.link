@@ -479,6 +479,78 @@ class VisualBuilder extends Component
         $this->reorder($bio, $ids);
     }
 
+    public ?string $quickAdd = null;
+
+    /**
+     * Bulk-add buttons from pasted lines: "Label | https://…" or a
+     * bare URL (label falls back to the host).
+     */
+    public function quickAddButtons(BioService $bio): void
+    {
+        $page = $this->editing();
+
+        if (! $page) {
+            return;
+        }
+
+        $lines = preg_split('/\r\n|\r|\n/', (string) $this->quickAdd);
+        $current = $bio->buttonRows($page);
+        $skipped = 0;
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+
+            if ($line === '') {
+                continue;
+            }
+
+            if (count($current) >= BioService::MAX_BUTTONS_PER_PAGE) {
+                $skipped++;
+
+                continue;
+            }
+
+            if (str_contains($line, '|')) {
+                [$label, $url] = array_map('trim', explode('|', $line, 2));
+            } else {
+                $url = $line;
+                $label = (string) parse_url($line, PHP_URL_HOST);
+            }
+
+            if ($label === '' || $url === '' || filter_var($url, FILTER_VALIDATE_URL) === false) {
+                $skipped++;
+
+                continue;
+            }
+
+            $current[] = [
+                'label' => mb_substr($label, 0, 60),
+                'kind' => 'link',
+                'destination_url' => mb_substr($url, 0, 2048),
+                'sort_order' => count($current),
+                'is_active' => true,
+            ];
+        }
+
+        if ($skipped > 0) {
+            $this->addError('quickAdd', "{$skipped} line(s) skipped (invalid URL, blank label, or page full).");
+        }
+
+        try {
+            $bio->syncButtons($page, $current, auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $messages) {
+                foreach ((array) $messages as $message) {
+                    $this->addError('quickAdd', $message);
+                }
+            }
+
+            return;
+        }
+
+        $this->quickAdd = null;
+    }
+
     public function makeDraftLink(): void
     {
         $page = $this->editing();

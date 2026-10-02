@@ -15,6 +15,8 @@ class PageBuilder extends Component
 
     public ?string $domain_id = null;
 
+    public ?string $template = null;
+
     public string $title = '';
 
     public ?string $bio = null;
@@ -209,13 +211,17 @@ class PageBuilder extends Component
         }
 
         try {
-            $page = $bio->createPage(auth()->user(), $domain, [
-                'title' => $this->title !== '' ? $this->title : 'Links',
-                'bio' => $this->bio,
-                'avatar_url' => $this->avatar_url,
-                'theme' => $this->theme,
-                'accent' => $this->accent,
-            ]);
+            if ($this->template !== null && $this->template !== '') {
+                $page = $bio->createFromTemplate(auth()->user(), $domain, $this->template, $this->title !== '' ? $this->title : null);
+            } else {
+                $page = $bio->createPage(auth()->user(), $domain, [
+                    'title' => $this->title !== '' ? $this->title : 'Links',
+                    'bio' => $this->bio,
+                    'avatar_url' => $this->avatar_url,
+                    'theme' => $this->theme,
+                    'accent' => $this->accent,
+                ]);
+            }
         } catch (ValidationException $e) {
             foreach ($e->errors() as $field => $messages) {
                 foreach ((array) $messages as $message) {
@@ -226,7 +232,7 @@ class PageBuilder extends Component
             return;
         }
 
-        $this->reset(['title', 'bio', 'avatar_url', 'slug', 'parent_id']);
+        $this->reset(['title', 'bio', 'avatar_url', 'slug', 'parent_id', 'template']);
         $this->theme = 'minimal';
         $this->selectPage($page->id);
     }
@@ -495,6 +501,79 @@ class PageBuilder extends Component
         } catch (ValidationException $e) {
             $this->addError('buttons', 'Could not apply the new order — please retry.');
         }
+    }
+
+    public ?string $quickAdd = null;
+
+    /**
+     * Bulk-add buttons from pasted lines: "Label | https://…" or a
+     * bare URL (label falls back to the host). Invalid lines are
+     * skipped and reported; valid ones append in order.
+     */
+    public function quickAddButtons(BioService $bio): void
+    {
+        $page = $this->editingPageId ? $this->ownedPage($this->editingPageId) : null;
+
+        if (! $page) {
+            return;
+        }
+
+        $lines = preg_split('/\r\n|\r|\n/', (string) $this->quickAdd);
+        $current = $bio->buttonRows($page);
+        $skipped = 0;
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+
+            if ($line === '') {
+                continue;
+            }
+
+            if (count($current) >= BioService::MAX_BUTTONS_PER_PAGE) {
+                $skipped++;
+
+                continue;
+            }
+
+            if (str_contains($line, '|')) {
+                [$label, $url] = array_map('trim', explode('|', $line, 2));
+            } else {
+                $url = $line;
+                $label = (string) parse_url($line, PHP_URL_HOST);
+            }
+
+            if ($label === '' || $url === '' || filter_var($url, FILTER_VALIDATE_URL) === false) {
+                $skipped++;
+
+                continue;
+            }
+
+            $current[] = [
+                'label' => mb_substr($label, 0, 60),
+                'kind' => 'link',
+                'destination_url' => mb_substr($url, 0, 2048),
+                'sort_order' => count($current),
+                'is_active' => true,
+            ];
+        }
+
+        if ($skipped > 0) {
+            $this->addError('quickAdd', "{$skipped} line(s) skipped (invalid URL, blank label, or page full).");
+        }
+
+        try {
+            $bio->syncButtons($page, $current, auth()->user());
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $messages) {
+                foreach ((array) $messages as $message) {
+                    $this->addError('quickAdd', $message);
+                }
+            }
+
+            return;
+        }
+
+        $this->quickAdd = null;
     }
 
     public function removeButton(BioService $bio, string $buttonId): void

@@ -19,6 +19,68 @@ class BioService
 
     public const MAX_BUTTONS_PER_PAGE = 25;
 
+    /**
+     * Starter kits for new pages: title + button rows in syncButtons
+     * shape. Placeholder links point at our own landing so they pass
+     * URL safety unchanged — owners edit them into shape. Applied on
+     * creation only; everything stays editable.
+     */
+    public const TEMPLATES = [
+        'creator' => [
+            'title' => 'My links',
+            'bio' => 'Find me everywhere below.',
+            'buttons' => [
+                ['label' => 'Latest video', 'kind' => 'link', 'destination_url' => 'https://href.nz/'],
+                ['label' => 'Newsletter', 'kind' => 'link', 'destination_url' => 'https://href.nz/'],
+                ['label' => 'Instagram', 'kind' => 'social', 'destination_url' => 'https://href.nz/', 'icon' => 'instagram'],
+                ['label' => 'Contact', 'kind' => 'contact', 'contact_email' => 'you@example.com'],
+            ],
+        ],
+        'business' => [
+            'title' => 'Our company',
+            'bio' => 'What we do, where to find us, how to reach us.',
+            'buttons' => [
+                ['label' => 'Our website', 'kind' => 'link', 'destination_url' => 'https://href.nz/'],
+                ['label' => 'Find us', 'sublabel' => '123 Main St, Open Mo–Fr 9–17', 'kind' => 'location', 'destination_url' => 'https://href.nz/'],
+                ['label' => 'Sales', 'kind' => 'contact', 'contact_email' => 'sales@example.com'],
+                ['label' => 'Quality first', 'sublabel' => 'Our promise', 'kind' => 'quote'],
+            ],
+        ],
+        'event' => [
+            'title' => 'Summer fest',
+            'bio' => 'One day, one park, all music.',
+            'buttons' => [
+                ['label' => 'Doors open', 'kind' => 'countdown', 'event_at' => '+30 days 18:00'],
+                ['label' => 'I am in', 'sublabel' => 'Free entry, bring friends', 'kind' => 'rsvp'],
+                ['label' => 'Lineup', 'kind' => 'header'],
+                ['label' => 'Headliner', 'kind' => 'link', 'destination_url' => 'https://href.nz/'],
+            ],
+        ],
+    ];
+
+    /**
+     * Create a page pre-filled from a starter template.
+     *
+     * @throws ValidationException
+     */
+    public function createFromTemplate(User $user, Domain $domain, string $template, ?string $title = null): BioPage
+    {
+        if (! isset(self::TEMPLATES[$template])) {
+            throw ValidationException::withMessages(['template' => 'Unknown template.']);
+        }
+
+        $preset = self::TEMPLATES[$template];
+
+        $page = $this->createPage($user, $domain, [
+            'title' => $title !== null && trim($title) !== '' ? mb_substr(trim($title), 0, 80) : $preset['title'],
+            'bio' => $preset['bio'],
+        ]);
+
+        $this->syncButtons($page, $preset['buttons'], $user);
+
+        return $page->fresh();
+    }
+
     public const RESERVED_SLUGS = [
         'url', 'go', 'preview', 'qr', 'bio', 't', 'new', 'login', 'auth', 'api', 'v1',
         'robots.txt', 'sitemap.xml', 'healthz', 'dashboard', 'admin', 'settings',
@@ -226,18 +288,24 @@ class BioService
                 throw ValidationException::withMessages(['buttons' => "Row {$i}: action must be url, subpage or modal."]);
             }
 
-            if ($action === 'url' && in_array($kind, ['link', 'social', 'video'], true)) {
-                if ($url === null) {
+            if ($action === 'url' && in_array($kind, ['link', 'social', 'video', 'audio', 'location'], true)) {
+                if ($url === null && $kind !== 'location') {
                     throw ValidationException::withMessages(['buttons' => "Row {$i}: destination_url is required."]);
                 }
-                $actingUser = $actor ?? $page->user;
-                if ($actingUser === null || ! $actingUser->isAdmin()) {
-                    $this->unsafeUrls->rejectIfUnsafe($url);
+                if ($url !== null) {
+                    $actingUser = $actor ?? $page->user;
+                    if ($actingUser === null || ! $actingUser->isAdmin()) {
+                        $this->unsafeUrls->rejectIfUnsafe($url);
+                    }
+                    $this->junkUrls->rejectIfJunk($url);
                 }
-                $this->junkUrls->rejectIfJunk($url);
 
-                if ($kind === 'video' && ! BioVideo::isVideoUrl($url)) {
+                if ($kind === 'video' && ! BioVideo::isVideoUrl((string) $url)) {
                     throw ValidationException::withMessages(['buttons' => "Row {$i}: video links must be YouTube or Vimeo URLs."]);
+                }
+
+                if ($kind === 'audio' && ! preg_match('/\.(mp3|ogg|oga|wav|m4a)(\?.*)?$/i', (string) $url)) {
+                    throw ValidationException::withMessages(['buttons' => "Row {$i}: audio blocks need a direct mp3/ogg/wav/m4a file URL."]);
                 }
             }
 
@@ -302,6 +370,7 @@ class BioService
                 'sort_order' => isset($b['sort_order']) ? max(0, min(255, (int) $b['sort_order'])) : $i,
                 'is_active' => array_key_exists('is_active', $b) ? (bool) $b['is_active'] : true,
                 'open_new' => array_key_exists('open_new', $b) ? (bool) $b['open_new'] : false,
+                'download_file' => array_key_exists('download_file', $b) ? (bool) $b['download_file'] : false,
                 'badge' => $badge !== '' ? mb_substr($badge, 0, 12) : null,
                 'event_at' => $eventAt,
                 'starts_at' => $b['starts_at'] ?? null,
@@ -475,6 +544,7 @@ class BioService
             'sort_order' => $b->sort_order,
             'is_active' => $b->is_active,
             'open_new' => $b->open_new,
+            'download_file' => $b->download_file,
             'badge' => $b->badge,
             'event_at' => $b->event_at?->format('Y-m-d\TH:i'),
             'starts_at' => $b->starts_at?->format('Y-m-d\TH:i'),

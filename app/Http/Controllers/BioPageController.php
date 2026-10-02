@@ -98,6 +98,11 @@ class BioPageController extends Controller
             ]);
         }
 
+        // Location and audio blocks without a target are display-only.
+        if (in_array($button->kind, ['location', 'audio'], true) && $button->destination_url === null) {
+            abort(404);
+        }
+
         // Modal pop-ups, coupons, and RSVPs open client-side; a crafted
         // GET lands back on the page, untracked.
         if ($button->action === 'modal' || in_array($button->kind, ['coupon', 'rsvp'], true)) {
@@ -139,7 +144,7 @@ class BioPageController extends Controller
             && $button->page->isVisible()
             && ! $this->isLocked($button->page, $request)
             && $button->isLive()
-            && ($button->action === 'modal' || in_array($button->kind, ['video', 'coupon'], true))) {
+            && ($button->action === 'modal' || in_array($button->kind, ['video', 'audio', 'coupon'], true))) {
             $this->tracker->trackTap($button->page, $button, $request);
         }
 

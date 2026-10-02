@@ -212,11 +212,17 @@ curl -X POST https://links.t-api.de/v1/bio-pages/<ulid>/duplicate \
   -H "Content-Type: application/json" \
   -d '{"domain_id": "<other-ulid>"}'
 
-# Quote, coupon, video, image, countdown, RSVP blocks
+# Quote, coupon, video, image, countdown, RSVP, location, audio blocks
 curl -X PUT https://links.t-api.de/v1/bio-pages/<ulid>/buttons \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{"buttons": [{"label": "Ship fast", "sublabel": "A founder", "kind": "quote"}, {"label": "Deal", "sublabel": "SHIP20", "kind": "coupon"}, {"label": "Talk", "kind": "video", "destination_url": "https://www.youtube.com/watch?v=…"}, {"label": "Party", "sublabel": "Aug 1", "kind": "rsvp"}]}'
+  -d '{"buttons": [{"label": "Ship fast", "sublabel": "A founder", "kind": "quote"}, {"label": "Deal", "sublabel": "SHIP20", "kind": "coupon"}, {"label": "Talk", "kind": "video", "destination_url": "https://www.youtube.com/watch?v=…"}, {"label": "Party", "sublabel": "Aug 1", "kind": "rsvp"}, {"label": "Studio", "sublabel": "123 Main St", "kind": "location"}, {"label": "Ep 1", "kind": "audio", "destination_url": "https://example.com/ep1.mp3"}]}'
+
+# Starter templates (creator, business, event)
+curl -X POST https://links.t-api.de/v1/bio-pages/from-template \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"domain_id": "<ulid>", "template": "event"}'
 
 # Per-button analytics + CSV export
 curl "https://links.t-api.de/v1/bio-pages/<ulid>/stats?days=30" -H "Authorization: Bearer tl_your_key_here"

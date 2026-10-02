@@ -49,11 +49,14 @@ $icons = [
 @foreach($flowButtons as $button)
 @if($button->kind === 'divider')<hr style="margin:16px 0;opacity:.4;grid-column:1/-1">
 @elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8;grid-column:1/-1">{{ $button->label }}</h2>
-@elseif($button->kind === 'countdown' && $button->event_at)<div class="countdown" data-countdown="{{ $button->event_at->toIso8601String() }}" style="margin:12px 0;padding:14px;border-radius:14px;border:1px dashed #a3a3a3"><div style="font-weight:700">{{ $button->label }}</div><div class="muted" data-countdown-label>…</div></div>
-@elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
+@elseif($button->kind === 'countdown' && $button->event_at)<div class="countdown" data-countdown="{{ $button->event_at->toIso8601String() }}" style="margin:12px 0;padding:14px;border-radius:14px;border:1px dashed #a3a3a3;grid-column:1/-1"><div style="font-weight:700">{{ $button->label }}</div><div class="muted" data-countdown-label>…</div></div>
+@elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0;grid-column:1/-1"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
+@elseif($button->kind === 'location')
+@if($button->destination_url)<a class="btn" style="{{ ltrim($btnExtra, ';') }};text-align:left" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>@else<div class="btn" style="{{ ltrim($btnExtra, ';') }};text-align:left;cursor:default">@endif<span style="font-size:18px;vertical-align:middle">📍 </span><span style="vertical-align:middle">{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span>@if($button->destination_url)</a>@else</div>@endif
+@elseif($button->kind === 'audio' && $button->destination_url)<div style="margin:12px 0;padding:12px 14px;border-radius:14px;border:1px solid #d4d4d4;text-align:left;grid-column:1/-1"><div style="font-weight:600">🎧 {{ $button->label }}</div><audio controls preload="none" src="{{ $button->destination_url }}" data-audio-bid="{{ $button->id }}" style="width:100%;margin-top:8px"></audio></div>
 @elseif($button->kind === 'rsvp')
 @php($mine = in_array($button->id, $rsvpd ?? [], true))
-<div style="margin:12px 0;padding:14px;border-radius:14px;border:1px solid #d4d4d4;text-align:center">
+<div style="margin:12px 0;padding:14px;border-radius:14px;border:1px solid #d4d4d4;text-align:center;grid-column:1/-1">
 <div style="font-weight:700">{{ $button->label }}</div>
 @if($button->sublabel)<div class="muted" style="font-size:13px">{{ $button->sublabel }}</div>@endif
 <div class="muted" style="margin:6px 0;font-size:13px">{{ number_format($button->rsvp_count ?? 0) }} going</div>
@@ -65,10 +68,10 @@ $icons = [
 <a class="btn" style="margin:8px 0 0" href="/t/{{ $button->id }}/rsvp">✓ I'm in</a>
 @endif
 </div>
-@elseif($button->kind === 'quote')<blockquote style="margin:12px 0;padding:12px 16px;border-left:3px solid #a3a3a3;text-align:left;font-style:italic">“{{ $button->label }}”@if($button->sublabel)<footer class="muted" style="margin-top:4px;font-size:13px;font-style:normal">— {{ $button->sublabel }}</footer>@endif</blockquote>
-@elseif($button->kind === 'coupon' && $button->sublabel)<div class="coupon" style="margin:12px 0;padding:14px;border-radius:14px;border:1.5px dashed #a3a3a3"><div style="font-weight:700">{{ $button->label }}</div><div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px"><code data-coupon="{{ $button->sublabel }}" style="font-family:monospace;font-size:16px;letter-spacing:2px">{{ $button->sublabel }}</code>@unless($preview)<button type="button" data-coupon-copy="{{ $button->id }}" style="font-size:12px;padding:6px 12px;border-radius:9999px;border:1px solid #d4d4d4;background:transparent;color:inherit;cursor:pointer">Copy</button>@endunless</div></div>
+@elseif($button->kind === 'quote')<blockquote style="grid-column:1/-1;margin:12px 0;padding:12px 16px;border-left:3px solid #a3a3a3;text-align:left;font-style:italic">“{{ $button->label }}”@if($button->sublabel)<footer class="muted" style="margin-top:4px;font-size:13px;font-style:normal">— {{ $button->sublabel }}</footer>@endif</blockquote>
+@elseif($button->kind === 'coupon' && $button->sublabel)<div class="coupon" style="grid-column:1/-1;margin:12px 0;padding:14px;border-radius:14px;border:1.5px dashed #a3a3a3"><div style="font-weight:700">{{ $button->label }}</div><div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px"><code data-coupon="{{ $button->sublabel }}" style="font-family:monospace;font-size:16px;letter-spacing:2px">{{ $button->sublabel }}</code>@unless($preview)<button type="button" data-coupon-copy="{{ $button->id }}" style="font-size:12px;padding:6px 12px;border-radius:9999px;border:1px solid #d4d4d4;background:transparent;color:inherit;cursor:pointer">Copy</button>@endunless</div></div>
 @elseif($button->kind === 'video' && ($embed = \App\Support\BioVideo::embed((string) $button->destination_url)))
-<div class="videofacade" data-video="{{ $button->id }}" data-src="{{ $embed['embed'] }}" data-bio-button="{{ $button->id }}" role="button" tabindex="0" aria-label="Play video: {{ $button->label }}" @unless($preview) style="cursor:pointer" @endunless>
+<div class="videofacade" style="grid-column:1/-1" data-video="{{ $button->id }}" data-src="{{ $embed['embed'] }}" data-bio-button="{{ $button->id }}" role="button" tabindex="0" aria-label="Play video: {{ $button->label }}" @unless($preview) style="grid-column:1/-1;cursor:pointer" @endunless>
 @if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@endif
 <div style="padding:10px 4px 2px;font-weight:600">▶ {{ $button->label }}</div>
 </div>
@@ -80,7 +83,7 @@ $icons = [
 @if($button->modal_body)<p class="muted" style="white-space:pre-line">{{ $button->modal_body }}</p>@endif
 <form method="dialog" style="margin-top:14px"><button class="btn" style="width:100%;cursor:pointer" value="close">Close</button></form>
 </dialog>
-@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless @if(!$preview && ($button->open_new ?? false)) target="_blank" @endif>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif<span style="vertical-align:middle">@if($button->kind === 'contact')⤓ @endif{{ $button->label }}@if(!empty($button->badge))<span style="display:inline-block;margin-left:8px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:9999px;background:#171717;color:#fff;vertical-align:middle">{{ $button->badge }}</span>@endif@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
+@else<a class="btn" style="{{ ltrim($btnExtra, ';') }}" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless @if(!$preview && ($button->open_new ?? false)) target="_blank" @endif @if(!empty($button->download_file) && !$preview) download @endif>@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@elseif(!empty($button->icon) && isset($icons[$button->icon]))<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:middle;margin-right:8px">{!! $icons[$button->icon] !!}</svg>@endif<span style="vertical-align:middle">@if($button->kind === 'contact')⤓ @endif{{ $button->label }}@if(!empty($button->badge))<span style="display:inline-block;margin-left:8px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:9999px;background:#171717;color:#fff;vertical-align:middle">{{ $button->badge }}</span>@endif@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span></a>
 @endif
 @endforeach
 </div>
@@ -132,6 +135,13 @@ document.querySelectorAll('[data-video]').forEach(function (facade) {
     facade.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); }
     });
+});
+document.querySelectorAll('[data-audio-bid]').forEach(function (player) {
+    player.addEventListener('play', function () {
+        if (player.dataset.tracked) { return; }
+        player.dataset.tracked = '1';
+        new Image().src = '/t/' + player.getAttribute('data-audio-bid') + '/open.gif';
+    }, { once: false });
 });
 document.querySelectorAll('[data-countdown]').forEach(function (box) {
     var label = box.querySelector('[data-countdown-label]');

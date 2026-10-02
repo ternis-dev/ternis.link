@@ -216,6 +216,14 @@
                     @endforeach
                 </ul>
                 <p class="mt-2 text-xs text-neutral-500">Drag rows to reorder — order saves automatically (↑↓ buttons work everywhere, including touch).</p>
+                <details class="mt-3">
+                    <summary class="cursor-pointer text-sm font-medium">Quick add — paste lines</summary>
+                    <div class="mt-2 space-y-2">
+                        <textarea wire:model="quickAdd" rows="3" placeholder="My blog | https://example.com/blog" class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-xs dark:border-neutral-700 dark:bg-neutral-900"></textarea>
+                        @error('quickAdd')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                        <x-ui.button type="button" wire:click="quickAddButtons" variant="ghost">Add lines as buttons</x-ui.button>
+                    </div>
+                </details>
             </x-ui.card>
         </div>
 

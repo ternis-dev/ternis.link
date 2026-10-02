@@ -11,7 +11,7 @@ class BioButton extends Model
 {
     use HasUlids;
 
-    public const KINDS = ['link', 'header', 'divider', 'social', 'contact', 'video', 'image', 'countdown', 'quote', 'coupon', 'rsvp'];
+    public const KINDS = ['link', 'header', 'divider', 'social', 'contact', 'video', 'image', 'countdown', 'quote', 'coupon', 'rsvp', 'location', 'audio'];
 
     public const ACTIONS = ['url', 'subpage', 'modal'];
 
@@ -35,6 +35,7 @@ class BioButton extends Model
         'sort_order',
         'is_active',
         'open_new',
+        'download_file',
         'badge',
         'event_at',
         'starts_at',
@@ -46,6 +47,7 @@ class BioButton extends Model
         'sort_order' => 'integer',
         'is_active' => 'boolean',
         'open_new' => 'boolean',
+        'download_file' => 'boolean',
         'event_at' => 'datetime',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',

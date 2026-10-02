@@ -560,7 +560,7 @@ paths:
                       id: { type: string, description: ULID of an existing button (identity-preserving update; unknown ids rejected) }
                       label: { type: string, maxLength: 60 }
                       sublabel: { type: string, maxLength: 120 }
-                      kind: { type: string, enum: [link, header, divider, social, contact, video, image, countdown, quote, coupon, rsvp] }
+                      kind: { type: string, enum: [link, header, divider, social, contact, video, image, countdown, quote, coupon, rsvp, location, audio] }
                       action: { type: string, enum: [url, subpage, modal], default: url, description: url = destination_url, subpage = target_page_id inside the same bio family, modal = pop-up }
                       destination_url: { type: string, format: uri, maxLength: 2048 }
                       target_page_id: { type: string, description: ULID of a page in the same bio family }
@@ -570,6 +570,7 @@ paths:
                       contact_email: { type: string, format: email, maxLength: 255, description: Required for contact buttons (email or phone) }
                       contact_phone: { type: string, maxLength: 40 }
                       open_new: { type: boolean, description: Open in a new tab }
+                      download_file: { type: boolean, description: Hint browsers to download the target }
                       badge: { type: string, maxLength: 12 }
                       event_at: { type: string, format: date-time, description: Required for countdown blocks }
                       icon: { type: string, enum: [instagram, tiktok, x, youtube, github, globe, mail, link] }
@@ -577,6 +578,26 @@ paths:
                       is_active: { type: boolean }
       responses:
         '200': { description: Updated button list }
+        '422': { description: Validation error (`{ message, errors }`) }
+  /bio-pages/from-template:
+    post:
+      summary: Create a page pre-filled from a starter template
+      description: |
+        Templates `creator`, `business`, `event`. Counts against the
+        usual page caps; starts with placeholder links to edit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain_id, template]
+              properties:
+                domain_id: { type: string, description: ULID }
+                template: { type: string, enum: [creator, business, event] }
+                title: { type: string, maxLength: 80 }
+      responses:
+        '201': { description: Created pre-filled page }
         '422': { description: Validation error (`{ message, errors }`) }
   /bio-pages/{page}/duplicate:
     parameters:

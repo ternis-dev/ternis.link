@@ -18,6 +18,12 @@
             <x-ui.input label="Title *" name="title" type="text" wire:model="title" placeholder="My links" required maxlength="80" />
             <x-ui.input label="Bio" name="bio" type="text" wire:model="bio" placeholder="One line about you" maxlength="280" />
             <x-ui.input label="Avatar URL" name="avatar_url" type="url" wire:model="avatar_url" placeholder="https://…" maxlength="2048" />
+            <x-ui.select label="Start from template (optional)" name="template" wire:model="template">
+                <option value="">Blank page</option>
+                <option value="creator">Creator</option>
+                <option value="business">Business</option>
+                <option value="event">Event</option>
+            </x-ui.select>
             <div class="flex gap-3 pt-1">
                 <x-ui.button type="submit" variant="primary">Create page</x-ui.button>
             </div>
@@ -259,6 +265,14 @@
                 @endforeach
             </ul>
             <p class="mt-2 text-xs text-neutral-500">Drag rows to reorder — order saves automatically (↑↓ buttons work everywhere, including touch).</p>
+            <details class="mt-4">
+                <summary class="cursor-pointer text-sm font-medium">Quick add — paste lines</summary>
+                <div class="mt-2 space-y-2">
+                    <textarea wire:model="quickAdd" rows="4" placeholder="My blog | https://example.com/blog&#10;https://example.com/shop" class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-xs dark:border-neutral-700 dark:bg-neutral-950"></textarea>
+                    @error('quickAdd')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                    <x-ui.button type="button" wire:click="quickAddButtons" variant="ghost">Add lines as buttons</x-ui.button>
+                </div>
+            </details>
         </div>
             </div>
             <div class="hidden lg:block">

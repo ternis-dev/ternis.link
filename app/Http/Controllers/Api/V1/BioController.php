@@ -156,6 +156,28 @@ class BioController extends Controller
         return response()->json($copy->load(['domain:id,hostname', 'buttons']), 201);
     }
 
+    /**
+     * Create a page pre-filled from a starter template (creator,
+     * business, event). Counts against the usual page caps.
+     */
+    public function fromTemplate(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'domain_id' => ['required', 'exists:domains,id'],
+            'template' => ['required', 'in:creator,business,event'],
+            'title' => ['nullable', 'string', 'max:80'],
+        ]);
+
+        $page = $this->bio->createFromTemplate(
+            $request->user(),
+            Domain::findOrFail($data['domain_id']),
+            $data['template'],
+            $data['title'] ?? null,
+        );
+
+        return response()->json($page->load(['domain:id,hostname', 'buttons']), 201);
+    }
+
     public function syncButtons(Request $request, BioPage $page): JsonResponse
     {
         $this->authorizePage($request, $page);

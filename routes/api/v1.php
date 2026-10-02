@@ -89,6 +89,7 @@ Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::c
     // Link-in-bio pages (custom domains only, v1)
     Route::get('bio-pages', [BioController::class, 'index']);
     Route::post('bio-pages', [BioController::class, 'store']);
+    Route::post('bio-pages/from-template', [BioController::class, 'fromTemplate']);
     Route::get('bio-pages/{page}', [BioController::class, 'show']);
     Route::put('bio-pages/{page}', [BioController::class, 'update']);
     Route::delete('bio-pages/{page}', [BioController::class, 'destroy']);
