@@ -212,6 +212,10 @@ class UserTrackingAndParametersTest extends TestCase
         $this->assertSame(['newsletter', 'promo'], $first['tags']);
         $this->assertSame('user_alpha', $first['query_params']['uid']);
         $this->assertSame('app', $first['query_params']['ref']);
+        $this->assertArrayNotHasKey('ip_encrypted', $first);
+
+        // Record a second click without tracking or params
+        $this->get('http://href.nz/apiclick1');
 
         // Test filtering by tag
         $tagFiltered = $this->getJson("http://links.t-api.de/v1/links/{$link->id}/clicks?tag=newsletter", $this->headers());
@@ -222,11 +226,36 @@ class UserTrackingAndParametersTest extends TestCase
         $noTag->assertOk();
         $this->assertCount(0, $noTag->json('data'));
 
+        // Test filtering by has_user
+        $withUser = $this->getJson("http://links.t-api.de/v1/links/{$link->id}/clicks?has_user=1", $this->headers());
+        $withUser->assertOk();
+        $this->assertCount(1, $withUser->json('data'));
+
+        $withoutUser = $this->getJson("http://links.t-api.de/v1/links/{$link->id}/clicks?has_user=0", $this->headers());
+        $withoutUser->assertOk();
+        $this->assertCount(1, $withoutUser->json('data'));
+
+        // Test filtering by has_params
+        $withParams = $this->getJson("http://links.t-api.de/v1/links/{$link->id}/clicks?has_params=1", $this->headers());
+        $withParams->assertOk();
+        $this->assertCount(1, $withParams->json('data'));
+
         // GET /v1/links/{link}/clicks/summary
         $summary = $this->getJson("http://links.t-api.de/v1/links/{$link->id}/clicks/summary", $this->headers());
         $summary->assertOk();
-        $this->assertSame(1, $summary->json('total_clicks'));
+        $this->assertSame(2, $summary->json('total_clicks'));
         $this->assertSame(1, $summary->json('unique_users'));
+        $this->assertSame(1, $summary->json('tracked_clicks'));
+        $this->assertSame(1, $summary->json('with_params_clicks'));
+        $this->assertEquals([
+            ['tag' => 'newsletter', 'count' => 1],
+            ['tag' => 'promo', 'count' => 1],
+        ], $summary->json('top_tags'));
+
+        // Filter summary by tag
+        $summaryTag = $this->getJson("http://links.t-api.de/v1/links/{$link->id}/clicks/summary?tag=newsletter", $this->headers());
+        $summaryTag->assertOk();
+        $this->assertSame(1, $summaryTag->json('total_clicks'));
     }
 
     public function test_csv_export_includes_query_params_tags_and_user_identifier(): void
@@ -251,5 +280,38 @@ class UserTrackingAndParametersTest extends TestCase
         $this->assertStringContainsString('usr_csv', $content);
         $this->assertStringContainsString('"sale, lead"', $content);
         $this->assertStringContainsString('save10', $content);
+    }
+
+    public function test_api_links_index_can_filter_by_user_tracking_enabled(): void
+    {
+        Link::create([
+            'slug' => 'track-on',
+            'destination_url' => 'https://example.com/on',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+            'user_tracking_enabled' => true,
+        ]);
+
+        Link::create([
+            'slug' => 'track-off',
+            'destination_url' => 'https://example.com/off',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+            'user_tracking_enabled' => false,
+        ]);
+
+        $resTrue = $this->getJson('http://links.t-api.de/v1/links?user_tracking_enabled=1', $this->headers());
+        $resTrue->assertOk();
+        $slugsTrue = collect($resTrue->json('data'))->pluck('slug')->all();
+        $this->assertContains('track-on', $slugsTrue);
+        $this->assertNotContains('track-off', $slugsTrue);
+
+        $resFalse = $this->getJson('http://links.t-api.de/v1/links?user_tracking_enabled=0', $this->headers());
+        $resFalse->assertOk();
+        $slugsFalse = collect($resFalse->json('data'))->pluck('slug')->all();
+        $this->assertContains('track-off', $slugsFalse);
+        $this->assertNotContains('track-on', $slugsFalse);
     }
 }

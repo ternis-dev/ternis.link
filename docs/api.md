@@ -40,11 +40,15 @@ curl "https://links.t-api.de/v1/links?tag=launch" \
 curl "https://links.t-api.de/v1/links?api_key_id=<key-ulid>" \
   -H "Authorization: Bearer tl_your_key_here"
 
+# Filter by user tracking status (?user_tracking_enabled=1 or 0)
+curl "https://links.t-api.de/v1/links?user_tracking_enabled=1" \
+  -H "Authorization: Bearer tl_your_key_here"
+
 # Create (custom slug optional; plan minimum length applies; domains must be verified)
 curl -X POST https://links.t-api.de/v1/links \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{"destination_url": "https://example.com/very-long-page", "domain_id": "<ulid>", "slug": "my-launch", "tags": ["launch"], "og_title": "Launch day", "og_description": "Our new thing", "og_image_url": "https://example.com/og.png"}'
+  -d '{"destination_url": "https://example.com/very-long-page", "domain_id": "<ulid>", "slug": "my-launch", "tags": ["launch"], "user_tracking_enabled": true, "og_title": "Launch day", "og_description": "Our new thing", "og_image_url": "https://example.com/og.png"}'
 ```
 
 Every link created with a personal key stores that key (`api_key_id`, exposed as `api_key` with name/prefix on responses) and logs it in the activity history (`link.created` with `api_key_id`, `api_key_name`, `api_key_prefix`, `auth_via`). SSO-token calls leave `api_key_id` empty. Filter the dashboard list by origin (All origins / Dashboard only / one key) or open a key's dedicated page under API keys.
@@ -55,7 +59,7 @@ curl https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_ke
 curl -X PUT https://links.t-api.de/v1/links/<ulid> \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{"description": "Launch page", "og_title": "Launch day"}'
+  -d '{"description": "Launch page", "og_title": "Launch day", "user_tracking_enabled": true}'
 curl -X DELETE https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
 ```
 
@@ -72,14 +76,51 @@ curl -X POST https://links.t-api.de/v1/links/public \
 ## Click analytics
 
 ```bash
-# Raw click rows (paginated)
+# Raw click rows (paginated, max 100 per page; query_params, tags, and user_identifier included)
 curl https://links.t-api.de/v1/links/<ulid>/clicks -H "Authorization: Bearer tl_your_key_here"
 
-# Aggregates: totals, unique visitors, top referrers/countries, per-day counts
+# Filter clicks by dynamic tag (?tag=newsletter)
+curl "https://links.t-api.de/v1/links/<ulid>/clicks?tag=newsletter" -H "Authorization: Bearer tl_your_key_here"
+
+# Filter clicks with tracked users only (?has_user=1 or 0) or specific user identifier
+curl "https://links.t-api.de/v1/links/<ulid>/clicks?has_user=1" -H "Authorization: Bearer tl_your_key_here"
+curl "https://links.t-api.de/v1/links/<ulid>/clicks?user_identifier=customer_987" -H "Authorization: Bearer tl_your_key_here"
+
+# Filter clicks with query parameters captured (?has_params=1) or by date range (?from=...&to=...)
+curl "https://links.t-api.de/v1/links/<ulid>/clicks?has_params=1&from=2026-10-01&to=2026-10-31" -H "Authorization: Bearer tl_your_key_here"
+
+# Aggregates: totals, unique visitors, unique users, tracked clicks, top tags, top referrers/countries, per-day counts
 curl https://links.t-api.de/v1/links/<ulid>/clicks/summary -H "Authorization: Bearer tl_your_key_here"
+
+# Aggregated stats filtered by dynamic tag or date range
+curl "https://links.t-api.de/v1/links/<ulid>/clicks/summary?tag=promo&from=2026-10-01" -H "Authorization: Bearer tl_your_key_here"
 ```
 
 These are the same numbers the dashboard charts are drawn from.
+
+## Dynamic tracking & privacy
+
+Clicks on your short links can capture dynamic attribution and subscriber telemetry without needing to create separate links for each campaign or recipient.
+
+### 1. Dynamic click tags
+Customer applications (newsletters, marketing automation, CRM webhooks) can append tags dynamically at click time:
+- **Comma-separated query string:** `https://clicked.at/oct-launch?tags=newsletter,promo-fall,vip`
+- **Array query string:** `https://clicked.at/oct-launch?tag[]=editorial&tag[]=issue47`
+- **Single query string:** `https://clicked.at/oct-launch?tag=announcement`
+- **Alternative param:** `https://clicked.at/oct-launch?click_tags=partner,q4`
+- **HTTP request header:** `X-Click-Tags: sponsor,edition-9`
+
+Tags are automatically lowercased, sanitized (alphanumeric, dashes, underscores, max 50 chars), deduplicated, and capped at 10 tags per click. Clicks can then be filtered or grouped by tag in API endpoints and CSV exports.
+
+### 2. Privacy-preserving subscriber tracking
+User and subscriber tracking follows strict privacy best practices:
+- **Opt-in only:** Only active when `user_tracking_enabled = true` on the link, or when the request carries `?track_user=1` or `X-User-Tracking: 1`.
+- **Supported user keys:** `uid`, `user_id`, `subscriber_id`, `sub_id`, `sub`, `customer_id`, `contact_id`, `external_id`, or `email` (as well as `X-User-Id` / `X-Subscriber-Id` headers).
+- **Zero plaintext email persistence:** If the identifier contains an `@` symbol (email address), it is automatically hashed with SHA-256 (`em_<32-hex-hash>`). Plaintext emails are never stored in analytics databases or logs.
+- **DNT & Global Privacy Control:** Requests sending `DNT: 1` (Do Not Track) or `Sec-GPC: 1` (Global Privacy Control) headers suppress user tracking entirely.
+
+### 3. Structured URL parameter capture
+All incoming URL query parameters (excluding reserved routing parameters `debug` and `target`) are safely stored in structured JSON in the `query_params` column (max 50 parameters, values capped at 1,024 characters). Stored parameters are forwarded to the destination URL while preserving any existing destination parameters.
 
 ## QR codes
 

@@ -33,8 +33,24 @@ class ClickController extends Controller
             ->when($request->filled('user_identifier'), function ($query) use ($request) {
                 $query->where('user_identifier', $request->query('user_identifier'));
             })
+            ->when($request->has('has_user'), function ($query) use ($request) {
+                $request->boolean('has_user')
+                    ? $query->whereNotNull('user_identifier')
+                    : $query->whereNull('user_identifier');
+            })
+            ->when($request->has('has_params'), function ($query) use ($request) {
+                $request->boolean('has_params')
+                    ? $query->whereNotNull('query_params')
+                    : $query->whereNull('query_params');
+            })
+            ->when($request->filled('from'), function ($query) use ($request) {
+                $query->where('created_at', '>=', $request->query('from'));
+            })
+            ->when($request->filled('to'), function ($query) use ($request) {
+                $query->where('created_at', '<=', $request->query('to'));
+            })
             ->orderByDesc('created_at')
-            ->paginate(50);
+            ->paginate(min(100, max(1, $request->integer('per_page', 50))));
 
         return response()->json($clicks);
     }
@@ -53,12 +69,44 @@ class ClickController extends Controller
         }
 
         $baseQuery = $link->clicks()
-            ->when(! $request->user()->isAdmin(), fn ($q) => $q->where('is_direct_url', false));
+            ->when(! $request->user()->isAdmin(), fn ($q) => $q->where('is_direct_url', false))
+            ->when($request->filled('tag'), fn ($q) => $q->whereJsonContains('tags', $request->query('tag')))
+            ->when($request->filled('user_identifier'), fn ($q) => $q->where('user_identifier', $request->query('user_identifier')))
+            ->when($request->has('has_user'), function ($query) use ($request) {
+                $request->boolean('has_user')
+                    ? $query->whereNotNull('user_identifier')
+                    : $query->whereNull('user_identifier');
+            })
+            ->when($request->has('has_params'), function ($query) use ($request) {
+                $request->boolean('has_params')
+                    ? $query->whereNotNull('query_params')
+                    : $query->whereNull('query_params');
+            })
+            ->when($request->filled('from'), fn ($q) => $q->where('created_at', '>=', $request->query('from')))
+            ->when($request->filled('to'), fn ($q) => $q->where('created_at', '<=', $request->query('to')));
+
+        // Calculate top dynamic tags from tracked clicks
+        $rawTags = (clone $baseQuery)
+            ->whereNotNull('tags')
+            ->pluck('tags');
+
+        $topTags = collect($rawTags)
+            ->flatten()
+            ->filter(fn ($t) => is_string($t) && $t !== '')
+            ->countBy()
+            ->sortDesc()
+            ->take(10)
+            ->map(fn ($count, $tag) => ['tag' => (string) $tag, 'count' => (int) $count])
+            ->values()
+            ->all();
 
         $summary = [
             'total_clicks' => $baseQuery->count(),
             'unique_visitors' => (clone $baseQuery)->distinct('ip_hash')->count('ip_hash'),
             'unique_users' => (clone $baseQuery)->whereNotNull('user_identifier')->distinct('user_identifier')->count('user_identifier'),
+            'tracked_clicks' => (clone $baseQuery)->whereNotNull('user_identifier')->count(),
+            'with_params_clicks' => (clone $baseQuery)->whereNotNull('query_params')->count(),
+            'top_tags' => $topTags,
             'top_referrers' => (clone $baseQuery)
                 ->selectRaw('referrer, COUNT(*) as count')
                 ->whereNotNull('referrer')

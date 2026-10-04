@@ -53,6 +53,9 @@ class LinkController extends Controller
                     $query->where('api_key_id', $apiKeyFilter);
                 }
             })
+            ->when($request->has('user_tracking_enabled'), function ($query) use ($request) {
+                $query->where('user_tracking_enabled', $request->boolean('user_tracking_enabled'));
+            })
             ->orderByDesc('created_at')
             ->paginate(25);
 

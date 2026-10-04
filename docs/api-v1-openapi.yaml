@@ -159,6 +159,11 @@ paths:
           required: false
           schema: { type: string }
           description: Filter to links created with one API key (ULID, must be owned unless admin with scope=all). `none` selects dashboard-created links (no key).
+        - name: user_tracking_enabled
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: Filter links by whether privacy-preserving user tracking is enabled.
       responses:
         '200':
           description: Paginated links
@@ -198,6 +203,7 @@ paths:
                 og_image_url: { type: string, format: uri, maxLength: 2048, description: https image URL for shares }
                 password: { type: string, minLength: 8, maxLength: 72, description: Password-protect the link (members only) }
                 tags: { type: array, maxItems: 10, items: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$" } }
+                user_tracking_enabled: { type: boolean, description: Enable privacy-preserving subscriber/user tracking (email SHA-256 pseudonymization, DNT/GPC compliance) }
                 expires_at: { type: string, format: date-time }
       responses:
         '201':
@@ -236,6 +242,7 @@ paths:
                 password: { type: string, minLength: 8, maxLength: 72, nullable: true, description: Sets (or rotates) the link password }
                 remove_password: { type: boolean, description: Clears the link password }
                 tags: { type: array, maxItems: 10, items: { type: string }, nullable: true }
+                user_tracking_enabled: { type: boolean, nullable: true, description: Toggle privacy-preserving subscriber/user tracking }
                 is_active: { type: boolean }
                 expires_at: { type: string, format: date-time, nullable: true }
       responses:
@@ -253,8 +260,66 @@ paths:
       - { name: link, in: path, required: true, schema: { type: string, description: ULID } }
     get:
       summary: Paginated clicks (direct-URL clicks admin-only)
+      parameters:
+        - name: tag
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter clicks containing this dynamic tag
+        - name: user_identifier
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter clicks matching this pseudonymized user identifier
+        - name: has_user
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: Filter to clicks with (1) or without (0) a tracked user identifier
+        - name: has_params
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: Filter to clicks with (1) or without (0) captured query parameters
+        - name: from
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+          description: Filter clicks recorded on or after this timestamp
+        - name: to
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+          description: Filter clicks recorded on or before this timestamp
+        - name: per_page
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+          description: Number of clicks per page
       responses:
-        '200': { description: Paginated clicks }
+        '200':
+          description: Paginated clicks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_page: { type: integer }
+                  total: { type: integer }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string, description: ULID }
+                        link_id: { type: string }
+                        referrer: { type: string, nullable: true }
+                        country_code: { type: string, nullable: true }
+                        city: { type: string, nullable: true }
+                        tags: { type: array, items: { type: string }, nullable: true }
+                        user_identifier: { type: string, nullable: true, description: Pseudonymized subscriber ID or SHA-256 email hash }
+                        query_params: { type: object, nullable: true, description: Captured JSON URL query parameters }
+                        created_at: { type: string, format: date-time }
         '403': { description: Not the owner }
   /links/{link}/qr:
     parameters:
@@ -281,9 +346,40 @@ paths:
       - { name: link, in: path, required: true, schema: { type: string, description: ULID } }
     get:
       summary: Aggregated click stats
+      parameters:
+        - name: tag
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter summary to clicks containing this dynamic tag
+        - name: user_identifier
+          in: query
+          required: false
+          schema: { type: string }
+          description: Filter summary to clicks matching this user identifier
+        - name: has_user
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: Filter summary to clicks with (1) or without (0) a tracked user
+        - name: has_params
+          in: query
+          required: false
+          schema: { type: boolean }
+          description: Filter summary to clicks with (1) or without (0) captured parameters
+        - name: from
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+          description: Start of summary window
+        - name: to
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+          description: End of summary window
       responses:
         '200':
-          description: Totals, unique visitors, top referrers/countries, by-day
+          description: Totals, unique visitors, tracked users, top tags, top referrers/countries, by-day
           content:
             application/json:
               schema:
@@ -291,9 +387,20 @@ paths:
                 properties:
                   total_clicks: { type: integer }
                   unique_visitors: { type: integer }
+                  unique_users: { type: integer }
+                  tracked_clicks: { type: integer }
+                  with_params_clicks: { type: integer }
+                  top_tags:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        tag: { type: string }
+                        count: { type: integer }
                   top_referrers: { type: array, items: { type: object } }
                   top_countries: { type: array, items: { type: object } }
                   clicks_by_day: { type: array, items: { type: object } }
+                  by_target: { type: array, items: { type: object } }
   /domains:
     get:
       summary: List system + own domains

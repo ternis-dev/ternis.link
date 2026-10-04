@@ -29,6 +29,10 @@ class Click extends Model
         'created_at',
     ];
 
+    protected $hidden = [
+        'ip_encrypted',
+    ];
+
     protected $casts = [
         'is_direct_url' => 'boolean',
         'query_params' => 'array',
