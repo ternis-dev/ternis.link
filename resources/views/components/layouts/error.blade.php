@@ -46,7 +46,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $code }} — {{ $title }} · ternis.link</title>
+    <title>{{ $code }} — {{ $title }} · {{ \App\Support\DomainUrls::isInternal() ? 'int.ternis.link' : 'ternis.link' }}</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <script>
@@ -77,7 +77,11 @@
                 <div class="mt-6 flex flex-wrap justify-center gap-2">{{ $actions }}</div>
             @endif
         </div>
-        <p class="mt-6 text-center text-xs text-neutral-500 dark:text-neutral-500">href.nz · href.re · ternis.link · <a href="https://ternis.link/pages/legal/privacy" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">privacy</a> · <a href="https://ternis.link/pages/legal/terms" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">terms</a></p>
+        @if (\App\Support\DomainUrls::isInternal())
+            <p class="mt-6 text-center text-xs text-neutral-500 dark:text-neutral-500">int.ternis.link · internal routing · <a href="{{ url('/imprint') }}" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">imprint</a> · <a href="https://ternis.link" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">ternis.link</a> · <a href="https://ternis.dev" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">ternis.dev</a></p>
+        @else
+            <p class="mt-6 text-center text-xs text-neutral-500 dark:text-neutral-500">href.nz · href.re · ternis.link · <a href="https://ternis.link/pages/legal/privacy" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">privacy</a> · <a href="https://ternis.link/pages/legal/terms" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">terms</a></p>
+        @endif
     </main>
 </body>
 </html>

@@ -26,7 +26,14 @@
 <body class="flex min-h-screen flex-col">
     <header class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
         <div class="mx-auto flex {{ $maxWidth }} items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <a href="/" class="font-display text-xl font-bold tracking-tight">ternis<span class="text-neutral-400 dark:text-neutral-500">.link</span></a>
+            @if (\App\Support\DomainUrls::isInternal())
+                <div class="flex items-center gap-2.5">
+                    <a href="/" class="font-display text-xl font-bold tracking-tight">int<span class="text-neutral-400 dark:text-neutral-500">.ternis.link</span></a>
+                    <x-ui.badge tone="solid" class="hidden sm:inline-flex">Internal Gateway</x-ui.badge>
+                </div>
+            @else
+                <a href="/" class="font-display text-xl font-bold tracking-tight">ternis<span class="text-neutral-400 dark:text-neutral-500">.link</span></a>
+            @endif
             <div class="flex items-center gap-2 sm:gap-3">
                 <button
                     type="button"
@@ -62,13 +69,21 @@
 
     <footer class="border-t border-neutral-200 py-6 dark:border-neutral-800">
         <p class="text-center text-xs text-neutral-500 dark:text-neutral-500">
-            ternis.link — by <a href="https://ternis.dev" class="underline underline-offset-2">ternis.dev</a> · hosted on <a href="https://ternis.net" class="underline underline-offset-2">ternis.net</a>
-            ·
-            <a href="https://ternis.link/pages/legal/privacy" class="underline underline-offset-2">Privacy</a>
-            ·
-            <a href="https://ternis.link/pages/legal/terms" class="underline underline-offset-2">Terms</a>
-            ·
-            <a href="{{ \App\Support\DomainUrls::impressum() }}" class="underline underline-offset-2">Imprint</a>
+            @if (\App\Support\DomainUrls::isInternal())
+                int.ternis.link — internal routing by <a href="https://ternis.dev" class="underline underline-offset-2">ternis.dev</a>
+                ·
+                <a href="https://ternis.link" class="underline underline-offset-2">ternis.link</a>
+                ·
+                <a href="{{ url('/imprint') }}" class="underline underline-offset-2">Imprint</a>
+            @else
+                ternis.link — by <a href="https://ternis.dev" class="underline underline-offset-2">ternis.dev</a> · hosted on <a href="https://ternis.net" class="underline underline-offset-2">ternis.net</a>
+                ·
+                <a href="https://ternis.link/pages/legal/privacy" class="underline underline-offset-2">Privacy</a>
+                ·
+                <a href="https://ternis.link/pages/legal/terms" class="underline underline-offset-2">Terms</a>
+                ·
+                <a href="{{ \App\Support\DomainUrls::impressum() }}" class="underline underline-offset-2">Imprint</a>
+            @endif
         </p>
     </footer>
 

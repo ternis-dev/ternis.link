@@ -72,4 +72,18 @@ class LandingIndexTest extends TestCase
             ->assertSee('application/ld+json', escape: false)
             ->assertSee('FAQPage', escape: false);
     }
+
+    public function test_ternis_landing_cards_have_icons_and_titles_on_same_line(): void
+    {
+        $response = $this->get('http://ternis.link/');
+
+        $response->assertStatus(200);
+        $response->assertSee('flex items-center gap-3', escape: false);
+        $response->assertSee('Personal subdomain', escape: false);
+        $response->assertSee('Custom slugs', escape: false);
+        $response->assertSee('Descriptions &amp; tags', escape: false);
+        $response->assertSee('Click analytics', escape: false);
+        $response->assertSee('API access', escape: false);
+        $response->assertSee('Custom domains', escape: false);
+    }
 }

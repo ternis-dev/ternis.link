@@ -606,6 +606,12 @@ Route::get('/', function () {
         }
     }
 
+    // int.ternis.link is the internal routing gateway (application links,
+    // imprint redirects) with its own dedicated landing page.
+    if (DomainUrls::isInternal()) {
+        return view('landing.internal');
+    }
+
     return view('landing.index', ['stats' => NetworkStats::overview()]);
 })->name('home');
 
@@ -694,6 +700,7 @@ if (app()->environment('local', 'testing')) {
     // Never available in production.
     Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
     Route::get('/_preview/re', fn () => view('landing.business', ['stats' => NetworkStats::overview()]))->name('preview.re');
+    Route::get('/_preview/int', fn () => view('landing.internal'))->name('preview.int');
     Route::get('/_preview/clicked', function () {
         $locale = PublicHost::resolveClickedLocale();
         app()->setLocale($locale);

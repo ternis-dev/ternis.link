@@ -64,34 +64,46 @@ $faqJsonLd = array_map(fn ($faq) => [
 
         <div class="mt-16 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9s-1.4 6.4-3.9 9c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Personal subdomain</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Your own <code>{name}.ternis.link</code>, verified instantly — one per account, ready for links right away.</p>
+                <div class="flex items-center gap-3">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9s-1.4 6.4-3.9 9c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg>
+                    <div class="font-display text-lg font-bold">Personal subdomain</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Your own <code>{name}.ternis.link</code>, verified instantly — one per account, ready for links right away.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12L20.5 12 12 20.5Z"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Custom slugs</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Memorable codes in your own words — or pick the auto-generated length, from 3 to 64 characters.</p>
+                <div class="flex items-center gap-3">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12L20.5 12 12 20.5Z"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>
+                    <div class="font-display text-lg font-bold">Custom slugs</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Memorable codes in your own words — or pick the auto-generated length, from 3 to 64 characters.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6H21M8.5 12H21M8.5 18H21"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Descriptions &amp; tags</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Note what each link is for and organize with tags, so every short link stays findable.</p>
+                <div class="flex items-center gap-3">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6H21M8.5 12H21M8.5 18H21"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>
+                    <div class="font-display text-lg font-bold">Descriptions &amp; tags</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Note what each link is for and organize with tags, so every short link stays findable.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 20v-6M12 20V6M17 20v-9"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Click analytics</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Referrers, countries and per-day charts per link, with CSV export for deeper digging.</p>
+                <div class="flex items-center gap-3">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 20v-6M12 20V6M17 20v-9"/></svg>
+                    <div class="font-display text-lg font-bold">Click analytics</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Referrers, countries and per-day charts per link, with CSV export for deeper digging.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">API access</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Create and manage links programmatically with scoped API keys and a versioned REST API.</p>
+                <div class="flex items-center gap-3">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/></svg>
+                    <div class="font-display text-lg font-bold">API access</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Create and manage links programmatically with scoped API keys and a versioned REST API.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Custom domains</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Bring your own hostname on eligible plans — verified by DNS and ready in minutes.</p>
+                <div class="flex items-center gap-3">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+                    <div class="font-display text-lg font-bold">Custom domains</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Bring your own hostname on eligible plans — verified by DNS and ready in minutes.</p>
             </x-ui.card>
         </div>
 

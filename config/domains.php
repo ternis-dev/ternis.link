@@ -102,6 +102,8 @@ return [
 
     'business_host' => env('DOMAIN_BUSINESS', 'href.re'),
 
+    'internal_host' => env('DOMAIN_INTERNAL', 'int.ternis.link'),
+
     /*
     |--------------------------------------------------------------------------
     | Domain Type → Required Auth

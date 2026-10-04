@@ -1,4 +1,13 @@
-@if (\App\Support\PublicHost::isMeinlink())
+@if (\App\Support\DomainUrls::isInternal())
+<x-layouts.error code="404" title="Internal link not found.">
+    The internal application link, gateway route, or resource on <strong>int.ternis.link</strong> was not found. It may have been relocated, expired, or typed incorrectly.
+    <x-slot:actions>
+        <x-ui.button href="{{ url('/') }}" variant="primary">Internal Gateway</x-ui.button>
+        <x-ui.button href="{{ url('/imprint') }}">Imprint Gateway</x-ui.button>
+        <x-ui.button href="https://ternis.link">ternis.link</x-ui.button>
+    </x-slot:actions>
+</x-layouts.error>
+@elseif (\App\Support\PublicHost::isMeinlink())
 <x-layouts.error code="404" title="Link nicht gefunden.">
     Der Kurzlink, die Subdomain oder Seite wurde nicht gefunden. Vielleicht wurde sie deaktiviert, ist abgelaufen oder vertippt.
     <x-slot:actions>

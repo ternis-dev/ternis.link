@@ -20,6 +20,7 @@ class DomainSeeder extends Seeder
             ['hostname' => 'href.re',          'type' => DomainType::Business],
             // Ternis family domains
             ['hostname' => 'ternis.link',      'type' => DomainType::Ternis],
+            ['hostname' => 'int.ternis.link',  'type' => DomainType::Ternis],
             ['hostname' => 'links.thosted.de', 'type' => DomainType::Ternis],
             ['hostname' => 'short.thosted.de', 'type' => DomainType::Ternis],
             ['hostname' => 'go.thosted.de',    'type' => DomainType::Ternis],

@@ -27,6 +27,28 @@ class DomainUrls
     }
 
     /**
+     * Absolute URL on the internal gateway host (int.ternis.link).
+     */
+    public static function internal(string $path = '/'): string
+    {
+        return static::onHost(config('domains.internal_host', 'int.ternis.link'), $path);
+    }
+
+    /**
+     * Check if the given (or current) host is the internal gateway host.
+     */
+    public static function isInternal(?string $host = null): bool
+    {
+        try {
+            $host ??= request()->getHost();
+        } catch (\Throwable) {
+            $host = null;
+        }
+
+        return $host === (string) config('domains.internal_host', 'int.ternis.link');
+    }
+
+    /**
      * Absolute URL pointing to the int.ternis.link/impressum gateway,
      * including the current domain context and language.
      */
