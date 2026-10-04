@@ -2,13 +2,13 @@
 
 @php
 [$kicker, $hint] = match ((string) $code) {
-    '404' => ['Signal Lost · Not Found', 'The requested video link or route does not exist, has expired, or was typed with a typo. Slugs are case-sensitive.'],
-    '403' => ['Restricted Access', 'This area requires authenticated creator credentials. Please sign in to continue.'],
-    '419' => ['Session Expired', 'Your connection timed out. Please reload the page and try again.'],
-    '429' => ['Too Many Requests', 'Rate limit reached. Please wait a few moments before submitting again.'],
-    '500' => ['Broadcast Error', 'An unexpected error occurred on our servers. Our team has received the diagnostic trace.'],
-    '503' => ['Stream Maintenance', 'href.yt infrastructure is undergoing quick scheduled maintenance. We’ll be back shortly.'],
-    default => ['Notice', null],
+    '404' => ['link not found', 'Creator links are case-sensitive — double-check spelling, or the redirect may have been deactivated or expired.'],
+    '403' => ['members only', 'This feature requires an authenticated creator account — sign in to continue.'],
+    '419' => ['session expired', 'Your session timed out while the page was open. Please reload and try again.'],
+    '429' => ['too fast', 'Too many requests in a short time. Please wait a moment — guest links are rate-limited.'],
+    '500' => ['server error', 'An unexpected error occurred on our side and has been logged. Please try again shortly.'],
+    '503' => ['brief maintenance', 'We are performing scheduled maintenance or starting up. Redirects and tools will be back in seconds.'],
+    default => ['notice', null],
 };
 @endphp
 
@@ -19,96 +19,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $code }} — {{ $title }} · href.yt</title>
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#0c0e12">
     <link rel="canonical" href="https://href.yt{{ request()->getPathInfo() }}">
+    <meta name="theme-color" content="#0f0f0f">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
-
-    {{-- Font preloading --}}
-    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
-
-    @vite(['resources/css/yt.css'])
+    @vite(['resources/css/landing-public.css', 'resources/css/yt.css'])
 </head>
-<body class="yt-canvas min-h-screen font-sans text-neutral-100 antialiased selection:bg-red-600 selection:text-white">
+<body class="yt-root">
+    <a class="yt-skip" href="#error-content">Skip to error message</a>
 
-    <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-96 overflow-hidden">
-        <div class="absolute -top-48 left-1/2 -translate-x-1/2 h-96 w-[700px] rounded-full bg-gradient-to-b from-red-600/20 via-rose-600/10 to-transparent blur-3xl"></div>
-    </div>
-
-    <div class="mx-auto flex min-h-screen max-w-xl flex-col justify-between px-4 py-8 sm:px-6">
-        <header class="flex items-center justify-between">
-            <a href="/" class="group flex items-center gap-2.5" aria-label="href.yt home">
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-700 text-white shadow-md shadow-red-600/25 transition duration-200 group-hover:scale-105">
-                    <svg class="h-4 w-4 translate-x-0.5 fill-current" viewBox="0 0 24 24">
-                        <polygon points="5 3 19 12 5 21 5 3"/>
-                    </svg>
-                </span>
-                <span class="font-display text-lg font-bold tracking-tight text-white">
-                    href<span class="text-red-500">.yt</span>
-                </span>
+    <header class="yt-head">
+        <a href="/" class="yt-brand" aria-label="href.yt home">
+            <span class="yt-brand-play" aria-hidden="true">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><polygon points="4,2 14,8 4,14"/></svg>
+            </span>
+            href<span>.yt</span>
+        </a>
+        <nav class="yt-nav" aria-label="Navigation">
+            <a href="/" class="yt-login yt-back">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>back to shortener</span>
             </a>
+        </nav>
+    </header>
 
-            <nav aria-label="Navigation">
-                <a href="/" class="yt-link text-xs font-medium hover:text-white transition">
-                    &larr; Back to home
-                </a>
-            </nav>
-        </header>
-
-        <main id="error-content" class="my-auto py-10 text-center" tabindex="-1">
-            <div class="yt-desk yt-scanlines overflow-hidden rounded-3xl p-8 sm:p-12 backdrop-blur-xl">
-                <span class="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-bold text-red-400">
-                    <span class="yt-rec-dot h-2 w-2 rounded-full bg-red-500"></span>
-                    <span>{{ $kicker }}</span>
-                </span>
-
-                <p class="font-display mt-6 text-7xl font-black tracking-tight text-white sm:text-8xl">
-                    {{ $code }}<span class="text-red-500">.</span>
-                </p>
-
-                <h1 class="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                    {{ $title }}
-                </h1>
-
-                <div class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-neutral-400">
-                    {{ $slot }}
-                </div>
-
-                @if ($hint)
-                    <p class="mx-auto mt-3 max-w-md text-xs text-neutral-400">
-                        {{ $hint }}
-                    </p>
-                @endif
-
-                @if (trim($actions ?? '') !== '')
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-                        {{ $actions }}
-                    </div>
-                @else
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-                        <a href="/" class="yt-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold shadow-lg shadow-red-600/30">
-                            Back to href.yt
-                        </a>
-                        <a href="/new" class="yt-btn-secondary inline-flex items-center rounded-xl px-5 py-3 text-xs font-semibold">
-                            Accelerate New Link
-                        </a>
-                    </div>
-                @endif
+    <div class="yt-wrap">
+        <main id="error-content" class="yt-error-main" tabindex="-1">
+            <div class="yt-badge" aria-hidden="true">
+                @switch((string) $code)
+                    @case('404')
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        @break
+                    @case('403')
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        @break
+                    @case('419')
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        @break
+                    @case('429')
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+                        @break
+                    @case('500')
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        @break
+                    @case('503')
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
+                        @break
+                    @default
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                @endswitch
+                <span>{{ $kicker }}</span>
             </div>
+
+            <p class="yt-error-code">{{ $code }}<span>.</span></p>
+
+            <h1 class="yt-error-title">{{ $title }}</h1>
+
+            <div class="yt-error-body">
+                {{ $slot }}
+            </div>
+
+            @if ($hint)
+                <p class="yt-error-hint">{{ $hint }}</p>
+            @endif
+
+            @if (trim($actions ?? '') !== '')
+                <div class="yt-error-actions" aria-label="Error actions">
+                    {{ $actions }}
+                </div>
+            @else
+                <div class="yt-error-actions">
+                    <a href="/" class="yt-play-cta">
+                        <span>Back to href.yt</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                    <a href="/new" class="yt-ghost">
+                        <span>Shorten a new link</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                </div>
+            @endif
         </main>
 
-        <footer class="border-t border-white/10 pt-6 text-center text-xs text-neutral-400">
-            <div class="flex flex-wrap items-center justify-center gap-4">
-                <span>href.yt</span>
-                <span>·</span>
-                <a href="https://ternis.link/pages/legal/privacy" class="hover:text-white transition">Privacy</a>
-                <span>·</span>
-                <a href="https://ternis.link/pages/legal/terms" class="hover:text-white transition">Terms</a>
-                <span>·</span>
-                <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}" class="hover:text-white transition">Imprint</a>
-            </div>
-            <p class="mt-3 text-[11px] leading-relaxed text-neutral-400">
-                Disclaimer: href.yt is an independent utility and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates.
+        <footer class="yt-foot">
+            <p class="yt-foot-links">
+                href.yt &copy; {{ date('Y') }} sketched by <a href="https://ternis.dev">ternis.dev</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="https://ternis.link/pages/legal/privacy">privacy</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="https://ternis.link/pages/legal/terms">terms</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}">imprint</a>
+            </p>
+            <p class="yt-foot-disclaimer">
+                href.yt is an independent link shortening service and is not affiliated with, endorsed by, authorized by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates. "YouTube" is a registered trademark of Google LLC.
             </p>
         </footer>
     </div>

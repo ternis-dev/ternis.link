@@ -30,9 +30,15 @@
             </a>
             <nav aria-label="Account">
                 @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="yt-login">open dashboard →</a>
+                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="yt-login">
+                        <span>open dashboard</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
                 @else
-                    <a href="{{ url('/login') }}" class="yt-login">members log in →</a>
+                    <a href="{{ url('/login') }}" class="yt-login">
+                        <span>members log in</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
                 @endauth
             </nav>
         </header>
@@ -60,13 +66,23 @@
                 <livewire:public.shorten-form :compact="true" :minimal="true" />
             </section>
 
-            <p class="yt-new-back"><a href="/">← back to href.yt</a></p>
+            <p class="yt-new-back">
+                <a href="/">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>back to href.yt</span>
+                </a>
+            </p>
         </main>
 
         <footer class="yt-foot" style="padding-top:1.5rem;">
-            href.yt ·
-            <a href="https://ternis.link/pages/legal/privacy">privacy</a> ·
-            <a href="https://ternis.link/pages/legal/terms">terms</a>
+            <p class="yt-foot-links">
+                href.yt ·
+                <a href="https://ternis.link/pages/legal/privacy">privacy</a> ·
+                <a href="https://ternis.link/pages/legal/terms">terms</a>
+            </p>
+            <p class="yt-foot-disclaimer">
+                href.yt is an independent link shortening service and is not affiliated with, endorsed by, authorized by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates. "YouTube" is a registered trademark of Google LLC.
+            </p>
         </footer>
     </div>
 

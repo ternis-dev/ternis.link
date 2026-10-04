@@ -24,11 +24,13 @@
         <x-layouts.public-error-yt code="404" title="Video link not found.">
             The short link <strong>{{ $slug }}</strong> on <strong>{{ $domain ?? request()->getHost() }}</strong> was not found, is inactive, or has expired.
             <x-slot:actions>
-                <a href="/" class="yt-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold">
-                    Back to href.yt
+                <a href="/" class="yt-play-cta">
+                    <span>Back to href.yt</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
-                <a href="/new" class="yt-btn-secondary inline-flex items-center rounded-xl px-5 py-2.5 text-xs font-semibold">
-                    Accelerate New Link
+                <a href="/new" class="yt-ghost">
+                    <span>Create short link</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
             </x-slot:actions>
         </x-layouts.public-error-yt>

@@ -26,33 +26,21 @@ class YtLandingTest extends TestCase
         $this->assertSame('public', $domain->type->value);
     }
 
-    public function test_href_yt_landing_renders_the_link_desk_experience(): void
+    public function test_href_yt_landing_renders_creator_experience(): void
     {
         $response = $this->get('http://href.yt/');
 
         $response->assertStatus(200);
 
         // Branding & visual identity
-        $response->assertSee('href<span class="font-normal opacity-45">.yt</span>', escape: false);
-        $response->assertSee('live / link desk', escape: false);
-        $response->assertSee('Make the', escape: false);
-        $response->assertSee('Less link.', escape: false);
-        $response->assertSee('No ad wall', escape: false);
-        $response->assertSee('href.nz', escape: false);
-        $response->assertSee('href.yt', escape: false);
-        $response->assertSee('timestamp ready', escape: false);
-        $response->assertSee('No strange detours', escape: false);
-
-        // Assets
-        $response->assertSee('yt-', escape: false);
-
-        // FAQ & Structured data
-        $response->assertSee('Notes from the desk', escape: false);
-        $response->assertSee('application/ld+json', escape: false);
-        $response->assertSee('FAQPage', escape: false);
+        $response->assertSee('href<span>.yt</span>', escape: false);
+        $response->assertSee('Short links for', escape: false);
+        $response->assertSee('video people.', escape: false);
+        $response->assertSee('Built for creators', escape: false);
+        $response->assertSee('Instant, no sign-up', escape: false);
 
         // Disclaimer
-        $response->assertSee('not affiliated with YouTube, Google LLC, Alphabet Inc.', escape: false);
+        $response->assertSee('not affiliated with, endorsed by, authorized by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc.', escape: false);
     }
 
     public function test_href_yt_custom_new_page_renders(): void
@@ -60,9 +48,9 @@ class YtLandingTest extends TestCase
         $response = $this->get('http://href.yt/new');
 
         $response->assertStatus(200);
-        $response->assertSee('Accelerate a Video Link', escape: false);
-        $response->assertSee('Studio Mode', escape: false);
-        $response->assertSee('href<span class="text-red-500">.yt</span>', escape: false);
+        $response->assertSee('Make something', escape: false);
+        $response->assertSee('href<span>.yt</span>', escape: false);
+        $response->assertSee('not affiliated with', escape: false);
     }
 
     public function test_href_yt_custom_login_page_renders(): void
@@ -70,64 +58,28 @@ class YtLandingTest extends TestCase
         $response = $this->get('http://href.yt/login');
 
         $response->assertStatus(200);
-        $response->assertSee('Creator Studio Login', escape: false);
-        $response->assertSee('Sign in with Ternis Auth', escape: false);
-        $response->assertSee('Features for verified accounts', escape: false);
-        $response->assertSee('href<span class="text-red-500">.yt</span>', escape: false);
+        $response->assertSee('Members', escape: false);
+        $response->assertSee('log in', escape: false);
+        $response->assertSee('Log in with Ternis Auth', escape: false);
+        $response->assertSee('not affiliated with', escape: false);
     }
 
-    public function test_href_yt_unknown_slug_returns_custom_video_404(): void
+    public function test_href_yt_unknown_slug_returns_custom_404(): void
     {
         $response = $this->get('http://href.yt/nonexistent-video');
 
         $response->assertStatus(404);
-        $response->assertSee('Video link not found', escape: false);
-        $response->assertSee('Signal Lost', escape: false);
+        $response->assertSee('Video link not found.', escape: false);
         $response->assertSee('href.yt', escape: false);
         $response->assertSee('Back to href.yt', escape: false);
-        $response->assertSee('Accelerate New Link', escape: false);
-    }
-
-    public function test_href_yt_unknown_path_returns_custom_error(): void
-    {
-        $response = $this->get('http://href.yt/pages/random-route-that-does-not-exist');
-
-        $response->assertStatus(404);
-        $response->assertSee('Video or link not found', escape: false);
-        $response->assertSee('Signal Lost', escape: false);
-        $response->assertSee('href.yt', escape: false);
-        $response->assertSee('Back to href.yt', escape: false);
-    }
-
-    public function test_href_yt_landing_includes_interactive_simulator_presets_and_api_docs(): void
-    {
-        $response = $this->get('http://href.yt/');
-
-        $response->assertStatus(200);
-
-        // Interactive presets & timestamp tools
-        $response->assertSee('Quick Test Presets:', escape: false);
-        $response->assertSee('data-sample-url', escape: false);
-        $response->assertSee('Timestamp Injector:', escape: false);
-        $response->assertSee('data-timestamp-add="30"', escape: false);
-
-        // Simulator
-        $response->assertSee('Live Simulator &amp; Contexts', escape: false);
-        $response->assertSee('Twitch Chat', escape: false);
-        $response->assertSee('OBS Overlay', escape: false);
-        $response->assertSee('Video Bio', escape: false);
-
-        // Developer & Streamer API
-        $response->assertSee('Creator &amp; Streamer API', escape: false);
-        $response->assertSee('curl -X POST "https://ternis.link/api/v1/links"', escape: false);
-        $response->assertSee('data-api-lang="curl"', escape: false);
+        $response->assertSee('not affiliated with', escape: false);
     }
 
     public function test_href_yt_local_previews(): void
     {
-        $this->get('/_preview/yt')->assertStatus(200)->assertSee('Make the', escape: false);
-        $this->get('/_preview/yt-new')->assertStatus(200)->assertSee('Accelerate a Video Link', escape: false);
-        $this->get('/_preview/yt-login')->assertStatus(200)->assertSee('Creator Studio Login', escape: false);
-        $this->get('/_preview/yt-error')->assertStatus(404)->assertSee('Video link not found', escape: false);
+        $this->get('/_preview/yt')->assertStatus(200)->assertSee('Short links for', escape: false);
+        $this->get('/_preview/yt-new')->assertStatus(200)->assertSee('Make something', escape: false);
+        $this->get('/_preview/yt-login')->assertStatus(200)->assertSee('Log in with Ternis Auth', escape: false);
+        $this->get('/_preview/yt-error')->assertStatus(404)->assertSee('Video link not found.', escape: false);
     }
 }

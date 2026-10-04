@@ -3,127 +3,103 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Creator Studio Login — href.yt</title>
-    <meta name="description" content="href.yt Creator Login — Sign in with Ternis Auth SSO to claim custom video slugs and view real-time click retention.">
+    <title>members log in — href.yt</title>
+    <meta name="description" content="href.yt member login — one button, no password. Sign in with Ternis Auth SSO for custom slugs, shorter links and click stats.">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#0c0e12">
     <link rel="canonical" href="https://href.yt/login">
+    <meta name="theme-color" content="#0f0f0f">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
-
-    {{-- Font preloading --}}
-    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
-
-    @vite(['resources/css/yt.css'])
+    @vite(['resources/css/landing-public.css', 'resources/css/yt.css'])
 </head>
-<body class="yt-canvas min-h-screen font-sans text-neutral-100 antialiased selection:bg-red-600 selection:text-white">
+<body class="yt-root">
+    <a class="yt-skip" href="#login">Skip to the login button</a>
 
-    <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-96 overflow-hidden">
-        <div class="absolute -top-48 left-1/2 -translate-x-1/2 h-96 w-[700px] rounded-full bg-gradient-to-b from-red-600/20 via-rose-600/10 to-transparent blur-3xl"></div>
-    </div>
-
-    <div class="mx-auto flex min-h-screen max-w-xl flex-col justify-between px-4 py-8 sm:px-6">
-        <header class="flex items-center justify-between">
-            <a href="/" class="group flex items-center gap-2.5" aria-label="href.yt home">
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-700 text-white shadow-md shadow-red-600/25 transition duration-200 group-hover:scale-105">
-                    <svg class="h-4 w-4 translate-x-0.5 fill-current" viewBox="0 0 24 24">
-                        <polygon points="5 3 19 12 5 21 5 3"/>
-                    </svg>
-                </span>
-                <span class="font-display text-lg font-bold tracking-tight text-white">
-                    href<span class="text-red-500">.yt</span>
-                </span>
+    <header class="yt-head">
+        <a href="/" class="yt-brand" aria-label="href.yt home">
+            <span class="yt-brand-play" aria-hidden="true">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><polygon points="4,2 14,8 4,14"/></svg>
+            </span>
+            href<span>.yt</span>
+        </a>
+        <nav class="yt-nav" aria-label="Back">
+            <a href="/" class="yt-login yt-back">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>back to shortener</span>
             </a>
+        </nav>
+    </header>
 
-            <nav aria-label="Navigation">
-                <a href="/" class="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-400 hover:text-white transition">
-                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="19" y1="12" x2="5" y2="12"/>
-                        <polyline points="12 19 5 12 12 5"/>
-                    </svg>
-                    <span>Back to shortener</span>
-                </a>
-            </nav>
-        </header>
-
-        <main class="my-auto py-10">
-            <div class="text-center">
-                <div class="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-semibold text-red-400">
-                    <span class="yt-rec-dot h-2 w-2 rounded-full bg-red-500"></span>
-                    <span>Creator Studio Access</span>
-                </div>
-                <h1 class="font-display mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                    Creator Studio Login
-                </h1>
-                <p class="mt-2 text-sm text-neutral-400">
-                    Sign in to unlock custom video slugs, audience analytics, and API keys.
-                </p>
+    <div class="yt-wrap">
+        <section class="yt-hero" style="padding-bottom: 2rem;">
+            <div class="yt-badge" aria-hidden="true">
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><polygon points="3,2 14,8 3,14"/></svg>
+                Members only
             </div>
+            <h1 class="yt-title" id="page-title">
+                Members<br>
+                <span class="yt-title-accent">log in</span> here.
+            </h1>
+            <p class="yt-sub">
+                One button, no password — authentication runs safely through Ternis Auth SSO.
+                Signed-in creators get custom slugs, shorter links, and click analytics.
+            </p>
+        </section>
 
-            <div class="yt-desk mt-8 overflow-hidden rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
+        <section class="yt-form-zone" id="login" aria-label="Member login" style="max-width: 540px; margin: 0 auto 3rem;">
+            <div class="yt-login-card">
+                <div class="yt-login-card-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                </div>
+                <h2 class="yt-login-card-title">One button, no password</h2>
+                <p class="yt-login-card-sub">
+                    Sign-in takes place on your central dashboard host. Your authenticated session lives securely there without cross-domain cookie leakage.
+                </p>
+
                 @if (session('error'))
-                    <div class="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs font-medium text-red-300" role="alert">
-                        {{ session('error') }}
+                    <div class="yt-oops" role="alert">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span>{{ session('error') }}</span>
                     </div>
                 @endif
 
-                <p class="text-xs leading-relaxed text-neutral-300">
-                    Authentication is centralized and passwordless via <strong>Ternis Auth SSO</strong>. You don’t need a separate password for href.yt.
-                </p>
-
-                <div class="mt-6">
-                    <a
-                        href="{{ \App\Support\DomainUrls::dashboard('/login') }}"
-                        class="yt-btn-primary flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-white shadow-lg shadow-red-600/30"
-                    >
-                        <span>Sign in with Ternis Auth</span>
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                            <polyline points="12 5 19 12 12 19"/>
-                        </svg>
+                <div style="margin: 1.5rem 0 1rem; text-align: center;">
+                    <a class="yt-play-cta" href="{{ \App\Support\DomainUrls::dashboard('/login') }}" style="width: 100%; justify-content: center;">
+                        <span>Log in with Ternis Auth</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </a>
                 </div>
-
-                <div class="mt-8 border-t border-white/10 pt-6">
-                    <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Features for verified accounts</h2>
-                    <ul class="mt-4 space-y-3 text-xs text-neutral-300">
-                        <li class="flex items-start gap-3">
-                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-bold">✓</span>
-                            <span>Custom branded vanity video slugs (e.g., <code>href.yt/my-channel</code>)</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-bold">✓</span>
-                            <span>Live click counts, referring channels, and viewer geography</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-bold">✓</span>
-                            <span>Scoped REST API keys for stream overlays and automation pipelines</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-bold">✓</span>
-                            <span>Permanent invariants that never expire in your video descriptions</span>
-                        </li>
-                    </ul>
-                </div>
+                <p class="yt-login-hint">
+                    Hands you over to <code>{{ config('domains.dashboard_host', 'dash.ternis.link') }}</code> — verified in seconds.
+                </p>
             </div>
+        </section>
 
-            <p class="mt-6 text-center text-xs text-neutral-400">
-                Just need one quick link? <a href="/" class="font-medium text-red-400 underline underline-offset-4 hover:text-red-300 transition">Guests can shorten immediately without an account</a>
+        <section class="yt-notes" aria-label="Good to know" style="margin-bottom: 3.5rem;">
+            <div class="yt-note">
+                <h2 class="yt-note-title">Why the redirect?</h2>
+                <p>Short links resolve everywhere, but session cookies are strictly scoped for security. The button transfers you to the dashboard host to keep your session authenticated safely.</p>
+            </div>
+            <div class="yt-note">
+                <h2 class="yt-note-title">No account yet?</h2>
+                <p>Ternis Auth accounts are provided to partners, clients, and family members. If you just need a quick link, you can always <a href="/">shorten as a guest</a> with zero sign-up.</p>
+            </div>
+        </section>
+
+        <footer class="yt-foot">
+            <p class="yt-foot-links">
+                href.yt &copy; {{ date('Y') }} sketched by <a href="https://ternis.dev">ternis.dev</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="https://ternis.link/pages/legal/privacy">privacy</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="https://ternis.link/pages/legal/terms">terms</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}">imprint</a>
             </p>
-        </main>
-
-        <footer class="border-t border-white/10 pt-6 text-center text-xs text-neutral-400">
-            <div class="flex flex-wrap items-center justify-center gap-4">
-                <span>href.yt</span>
-                <span>·</span>
-                <a href="https://ternis.link/pages/legal/privacy" class="hover:text-white transition">Privacy</a>
-                <span>·</span>
-                <a href="https://ternis.link/pages/legal/terms" class="hover:text-white transition">Terms</a>
-                <span>·</span>
-                <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}" class="hover:text-white transition">Imprint</a>
-            </div>
-            <p class="mt-3 text-[11px] leading-relaxed text-neutral-400">
-                Disclaimer: href.yt is an independent utility and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates.
+            <p class="yt-foot-disclaimer">
+                href.yt is an independent link shortening service and is not affiliated with, endorsed by, authorized by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates. "YouTube" is a registered trademark of Google LLC.
             </p>
         </footer>
     </div>

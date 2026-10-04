@@ -81,10 +81,11 @@
             <div class="yt-hero-actions">
                 <a href="#shorten" class="yt-play-cta">
                     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><polygon points="3,2 14,8 3,14"/></svg>
-                    Shorten a link now
+                    <span>Shorten a link now</span>
                 </a>
                 <a href="{{ url('/new') }}" class="yt-ghost">
-                    Use the focused shortener →
+                    <span>Use the focused shortener</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
             </div>
             <p class="yt-hero-links">
@@ -104,18 +105,27 @@
         {{-- ── Live stats ──────────────────────────────────── --}}
         <dl class="yt-stats" aria-label="Network stats">
             <div class="yt-stat">
+                <div class="yt-stat-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+                </div>
                 <dd class="yt-stat-num"
                     data-target="{{ $stats['total_links'] ?? 0 }}"
                     data-suffix="">0</dd>
                 <dt class="yt-stat-label">links created</dt>
             </div>
             <div class="yt-stat">
+                <div class="yt-stat-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
+                </div>
                 <dd class="yt-stat-num"
                     data-target="{{ $stats['total_clicks'] ?? 0 }}"
                     data-suffix="">0</dd>
                 <dt class="yt-stat-label">redirects counted</dt>
             </div>
             <div class="yt-stat">
+                <div class="yt-stat-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H12L11 22l8.5-11.5H13L13 2Z"/></svg>
+                </div>
                 <dd class="yt-stat-num"
                     data-target="{{ $stats['links_today'] ?? 0 }}"
                     data-suffix="">0</dd>
@@ -131,51 +141,63 @@
             <p class="yt-features-sub">Everything you need in a description-box link — nothing you don't.</p>
             <div class="yt-grid">
                 <article class="yt-feat">
-                    <div class="yt-feat-icon" aria-hidden="true">
-                        {{-- bolt --}}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H12L11 22l8.5-11.5H13L13 2Z"/></svg>
+                    <div class="yt-feat-header">
+                        <div class="yt-feat-icon" aria-hidden="true">
+                            {{-- bolt --}}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H12L11 22l8.5-11.5H13L13 2Z"/></svg>
+                        </div>
+                        <h3 class="yt-feat-name">Instant, no sign-up</h3>
                     </div>
-                    <h3 class="yt-feat-name">Instant, no sign-up</h3>
                     <p class="yt-feat-desc">Paste and shorten in under a second. No registration, no email, no friction. Up to 50 guest links a day.</p>
                 </article>
                 <article class="yt-feat">
-                    <div class="yt-feat-icon" aria-hidden="true">
-                        {{-- link icon --}}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+                    <div class="yt-feat-header">
+                        <div class="yt-feat-icon" aria-hidden="true">
+                            {{-- link icon --}}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+                        </div>
+                        <h3 class="yt-feat-name">Clean href.yt links</h3>
                     </div>
-                    <h3 class="yt-feat-name">Clean href.yt links</h3>
                     <p class="yt-feat-desc">8-character slugs that are short enough for pin comments, video descriptions and merch pages.</p>
                 </article>
                 <article class="yt-feat">
-                    <div class="yt-feat-icon" aria-hidden="true">
-                        {{-- chart --}}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M7 20v-6M12 20V8M17 20v-11"/></svg>
+                    <div class="yt-feat-header">
+                        <div class="yt-feat-icon" aria-hidden="true">
+                            {{-- chart --}}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M7 20v-6M12 20V8M17 20v-11"/></svg>
+                        </div>
+                        <h3 class="yt-feat-name">Click analytics</h3>
                     </div>
-                    <h3 class="yt-feat-name">Click analytics</h3>
                     <p class="yt-feat-desc">Members see referrers, countries and per-day click charts — exactly what you need to measure a drop.</p>
                 </article>
                 <article class="yt-feat">
-                    <div class="yt-feat-icon" aria-hidden="true">
-                        {{-- tag --}}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12L20.5 12 12 20.5Z"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>
+                    <div class="yt-feat-header">
+                        <div class="yt-feat-icon" aria-hidden="true">
+                            {{-- tag --}}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12L20.5 12 12 20.5Z"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>
+                        </div>
+                        <h3 class="yt-feat-name">Custom slugs</h3>
                     </div>
-                    <h3 class="yt-feat-name">Custom slugs</h3>
                     <p class="yt-feat-desc">Pick your own keyword for brand-safe links that look intentional — available to signed-in members.</p>
                 </article>
                 <article class="yt-feat">
-                    <div class="yt-feat-icon" aria-hidden="true">
-                        {{-- qr --}}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="5.25" y="5.25" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="16.25" y="5.25" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="5.25" y="16.25" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="14" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="18.5" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="14" y="18.5" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="18.5" y="18.5" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/></svg>
+                    <div class="yt-feat-header">
+                        <div class="yt-feat-icon" aria-hidden="true">
+                            {{-- qr --}}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="5.25" y="5.25" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="16.25" y="5.25" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="5.25" y="16.25" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="14" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="18.5" y="14" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="14" y="18.5" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/><rect x="18.5" y="18.5" width="2.5" height="2.5" rx="0.5" fill="currentColor" stroke="none"/></svg>
+                        </div>
+                        <h3 class="yt-feat-name">QR codes free</h3>
                     </div>
-                    <h3 class="yt-feat-name">QR codes free</h3>
                     <p class="yt-feat-desc">Every link comes with a downloadable QR code — ideal for end-card overlays and merch tables.</p>
                 </article>
                 <article class="yt-feat">
-                    <div class="yt-feat-icon" aria-hidden="true">
-                        {{-- api / brackets --}}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l4-6-4-6M8 18l-4-6 4-6"/></svg>
+                    <div class="yt-feat-header">
+                        <div class="yt-feat-icon" aria-hidden="true">
+                            {{-- api / brackets --}}
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l4-6-4-6M8 18l-4-6 4-6"/></svg>
+                        </div>
+                        <h3 class="yt-feat-name">API access</h3>
                     </div>
-                    <h3 class="yt-feat-name">API access</h3>
                     <p class="yt-feat-desc">Automate link creation from spreadsheets, n8n or your own tools via a versioned REST API.</p>
                 </article>
             </div>
@@ -205,13 +227,18 @@
 
         {{-- ── Footer ──────────────────────────────────────── --}}
         <footer class="yt-foot">
-            href.yt &copy; {{ date('Y') }} sketched by <a href="https://ternis.dev">ternis.dev</a>
-            <span class="yt-foot-sep" aria-hidden="true">·</span>
-            <a href="https://ternis.link/pages/legal/privacy">privacy</a>
-            <span class="yt-foot-sep" aria-hidden="true">·</span>
-            <a href="https://ternis.link/pages/legal/terms">terms</a>
-            <span class="yt-foot-sep" aria-hidden="true">·</span>
-            <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}">imprint</a>
+            <p class="yt-foot-links">
+                href.yt &copy; {{ date('Y') }} sketched by <a href="https://ternis.dev">ternis.dev</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="https://ternis.link/pages/legal/privacy">privacy</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="https://ternis.link/pages/legal/terms">terms</a>
+                <span class="yt-foot-sep" aria-hidden="true">·</span>
+                <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}">imprint</a>
+            </p>
+            <p class="yt-foot-disclaimer">
+                href.yt is an independent link shortening service and is not affiliated with, endorsed by, authorized by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates. "YouTube" is a registered trademark of Google LLC.
+            </p>
         </footer>
 
     </div>{{-- /.yt-wrap --}}

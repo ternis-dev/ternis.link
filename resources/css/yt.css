@@ -244,6 +244,41 @@ body.yt-root ::selection {
     background: var(--yt-surface);
 }
 
+/* --- SVG button hover animations --- */
+.yt-play-cta svg,
+.yt-ghost svg,
+.yt-login svg,
+.yt-new-back a svg,
+.yt-back svg {
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+}
+
+.yt-play-cta:hover svg {
+    transform: scale(1.22);
+}
+
+.yt-ghost:hover svg,
+.yt-login:hover svg {
+    transform: translateX(4px);
+}
+
+.yt-new-back a:hover svg,
+.yt-back:hover svg {
+    transform: translateX(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .yt-play-cta svg,
+    .yt-ghost svg,
+    .yt-login svg,
+    .yt-new-back a svg,
+    .yt-back svg {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
 .yt-hero-actions {
     display: flex;
     flex-wrap: wrap;
@@ -544,6 +579,36 @@ body.yt-root ::selection {
     border: 1px solid var(--yt-border);
     border-radius: 10px;
     padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.yt-stat:hover {
+    border-color: var(--yt-faint);
+    background: var(--yt-surface2);
+    transform: translateY(-2px);
+}
+
+.yt-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-bottom: 0.65rem;
+    border-radius: 8px;
+    background: var(--yt-red-glow);
+    border: 1px solid rgba(255, 0, 0, 0.25);
+    color: var(--yt-red);
+}
+
+.yt-stat-icon svg {
+    display: block;
+    width: 1.15rem;
+    height: 1.15rem;
 }
 
 .yt-stat-num {
@@ -596,25 +661,34 @@ body.yt-root ::selection {
     border: 1px solid var(--yt-border);
     border-radius: 10px;
     padding: 1.25rem 1.1rem;
-    transition: border-color 0.2s, background 0.2s;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
 }
 
 .yt-feat:hover {
     border-color: var(--yt-faint);
     background: var(--yt-surface2);
+    transform: translateY(-2px);
+}
+
+.yt-feat-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
 }
 
 .yt-feat-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.4rem;
-    height: 2.4rem;
+    width: 2.3rem;
+    height: 2.3rem;
     background: var(--yt-red-glow);
     border: 1px solid rgba(255, 0, 0, 0.25);
     border-radius: 8px;
     color: var(--yt-red);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 
 .yt-feat-icon svg { display: block; width: 1.1rem; height: 1.1rem; }
@@ -623,7 +697,7 @@ body.yt-root ::selection {
     font-size: 0.95rem;
     font-weight: 700;
     color: var(--yt-ink);
-    margin: 0 0 0.35rem;
+    margin: 0;
 }
 
 .yt-feat-desc {
@@ -680,10 +754,14 @@ body.yt-root ::selection {
 
 /* --- footer ------------------------------------------------- */
 .yt-foot {
-    padding: 2rem 0 3rem;
+    padding: 2.5rem 0 3.5rem;
     text-align: center;
     font-size: 0.82rem;
     color: var(--yt-faint);
+}
+
+.yt-foot-links {
+    margin: 0;
 }
 
 .yt-foot a {
@@ -698,6 +776,141 @@ body.yt-root ::selection {
     display: inline-block;
     margin: 0 0.4rem;
     color: var(--yt-border);
+}
+
+.yt-foot-disclaimer {
+    margin: 0.85rem auto 0;
+    max-width: 580px;
+    font-size: 0.72rem;
+    line-height: 1.55;
+    color: var(--yt-faint);
+}
+
+/* --- login page --------------------------------------------- */
+.yt-login-card {
+    background: var(--yt-surface);
+    border: 1px solid var(--yt-border);
+    border-radius: 14px;
+    padding: 2.25rem 2rem;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.yt-login-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.2rem;
+    height: 3.2rem;
+    border-radius: 12px;
+    background: var(--yt-red-glow);
+    border: 1px solid rgba(255, 0, 0, 0.3);
+    color: var(--yt-red);
+    margin-bottom: 1.25rem;
+}
+
+.yt-login-card-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.yt-login-card-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--yt-ink);
+    margin: 0 0 0.4rem;
+}
+
+.yt-login-card-sub {
+    font-size: 0.88rem;
+    color: var(--yt-soft);
+    margin: 0 auto;
+    max-width: 380px;
+    line-height: 1.55;
+}
+
+.yt-oops {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: var(--yt-err-bg);
+    border: 1px solid var(--yt-err-border);
+    color: var(--yt-err-ink);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    margin: 1.25rem 0 0;
+    text-align: left;
+}
+
+.yt-oops svg {
+    flex-shrink: 0;
+}
+
+.yt-login-hint {
+    font-size: 0.78rem;
+    color: var(--yt-faint);
+    margin: 0;
+}
+
+.yt-login-hint code {
+    font-family: var(--font-yt-mono);
+    color: var(--yt-soft);
+}
+
+/* --- error page layout -------------------------------------- */
+.yt-error-main {
+    max-width: 580px;
+    margin: 0 auto;
+    padding: 3.5rem 1.25rem 2.5rem;
+    text-align: center;
+}
+
+.yt-error-code {
+    font-size: clamp(4.5rem, 14vw, 7rem);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    color: var(--yt-ink);
+    margin: 0.75rem 0 0;
+    line-height: 1;
+}
+
+.yt-error-code span {
+    color: var(--yt-red);
+}
+
+.yt-error-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--yt-ink);
+    margin: 0.5rem 0 0;
+}
+
+.yt-error-body {
+    font-size: 0.92rem;
+    color: var(--yt-soft);
+    margin: 0.75rem auto 0;
+    max-width: 440px;
+    line-height: 1.6;
+}
+
+.yt-error-hint {
+    font-size: 0.8rem;
+    color: var(--yt-faint);
+    margin: 0.6rem auto 0;
+    max-width: 440px;
+    line-height: 1.5;
+}
+
+.yt-error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 2rem 0 1rem;
 }
 
 /* --- /new page variant -------------------------------------- */
