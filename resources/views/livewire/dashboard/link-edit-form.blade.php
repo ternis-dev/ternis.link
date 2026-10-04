@@ -90,18 +90,34 @@
             maxlength="100"
         />
 
-        <details class="rounded-xl border border-neutral-200 dark:border-neutral-800" open>
-            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Social preview</summary>
-            <div class="space-y-4 px-4 pb-4">
+        <details class="group rounded-xl border border-neutral-200 bg-neutral-50/40 transition-colors hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900/30 dark:hover:border-neutral-700" open>
+            <summary class="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-semibold text-neutral-800 select-none list-none [&::-webkit-details-marker]:hidden dark:text-neutral-200">
+                <span class="inline-flex items-center gap-2">
+                    <svg class="h-4 w-4 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    Social preview
+                </span>
+                <svg class="h-4 w-4 text-neutral-400 transition-transform duration-200 group-open:rotate-180 dark:text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M19 9l-7 7-7-7"/>
+                </svg>
+            </summary>
+            <div class="space-y-4 border-t border-neutral-200/60 px-4 pt-3 pb-4 dark:border-neutral-800/60">
                 <x-ui.input label="Preview title" name="og_title" type="text" wire:model="og_title" maxlength="120" />
                 <x-ui.input label="Preview description" name="og_description" type="text" wire:model="og_description" maxlength="300" />
                 <x-ui.input label="Preview image URL" name="og_image_url" type="url" wire:model="og_image_url" hint="https image only." maxlength="2048" />
             </div>
         </details>
 
-        <details class="rounded-xl border border-neutral-200 dark:border-neutral-800" open>
-            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">User tracking &amp; parameters (optional)</summary>
-            <div class="space-y-4 px-4 pb-4">
+        <details class="group rounded-xl border border-neutral-200 bg-neutral-50/40 transition-colors hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900/30 dark:hover:border-neutral-700" open>
+            <summary class="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-semibold text-neutral-800 select-none list-none [&::-webkit-details-marker]:hidden dark:text-neutral-200">
+                <span class="inline-flex items-center gap-2">
+                    <svg class="h-4 w-4 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    User tracking &amp; parameters (optional)
+                </span>
+                <svg class="h-4 w-4 text-neutral-400 transition-transform duration-200 group-open:rotate-180 dark:text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M19 9l-7 7-7-7"/>
+                </svg>
+            </summary>
+            <div class="space-y-4 border-t border-neutral-200/60 px-4 pt-3 pb-4 dark:border-neutral-800/60">
                 <label class="flex items-start gap-3 cursor-pointer">
                     <input type="checkbox" wire:model="user_tracking_enabled" class="mt-1 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-800">
                     <div class="text-sm">

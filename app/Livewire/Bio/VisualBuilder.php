@@ -118,6 +118,20 @@ class VisualBuilder extends Component
 
     public ?string $editEndsAt = null;
 
+    public string $activeTab = 'content';
+
+    public string $previewDevice = 'mobile';
+
+    public string $newSubSlug = '';
+
+    public string $newSubTitle = '';
+
+    public ?string $confirmingSubDelete = null;
+
+    public bool $showNewSubModal = false;
+
+    public bool $savedRecently = false;
+
     public function mount(BioPage $page): void
     {
         $page = auth()->user()->bioPages()->with('domain')->find($page->id);
@@ -227,7 +241,77 @@ class VisualBuilder extends Component
             $this->page_password = null;
         }
 
+        $this->savedRecently = true;
+        session()->flash('status', 'Page settings saved successfully.');
         $bio->forgetCaches($page->fresh());
+    }
+
+    public function createSub(BioService $bio): void
+    {
+        $this->validate([
+            'newSubSlug' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9-]{1,64}$/'],
+            'newSubTitle' => ['required', 'string', 'max:80'],
+        ]);
+
+        $parent = $this->family;
+
+        try {
+            $page = $bio->createPage(auth()->user(), $parent->domain, [
+                'slug' => strtolower($this->newSubSlug),
+                'title' => $this->newSubTitle,
+                'bio' => $this->bio,
+                'theme' => $this->theme,
+            ], $parent);
+        } catch (ValidationException $e) {
+            foreach ($e->errors() as $field => $messages) {
+                foreach ((array) $messages as $message) {
+                    $this->addError($field === 'slug' ? 'newSubSlug' : 'newSubTitle', $message);
+                }
+            }
+
+            return;
+        }
+
+        $this->reset(['newSubSlug', 'newSubTitle', 'showNewSubModal']);
+        $this->edit($page->id);
+    }
+
+    public function deleteSub(BioService $bio, string $subId): void
+    {
+        $sub = $this->family->children()->find($subId);
+
+        if (! $sub) {
+            return;
+        }
+
+        if ($this->confirmingSubDelete !== $subId) {
+            $this->confirmingSubDelete = $subId;
+
+            return;
+        }
+
+        $bio->deletePage($sub, auth()->user());
+        $this->confirmingSubDelete = null;
+
+        if ($this->editingPageId === $subId) {
+            $this->edit($this->family->id);
+        }
+    }
+
+    public function duplicateSub(BioService $bio, string $subId): void
+    {
+        $sub = $this->family->children()->find($subId);
+
+        if (! $sub) {
+            return;
+        }
+
+        try {
+            $copy = $bio->duplicatePage(auth()->user(), $sub, $this->family->domain, $this->family);
+            $this->edit($copy->id);
+        } catch (ValidationException $e) {
+            $this->addError('newSubSlug', 'Could not duplicate sub-page: at capacity or slug collision.');
+        }
     }
 
     public function addButton(BioService $bio): void
