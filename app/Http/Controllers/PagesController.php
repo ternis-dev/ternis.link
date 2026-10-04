@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\DomainUrls;
 use Illuminate\Support\Str;
 
 /**
@@ -31,6 +32,10 @@ class PagesController extends Controller
 
     public function legal(string $slug)
     {
+        if ($slug === 'imprint' || $slug === 'impressum') {
+            return DomainUrls::handleImpressumRedirect(request());
+        }
+
         if (isset(self::REDIRECTS[$slug])) {
             return redirect()->away(self::REDIRECTS[$slug], 302);
         }

@@ -21,8 +21,10 @@ use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
 use App\Models\Domain;
 use App\Support\ContentCollection;
+use App\Support\DomainUrls;
 use App\Support\NetworkStats;
 use App\Support\PublicHost;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -562,7 +564,18 @@ Route::get('/', function () {
         // clicked.at is the newsletter & email click-tracking branded
         // domain — same public rules, dedicated marketing landing.
         if (PublicHost::isClicked()) {
-            return view('landing.clicked');
+            $locale = PublicHost::resolveClickedLocale();
+            app()->setLocale($locale);
+
+            $response = response()->view('landing.clicked', ['locale' => $locale]);
+
+            $param = request()->query('lang') ?? request()->query('locale');
+            if (is_string($param) && in_array(strtolower(trim($param)), ['en', 'de'], true)) {
+                session(['clicked_locale' => $locale]);
+                $response->withCookie(cookie()->forever('clicked_locale', $locale));
+            }
+
+            return $response;
         }
 
         return view('landing.public');
@@ -671,7 +684,20 @@ if (app()->environment('local', 'testing')) {
     // Never available in production.
     Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
     Route::get('/_preview/re', fn () => view('landing.business', ['stats' => NetworkStats::overview()]))->name('preview.re');
-    Route::get('/_preview/clicked', fn () => view('landing.clicked'))->name('preview.clicked');
+    Route::get('/_preview/clicked', function () {
+        $locale = PublicHost::resolveClickedLocale();
+        app()->setLocale($locale);
+
+        $response = response()->view('landing.clicked', ['locale' => $locale]);
+
+        $param = request()->query('lang') ?? request()->query('locale');
+        if (is_string($param) && in_array(strtolower(trim($param)), ['en', 'de'], true)) {
+            session(['clicked_locale' => $locale]);
+            $response->withCookie(cookie()->forever('clicked_locale', $locale));
+        }
+
+        return $response;
+    })->name('preview.clicked');
     Route::get('/_preview/at-new', fn () => view('landing.new-meinlink'))->name('preview.at-new');
     Route::get('/_preview/at-login', fn () => view('auth.login-meinlink'))->name('preview.at-login');
     Route::get('/_preview/at-error', fn () => response()->view('components.layouts.public-error-meinlink', [
@@ -693,6 +719,15 @@ if (app()->environment('local', 'testing')) {
 | gates stay on the dashboard/admin UI only.
 |----------------------------------------------------------------------
 */
+
+Route::get('/impressum', function (Request $request) {
+    return DomainUrls::handleImpressumRedirect($request);
+})->name('impressum');
+
+Route::get('/imprint', function (Request $request) {
+    return DomainUrls::handleImpressumRedirect($request);
+})->name('imprint');
+
 Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(function () {
     // Direct URL redirects (preferred)
     Route::get('/url/{url}', [RedirectController::class, 'directUrl'])

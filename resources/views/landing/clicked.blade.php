@@ -1,10 +1,14 @@
+@php
+$locale = $locale ?? \App\Support\PublicHost::resolveClickedLocale();
+$isDe = $locale === 'de';
+@endphp
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="{{ $locale }}" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>clicked.at — Newsletter & Email Click Tracking, Simplified</title>
-    <meta name="description" content="clicked.at turns every link in your newsletter into a tracked short link. See who clicked what, when, and from where — in real time. Privacy-first, no cookies.">
+    <title>{{ $isDe ? 'clicked.at — Newsletter- & E-Mail-Klick-Tracking, einfach gemacht' : 'clicked.at — Newsletter & Email Click Tracking, Simplified' }}</title>
+    <meta name="description" content="{{ $isDe ? 'clicked.at verwandelt jeden Link in deinem Newsletter in einen getrackten Kurzlink. Erfahre in Echtzeit, wer was wann und wo angeklickt hat. Datenschutz first, keine Cookies.' : 'clicked.at turns every link in your newsletter into a tracked short link. See who clicked what, when, and from where — in real time. Privacy-first, no cookies.' }}">
     <meta name="keywords" content="newsletter tracking, email click tracking, link tracking, click analytics, email marketing analytics, newsletter analytics, link shortener tracking">
     <meta name="author" content="Ternis">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -15,14 +19,14 @@
     {{-- Open Graph --}}
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="clicked.at">
-    <meta property="og:title" content="clicked.at — Know what your readers click">
-    <meta property="og:description" content="Drop tracked short links into any newsletter or email campaign and watch your click data flow in real time. No cookies. No third-party scripts in your email.">
+    <meta property="og:title" content="{{ $isDe ? 'clicked.at — Erfahre, was deine Leser anklicken' : 'clicked.at — Know what your readers click' }}">
+    <meta property="og:description" content="{{ $isDe ? 'Füge getrackte Kurzlinks in jeden Newsletter oder jede E-Mail ein und beobachte Klicks in Echtzeit. Keine Cookies, keine Skripte.' : 'Drop tracked short links into any newsletter or email campaign and watch your click data flow in real time. No cookies. No third-party scripts in your email.' }}">
     <meta property="og:url" content="https://clicked.at/">
 
     {{-- Twitter / X --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="clicked.at — Know what your readers click">
-    <meta name="twitter:description" content="Real-time click analytics for newsletters, email campaigns, and every link you ship.">
+    <meta name="twitter:title" content="{{ $isDe ? 'clicked.at — Erfahre, was deine Leser anklicken' : 'clicked.at — Know what your readers click' }}">
+    <meta name="twitter:description" content="{{ $isDe ? 'Echtzeit-Klick-Analysen für Newsletter, E-Mail-Kampagnen und jeden geteilten Link.' : 'Real-time click analytics for newsletters, email campaigns, and every link you ship.' }}">
 
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 
@@ -37,7 +41,7 @@
                 'url'         => 'https://clicked.at/',
                 'name'        => 'clicked.at',
                 'description' => 'Newsletter and email click tracking powered by the ternis.link network.',
-                'inLanguage'  => 'en',
+                'inLanguage'  => $locale,
             ],
             [
                 '@type'               => 'WebApplication',
@@ -146,19 +150,19 @@
                 </span>
                 <span>clicked<span class="text-violet-600 dark:text-violet-400">.at</span></span>
             </div>
-            <p class="cl-load-tagline">Newsletter &amp; email click tracking</p>
+            <p class="cl-load-tagline">{{ $isDe ? 'Newsletter- & E-Mail-Klick-Tracking' : 'Newsletter & email click tracking' }}</p>
             <div class="cl-load-row">
                 <div class="cl-load-track">
                     <div class="cl-loader-fill" id="cl-loader-fill"></div>
                 </div>
                 <span class="cl-load-pct" id="cl-load-pct">0%</span>
             </div>
-            <p class="cl-load-status" id="cl-load-status">Initializing click tracker…</p>
+            <p class="cl-load-status" id="cl-load-status">{{ $isDe ? 'Klick-Tracker wird initialisiert…' : 'Initializing click tracker…' }}</p>
         </div>
     </div>
 
     <a href="#get-started" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-violet-600 focus:px-4 focus:py-2 focus:text-white">
-        Skip to get started
+        {{ $isDe ? 'Direkt zum Einstieg' : 'Skip to get started' }}
     </a>
 
     {{-- Ambient background --}}
@@ -183,11 +187,17 @@
                 <span>clicked<span class="text-violet-600 dark:text-violet-400">.at</span></span>
             </a>
 
-            <nav class="flex items-center gap-3 sm:gap-6" aria-label="Main navigation">
-                <a href="#how-it-works" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">How it works</a>
-                <a href="#features" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">Features</a>
+            <nav class="flex items-center gap-2.5 sm:gap-5" aria-label="Main navigation">
+                <a href="#how-it-works" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">{{ $isDe ? 'So funktioniert\'s' : 'How it works' }}</a>
+                <a href="#features" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">{{ $isDe ? 'Funktionen' : 'Features' }}</a>
                 <a href="#faq" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">FAQ</a>
                 <a href="https://ternis.link/pages/blog" class="hidden text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-block dark:text-zinc-400 dark:hover:text-zinc-100">Blog</a>
+
+                {{-- Language / Locale Switcher --}}
+                <div class="flex items-center rounded-xl border border-zinc-200/90 bg-zinc-100/90 p-0.5 text-xs font-semibold dark:border-zinc-800 dark:bg-zinc-900" role="group" aria-label="{{ $isDe ? 'Sprache wechseln' : 'Language switcher' }}">
+                    <a href="?lang=en" class="rounded-lg px-2.5 py-1 transition {{ ! $isDe ? 'bg-white text-zinc-900 shadow-2xs font-bold dark:bg-zinc-800 dark:text-zinc-100' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200' }}" aria-label="Switch to English" title="English">EN</a>
+                    <a href="?lang=de" class="rounded-lg px-2.5 py-1 transition {{ $isDe ? 'bg-white text-zinc-900 shadow-2xs font-bold dark:bg-zinc-800 dark:text-zinc-100' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200' }}" aria-label="Auf Deutsch wechseln" title="Deutsch">DE</a>
+                </div>
 
                 @auth
                     <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="group inline-flex items-center gap-1.5 rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-500 active:scale-[0.98]">
@@ -196,7 +206,7 @@
                     </a>
                 @else
                     <a href="{{ url('/login') }}" class="group inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-800">
-                        <span>Sign in</span>
+                        <span>{{ $isDe ? 'Anmelden' : 'Sign in' }}</span>
                         <svg class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                     </a>
                 @endauth
@@ -216,34 +226,45 @@
                         <span class="animate-ping-slow absolute inline-flex h-full w-full rounded-full bg-violet-500 opacity-75"></span>
                         <span class="relative inline-flex h-2 w-2 rounded-full bg-violet-600"></span>
                     </span>
-                    <span>Real-time click tracking for newsletters &amp; email</span>
+                    <span>{{ $isDe ? 'Echtzeit-Klick-Tracking für Newsletter & E-Mails' : 'Real-time click tracking for newsletters & email' }}</span>
                 </div>
 
                 <h1 class="mt-6 font-display text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl sm:leading-tight lg:text-6xl dark:text-zinc-50">
-                    Know exactly what<br class="hidden sm:inline" />
-                    <span class="bg-[length:200%_auto] animate-shimmer bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-500 bg-clip-text text-transparent">
-                        your readers click.
-                    </span>
+                    @if ($isDe)
+                        Erfahre genau, was<br class="hidden sm:inline" />
+                        <span class="bg-[length:200%_auto] animate-shimmer bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-500 bg-clip-text text-transparent">
+                            deine Leser anklicken.
+                        </span>
+                    @else
+                        Know exactly what<br class="hidden sm:inline" />
+                        <span class="bg-[length:200%_auto] animate-shimmer bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-500 bg-clip-text text-transparent">
+                            your readers click.
+                        </span>
+                    @endif
                 </h1>
 
                 <p class="mx-auto mt-5 max-w-xl text-base text-zinc-600 sm:text-lg dark:text-zinc-400">
-                    Replace links in your newsletter with <strong class="font-semibold text-zinc-800 dark:text-zinc-200">clicked.at short links</strong> and get instant, privacy-first analytics on every click — referrer, device, time. No pixel, no cookie, no script injected into your email.
+                    @if ($isDe)
+                        Ersetze Links in deinem Newsletter durch <strong class="font-semibold text-zinc-800 dark:text-zinc-200">clicked.at-Kurzlinks</strong> und erhalte sofortige, datenschutzkonforme Klickanalysen — Referrer, Gerät, Uhrzeit. Kein Pixel, kein Cookie, kein Skript in deiner E-Mail.
+                    @else
+                        Replace links in your newsletter with <strong class="font-semibold text-zinc-800 dark:text-zinc-200">clicked.at short links</strong> and get instant, privacy-first analytics on every click — referrer, device, time. No pixel, no cookie, no script injected into your email.
+                    @endif
                 </p>
 
                 <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
                     @auth
                         <a href="{{ \App\Support\DomainUrls::dashboard('/links') }}" class="group inline-flex items-center gap-2 rounded-xl bg-violet-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:bg-violet-500 hover:shadow-violet-500/40 active:scale-[0.98]">
-                            Open dashboard
+                            {{ $isDe ? 'Dashboard öffnen' : 'Open dashboard' }}
                             <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </a>
                     @else
                         <a href="{{ url('/login') }}" class="group inline-flex items-center gap-2 rounded-xl bg-violet-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-violet-500/25 transition hover:bg-violet-500 hover:shadow-violet-500/40 active:scale-[0.98]">
-                            Start tracking — free
+                            {{ $isDe ? 'Kostenlos starten' : 'Start tracking — free' }}
                             <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </a>
                     @endauth
                     <a href="#how-it-works" class="inline-flex items-center rounded-xl border border-zinc-200 bg-white px-6 py-3.5 text-base font-semibold text-zinc-700 shadow-xs transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800">
-                        See how it works
+                        {{ $isDe ? 'So funktioniert\'s' : 'See how it works' }}
                     </a>
                 </div>
 
@@ -251,19 +272,19 @@
                 <div class="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-zinc-500 dark:text-zinc-500">
                     <span class="flex items-center gap-1.5">
                         <svg class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm3.354-9.354a.5.5 0 0 0-.708 0L7 9.293 5.354 7.646a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l4-4a.5.5 0 0 0 0-.708z"/></svg>
-                        No cookies
+                        {{ $isDe ? 'Keine Cookies' : 'No cookies' }}
                     </span>
                     <span class="flex items-center gap-1.5">
                         <svg class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm3.354-9.354a.5.5 0 0 0-.708 0L7 9.293 5.354 7.646a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l4-4a.5.5 0 0 0 0-.708z"/></svg>
-                        Works with any email tool
+                        {{ $isDe ? 'Mit jedem E-Mail-Tool kompatibel' : 'Works with any email tool' }}
                     </span>
                     <span class="flex items-center gap-1.5">
                         <svg class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm3.354-9.354a.5.5 0 0 0-.708 0L7 9.293 5.354 7.646a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l4-4a.5.5 0 0 0 0-.708z"/></svg>
-                        GDPR-friendly
+                        {{ $isDe ? 'DSGVO-konform' : 'GDPR-friendly' }}
                     </span>
                     <span class="flex items-center gap-1.5">
                         <svg class="h-3.5 w-3.5 text-emerald-500" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm3.354-9.354a.5.5 0 0 0-.708 0L7 9.293 5.354 7.646a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l4-4a.5.5 0 0 0 0-.708z"/></svg>
-                        Real-time dashboard
+                        {{ $isDe ? 'Echtzeit-Dashboard' : 'Real-time dashboard' }}
                     </span>
                 </div>
 
@@ -281,11 +302,11 @@
                             <span class="h-3 w-3 rounded-full bg-amber-400"></span>
                             <span class="h-3 w-3 rounded-full bg-emerald-400"></span>
                         </div>
-                        <span class="text-xs font-medium text-zinc-400">clicked.at — Link analytics</span>
+                        <span class="text-xs font-medium text-zinc-400">{{ $isDe ? 'clicked.at — Link-Analysen' : 'clicked.at — Link analytics' }}</span>
                     </div>
                     {{-- Card body --}}
                     <div class="px-5 py-5">
-                        <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">Issue #47 · &quot;How to grow your list&quot;</p>
+                        <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">{{ $isDe ? 'Ausgabe #47 · „So wächst deine Liste“' : 'Issue #47 · "How to grow your list"' }}</p>
                         <div class="space-y-3">
                             {{-- Row --}}
                             @foreach ([
@@ -299,12 +320,12 @@
                                 <div class="flex-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800" style="height:8px;">
                                     <div class="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500" style="width:{{ $row['pct'] }}%;"></div>
                                 </div>
-                                <span class="w-14 shrink-0 text-right text-xs font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">{{ number_format($row['clicks']) }} clicks</span>
+                                <span class="w-14 shrink-0 text-right text-xs font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">{{ number_format($row['clicks']) }} {{ $isDe ? 'Klicks' : 'clicks' }}</span>
                             </div>
                             @endforeach
                         </div>
-                        <p class="mt-4 text-right text-xs text-zinc-400">Updated just now ·
-                            <span class="text-emerald-500">↑ 23% vs last issue</span>
+                        <p class="mt-4 text-right text-xs text-zinc-400">{{ $isDe ? 'Gerade aktualisiert' : 'Updated just now' }} ·
+                            <span class="text-emerald-500">{{ $isDe ? '↑ 23% vs. letzte Ausgabe' : '↑ 23% vs last issue' }}</span>
                         </p>
                     </div>
                 </div>
@@ -315,61 +336,117 @@
         <section id="how-it-works" class="py-16 sm:py-24">
             <div class="mx-auto max-w-5xl px-4 sm:px-6">
                 <div class="text-center">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">Simple by design</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                        {{ $isDe ? 'Einfach durchdacht' : 'Simple by design' }}
+                    </span>
                     <h2 class="mt-2 font-display text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                        Three steps. That's it.
+                        {{ $isDe ? 'Drei Schritte. Das war\'s.' : 'Three steps. That\'s it.' }}
                     </h2>
-                    <p class="mx-auto mt-2 max-w-md text-sm text-zinc-500 dark:text-zinc-400">
-                        No SDK, no pixel, no code changes to your email. Works with Substack, beehiiv, Mailchimp, ConvertKit, or raw SMTP.
+                    <p class="mx-auto mt-2 max-w-lg text-sm text-zinc-500 dark:text-zinc-400">
+                        {{ $isDe ? 'Kein SDK, kein Zählpixel, keine Codeänderungen. Funktioniert mit Substack, beehiiv, Mailchimp, ConvertKit oder gewöhnlichem SMTP.' : 'No SDK, no pixel, no code changes to your email. Works with Substack, beehiiv, Mailchimp, ConvertKit, or raw SMTP.' }}
                     </p>
                 </div>
 
-                <div class="mt-14 grid gap-8 sm:grid-cols-3">
+                <div class="relative mt-14 grid gap-6 md:grid-cols-3">
                     {{-- Step 1 --}}
-                    <div class="relative animate-fade-in-up [animation-delay:100ms] text-center">
-                        <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/15 to-indigo-500/25 text-violet-600 ring-1 ring-violet-500/25 dark:from-violet-950/80 dark:to-indigo-900/60 dark:text-violet-400 dark:ring-violet-500/30">
-                            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none">
-                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                    <div class="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/90 bg-white p-6 sm:p-8 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-violet-300 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-violet-700/60">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/20 text-violet-600 ring-1 ring-violet-500/20 transition-transform duration-300 group-hover:scale-110 dark:from-violet-950/70 dark:to-indigo-900/50 dark:text-violet-400 dark:ring-violet-500/30">
+                                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <span class="inline-flex items-center gap-1 rounded-full border border-violet-200/80 bg-violet-50/90 px-3 py-1 font-mono text-xs font-bold text-violet-700 dark:border-violet-900/80 dark:bg-violet-950/60 dark:text-violet-300">
+                                    {{ $isDe ? 'Schritt 01' : 'Step 01' }}
+                                </span>
+                            </div>
+                            <h3 class="mt-6 text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                                {{ $isDe ? 'Links verpacken' : 'Wrap your links' }}
+                            </h3>
+                            <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                {{ $isDe ? 'Erstelle auf clicked.at für jede Ziel-URL in deinem Newsletter einen getrackten Kurzlink. Eigene Slugs, Ablaufdaten und UTM-Parameter werden voll unterstützt.' : 'Create a tracked short link on clicked.at for every URL you plan to include in your newsletter. Custom slugs, expiry dates, and UTM parameters supported.' }}
+                            </p>
                         </div>
-                        <div class="mb-2 text-3xl font-bold text-zinc-200 dark:text-zinc-700 select-none" aria-hidden="true">01</div>
-                        <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Wrap your links</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                            Create a tracked short link on clicked.at for every URL you plan to include in your newsletter. Custom slugs, expiry dates, and UTM parameters supported.
-                        </p>
+                        <div class="mt-6 rounded-2xl border border-zinc-200/70 bg-zinc-50/80 p-3 font-mono text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-300">
+                            <div class="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 mb-1 font-sans">
+                                <span>{{ $isDe ? 'Generierter Link' : 'Generated link' }}</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">{{ $isDe ? 'Aktiv' : 'Active' }}</span>
+                            </div>
+                            <div class="truncate font-semibold text-violet-600 dark:text-violet-400">
+                                clicked.at/<span class="text-zinc-900 dark:text-zinc-100">oct-launch</span>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Step 2 --}}
-                    <div class="relative animate-fade-in-up [animation-delay:200ms] text-center">
-                        <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/15 to-indigo-500/25 text-violet-600 ring-1 ring-violet-500/25 dark:from-violet-950/80 dark:to-indigo-900/60 dark:text-violet-400 dark:ring-violet-500/30">
-                            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none">
-                                <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
+                    <div class="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/90 bg-white p-6 sm:p-8 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-violet-300 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-violet-700/60">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/20 text-violet-600 ring-1 ring-violet-500/20 transition-transform duration-300 group-hover:scale-110 dark:from-violet-950/70 dark:to-indigo-900/50 dark:text-violet-400 dark:ring-violet-500/30">
+                                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none">
+                                        <path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <span class="inline-flex items-center gap-1 rounded-full border border-violet-200/80 bg-violet-50/90 px-3 py-1 font-mono text-xs font-bold text-violet-700 dark:border-violet-900/80 dark:bg-violet-950/60 dark:text-violet-300">
+                                    {{ $isDe ? 'Schritt 02' : 'Step 02' }}
+                                </span>
+                            </div>
+                            <h3 class="mt-6 text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                                {{ $isDe ? 'Newsletter versenden' : 'Send your newsletter' }}
+                            </h3>
+                            <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                {{ $isDe ? 'Füge die clicked.at-Links in deine E-Mail ein. Kein Skript-Tag, kein Zählpixel, keine Änderung an deinem Versanddienst. Nur saubere URLs.' : 'Paste the clicked.at links into your email. No script tag, no tracking pixel, no change to how your sender works. Just different URLs.' }}
+                            </p>
                         </div>
-                        <div class="mb-2 text-3xl font-bold text-zinc-200 dark:text-zinc-700 select-none" aria-hidden="true">02</div>
-                        <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Send your newsletter</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                            Paste the clicked.at links into your email. No script tag, no tracking pixel, no change to how your sender works. Just different URLs.
-                        </p>
+                        <div class="mt-6 rounded-2xl border border-zinc-200/70 bg-zinc-50/80 p-3 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-300">
+                            <div class="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 mb-1">
+                                <span>{{ $isDe ? 'Kompatibilität' : 'Compatibility' }}</span>
+                                <span class="text-violet-600 dark:text-violet-400 font-semibold">{{ $isDe ? 'Alle Anbieter' : '100% ESP' }}</span>
+                            </div>
+                            <div class="truncate font-medium text-zinc-800 dark:text-zinc-200">
+                                Substack · beehiiv · Mailchimp
+                            </div>
+                        </div>
                     </div>
 
                     {{-- Step 3 --}}
-                    <div class="relative animate-fade-in-up [animation-delay:300ms] text-center">
-                        <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/15 to-indigo-500/25 text-violet-600 ring-1 ring-violet-500/25 dark:from-violet-950/80 dark:to-indigo-900/60 dark:text-violet-400 dark:ring-violet-500/30">
-                            <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none">
-                                <rect x="3" y="13" width="4" height="8" rx="1.5" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="2"/>
-                                <rect x="10" y="8" width="4" height="13" rx="1.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="2"/>
-                                <rect x="17" y="4" width="4" height="17" rx="1.5" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="2"/>
-                                <path d="M4 11L11 6L16 9L21 3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <circle cx="21" cy="3" r="1.5" fill="currentColor"/>
-                            </svg>
+                    <div class="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/90 bg-white p-6 sm:p-8 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-violet-300 hover:shadow-xl dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-violet-700/60">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/20 text-violet-600 ring-1 ring-violet-500/20 transition-transform duration-300 group-hover:scale-110 dark:from-violet-950/70 dark:to-indigo-900/50 dark:text-violet-400 dark:ring-violet-500/30">
+                                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 3v18h18"/>
+                                        <path d="M18 17V9"/>
+                                        <path d="M13 17V5"/>
+                                        <path d="M8 17v-4"/>
+                                    </svg>
+                                </div>
+                                <span class="inline-flex items-center gap-1 rounded-full border border-violet-200/80 bg-violet-50/90 px-3 py-1 font-mono text-xs font-bold text-violet-700 dark:border-violet-900/80 dark:bg-violet-950/60 dark:text-violet-300">
+                                    {{ $isDe ? 'Schritt 03' : 'Step 03' }}
+                                </span>
+                            </div>
+                            <h3 class="mt-6 text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                                {{ $isDe ? 'Klicks live beobachten' : 'Watch the clicks roll in' }}
+                            </h3>
+                            <p class="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                {{ $isDe ? 'Dein Dashboard aktualisiert sich live, sobald Abonnenten klicken. Sieh Klicks pro Link, Referrer-Quellen, Geräteverteilung und Trends — direkt im Browser.' : 'Your dashboard updates in real time as readers click. See per-link totals, referrer breakdown, device split, and hourly trend — all without leaving the browser.' }}
+                            </p>
                         </div>
-                        <div class="mb-2 text-3xl font-bold text-zinc-200 dark:text-zinc-700 select-none" aria-hidden="true">03</div>
-                        <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">Watch the clicks roll in</h3>
-                        <p class="mt-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
-                            Your dashboard updates in real time as readers click. See per-link totals, referrer breakdown, device split, and hourly trend — all without leaving the browser.
-                        </p>
+                        <div class="mt-6 rounded-2xl border border-zinc-200/70 bg-zinc-50/80 p-3 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-300">
+                            <div class="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 mb-1">
+                                <span>{{ $isDe ? 'Live-Telemetrie' : 'Telemetry stream' }}</span>
+                                <span class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    {{ $isDe ? 'Echtzeit' : 'Live' }}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between font-mono">
+                                <span class="font-bold text-zinc-900 dark:text-zinc-100">1,842 {{ $isDe ? 'Klicks' : 'clicks' }}</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold font-sans">+23% vs avg</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -379,53 +456,56 @@
         <section id="features" class="border-t border-zinc-200/80 bg-zinc-100/50 py-16 sm:py-24 dark:border-zinc-800/80 dark:bg-zinc-900/40">
             <div class="mx-auto max-w-5xl px-4 sm:px-6">
                 <div class="text-center">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">Built for email senders</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                        {{ $isDe ? 'Entwickelt für E-Mail-Versender' : 'Built for email senders' }}
+                    </span>
                     <h2 class="mt-2 font-display text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                        Everything you need to know about your links
+                        {{ $isDe ? 'Alles, was du über deine Links wissen musst' : 'Everything you need to know about your links' }}
                     </h2>
                 </div>
 
                 <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-
-                    {{-- Feature cards --}}
-                    @foreach ([
+                    @php
+                    $featuresList = [
                         [
-                            'title' => 'Real-time click counts',
-                            'body'  => 'Clicks register within seconds of a reader following a link. No hourly batch jobs — the number you see is the number that happened.',
+                            'title' => $isDe ? 'Klickzahlen in Echtzeit' : 'Real-time click counts',
+                            'body'  => $isDe ? 'Klicks registrieren sich sekundenschnell. Keine stündlichen Batch-Jobs — die Zahl, die du siehst, ist aktuell.' : 'Clicks register within seconds of a reader following a link. No hourly batch jobs — the number you see is the number that happened.',
                             'color' => 'violet',
                             'icon'  => '<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="currentColor" fill-opacity="0.15"/>',
                         ],
                         [
-                            'title' => 'Referrer breakdown',
-                            'body'  => 'See which email client or device your readers use. Understand whether Gmail or mobile gets the most clicks on a given issue.',
+                            'title' => $isDe ? 'Referrer- & Quellenanalyse' : 'Referrer breakdown',
+                            'body'  => $isDe ? 'Erfahre, welche E-Mail-Clients oder Geräte deine Leser nutzen — z.B. Desktop vs. Mobile oder Webmail-Provider.' : 'See which email client or device your readers use. Understand whether Gmail or mobile gets the most clicks on a given issue.',
                             'color' => 'indigo',
                             'icon'  => '<circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2.2"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
                         ],
                         [
-                            'title' => 'Per-link privacy',
-                            'body'  => 'Readers\' IPs are immediately SHA-256 hashed and never stored in plain text. No fingerprinting, no cross-site tracking, no ad network involvement.',
+                            'title' => $isDe ? 'Datenschutz pro Link' : 'Per-link privacy',
+                            'body'  => $isDe ? 'IPs werden sofort per SHA-256 gehasht und nie im Klartext gespeichert. Kein Fingerprinting, keine Werbenetzwerke.' : 'Readers\' IPs are immediately SHA-256 hashed and never stored in plain text. No fingerprinting, no cross-site tracking, no ad network involvement.',
                             'color' => 'emerald',
                             'icon'  => '<path d="M12 3.25L4.5 6.75V11.5C4.5 16.5 7.7 21.1 12 22.25C16.3 21.1 19.5 16.5 19.5 11.5V6.75L12 3.25Z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12.5L11 14.5L15 9.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
                         ],
                         [
-                            'title' => 'Custom slugs & branding',
-                            'body'  => 'Make links meaningful. Use <code class="rounded bg-zinc-200 px-1 font-mono text-xs dark:bg-zinc-700">clicked.at/jun-offers</code> instead of a random string. Or point a custom domain at the network.',
+                            'title' => $isDe ? 'Eigene Slugs & Branding' : 'Custom slugs & branding',
+                            'body'  => $isDe ? 'Verwende aussagekräftige Slugs wie <code class="rounded bg-zinc-200 px-1 font-mono text-xs dark:bg-zinc-700">clicked.at/okt-launch</code> oder binde eine eigene Absenderdomain an.' : 'Make links meaningful. Use <code class="rounded bg-zinc-200 px-1 font-mono text-xs dark:bg-zinc-700">clicked.at/jun-offers</code> instead of a random string. Or point a custom domain at the network.',
                             'color' => 'amber',
                             'icon'  => '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
                         ],
                         [
-                            'title' => 'UTM parameter pass-through',
-                            'body'  => 'Append UTM tags to your destination URL so your Google Analytics, Plausible, or Fathom data still sees the full campaign context — alongside clicked.at\'s own stats.',
+                            'title' => $isDe ? 'UTM-Parameter Durchleitung' : 'UTM parameter pass-through',
+                            'body'  => $isDe ? 'Hänge UTM-Tags an Ziel-URLs an, damit Google Analytics, Plausible oder Fathom Daten den vollen Kampagnenkontext behalten.' : 'Append UTM tags to your destination URL so your Google Analytics, Plausible, or Fathom data still sees the full campaign context — alongside clicked.at\'s own stats.',
                             'color' => 'sky',
                             'icon'  => '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
                         ],
                         [
-                            'title' => 'API for automation',
-                            'body'  => 'Create links programmatically with the REST API. Automate link generation in your newsletter workflow — one key, all your campaigns.',
+                            'title' => $isDe ? 'REST-API für Workflows' : 'API for automation',
+                            'body'  => $isDe ? 'Erstelle Links automatisiert per REST-API. Integriere die Generierung nahtlos in dein CMS oder deine Versandpipeline.' : 'Create links programmatically with the REST API. Automate link generation in your newsletter workflow — one key, all your campaigns.',
                             'color' => 'rose',
                             'icon'  => '<path d="M8 9l3 3-3 3M13 15h3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="2.2"/>',
                         ],
-                    ] as $i => $feat)
+                    ];
+                    @endphp
+                    @foreach ($featuresList as $i => $feat)
                     @php $delay = ($i + 1) * 80; @endphp
                     <div class="group animate-fade-in-up rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
                          style="animation-delay: {{ $delay }}ms">
@@ -455,13 +535,15 @@
             <div class="mx-auto max-w-5xl px-4 sm:px-6">
                 <div class="flex items-end justify-between">
                     <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">From the blog</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                            {{ $isDe ? 'Aus dem Blog' : 'From the blog' }}
+                        </span>
                         <h2 class="mt-1 font-display text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                            Learn how to track smarter
+                            {{ $isDe ? 'Lerne, smarter zu tracken' : 'Learn how to track smarter' }}
                         </h2>
                     </div>
                     <a href="https://ternis.link/pages/blog" class="hidden shrink-0 text-sm font-semibold text-violet-600 hover:text-violet-500 sm:inline-flex items-center gap-1 dark:text-violet-400 dark:hover:text-violet-300">
-                        All posts
+                        {{ $isDe ? 'Alle Artikel' : 'All posts' }}
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                     </a>
                 </div>
@@ -471,22 +553,22 @@
                         [
                             'slug'  => 'newsletter-click-tracking-without-cookies',
                             'date'  => 'Oct 2026',
-                            'title' => 'Newsletter click tracking without cookies',
-                            'desc'  => 'Why redirect-based tracking beats pixel tracking for privacy and deliverability — and how clicked.at implements it.',
+                            'title' => $isDe ? 'Newsletter-Klick-Tracking ohne Cookies' : 'Newsletter click tracking without cookies',
+                            'desc'  => $isDe ? 'Warum redirect-basiertes Tracking Pixel-Tracking bei Datenschutz und Zustellbarkeit schlägt.' : 'Why redirect-based tracking beats pixel tracking for privacy and deliverability — and how clicked.at implements it.',
                             'tag'   => 'Privacy',
                         ],
                         [
                             'slug'  => 'how-to-track-email-clicks-by-link',
                             'date'  => 'Oct 2026',
-                            'title' => 'How to track email clicks by link (not just totals)',
-                            'desc'  => 'Most email tools show open rates. clicked.at shows which specific link each reader tapped — a far more useful signal.',
+                            'title' => $isDe ? 'E-Mail-Klicks pro Link messen (statt nur Summen)' : 'How to track email clicks by link (not just totals)',
+                            'desc'  => $isDe ? 'Die meisten Tools zeigen nur Öffnungen. clicked.at zeigt, welcher konkrete Link getippt wurde.' : 'Most email tools show open rates. clicked.at shows which specific link each reader tapped — a far more useful signal.',
                             'tag'   => 'Analytics',
                         ],
                         [
                             'slug'  => 'utm-parameters-and-short-links-for-newsletters',
                             'date'  => 'Oct 2026',
-                            'title' => 'UTM parameters and short links for newsletters',
-                            'desc'  => 'How to combine clicked.at\'s per-link stats with UTM tags so your analytics platform and your link dashboard agree.',
+                            'title' => $isDe ? 'UTM-Parameter und Kurzlinks für Newsletter' : 'UTM parameters and short links for newsletters',
+                            'desc'  => $isDe ? 'Wie du clicked.at-Statistiken mit UTM-Tags kombinierst, damit Web-Analytics und Link-Daten übereinstimmen.' : 'How to combine clicked.at\'s per-link stats with UTM tags so your analytics platform and your link dashboard agree.',
                             'tag'   => 'How-to',
                         ],
                     ] as $post)
@@ -502,7 +584,9 @@
                 </div>
 
                 <div class="mt-6 text-center sm:hidden">
-                    <a href="https://ternis.link/pages/blog" class="text-sm font-semibold text-violet-600 dark:text-violet-400">View all blog posts →</a>
+                    <a href="https://ternis.link/pages/blog" class="text-sm font-semibold text-violet-600 dark:text-violet-400">
+                        {{ $isDe ? 'Alle Blogbeiträge ansehen →' : 'View all blog posts →' }}
+                    </a>
                 </div>
             </div>
         </section>
@@ -511,22 +595,35 @@
         <section id="faq" class="border-t border-zinc-200/80 bg-zinc-100/50 py-16 sm:py-24 dark:border-zinc-800/80 dark:bg-zinc-900/40">
             <div class="mx-auto max-w-4xl px-4 sm:px-6">
                 <div class="text-center">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">Questions answered</span>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                        {{ $isDe ? 'Fragen & Antworten' : 'Questions answered' }}
+                    </span>
                     <h2 class="mt-2 font-display text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-100">FAQ</h2>
                     <p class="mx-auto mt-2 max-w-lg text-sm text-zinc-500 dark:text-zinc-400">
-                        Everything about tracking clicks in newsletters and emails with clicked.at.
+                        {{ $isDe ? 'Alles Wissenswerte über das Tracking von Klicks in Newslettern und E-Mails mit clicked.at.' : 'Everything about tracking clicks in newsletters and emails with clicked.at.' }}
                     </p>
                 </div>
 
+                @php
+                $faqsList = $isDe ? [
+                    [1, 'Wie trackt clicked.at Klicks in Newslettern?', 'Du ersetzt Links in deinem Newsletter durch clicked.at-Kurzlinks. Klickt ein Leser, erreicht der Aufruf zuerst unseren Edge-Server — wir protokollieren Zeitstempel, Referrer und Gerät — und leiten sofort zur Zielseite weiter. Kein Pixel, kein Cookie, kein Skript in deiner E-Mail.'],
+                    [2, 'Muss ich meinen E-Mail-Provider wechseln?', 'Nein. clicked.at funktioniert mit jedem Anbieter — Mailchimp, Substack, ConvertKit, beehiiv oder reinem Text. Tausche einfach die Ziel-URLs vor dem Versand aus.'],
+                    [3, 'Ist das Klick-Tracking DSGVO-konform?', 'Ja. Wir speichern niemals rohe IP-Adressen — nur einen Einweg-SHA-256-Hash zur Zählung. Keine Werbe-Cookies, keine Datenweitergabe an Dritte. Der Schutz deiner Leser ist in der Architektur verankert.'],
+                    [4, 'Kann ich eine eigene Domain verwenden?', 'Ja. Auf qualifizierten Tarifen kannst du einen eigenen Hostnamen (z. B. links.deinemarke.de) anbinden. Jeder Link trägt dann dein Branding.'],
+                    [5, 'Welche Daten werden pro Klick erfasst?', 'Zeitstempel, Referrer-Domain, Browser-Familie, Betriebssystem und Gerätetyp. IP-Adressen werden unmittelbar gehasht und verworfen. Keine Profile, kein Identitätstracking.'],
+                    [6, 'Funktioniert es mit Substack und beehiiv?', 'Ja. Beide Plattformen erlauben das Verlinken beliebiger URLs. Füge einfach clicked.at-Links im Editor ein.'],
+                ] : [
+                    [1, 'How does clicked.at track newsletter clicks?', 'You replace links in your newsletter with clicked.at short links. When a reader clicks, the request hits our server first — we record the timestamp, referrer, and device — then instantly redirect to the destination. No pixel, no cookie, no script injected into your email.'],
+                    [2, 'Do I need to change my email provider?',       'No. clicked.at works with any email provider or newsletter tool — Mailchimp, Substack, ConvertKit, beehiiv, or plain text. Just swap the URLs before you hit send.'],
+                    [3, 'Is click tracking GDPR-compliant?',            'Yes. We never store raw IP addresses — only a one-way SHA-256 hash used for deduplication. No advertising cookies, no third-party data sharing. Your readers\' privacy is protected at the infrastructure level, not just the policy level.'],
+                    [4, 'Can I use my own domain for tracked links?',   'Yes. Members on eligible plans can point a custom hostname (e.g. go.yourbrand.com) at the network. Every tracked link then carries your domain, not ours.'],
+                    [5, 'What data does clicked.at collect per click?', 'Timestamp, referring domain, browser family, OS, and device type. Raw IPs are immediately hashed and discarded. No page content, no user identity, no cross-site profiling.'],
+                    [6, 'Does it work with Substack / beehiiv?',        'Yes. Both platforms let you write your own links in the body. Paste clicked.at links where your destination URLs would normally go. Substack\'s own link tracker and ours are independent — both will record separately.'],
+                ];
+                @endphp
+
                 <div class="mt-10 space-y-3" x-data="{ active: null }">
-                    @foreach ([
-                        [1, 'How does clicked.at track newsletter clicks?', 'You replace links in your newsletter with clicked.at short links. When a reader clicks, the request hits our server first — we record the timestamp, referrer, and device — then instantly redirect to the destination. No pixel, no cookie, no script injected into your email.'],
-                        [2, 'Do I need to change my email provider?',       'No. clicked.at works with any email provider or newsletter tool — Mailchimp, Substack, ConvertKit, beehiiv, or plain text. Just swap the URLs before you hit send.'],
-                        [3, 'Is click tracking GDPR-compliant?',            'Yes. We never store raw IP addresses — only a one-way SHA-256 hash used for deduplication. No advertising cookies, no third-party data sharing. Your readers\' privacy is protected at the infrastructure level, not just the policy level.'],
-                        [4, 'Can I use my own domain for tracked links?',   'Yes. Members on eligible plans can point a custom hostname (e.g. go.yourbrand.com) at the network. Every tracked link then carries your domain, not ours.'],
-                        [5, 'What data does clicked.at collect per click?', 'Timestamp, referring domain, browser family, OS, and device type. Raw IPs are immediately hashed and discarded. No page content, no user identity, no cross-site profiling.'],
-                        [6, 'Does it work with Substack / beehiiv?',        'Yes. Both platforms let you write your own links in the body. Paste clicked.at links where your destination URLs would normally go. Substack\'s own link tracker and ours are independent — both will record separately.'],
-                    ] as [$n, $q, $a])
+                    @foreach ($faqsList as [$n, $q, $a])
                     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <button @click="active = active === {{ $n }} ? null : {{ $n }}" type="button" class="group flex w-full items-center justify-between text-left">
                             <h3 class="font-semibold text-zinc-900 transition group-hover:text-violet-600 dark:text-zinc-100 dark:group-hover:text-violet-400">{{ $q }}</h3>
@@ -557,22 +654,30 @@
                             <span class="animate-ping-slow absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
                             <span class="relative inline-flex h-2 w-2 rounded-full bg-violet-400"></span>
                         </span>
-                        Free to start. No credit card.
+                        {{ $isDe ? 'Kostenlos starten. Keine Kreditkarte nötig.' : 'Free to start. No credit card.' }}
                     </div>
 
                     <h2 class="font-display text-2xl font-bold tracking-tight sm:text-4xl">
-                        Ready to know what<br class="hidden sm:inline"> your readers click?
+                        @if ($isDe)
+                            Bereit zu erfahren, was<br class="hidden sm:inline"> deine Leser anklicken?
+                        @else
+                            Ready to know what<br class="hidden sm:inline"> your readers click?
+                        @endif
                     </h2>
                     <p class="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-zinc-400 sm:text-base">
-                        Sign in with your ternis.link account and create your first tracked link in under a minute. Paste it into your next issue. Watch the clicks arrive.
+                        @if ($isDe)
+                            Melde dich mit deinem ternis.link-Konto an und erstelle deinen ersten getrackten Link in unter einer Minute. Füge ihn in deine nächste Ausgabe ein und beobachte die Klicks live.
+                        @else
+                            Sign in with your ternis.link account and create your first tracked link in under a minute. Paste it into your next issue. Watch the clicks arrive.
+                        @endif
                     </p>
                     <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
                         <a href="{{ url('/login') }}" class="group inline-flex items-center gap-2 rounded-xl bg-violet-600 px-7 py-3.5 font-semibold text-white shadow-md shadow-violet-600/30 transition hover:bg-violet-500 active:scale-[0.98]">
-                            Get started — it's free
+                            {{ $isDe ? 'Jetzt kostenlos starten' : 'Get started — it\'s free' }}
                             <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </a>
                         <a href="https://docs.ternis.link" class="inline-flex items-center rounded-xl border border-zinc-700 bg-zinc-800/80 px-6 py-3.5 font-semibold text-zinc-300 transition hover:bg-zinc-800 hover:text-white">
-                            Read the API docs
+                            {{ $isDe ? 'API-Dokumentation' : 'Read the API docs' }}
                         </a>
                     </div>
                 </div>
@@ -595,14 +700,23 @@
                 <span class="text-zinc-400 dark:text-zinc-600">·</span>
                 <span class="text-xs">&copy; {{ date('Y') }} Ternis — part of the <a href="https://ternis.link" class="hover:text-zinc-800 dark:hover:text-zinc-200">ternis.link</a> network</span>
             </div>
-            <nav class="flex flex-wrap items-center justify-center gap-5 text-xs" aria-label="Footer links">
-                <a href="https://ternis.link/pages/legal/privacy" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Privacy</a>
-                <a href="https://ternis.link/pages/legal/terms" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Terms</a>
-                <a href="https://ternis.dev/en/legal/imprint" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Imprint</a>
-                <a href="https://ternis.link/pages/blog" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Blog</a>
-                <a href="https://docs.ternis.link" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">API Docs</a>
-                <a href="https://ternis.link/pages/stats" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Network stats</a>
-            </nav>
+            <div class="flex flex-wrap items-center justify-center gap-5 text-xs">
+                <nav class="flex flex-wrap items-center justify-center gap-4" aria-label="Footer links">
+                    <a href="https://ternis.link/pages/legal/privacy" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">{{ $isDe ? 'Datenschutz' : 'Privacy' }}</a>
+                    <a href="https://ternis.link/pages/legal/terms" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">{{ $isDe ? 'AGB' : 'Terms' }}</a>
+                    <a href="{{ \App\Support\DomainUrls::impressum('clicked.at', $locale) }}" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">{{ $isDe ? 'Impressum' : 'Imprint' }}</a>
+                    <a href="https://ternis.link/pages/blog" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Blog</a>
+                    <a href="https://docs.ternis.link" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">API</a>
+                    <a href="https://ternis.link/pages/stats" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">{{ $isDe ? 'Netzwerk-Statistiken' : 'Network stats' }}</a>
+                </nav>
+                <span class="text-zinc-300 dark:text-zinc-700">·</span>
+                <div class="flex items-center gap-1.5 text-xs">
+                    <span class="text-zinc-400 dark:text-zinc-500">{{ $isDe ? 'Sprache:' : 'Language:' }}</span>
+                    <a href="?lang=en" class="{{ ! $isDe ? 'font-bold text-violet-600 dark:text-violet-400' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400' }}">EN</a>
+                    <span class="text-zinc-300 dark:text-zinc-700">/</span>
+                    <a href="?lang=de" class="{{ $isDe ? 'font-bold text-violet-600 dark:text-violet-400' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400' }}">DE</a>
+                </div>
+            </div>
         </div>
     </footer>
     </div>

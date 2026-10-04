@@ -41,7 +41,7 @@ class LegalTest extends TestCase
     {
         $this->get('http://ternis.link/pages/legal/imprint')
             ->assertStatus(302)
-            ->assertRedirect('https://ternis.dev/en/legal/imprint');
+            ->assertRedirect('https://ternis.dev/en/legal/imprint?domain=ternis.link');
     }
 
     public function test_legacy_legal_prefix_redirects_to_pages(): void

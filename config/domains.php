@@ -33,6 +33,7 @@ return [
         'links.t-api.de' => 'api',
         'dash.ternis.link' => 'dashboard',
         'admin.ternis.link' => 'admin',
+        'int.ternis.link' => 'ternis',
         // Developer documentation
         'docs.ternis.link' => 'docs',
     ],

@@ -90,7 +90,7 @@
                 <span>·</span>
                 <a href="https://ternis.link/pages/legal/terms" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">AGB</a>
                 <span>·</span>
-                <a href="https://ternis.dev/de/legal/imprint" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Impressum</a>
+                <a href="{{ \App\Support\DomainUrls::impressum('meinlink.at', 'de') }}" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Impressum</a>
             </div>
         </footer>
     </div>

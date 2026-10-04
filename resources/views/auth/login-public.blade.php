@@ -89,7 +89,7 @@
 
         <footer class="sk-foot">
             sketched by ternis.link from <a href="https://ternis.dev">ternis.dev</a> · hosted on <a href="https://ternis.net">ternis.net</a>
-            · <a href="https://ternis.link/pages/legal/privacy">privacy</a> · <a href="https://ternis.link/pages/legal/terms">terms</a> · <a href="https://ternis.dev/en/legal/imprint">imprint</a>
+            · <a href="https://ternis.link/pages/legal/privacy">privacy</a> · <a href="https://ternis.link/pages/legal/terms">terms</a> · <a href="{{ \App\Support\DomainUrls::impressum('href.nz', 'en') }}">imprint</a>
         </footer>
     </div>
 </body>

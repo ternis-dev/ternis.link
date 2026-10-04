@@ -68,7 +68,7 @@
             ·
             <a href="https://ternis.link/pages/legal/terms" class="underline underline-offset-2">Terms</a>
             ·
-            <a href="https://ternis.dev/en/legal/imprint" class="underline underline-offset-2">Imprint</a>
+            <a href="{{ \App\Support\DomainUrls::impressum() }}" class="underline underline-offset-2">Imprint</a>
         </p>
     </footer>
 

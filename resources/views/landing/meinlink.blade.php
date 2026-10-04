@@ -329,12 +329,11 @@
                     <div class="group animate-fade-in-up [animation-delay:400ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <div class="flex items-center gap-3">
                             <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/10 to-indigo-500/20 text-purple-600 ring-1 ring-purple-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-purple-950/60 dark:to-indigo-900/40 dark:text-purple-400 dark:ring-purple-500/30">
-                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="3" y="13" width="4" height="8" rx="1.5" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.8"/>
-                                    <rect x="10" y="8" width="4" height="13" rx="1.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.8"/>
-                                    <rect x="17" y="4" width="4" height="17" rx="1.5" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8"/>
-                                    <path d="M4 11L11 6L16 9L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="21" cy="3" r="1.5" fill="currentColor"/>
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 3v18h18"/>
+                                    <path d="M18 17V9"/>
+                                    <path d="M13 17V5"/>
+                                    <path d="M8 17v-4"/>
                                 </svg>
                             </div>
                             <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Auswertungen &amp; Slugs</h3>
@@ -500,7 +499,7 @@
             <nav class="flex flex-wrap items-center justify-center gap-6 text-xs" aria-label="Rechtliche Links">
                 <a href="https://ternis.link/pages/legal/privacy" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Datenschutz</a>
                 <a href="https://ternis.link/pages/legal/terms" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">AGB</a>
-                <a href="https://ternis.dev/de/legal/imprint" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Impressum</a>
+                <a href="{{ \App\Support\DomainUrls::impressum('meinlink.at', 'de') }}" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Impressum</a>
                 <a href="https://ternis.link/pages/stats" class="transition hover:text-zinc-900 dark:hover:text-zinc-100">Netzwerk-Statistik</a>
             </nav>
         </div>
