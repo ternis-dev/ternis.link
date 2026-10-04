@@ -25,7 +25,7 @@ class ShortenForm extends Component
 
     public string $destination_url = '';
 
-    /** Domain choice: meinlink.at or href.nz */
+    /** Domain choice: meinlink.at, href.nz, or href.yt. */
     public string $selectedDomain = 'meinlink.at';
 
     /** Slug length: 5 to 9 characters */
@@ -55,7 +55,7 @@ class ShortenForm extends Component
     {
         return [
             'destination_url' => ['required', 'url', 'max:'.LinkService::PUBLIC_MAX_URL_LENGTH],
-            'selectedDomain' => ['required', 'string', 'in:meinlink.at,href.nz'],
+            'selectedDomain' => ['required', 'string', 'in:meinlink.at,href.nz,href.yt'],
             'slugLength' => ['required', 'integer', 'between:5,9'],
             'expiresAt' => ['nullable', 'date', 'after:now'],
         ];
@@ -67,7 +67,7 @@ class ShortenForm extends Component
             'destination_url.required' => 'Bitte gib eine Ziel-URL ein.',
             'destination_url.url' => 'Das sieht nicht nach einer gültigen URL aus — sie muss mit https:// oder http:// beginnen.',
             'destination_url.max' => 'Diese URL ist zu lang — maximal '.LinkService::PUBLIC_MAX_URL_LENGTH.' Zeichen erlaubt.',
-            'selectedDomain.in' => 'Bitte wähle eine gültige Domain (meinlink.at oder href.nz).',
+            'selectedDomain.in' => 'Bitte wähle eine gültige Domain (meinlink.at, href.nz oder href.yt).',
             'slugLength.between' => 'Die Link-Länge muss zwischen 5 und 9 Zeichen liegen.',
             'expiresAt.after' => 'Das Ablaufdatum muss in der Zukunft liegen.',
         ];
@@ -323,9 +323,11 @@ class ShortenForm extends Component
 
     public function resolveDomain(): Domain
     {
-        $targetHost = $this->selectedDomain === 'href.nz'
-            ? 'href.nz'
-            : (string) config('domains.meinlink_host', 'meinlink.at');
+        $targetHost = match ($this->selectedDomain) {
+            'href.nz' => (string) config('domains.public_host', 'href.nz'),
+            'href.yt' => (string) config('domains.yt_host', 'href.yt'),
+            default => (string) config('domains.meinlink_host', 'meinlink.at'),
+        };
 
         $domain = Domain::where('hostname', $targetHost)->first();
 

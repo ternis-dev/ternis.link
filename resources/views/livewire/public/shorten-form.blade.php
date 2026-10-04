@@ -65,6 +65,33 @@
         </div>
     @else
         <form wire:submit="create" novalidate>
+            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <span class="sk-label">{{ $locale === 'de' ? 'Domain' : 'Short link domain' }}</span>
+                <div class="inline-flex rounded-lg border border-zinc-200 bg-zinc-100/70 p-0.5 text-xs font-medium dark:border-zinc-700 dark:bg-zinc-800">
+                    <button
+                        type="button"
+                        wire:click="$set('selectedDomain', 'href.nz')"
+                        @class([
+                            'rounded-md px-2.5 py-1 transition',
+                            'bg-white text-zinc-900 shadow-xs font-semibold dark:bg-zinc-900 dark:text-zinc-100' => $selectedDomain === 'href.nz',
+                            'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200' => $selectedDomain !== 'href.nz',
+                        ])
+                    >
+                        href.nz
+                    </button>
+                    <button
+                        type="button"
+                        wire:click="$set('selectedDomain', 'href.yt')"
+                        @class([
+                            'rounded-md px-2.5 py-1 transition',
+                            'bg-white text-zinc-900 shadow-xs font-semibold dark:bg-zinc-900 dark:text-zinc-100' => $selectedDomain === 'href.yt',
+                            'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200' => $selectedDomain !== 'href.yt',
+                        ])
+                    >
+                        href.yt
+                    </button>
+                </div>
+            </div>
             <div class="sk-label-row">
                 <label class="sk-label" for="public_destination_url">{{ $this->t('label.destination') }}</label>
                 <span class="sk-url-state" aria-live="polite">

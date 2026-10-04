@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Public;
 
-use App\Enums\DomainType;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
 use App\Models\Domain;
@@ -34,6 +33,9 @@ class ShortenForm extends Component
 
     public string $destination_url = '';
 
+    /** Domain choice on public hosts: href.nz or href.yt. */
+    public string $selectedDomain = 'href.nz';
+
     public ?string $turnstile_token = null;
 
     public ?string $shortUrl = null;
@@ -56,6 +58,7 @@ class ShortenForm extends Component
     {
         return [
             'destination_url' => ['required', 'url', 'max:'.LinkService::PUBLIC_MAX_URL_LENGTH],
+            'selectedDomain' => ['required', 'string', 'in:href.nz,href.yt'],
         ];
     }
 
@@ -73,7 +76,16 @@ class ShortenForm extends Component
             'destination_url.required' => 'Please paste a link to shorten.',
             'destination_url.url' => 'That doesn’t look like a valid URL — make sure it starts with https://.',
             'destination_url.max' => 'That URL is too long — keep it under 2,048 characters.',
+            'selectedDomain.in' => 'Please choose href.nz or href.yt.',
         ];
+    }
+
+    public function mount(): void
+    {
+        $host = strtolower((string) request()->getHost());
+        $this->selectedDomain = $host === (string) config('domains.yt_host', 'href.yt')
+            ? 'href.yt'
+            : 'href.nz';
     }
 
     /**
@@ -553,22 +565,13 @@ class ShortenForm extends Component
         $this->dispatch('reset-turnstile');
     }
 
-    /**
-     * Guest links always live on the current public domain,
-     * falling back to href.nz.
-     */
     private function resolveDomain(): Domain
     {
-        $current = request()->attributes->get('domain_model');
+        $hostname = $this->selectedDomain === 'href.yt'
+            ? (string) config('domains.yt_host', 'href.yt')
+            : (string) config('domains.public_host', 'href.nz');
 
-        if ($current instanceof Domain
-            && $current->isSystemDomain()
-            && $current->type === DomainType::Public
-            && $current->isUsableForLinks()) {
-            return $current;
-        }
-
-        return Domain::where('hostname', 'href.nz')->firstOrFail();
+        return Domain::where('hostname', $hostname)->firstOrFail();
     }
 
     public function render()

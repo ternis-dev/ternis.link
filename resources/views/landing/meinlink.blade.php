@@ -63,7 +63,7 @@
                     'URL-Kürzung ohne Registrierung',
                     'Automatische QR-Code-Erstellung',
                     'Individuelle Link-Länge (5 bis 9 Zeichen)',
-                    'Wählbare Domain (meinlink.at oder href.nz)',
+                    'Wählbare Domain (meinlink.at, href.nz oder href.yt)',
                     'Frei einstellbares Ablaufdatum',
                     'DSGVO-konform ohne Tracking-Cookies',
                 ],
@@ -77,7 +77,7 @@
                         'name' => 'Wie kann ich einen Link auf meinlink.at kostenlos kürzen?',
                         'acceptedAnswer' => [
                             '@type' => 'Answer',
-                            'text' => 'Füge einfach deine lange Ziel-URL in das Eingabefeld ein, wähle bei Bedarf deine bevorzugte Domain (meinlink.at oder href.nz), die gewünschte Zeichenlänge (5 bis 9 Zeichen) sowie ein optionales Ablaufdatum und klicke auf "Kürzen".',
+                            'text' => 'Füge einfach deine lange Ziel-URL in das Eingabefeld ein, wähle bei Bedarf deine bevorzugte Domain (meinlink.at, href.nz oder href.yt), die gewünschte Zeichenlänge (5 bis 9 Zeichen) sowie ein optionales Ablaufdatum und klicke auf "Kürzen".',
                         ],
                     ],
                     [

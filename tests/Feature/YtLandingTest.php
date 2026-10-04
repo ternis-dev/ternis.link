@@ -26,40 +26,33 @@ class YtLandingTest extends TestCase
         $this->assertSame('public', $domain->type->value);
     }
 
-    public function test_href_yt_landing_renders_video_accelerator_presentation(): void
+    public function test_href_yt_landing_renders_the_link_desk_experience(): void
     {
         $response = $this->get('http://href.yt/');
 
         $response->assertStatus(200);
 
         // Branding & visual identity
-        $response->assertSee('href<span class="text-red-500">.yt</span>', escape: false);
-        $response->assertSee('REC · ACCELERATOR', escape: false);
-        $response->assertSee('Video links', escape: false);
-        $response->assertSee('accelerated', escape: false);
-
-        // Video player shell & timestamp features
-        $response->assertSee('HD 1080p', escape: false);
-        $response->assertSee('Timestamp Precision', escape: false);
-        $response->assertSee('Shorts &amp; Reels Ready', escape: false);
-        $response->assertSee('7-Character URLs', escape: false);
-        $response->assertSee('Zero Ad-Walls', escape: false);
-
-        // Platform compatibility
-        $response->assertSee('YouTube &amp; Shorts', escape: false);
-        $response->assertSee('Twitch VODs &amp; Clips', escape: false);
-        $response->assertSee('TikTok', escape: false);
+        $response->assertSee('href<span class="font-normal opacity-45">.yt</span>', escape: false);
+        $response->assertSee('live / link desk', escape: false);
+        $response->assertSee('Make the', escape: false);
+        $response->assertSee('Less link.', escape: false);
+        $response->assertSee('No ad wall', escape: false);
+        $response->assertSee('href.nz', escape: false);
+        $response->assertSee('href.yt', escape: false);
+        $response->assertSee('timestamp ready', escape: false);
+        $response->assertSee('No strange detours', escape: false);
 
         // Assets
         $response->assertSee('yt-', escape: false);
 
         // FAQ & Structured data
-        $response->assertSee('Frequently Asked Questions', escape: false);
+        $response->assertSee('Notes from the desk', escape: false);
         $response->assertSee('application/ld+json', escape: false);
         $response->assertSee('FAQPage', escape: false);
 
         // Disclaimer
-        $response->assertSee('not affiliated, associated, authorized, endorsed by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc.', escape: false);
+        $response->assertSee('not affiliated with YouTube, Google LLC, Alphabet Inc.', escape: false);
     }
 
     public function test_href_yt_custom_new_page_renders(): void
@@ -108,7 +101,7 @@ class YtLandingTest extends TestCase
 
     public function test_href_yt_local_previews(): void
     {
-        $this->get('/_preview/yt')->assertStatus(200)->assertSee('Video links', escape: false);
+        $this->get('/_preview/yt')->assertStatus(200)->assertSee('Make the', escape: false);
         $this->get('/_preview/yt-new')->assertStatus(200)->assertSee('Accelerate a Video Link', escape: false);
         $this->get('/_preview/yt-login')->assertStatus(200)->assertSee('Creator Studio Login', escape: false);
         $this->get('/_preview/yt-error')->assertStatus(404)->assertSee('Video link not found', escape: false);

@@ -338,6 +338,17 @@
                                 >
                                     href.nz
                                 </button>
+                                <button
+                                    type="button"
+                                    wire:click="$set('selectedDomain', 'href.yt')"
+                                    @class([
+                                        'rounded-md px-2.5 py-1 transition',
+                                        'bg-white text-zinc-900 shadow-xs font-semibold dark:bg-zinc-900 dark:text-zinc-100' => $selectedDomain === 'href.yt',
+                                        'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200' => $selectedDomain !== 'href.yt',
+                                    ])
+                                >
+                                    href.yt
+                                </button>
                             </div>
                         </div>
 

@@ -1,355 +1,75 @@
 @php
 $faqs = [
-    [
-        'q' => 'Can I shorten regular links or only videos on href.yt?',
-        'a' => 'You can shorten any web destination on <strong>href.yt</strong>. While the domain and tools are tailored specifically for YouTube, Twitch, Shorts, and video creators, standard web links work with the exact same sub-millisecond redirect speed.',
-    ],
-    [
-        'q' => 'How do timestamp deep-links work?',
-        'a' => 'When you share a video with a timestamp (like <code>?t=90s</code> or <code>?t=1m30s</code>), href.yt preserves the exact parameters through the redirect, jumping viewers directly to the highlight or chapter you want them to see.',
-    ],
-    [
-        'q' => 'Do href.yt links show ads, countdowns, or interstitial walls?',
-        'a' => 'Never. Every href.yt redirect resolves directly over TLS 1.3 straight to the destination. There are zero ads, zero countdown timers, and no third-party tracking scripts.',
-    ],
-    [
-        'q' => 'How can I get custom vanity video slugs or higher limits?',
-        'a' => 'Guests can shorten links instantly with auto-generated slugs. To claim custom branded slugs (e.g., <code>href.yt/my-stream</code>) and access real-time retention charts, sign in with <a href="/login" class="text-red-400 underline underline-offset-2">Ternis Auth</a>.',
-    ],
+    ['q' => 'Can I shorten regular links or only videos on href.yt?', 'a' => 'You can shorten any web destination. href.yt is tuned for YouTube, Twitch, Shorts, and video creators, but standard links get the same direct redirect.'],
+    ['q' => 'How do timestamp deep-links work?', 'a' => 'Timestamp parameters like <code>?t=90s</code> or <code>?t=1m30s</code> are preserved through the redirect, taking viewers straight to the moment you meant to share.'],
+    ['q' => 'Do href.yt links show ads or countdowns?', 'a' => 'Never. Every redirect resolves directly over TLS 1.3 with zero ad walls, countdown timers, or third-party tracking scripts.'],
+    ['q' => 'How do I get custom slugs?', 'a' => 'Guests can shorten instantly. Sign in with <a href="/login" class="underline">Ternis Auth</a> to claim custom slugs and access real-time retention charts.'],
 ];
-
-$faqJsonLd = array_map(fn ($faq) => [
-    '@type' => 'Question',
-    'name' => $faq['q'],
-    'acceptedAnswer' => ['@type' => 'Answer', 'text' => strip_tags($faq['a'])],
-], $faqs);
+$faqJsonLd = array_map(fn ($faq) => ['@type' => 'Question', 'name' => $faq['q'], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => strip_tags($faq['a'])]], $faqs);
 @endphp
-
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>href.yt — Video &amp; Creator Link Accelerator</title>
-    <meta name="description" content="High-velocity short links for YouTube, Twitch, TikTok and video creators. Deep-link with timestamp accuracy, custom video slugs, and zero ad-trackers.">
-    <meta name="theme-color" content="#ff0033">
-    <link rel="canonical" href="https://href.yt/">
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
-
-    {{-- Open Graph & Twitter --}}
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="href.yt">
-    <meta property="og:title" content="href.yt — Video &amp; Creator Link Accelerator">
-    <meta property="og:description" content="Ultra-compact 7-character links for video highlights, streams, and YouTube timestamps.">
-    <meta property="og:url" content="https://href.yt/">
-
-    {{-- Font preloading --}}
-    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
-
-    {{-- JSON-LD structured data --}}
-    <script type="application/ld+json">
-    {!! json_encode([
-        '@context' => 'https://schema.org',
-        '@graph' => [
-            [
-                '@type' => 'WebSite',
-                '@id' => 'https://href.yt/#website',
-                'url' => 'https://href.yt/',
-                'name' => 'href.yt',
-                'description' => 'High-velocity short links for YouTube, Twitch, and video creators.',
-            ],
-            [
-                '@type' => 'WebApplication',
-                '@id' => 'https://href.yt/#webapp',
-                'name' => 'href.yt Video Link Accelerator',
-                'applicationCategory' => 'UtilitiesApplication',
-                'url' => 'https://href.yt/',
-            ],
-            [
-                '@type' => 'FAQPage',
-                '@id' => 'https://href.yt/#faq',
-                'mainEntity' => $faqJsonLd,
-            ],
-        ],
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
-    </script>
-
-    @vite(['resources/css/yt.css', 'resources/js/yt.js'])
-    @livewireStyles
-
-    @if (config('services.turnstile.key'))
-        <link rel="preconnect" href="https://challenges.cloudflare.com">
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
-    @endif
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>href.yt — Links with a point of view</title>
+    <meta name="description" content="Compact, direct links for video creators, streamers, and the moments worth sharing.">
+    <meta name="theme-color" content="#f2efe8"><link rel="canonical" href="https://href.yt/"><link rel="icon" href="{{ asset('favicon.ico') }}">
+    <meta property="og:type" content="website"><meta property="og:site_name" content="href.yt"><meta property="og:title" content="href.yt — Links with a point of view"><meta property="og:description" content="Compact, direct links for the moments worth sharing."><meta property="og:url" content="https://href.yt/">
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+    <script type="application/ld+json">{!! json_encode(['@context' => 'https://schema.org', '@graph' => [['@type' => 'WebSite', '@id' => 'https://href.yt/#website', 'url' => 'https://href.yt/', 'name' => 'href.yt'], ['@type' => 'WebApplication', '@id' => 'https://href.yt/#webapp', 'name' => 'href.yt', 'applicationCategory' => 'UtilitiesApplication', 'url' => 'https://href.yt/'], ['@type' => 'FAQPage', '@id' => 'https://href.yt/#faq', 'mainEntity' => $faqJsonLd]]], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @vite(['resources/css/yt.css', 'resources/js/yt.js']) @livewireStyles
+    @if (config('services.turnstile.key'))<link rel="preconnect" href="https://challenges.cloudflare.com"><script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>@endif
 </head>
-<body class="yt-canvas min-h-screen font-sans text-neutral-100 antialiased selection:bg-red-600 selection:text-white">
-
-    {{-- Top ambient glow --}}
-    <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-96 overflow-hidden">
-        <div class="absolute -top-48 left-1/2 -translate-x-1/2 h-96 w-[800px] rounded-full bg-gradient-to-b from-red-600/20 via-rose-600/10 to-transparent blur-3xl"></div>
-    </div>
-
-    {{-- Navigation Header --}}
-    <header class="border-b border-white/5 bg-[#08090d]/80 backdrop-blur-md sticky top-0 z-40">
-        <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3.5 sm:px-6">
-            <a href="/" class="group flex items-center gap-2.5" aria-label="href.yt home">
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-700 text-white shadow-lg shadow-red-600/30 transition duration-200 group-hover:scale-105">
-                    <svg class="h-4.5 w-4.5 translate-x-0.5 fill-current" viewBox="0 0 24 24">
-                        <polygon points="5 3 19 12 5 21 5 3"/>
-                    </svg>
-                </span>
-                <span class="font-display text-xl font-bold tracking-tight text-white">
-                    href<span class="text-red-500">.yt</span>
-                </span>
-            </a>
-
-            <div class="flex items-center gap-3 sm:gap-4">
-                {{-- Live studio indicator --}}
-                <div class="hidden items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-3 py-1 text-xs sm:flex">
-                    <span class="yt-rec-dot h-2 w-2 rounded-full bg-red-500"></span>
-                    <span class="font-mono font-semibold tracking-wider text-red-400">REC · ACCELERATOR</span>
-                </div>
-
-                {{-- Mini Audio Equalizer --}}
-                <div class="hidden items-end gap-0.5 h-4 sm:flex" aria-hidden="true" title="Audio / Video Equalizer">
-                    <div class="yt-eq-bar-1 w-1 rounded-full bg-red-500"></div>
-                    <div class="yt-eq-bar-2 w-1 rounded-full bg-rose-500"></div>
-                    <div class="yt-eq-bar-3 w-1 rounded-full bg-red-400"></div>
-                    <div class="yt-eq-bar-4 w-1 rounded-full bg-amber-400"></div>
-                </div>
-
-                @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="yt-btn-secondary rounded-lg px-3.5 py-1.5 text-xs font-semibold">
-                        Dashboard &rarr;
-                    </a>
-                @else
-                    <a href="{{ url('/login') }}" class="yt-btn-secondary rounded-lg px-3.5 py-1.5 text-xs font-semibold">
-                        Creator Login
-                    </a>
-                @endauth
-            </div>
+<body class="yt-canvas font-sans antialiased">
+<div class="yt-shell">
+    <header class="yt-nav relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 lg:px-10">
+        <a href="/" class="yt-logo flex items-center gap-3 font-display text-xl font-bold" aria-label="href.yt home">
+            <span class="yt-logo-mark flex h-9 w-9 items-center justify-center rounded-full text-lg">↗</span><span>href<span class="font-normal opacity-45">.yt</span></span>
+        </a>
+        <div class="flex items-center gap-4 text-sm">
+            <a href="#why" class="yt-link hidden sm:inline">Why href.yt</a><a href="#faq" class="yt-link hidden sm:inline">FAQ</a>
+            @auth<a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="yt-btn-secondary rounded-full px-4 py-2 text-xs font-semibold">Dashboard ↗</a>
+            @else<a href="{{ url('/login') }}" class="yt-btn-secondary rounded-full px-4 py-2 text-xs font-semibold">Creator login</a>@endauth
         </div>
     </header>
 
-    {{-- Main Hero --}}
-    <main class="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-        <section class="text-center">
-            <div class="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-medium text-red-300 backdrop-blur-md">
-                <span>⚡</span>
-                <span>The Video &amp; Creator Link Shortener</span>
+    <main class="relative z-10 mx-auto max-w-7xl px-5 pb-24 pt-16 lg:px-10 lg:pt-24">
+        <section class="grid items-end gap-14 lg:grid-cols-[1.05fr_.95fr]">
+            <div>
+                <p class="yt-kicker font-mono text-[11px] font-bold uppercase">A small tool for big moments / 01</p>
+                <h1 class="yt-display mt-6 max-w-3xl font-display text-6xl font-bold sm:text-8xl">Make the<br><span class="yt-stroke">moment</span><br><span class="text-[var(--signal)]">click.</span></h1>
+                <p class="mt-8 max-w-lg text-base leading-relaxed text-[var(--muted)] sm:text-lg">A link shortener with a point of view. Built for the clip, the chapter, the drop, and every place a long URL gets in the way.</p>
+                <div class="mt-8 flex flex-wrap items-center gap-5 text-xs font-semibold">
+                    <a href="#make" class="yt-btn-primary rounded-full px-5 py-3">Cut a link <span class="yt-arrow ml-2 inline-block">↗</span></a>
+                    <span class="font-mono text-[var(--muted)]">No account · No ad wall</span>
+                </div>
             </div>
-
-            <h1 class="font-display mt-6 text-4xl font-extrabold tracking-tight text-white sm:text-6xl sm:leading-tight">
-                Video links, <span class="bg-gradient-to-r from-red-500 via-rose-500 to-amber-400 bg-clip-text text-transparent">accelerated.</span>
-            </h1>
-            <p class="mx-auto mt-4 max-w-2xl text-base text-neutral-400 sm:text-lg">
-                Compact 7-character URLs for YouTube, Twitch, TikTok, and video streams. Share timestamp moments and video chapters that jump viewers straight to the highlight.
-            </p>
-
-            {{-- Faux Video Player Frame for Link Shortener --}}
-            <div class="yt-card mx-auto mt-10 max-w-2xl overflow-hidden rounded-2xl text-left">
-                {{-- Video Player Bezel Header --}}
-                <div class="flex items-center justify-between border-b border-white/10 bg-black/40 px-4 py-2.5 text-xs">
-                    <div class="flex items-center gap-2">
-                        <span class="h-2.5 w-2.5 rounded-full bg-red-500/80"></span>
-                        <span class="h-2.5 w-2.5 rounded-full bg-amber-500/80"></span>
-                        <span class="h-2.5 w-2.5 rounded-full bg-emerald-500/80"></span>
-                        <span class="font-mono text-neutral-400 ml-2">href.yt // input-stream</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="yt-timecode rounded px-1.5 py-0.5 text-[11px] text-red-400">HD 1080p</span>
-                        <span class="yt-timecode rounded px-1.5 py-0.5 text-[11px] text-neutral-400">00:00:00</span>
-                    </div>
+            <div id="make" class="yt-desk rounded-[2rem] p-5 sm:p-8">
+                <div class="yt-desk-bar flex items-center justify-between border-b pb-4 font-mono text-[10px] uppercase tracking-[.18em] text-white/55">
+                    <span><i class="yt-rec-dot mr-2 inline-block h-2 w-2 rounded-full bg-[var(--signal)]"></i>live / link desk</span><span>signal 001</span>
                 </div>
-
-                {{-- Player Body with Shortener --}}
-                <div class="p-6 sm:p-8">
-                    <div class="mb-3 flex items-center justify-between">
-                        <label for="destination_url" class="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-                            Paste Video, Stream, or Destination URL
-                        </label>
-                        {{-- Live detected platform badge --}}
-                        <div id="yt-detected-platform" class="hidden"></div>
-                    </div>
-
-                    {{-- Livewire Shortener Component --}}
-                    <livewire:public.shorten-form :compact="true" />
-
-                    {{-- Interactive Timestamp & Sample Helpers --}}
-                    <div class="mt-6 border-t border-white/10 pt-4">
-                        <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-                            <div class="flex items-center gap-1.5 text-neutral-400">
-                                <span>Timestamp jump:</span>
-                                <button type="button" data-timestamp-add="30" class="rounded border border-white/10 bg-white/5 px-2 py-0.5 text-neutral-300 hover:border-red-500/40 hover:bg-red-500/10 hover:text-white transition">
-                                    +30s
-                                </button>
-                                <button type="button" data-timestamp-add="60" class="rounded border border-white/10 bg-white/5 px-2 py-0.5 text-neutral-300 hover:border-red-500/40 hover:bg-red-500/10 hover:text-white transition">
-                                    +1m
-                                </button>
-                                <button type="button" data-timestamp-add="300" class="rounded border border-white/10 bg-white/5 px-2 py-0.5 text-neutral-300 hover:border-red-500/40 hover:bg-red-500/10 hover:text-white transition">
-                                    +5m
-                                </button>
-                            </div>
-
-                            <div class="flex items-center gap-1.5 text-neutral-400">
-                                <span>Try demo:</span>
-                                <button type="button" data-sample-url="https://www.youtube.com/watch?v=dQw4w9WgXcQ" class="text-xs text-red-400 underline underline-offset-2 hover:text-red-300">
-                                    YouTube Video
-                                </button>
-                                <span>·</span>
-                                <button type="button" data-sample-url="https://youtube.com/shorts/sample123" class="text-xs text-red-400 underline underline-offset-2 hover:text-red-300">
-                                    Shorts
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Player Progress Scrub Bar (Cosmetic) --}}
-                <div class="h-1 w-full bg-white/5">
-                    <div class="h-full w-2/3 bg-gradient-to-r from-red-600 via-rose-500 to-amber-500"></div>
-                </div>
+                <div class="pb-7 pt-8"><p class="font-display text-3xl font-bold tracking-tight sm:text-4xl">What are we<br><span class="text-[var(--acid)]">sending out?</span></p><p class="mt-3 max-w-sm text-sm leading-relaxed text-white/55">Paste a video, stream, or any destination. We’ll give it a clean, memorable exit.</p></div>
+                <livewire:public.shorten-form :compact="true" />
+                <div class="mt-8 flex items-center justify-between border-t border-white/15 pt-4 font-mono text-[10px] uppercase tracking-[.16em] text-white/45"><span>youtube · twitch · everywhere</span><span>7 chars / direct</span></div>
             </div>
         </section>
 
-        {{-- Feature Highlights --}}
-        <section class="mt-20">
-            <div class="text-center">
-                <h2 class="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                    Engineered for Creators &amp; Streams
-                </h2>
-                <p class="mx-auto mt-2 max-w-xl text-sm text-neutral-400">
-                    Why content creators, streamers, and video editors choose href.yt for their channels.
-                </p>
-            </div>
+        <div class="yt-marquee mt-24 -mx-5 overflow-hidden py-3 lg:-mx-10"><div class="yt-marquee-track font-mono text-xs font-bold uppercase tracking-[.25em]">timestamp ready&nbsp; ✦&nbsp; zero ad walls&nbsp; ✦&nbsp; creator-owned&nbsp; ✦&nbsp; timestamp ready&nbsp; ✦&nbsp; zero ad walls&nbsp; ✦&nbsp; creator-owned&nbsp; ✦&nbsp;</div></div>
 
-            <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 text-left">
-                <div class="yt-card rounded-xl p-5">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-display text-base font-bold text-white">Timestamp Precision</h3>
-                    </div>
-                    <p class="mt-2.5 text-xs leading-relaxed text-neutral-400">
-                        Preserve <code>?t=...</code> parameters across redirects. Jump audiences straight to the joke, interview answer, or highlight moment.
-                    </p>
-                </div>
-
-                <div class="yt-card rounded-xl p-5">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-400">
-                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><line x1="12" x2="12.01" y1="18" y2="18"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-display text-base font-bold text-white">Shorts &amp; Reels Ready</h3>
-                    </div>
-                    <p class="mt-2.5 text-xs leading-relaxed text-neutral-400">
-                        Fits seamlessly inside vertical video descriptions, pinned comments, TikTok bios, and YouTube Shorts overlays without wrapping.
-                    </p>
-                </div>
-
-                <div class="yt-card rounded-xl p-5">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
-                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" x2="21" y1="10" y2="3"/><line x1="3" x2="10" y1="21" y2="14"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-display text-base font-bold text-white">7-Character URLs</h3>
-                    </div>
-                    <p class="mt-2.5 text-xs leading-relaxed text-neutral-400">
-                        At only 7 characters (<code>href.yt/</code>), save precious character limits in live Twitch chat, Discord broadcasts, and tweets.
-                    </p>
-                </div>
-
-                <div class="yt-card rounded-xl p-5">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
-                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
-                            </svg>
-                        </div>
-                        <h3 class="font-display text-base font-bold text-white">Zero Ad-Walls</h3>
-                    </div>
-                    <p class="mt-2.5 text-xs leading-relaxed text-neutral-400">
-                        Sub-millisecond redirects with zero intermediate ad walls, fake download buttons, or third-party cookies. Clean and trustworthy.
-                    </p>
-                </div>
+        <section id="why" class="mt-24 grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
+            <div><p class="yt-kicker font-mono text-[11px] font-bold uppercase">The edit / 02</p><h2 class="yt-display mt-4 max-w-sm font-display text-4xl font-bold sm:text-5xl">Less link.<br>More signal.</h2><p class="mt-6 max-w-sm text-sm leading-relaxed text-[var(--muted)]">href.yt is deliberately narrow: make the handoff from your idea to someone else’s screen feel instant.</p></div>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <article class="yt-card rounded-3xl p-6"><span class="font-mono text-xs text-[var(--signal-dark)]">01 / TIME</span><h3 class="mt-12 font-display text-xl font-bold">Land on the moment</h3><p class="mt-3 text-sm leading-relaxed text-[var(--muted)]">Keep <code>?t=...</code> intact and send people directly to the punchline, chorus, or chapter.</p></article>
+                <article class="yt-card rounded-3xl p-6"><span class="font-mono text-xs text-[var(--signal-dark)]">02 / TRUST</span><h3 class="mt-12 font-display text-xl font-bold">No strange detours</h3><p class="mt-3 text-sm leading-relaxed text-[var(--muted)]">Direct TLS redirects. No countdowns, bait buttons, or third-party cookies between click and content.</p></article>
+                <article class="yt-card rounded-3xl p-6"><span class="font-mono text-xs text-[var(--signal-dark)]">03 / SHAPE</span><h3 class="mt-12 font-display text-xl font-bold">Fits the frame</h3><p class="mt-3 text-sm leading-relaxed text-[var(--muted)]">Seven characters for chat, descriptions, overlays, bios, and anywhere attention is already scarce.</p></article>
+                <article class="yt-card rounded-3xl p-6"><span class="font-mono text-xs text-[var(--signal-dark)]">04 / RANGE</span><h3 class="mt-12 font-display text-xl font-bold">Not just video</h3><p class="mt-3 text-sm leading-relaxed text-[var(--muted)]">YouTube, Twitch, TikTok, Vimeo—or the ordinary web page you need to put somewhere better.</p></article>
             </div>
         </section>
 
-        {{-- Supported Platforms strip --}}
-        <section class="mt-16 text-center">
-            <p class="text-xs uppercase tracking-wider text-neutral-500 font-semibold">Works seamlessly across video platforms</p>
-            <div class="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-neutral-400">
-                <span class="rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-white">YouTube &amp; Shorts</span>
-                <span class="rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-white">Twitch VODs &amp; Clips</span>
-                <span class="rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-white">TikTok</span>
-                <span class="rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-white">Vimeo</span>
-                <span class="rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-white">Kick</span>
-                <span class="rounded-lg border border-white/5 bg-white/5 px-3 py-1.5 text-white">Loom</span>
-            </div>
-        </section>
-
-        {{-- Connected Network --}}
-        <section class="mt-16 text-left">
-            <h2 class="text-center font-display text-2xl font-bold tracking-tight text-white">Part of the Ternis Network</h2>
-            <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div class="yt-card rounded-xl p-5">
-                    <div class="font-display text-base font-bold text-white">href.nz</div>
-                    <p class="mt-1 text-xs text-neutral-400">The open, public link shortener for quick links &amp; instant QR codes.</p>
-                    <a href="https://href.nz" class="mt-3 inline-block text-xs font-semibold text-red-400 hover:text-red-300">Visit href.nz &rarr;</a>
-                </div>
-                <div class="yt-card rounded-xl p-5">
-                    <div class="font-display text-base font-bold text-white">href.re</div>
-                    <p class="mt-1 text-xs text-neutral-400">Official business redirects, invoices, and verified corporate channels.</p>
-                    <a href="https://href.re" class="mt-3 inline-block text-xs font-semibold text-red-400 hover:text-red-300">Visit href.re &rarr;</a>
-                </div>
-                <div class="yt-card rounded-xl p-5">
-                    <div class="font-display text-base font-bold text-white">ternis.link</div>
-                    <p class="mt-1 text-xs text-neutral-400">Personal subdomains (<code>name.ternis.link</code>) for family &amp; partners.</p>
-                    <a href="https://ternis.link" class="mt-3 inline-block text-xs font-semibold text-red-400 hover:text-red-300">Visit ternis.link &rarr;</a>
-                </div>
-            </div>
-        </section>
-
-        {{-- FAQ --}}
-        <section id="faq" class="mt-16 text-left">
-            <h2 class="text-center font-display text-2xl font-bold tracking-tight text-white">Frequently Asked Questions</h2>
-            <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                @foreach ($faqs as $faq)
-                    <div class="yt-card rounded-xl p-5">
-                        <h3 class="font-display text-sm font-bold text-white">{{ $faq['q'] }}</h3>
-                        <p class="mt-2 text-xs leading-relaxed text-neutral-400">{!! $faq['a'] !!}</p>
-                    </div>
-                @endforeach
-            </div>
-        </section>
+        <section id="faq" class="mt-24 border-t border-[var(--line)] pt-12"><div class="flex flex-col justify-between gap-4 sm:flex-row"><h2 class="font-display text-3xl font-bold">Notes from the desk</h2><span class="font-mono text-xs text-[var(--muted)]">FAQ / 04</span></div><div class="mt-8 grid gap-4 sm:grid-cols-2">@foreach ($faqs as $faq)<article class="border-b border-[var(--line)] pb-5"><h3 class="font-display font-bold">{{ $faq['q'] }}</h3><p class="mt-2 text-sm leading-relaxed text-[var(--muted)]">{!! $faq['a'] !!}</p></article>@endforeach</div></section>
     </main>
-
-    {{-- Footer --}}
-    <footer class="mt-16 border-t border-white/5 bg-[#08090d] py-8 text-center text-xs text-neutral-500">
-        <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-4 px-4">
-            <span class="text-neutral-400">href.yt — Video &amp; Creator Link Accelerator</span>
-            <span>·</span>
-            <a href="https://ternis.link/pages/legal/privacy" class="hover:text-white transition">Privacy</a>
-            <span>·</span>
-            <a href="https://ternis.link/pages/legal/terms" class="hover:text-white transition">Terms</a>
-            <span>·</span>
-            <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}" class="hover:text-white transition">Imprint</a>
-            <span>·</span>
-            <a href="https://ternis.dev" class="hover:text-white transition">ternis.dev</a>
-        </div>
-        <p class="mx-auto mt-4 max-w-2xl px-4 text-[11px] leading-relaxed text-neutral-600">
-            Disclaimer: href.yt is an independent utility and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates.
-        </p>
-    </footer>
-
-    @livewireScripts
+    <footer class="relative z-10 border-t border-[var(--line)] px-5 py-8 lg:px-10"><div class="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-xs text-[var(--muted)] sm:flex-row"><span class="font-display text-lg font-bold text-[var(--ink)]">href<span class="opacity-40">.yt</span></span><div class="flex flex-wrap gap-4"><a href="https://ternis.link/pages/legal/privacy" class="yt-link">Privacy</a><a href="https://ternis.link/pages/legal/terms" class="yt-link">Terms</a><a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}" class="yt-link">Imprint</a><a href="https://ternis.dev" class="yt-link">ternis.dev ↗</a></div></div><p class="mx-auto mt-6 max-w-7xl text-[10px] leading-relaxed text-[var(--muted)]">href.yt is an independent utility and is not affiliated with YouTube, Google LLC, Alphabet Inc., or their subsidiaries.</p></footer>
+</div>
+@livewireScripts
 </body>
 </html>
