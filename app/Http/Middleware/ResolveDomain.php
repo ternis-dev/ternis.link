@@ -28,6 +28,18 @@ class ResolveDomain
         $domainMap = config('domains.map', []);
         $wildcardRoots = config('domains.wildcard_roots', []);
 
+        // The QR host is configurable and also has dedicated routes. Keep
+        // it resolvable even when a deployment's cached domain map predates
+        // the QR host entry.
+        $qrHost = (string) config('domains.qr_host', 'qr.href.nz');
+        if ($hostname === $qrHost) {
+            $request->attributes->set('domain_type', 'public');
+            $request->attributes->set('domain_hostname', $hostname);
+            $request->attributes->set('domain_model', Domain::where('hostname', $hostname)->first());
+
+            return $next($request);
+        }
+
         // Redirect api.ternis.link to links.t-api.de
         if ($hostname === 'api.ternis.link') {
             return redirect()->away('https://links.t-api.de'.$request->getRequestUri(), 301);

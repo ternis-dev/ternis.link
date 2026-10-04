@@ -26,6 +26,18 @@ class DomainResolutionTest extends TestCase
         $response->assertSee('href');
     }
 
+    public function test_it_resolves_qr_host_without_relying_on_domain_map(): void
+    {
+        $domainMap = config('domains.map');
+        unset($domainMap['qr.href.nz']);
+        config(['domains.map' => $domainMap]);
+
+        $response = $this->get('http://qr.href.nz/');
+
+        $response->assertOk();
+        $response->assertSee('qr.href.nz');
+    }
+
     public function test_it_resolves_business_domain_landing_page(): void
     {
         $response = $this->get('http://href.re/');
