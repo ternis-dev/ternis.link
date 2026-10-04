@@ -131,19 +131,10 @@
         Direkt zum Formular springen
     </a>
 
-    {{-- Subtle background decoration & ambient SVG grid --}}
+    {{-- Subtle background decoration --}}
     <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div class="absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-b from-red-500/10 via-rose-500/5 to-transparent blur-3xl"></div>
         <div class="absolute top-[600px] -left-40 h-[400px] w-[400px] rounded-full bg-zinc-200/50 blur-3xl dark:bg-zinc-800/20"></div>
-        <svg class="absolute inset-0 h-full w-full stroke-zinc-900/[0.035] [mask-image:radial-gradient(100%_70%_at_top_center,white,transparent_80%)] dark:stroke-white/[0.03]" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <pattern id="ml-ambient-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-                    <path d="M48 0L0 0 0 48" fill="none" stroke-width="1"/>
-                    <circle cx="48" cy="48" r="1" fill="currentColor" fill-opacity="0.3"/>
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#ml-ambient-grid)" />
-        </svg>
     </div>
 
     {{-- Navigation Header --}}
@@ -423,17 +414,6 @@
         {{-- Call To Action for Members --}}
         <section class="px-4 py-16 sm:px-6">
             <div class="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-zinc-200 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 p-8 text-center text-white shadow-xl sm:p-12 dark:border-zinc-800">
-                {{-- Ambient Vector Pattern --}}
-                <svg class="pointer-events-none absolute inset-0 -z-0 h-full w-full stroke-white/[0.06] [mask-image:radial-gradient(85%_85%_at_50%_40%,white,transparent)]" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <pattern id="cta-mesh" width="36" height="36" patternUnits="userSpaceOnUse">
-                            <path d="M36 0H0V36" fill="none" stroke-width="1"/>
-                            <circle cx="36" cy="36" r="1.5" fill="white" fill-opacity="0.15"/>
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#cta-mesh)" />
-                </svg>
-
                 <div class="relative z-10">
                     <h2 class="font-display text-2xl font-bold tracking-tight sm:text-3xl">
                         Möchtest du mehr Kontrolle über deine Links?
