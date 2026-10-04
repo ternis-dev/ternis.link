@@ -27,6 +27,13 @@ final class PublicHost
         return $host === (string) config('domains.clicked_host', 'clicked.at');
     }
 
+    public static function isQr(?string $host = null): bool
+    {
+        $host ??= request()->getHost();
+
+        return $host === (string) config('domains.qr_host', 'qr.href.nz');
+    }
+
     /**
      * Resolve the preferred locale for clicked.at (en or de).
      * Order of precedence:

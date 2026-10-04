@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\RecordQrGeneration;
 use App\Models\Domain;
 use App\Services\LinkService;
+use App\Services\QrCodeService;
 use App\Services\SlugResolverService;
 use App\Support\LinkQrCode;
 use Illuminate\Http\Request;
@@ -15,30 +16,63 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PublicQrCodeController extends Controller
 {
-    public const FORMATS = ['svg', 'png'];
+    public const FORMATS = ['svg', 'png', 'json'];
 
     public function __construct(
         private SlugResolverService $slugs,
         private LinkService $links,
+        private QrCodeService $qrService,
     ) {}
 
     /**
-     * GET /v1/qr — Generate a QR code for an arbitrary public URL.
+     * GET /v1/qr, POST /v1/qr — Generate a QR code with full type and style support.
      *
-     * SVG is the default format; PNG can be requested with ?format=png.
+     * Backward-compatible with existing url query param; supports all 12 types.
      */
     public function __invoke(Request $request): Response
     {
-        $validated = $request->validate([
+        $type = $request->input('type', $request->query('type'));
+
+        if ($type && in_array(strtolower($type), QrCodeService::SUPPORTED_TYPES, true) && strtolower($type) !== 'url') {
+            return $this->qrService->apiResponse($request, strtolower($type), $request->all());
+        }
+
+        if ($request->has('url')) {
+            $validated = $request->validate([
+                'url' => ['required', 'url:http,https', 'max:2048'],
+                'format' => ['nullable', Rule::in(self::FORMATS)],
+            ]);
+
+            return $this->qrService->apiResponse($request, 'url', $request->all());
+        }
+
+        if ($request->has('text') || $request->has('data')) {
+            return $this->qrService->apiResponse($request, 'text', $request->all());
+        }
+
+        $request->validate([
             'url' => ['required', 'url:http,https', 'max:2048'],
             'format' => ['nullable', Rule::in(self::FORMATS)],
         ]);
 
-        $format = $validated['format'] ?? 'svg';
-
+        $format = $request->input('format', 'svg');
         RecordQrGeneration::dispatch(null, $format);
 
-        return $this->render($validated['url'], $format);
+        return $this->render($request->input('url'), $format);
+    }
+
+    /**
+     * GET /v1/qr/{type} — Type-specific API QR endpoint.
+     */
+    public function forType(Request $request, string $type): Response
+    {
+        $cleanType = strtolower(trim($type));
+
+        if (! in_array($cleanType, QrCodeService::SUPPORTED_TYPES, true)) {
+            abort(404, 'Unsupported QR code type');
+        }
+
+        return $this->qrService->apiResponse($request, $cleanType, $request->all());
     }
 
     /**

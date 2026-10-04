@@ -16,6 +16,8 @@ return [
         'meinlink.at' => 'public',
         // Newsletter & email click-tracking branded domain
         'clicked.at' => 'public',
+        // Dedicated QR code generator utility
+        'qr.href.nz' => 'public',
         // Business (ternis official)
         'href.re' => 'business',
         // Ternis family/partners
@@ -75,6 +77,8 @@ return [
     'meinlink_host' => env('DOMAIN_MEINLINK', 'meinlink.at'),
 
     'clicked_host' => env('DOMAIN_CLICKED', 'clicked.at'),
+
+    'qr_host' => env('DOMAIN_QR', 'qr.href.nz'),
 
     'business_host' => env('DOMAIN_BUSINESS', 'href.re'),
 

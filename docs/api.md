@@ -124,11 +124,74 @@ All incoming URL query parameters (excluding reserved routing parameters `debug`
 
 ## QR codes
 
+Generate production-ready QR codes for any payload with the dedicated QR studio on `https://qr.href.nz` or programmatically via `https://links.t-api.de/v1/qr`.
+
+### 1. Direct URLs on qr.href.nz
+Any URL pattern on `qr.href.nz` immediately renders a high-resolution SVG or PNG image with zero redirects or delay:
+
 ```bash
-# Any public URL, no auth (SVG default, ?format=png for PNG)
+# URL QR code (SVG default; append .png or ?format=png for PNG)
+curl "https://qr.href.nz/url/https://example.com"
+curl "https://qr.href.nz/url/https://example.com.png"
+
+# Plain text QR code
+curl "https://qr.href.nz/text/Hello%20World"
+
+# Wi-Fi network QR code (auto-connect on iOS & Android)
+curl "https://qr.href.nz/wifi?ssid=MyOfficeWiFi&password=SecretPass&encryption=WPA"
+
+# vCard contact QR code
+curl "https://qr.href.nz/vcard?first_name=Jane&last_name=Doe&phone=+123456789&email=jane@example.com"
+
+# Email, phone, SMS, WhatsApp, location, calendar event, crypto
+curl "https://qr.href.nz/email/support@example.com?subject=Help"
+curl "https://qr.href.nz/phone/+123456789"
+curl "https://qr.href.nz/sms/+123456789?message=Hi"
+curl "https://qr.href.nz/whatsapp/436601234567?message=Hello"
+curl "https://qr.href.nz/geo/48.2082,16.3738?label=Vienna"
+curl "https://qr.href.nz/event?title=Keynote&location=HallA"
+curl "https://qr.href.nz/crypto/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa?currency=btc"
+```
+
+### 2. Custom styling parameters
+All QR endpoints accept the following query parameters:
+- `format`: `svg` (default vector), `png` (raster), or `json` (returns Base64 data URIs)
+- `size`: pixel width/height (64 to 2048, default 300)
+- `margin`: quiet zone padding modules (0 to 100, default 10)
+- `color`: foreground hex color without hash (e.g. `10b981` or `0f172a`)
+- `bg`: background hex color without hash (e.g. `ffffff` or `090d16`)
+- `error_correction`: Reed-Solomon level (`L` 7%, `M` 15%, `Q` 25%, `H` 30%)
+- `download`: `1` or `true` sends `Content-Disposition: attachment` for direct browser downloads
+
+```bash
+# Customized emerald QR on dark background with High error correction
+curl "https://qr.href.nz/url/https://example.com?color=10b981&bg=090d16&size=500&error_correction=H&download=1"
+```
+
+### 3. Programmatic API endpoints (`links.t-api.de/v1/qr`)
+
+```bash
+# GET /v1/qr — URL or general QR (public, no auth)
 curl "https://links.t-api.de/v1/qr?url=https%3A%2F%2Fexample.com&format=png"
 
-# QR for one of your links (auth; encodes the short URL)
+# GET /v1/qr/{type} — Type-specific endpoint
+curl "https://links.t-api.de/v1/qr/wifi?ssid=CoffeeShop&password=Latte123&format=png"
+
+# POST /v1/qr — JSON payload returning Base64 data URIs and raw payload
+curl -X POST https://links.t-api.de/v1/qr \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "vcard",
+    "first_name": "Alice",
+    "last_name": "Smith",
+    "phone": "+4312345678",
+    "email": "alice@example.com",
+    "format": "json",
+    "color": "059669",
+    "error_correction": "H"
+  }'
+
+# GET /v1/links/{link}/qr — QR code for your own short link (auth required)
 curl "https://links.t-api.de/v1/links/<ulid>/qr?format=png" \
   -H "Authorization: Bearer tl_your_key_here"
 ```

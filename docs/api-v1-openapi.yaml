@@ -115,31 +115,127 @@ paths:
         '410': { description: Version retired — see GET / for latest_version }
   /qr:
     get:
-      summary: Generate a QR code for a URL (public)
+      summary: Generate a QR code for a URL or payload (public)
       description: |
         Generates a QR code without authentication. SVG is returned by default;
-        use `format=png` for a PNG image. Only HTTP and HTTPS URLs are accepted.
-        Hosts: `links.t-api.de` and public short-link hosts.
+        use `format=png` for a PNG image or `format=json` for base64 data URIs.
+        Supports all QR types (url, text, wifi, vcard, email, phone, sms, whatsapp, geo, event, crypto, raw).
+        Hosts: `links.t-api.de`, `qr.href.nz`, and public hosts.
       security: []
       parameters:
         - name: url
           in: query
-          required: true
-          schema: { type: string, format: uri, maxLength: 2048 }
+          required: false
+          schema: { type: string, maxLength: 2048 }
+          description: Destination URL when type=url
+        - name: type
+          in: query
+          required: false
+          schema: { type: string, enum: [url, text, wifi, vcard, email, phone, sms, whatsapp, geo, event, crypto, raw], default: url }
+        - name: text
+          in: query
+          required: false
+          schema: { type: string }
+          description: Text payload when type=text or raw
         - name: format
           in: query
           required: false
-          schema: { type: string, enum: [svg, png], default: svg }
+          schema: { type: string, enum: [svg, png, json], default: svg }
+        - name: size
+          in: query
+          required: false
+          schema: { type: integer, minimum: 64, maximum: 2048, default: 300 }
+        - name: margin
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, maximum: 100, default: 10 }
+        - name: color
+          in: query
+          required: false
+          schema: { type: string, description: Foreground hex color without hash, e.g. 10b981 }
+        - name: bg
+          in: query
+          required: false
+          schema: { type: string, description: Background hex color without hash, e.g. ffffff }
+        - name: error_correction
+          in: query
+          required: false
+          schema: { type: string, enum: [L, M, Q, H, low, medium, quartile, high], default: M }
       responses:
         '200':
-          description: QR code image
+          description: QR code image or JSON metadata
           content:
             image/svg+xml: { schema: { type: string } }
             image/png: { schema: { type: string, format: binary } }
-        '422': { description: Invalid URL or unsupported format }
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  type: { type: string }
+                  payload: { type: string }
+                  data_uri: { type: string }
+                  png_data_uri: { type: string }
+                  download_url: { type: string }
+        '422': { description: Invalid payload or unsupported format }
         '429': { description: Per-minute throttle exceeded }
         '404': { description: Wrong host }
         '410': { description: Version retired — see GET / for latest_version }
+    post:
+      summary: Generate a QR code via JSON body (public)
+      description: Generate QR codes programmatically for any payload type with styling.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: { type: string, enum: [url, text, wifi, vcard, email, phone, sms, whatsapp, geo, event, crypto, raw], default: url }
+                url: { type: string }
+                text: { type: string }
+                ssid: { type: string }
+                password: { type: string }
+                encryption: { type: string, enum: [WPA, WEP, nopass], default: WPA }
+                first_name: { type: string }
+                last_name: { type: string }
+                email: { type: string }
+                phone: { type: string }
+                message: { type: string }
+                format: { type: string, enum: [svg, png, json], default: svg }
+                size: { type: integer, default: 300 }
+                margin: { type: integer, default: 10 }
+                color: { type: string }
+                bg: { type: string }
+                error_correction: { type: string, enum: [L, M, Q, H] }
+      responses:
+        '200':
+          description: QR image or JSON payload
+          content:
+            image/svg+xml: { schema: { type: string } }
+            image/png: { schema: { type: string, format: binary } }
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  type: { type: string }
+                  payload: { type: string }
+                  data_uri: { type: string }
+                  png_data_uri: { type: string }
+                  download_url: { type: string }
+  /qr/{type}:
+    parameters:
+      - name: type
+        in: path
+        required: true
+        schema: { type: string, enum: [url, text, wifi, vcard, email, phone, sms, whatsapp, geo, event, crypto, raw] }
+    get:
+      summary: Type-specific QR generator endpoint (public)
+      security: []
+      responses:
+        '200': { description: QR code image or JSON }
   /links:
     get:
       summary: List links (admins see all, users see own)

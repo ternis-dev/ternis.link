@@ -10,6 +10,8 @@ use App\Services\JunkUrlDetector;
 use App\Services\LinkService;
 use App\Services\SlugResolverService;
 use App\Services\TargetSelector;
+use App\Support\PublicHost;
+use App\Support\UserTracking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -35,6 +37,10 @@ class RedirectController extends Controller
      */
     public function directUrl(Request $request, string $url)
     {
+        if (PublicHost::isQr()) {
+            return app(QrController::class)->generateUrl($request, $url);
+        }
+
         $normalizedUrl = $this->slugResolver->normalizeUrl($url);
         $domain = $request->attributes->get('domain_model');
 
@@ -151,7 +157,7 @@ class RedirectController extends Controller
 
         $incomingQuery = $request->query();
         if (is_array($incomingQuery) && $incomingQuery !== []) {
-            $destination = \App\Support\UserTracking::mergeQueryIntoDestination($destination, $incomingQuery);
+            $destination = UserTracking::mergeQueryIntoDestination($destination, $incomingQuery);
         }
 
         if ($debugTarget) {

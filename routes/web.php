@@ -12,6 +12,7 @@ use App\Http\Controllers\ExtensionController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
+use App\Http\Controllers\QrController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\SiteFilesController;
 use App\Http\Controllers\StatsController;
@@ -555,6 +556,11 @@ Route::get('/', function () {
         return view('landing.business', ['stats' => NetworkStats::overview()]);
     }
     if ($type === 'public') {
+        // qr.href.nz is the dedicated interactive QR code studio & generator
+        if (PublicHost::isQr()) {
+            return view('landing.qr');
+        }
+
         // meinlink.at shares every public rule but gets its own German
         // landing page and theme (see meinlink.css).
         if (PublicHost::isMeinlink()) {
@@ -728,6 +734,25 @@ Route::get('/imprint', function (Request $request) {
     return DomainUrls::handleImpressumRedirect($request);
 })->name('imprint');
 
+// Dedicated QR code generator routes for qr.href.nz
+Route::domain((string) config('domains.qr_host', 'qr.href.nz'))->group(function () {
+    Route::get('/url/{url}', [QrController::class, 'generateUrl'])->where('url', '.*')->name('qr.direct-url');
+    Route::get('/text/{text}', [QrController::class, 'generateText'])->where('text', '.*')->name('qr.direct-text');
+    Route::get('/wifi/{ssid?}', [QrController::class, 'generateWifi'])->where('ssid', '.*')->name('qr.direct-wifi');
+    Route::get('/vcard', [QrController::class, 'generateVcard'])->name('qr.direct-vcard');
+    Route::get('/contact', [QrController::class, 'generateVcard'])->name('qr.direct-contact');
+    Route::get('/email/{email?}', [QrController::class, 'generateEmail'])->where('email', '.*')->name('qr.direct-email');
+    Route::get('/phone/{phone}', [QrController::class, 'generatePhone'])->where('phone', '.*')->name('qr.direct-phone');
+    Route::get('/tel/{phone}', [QrController::class, 'generatePhone'])->where('phone', '.*')->name('qr.direct-tel');
+    Route::get('/sms/{phone?}', [QrController::class, 'generateSms'])->where('phone', '.*')->name('qr.direct-sms');
+    Route::get('/whatsapp/{phone?}', [QrController::class, 'generateWhatsapp'])->where('phone', '.*')->name('qr.direct-whatsapp');
+    Route::get('/geo/{coords?}', [QrController::class, 'generateGeo'])->where('coords', '.*')->name('qr.direct-geo');
+    Route::get('/event', [QrController::class, 'generateEvent'])->name('qr.direct-event');
+    Route::get('/calendar', [QrController::class, 'generateEvent'])->name('qr.direct-calendar');
+    Route::get('/crypto/{address?}', [QrController::class, 'generateCrypto'])->where('address', '.*')->name('qr.direct-crypto');
+    Route::get('/raw/{data}', [QrController::class, 'generateRaw'])->where('data', '.*')->name('qr.direct-raw');
+});
+
 Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(function () {
     // Direct URL redirects (preferred)
     Route::get('/url/{url}', [RedirectController::class, 'directUrl'])
@@ -754,6 +779,21 @@ Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(funct
     // encodes). Slug-QR routes come before the suffixed route so
     // /{slug}/qr.png isn't misread as url "{slug}/qr".
     Route::middleware(['ensure.domain:public', 'throttle:10,1'])->group(function () {
+        Route::get('/qr/text/{text}', [QrController::class, 'generateText'])->where('text', '.*')->name('qr.text');
+        Route::get('/qr/wifi/{ssid?}', [QrController::class, 'generateWifi'])->where('ssid', '.*')->name('qr.wifi');
+        Route::get('/qr/vcard', [QrController::class, 'generateVcard'])->name('qr.vcard');
+        Route::get('/qr/contact', [QrController::class, 'generateVcard'])->name('qr.contact');
+        Route::get('/qr/email/{email?}', [QrController::class, 'generateEmail'])->where('email', '.*')->name('qr.email');
+        Route::get('/qr/phone/{phone}', [QrController::class, 'generatePhone'])->where('phone', '.*')->name('qr.phone');
+        Route::get('/qr/tel/{phone}', [QrController::class, 'generatePhone'])->where('phone', '.*')->name('qr.tel');
+        Route::get('/qr/sms/{phone?}', [QrController::class, 'generateSms'])->where('phone', '.*')->name('qr.sms');
+        Route::get('/qr/whatsapp/{phone?}', [QrController::class, 'generateWhatsapp'])->where('phone', '.*')->name('qr.whatsapp');
+        Route::get('/qr/geo/{coords?}', [QrController::class, 'generateGeo'])->where('coords', '.*')->name('qr.geo');
+        Route::get('/qr/event', [QrController::class, 'generateEvent'])->name('qr.event');
+        Route::get('/qr/calendar', [QrController::class, 'generateEvent'])->name('qr.calendar');
+        Route::get('/qr/crypto/{address?}', [QrController::class, 'generateCrypto'])->where('address', '.*')->name('qr.crypto');
+        Route::get('/qr/raw/{data}', [QrController::class, 'generateRaw'])->where('data', '.*')->name('qr.raw');
+
         Route::get('/qr/{url}/{mime}', [PublicQrCodeController::class, 'prettyMime'])
             ->where(['url' => '.*', 'mime' => 'png|svg'])
             ->name('qr.pretty-mime');
