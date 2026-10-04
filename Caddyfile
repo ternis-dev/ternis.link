@@ -21,6 +21,14 @@ meinlink.at, *.meinlink.at {
     encode gzip
 }
 
+# Public link shortener, Video & Creator accelerator
+href.yt, *.href.yt {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
 # Business link shortener
 href.re, *.href.re {
     root * /var/www/ternis-link/public

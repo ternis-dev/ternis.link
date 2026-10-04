@@ -42,6 +42,9 @@ class TernisAuthController extends Controller
             if (PublicHost::isClicked($request->getHost())) {
                 return view('auth.login-clicked', ['locale' => PublicHost::resolveClickedLocale()]);
             }
+            if (PublicHost::isYt($request->getHost())) {
+                return view('auth.login-yt');
+            }
 
             return view('auth.login-public');
         }

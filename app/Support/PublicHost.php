@@ -34,6 +34,13 @@ final class PublicHost
         return $host === (string) config('domains.qr_host', 'qr.href.nz');
     }
 
+    public static function isYt(?string $host = null): bool
+    {
+        $host ??= request()->getHost();
+
+        return $host === (string) config('domains.yt_host', 'href.yt');
+    }
+
     /**
      * Resolve the preferred locale for clicked.at (en or de).
      * Order of precedence:

@@ -1,0 +1,196 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-var.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 300 700;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-var.woff2') format('woff2');
+}
+
+/* ==========================================================================
+   href.yt — Video & Creator Link Accelerator Theme
+   Cinematic obsidian canvas with studio scarlet / neon crimson accents
+   ========================================================================== */
+
+:root {
+    --yt-red: #ff0033;
+    --yt-red-glow: rgba(255, 0, 51, 0.35);
+    --yt-amber: #ffb800;
+    --yt-bg-deep: #08090d;
+    --yt-surface: #0f1118;
+    --yt-surface-hover: #161a24;
+    --yt-border: rgba(255, 255, 255, 0.08);
+    --yt-border-highlight: rgba(255, 0, 51, 0.3);
+}
+
+/* Background grid with radial spotlight vignette */
+.yt-canvas {
+    background-color: var(--yt-bg-deep);
+    background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 0, 51, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 50% 120%, rgba(255, 0, 51, 0.08), transparent),
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px;
+    background-position: center;
+}
+
+/* Glowing studio recording indicator */
+@keyframes yt-rec-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 0, 51, 0.6);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+        box-shadow: 0 0 10px 3px rgba(255, 0, 51, 0.3);
+    }
+}
+
+.yt-rec-dot {
+    animation: yt-rec-pulse 1.8s ease-in-out infinite;
+}
+
+/* Equalizer soundwave bar animation */
+@keyframes yt-bar-wave-1 {
+    0%, 100% { height: 6px; }
+    50% { height: 18px; }
+}
+@keyframes yt-bar-wave-2 {
+    0%, 100% { height: 16px; }
+    50% { height: 8px; }
+}
+@keyframes yt-bar-wave-3 {
+    0%, 100% { height: 10px; }
+    50% { height: 22px; }
+}
+@keyframes yt-bar-wave-4 {
+    0%, 100% { height: 20px; }
+    50% { height: 12px; }
+}
+
+.yt-eq-bar-1 { animation: yt-bar-wave-1 0.9s ease-in-out infinite; }
+.yt-eq-bar-2 { animation: yt-bar-wave-2 0.7s ease-in-out infinite 0.15s; }
+.yt-eq-bar-3 { animation: yt-bar-wave-3 1.1s ease-in-out infinite 0.3s; }
+.yt-eq-bar-4 { animation: yt-bar-wave-4 0.8s ease-in-out infinite 0.45s; }
+
+/* Video player card shell with subtle crimson bevel */
+.yt-card {
+    background: rgba(15, 17, 24, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 
+        0 4px 24px -1px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 0, 51, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.yt-card:hover {
+    border-color: rgba(255, 0, 51, 0.25);
+    box-shadow: 
+        0 8px 32px -2px rgba(0, 0, 0, 0.6),
+        0 0 20px -2px rgba(255, 0, 51, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Primary scarlet button */
+.yt-btn-primary {
+    background: linear-gradient(135deg, #ff0033 0%, #d6002c 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 14px -1px rgba(255, 0, 51, 0.45);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.yt-btn-primary:hover {
+    background: linear-gradient(135deg, #ff1a47 0%, #ea0031 100%);
+    box-shadow: 0 4px 20px 0 rgba(255, 0, 51, 0.6);
+    transform: translateY(-1px);
+}
+
+.yt-btn-primary:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 8px 0 rgba(255, 0, 51, 0.4);
+}
+
+/* Glass secondary button */
+.yt-btn-secondary {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+    transition: all 0.2s ease;
+}
+
+.yt-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 0, 51, 0.3);
+    color: #ffffff;
+}
+
+/* Timecode readout chip */
+.yt-timecode {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-feature-settings: "tnum";
+    letter-spacing: 0.04em;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Video badge glow */
+.yt-badge-video {
+    background: rgba(255, 0, 51, 0.1);
+    border: 1px solid rgba(255, 0, 51, 0.3);
+    color: #ff3358;
+}
+
+/* Platform detection chip */
+.yt-platform-chip {
+    animation: yt-fade-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes yt-fade-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* CRT scanlines effect for error page */
+.yt-scanlines {
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.35) 50%
+    ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.03),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.03)
+    );
+    background-size: 100% 3px, 6px 100%;
+}

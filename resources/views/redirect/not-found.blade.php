@@ -20,6 +20,18 @@
                 <x-ui.button href="/" variant="primary">Zurück zum Kürzer</x-ui.button>
             </x-slot:actions>
         </x-layouts.public-error-meinlink>
+    @elseif (\App\Support\PublicHost::isYt())
+        <x-layouts.public-error-yt code="404" title="Video link not found.">
+            The short link <strong>{{ $slug }}</strong> on <strong>{{ $domain ?? request()->getHost() }}</strong> was not found, is inactive, or has expired.
+            <x-slot:actions>
+                <a href="/" class="yt-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold">
+                    Back to href.yt
+                </a>
+                <a href="/new" class="yt-btn-secondary inline-flex items-center rounded-xl px-5 py-2.5 text-xs font-semibold">
+                    Accelerate New Link
+                </a>
+            </x-slot:actions>
+        </x-layouts.public-error-yt>
     @else
         <x-layouts.public-error code="404" title="Link not found.">
             The short link <strong>{{ $slug }}</strong> for the domain <strong>{{ $domain ?? request()->getHost() }}</strong> wasn’t found, is inactive, or has expired.

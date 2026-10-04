@@ -16,6 +16,8 @@ return [
         'meinlink.at' => 'public',
         // Newsletter & email click-tracking branded domain
         'clicked.at' => 'public',
+        // Video-first public shortener & creator link accelerator
+        'href.yt' => 'public',
         // Dedicated QR code generator utility
         'qr.href.nz' => 'public',
         // Official QR API
@@ -56,6 +58,7 @@ return [
         'href.nz',
         'meinlink.at',
         'clicked.at',
+        'href.yt',
     ],
 
     /*
@@ -72,6 +75,7 @@ return [
         'href.nz',
         'clicked.at',
         'href.re',
+        'href.yt',
     ],
 
     /*
@@ -95,6 +99,8 @@ return [
     'meinlink_host' => env('DOMAIN_MEINLINK', 'meinlink.at'),
 
     'clicked_host' => env('DOMAIN_CLICKED', 'clicked.at'),
+
+    'yt_host' => env('DOMAIN_YT', 'href.yt'),
 
     'qr_host' => env('DOMAIN_QR', 'qr.href.nz'),
 

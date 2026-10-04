@@ -16,6 +16,7 @@ class DomainSeeder extends Seeder
             ['hostname' => 'meinlink.at',      'type' => DomainType::Public],
             ['hostname' => 'clicked.at',       'type' => DomainType::Public],
             ['hostname' => 'qr.href.nz',        'type' => DomainType::Public],
+            ['hostname' => 'href.yt',          'type' => DomainType::Public],
             // Business domains
             ['hostname' => 'href.re',          'type' => DomainType::Business],
             // Ternis family domains

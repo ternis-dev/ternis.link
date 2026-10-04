@@ -584,6 +584,12 @@ Route::get('/', function () {
             return $response;
         }
 
+        // href.yt is the video-first & creator shortener domain with
+        // its own custom theme, custom CSS and JS
+        if (PublicHost::isYt()) {
+            return view('landing.yt');
+        }
+
         return view('landing.public');
     }
 
@@ -691,6 +697,10 @@ Route::get('/new', function () {
         return view('landing.new-meinlink');
     }
 
+    if (PublicHost::isYt()) {
+        return view('landing.new-yt');
+    }
+
     return view('landing.new');
 })->name('public.new');
 
@@ -701,6 +711,14 @@ if (app()->environment('local', 'testing')) {
     Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
     Route::get('/_preview/re', fn () => view('landing.business', ['stats' => NetworkStats::overview()]))->name('preview.re');
     Route::get('/_preview/int', fn () => view('landing.internal'))->name('preview.int');
+    Route::get('/_preview/yt', fn () => view('landing.yt'))->name('preview.yt');
+    Route::get('/_preview/yt-new', fn () => view('landing.new-yt'))->name('preview.yt-new');
+    Route::get('/_preview/yt-login', fn () => view('auth.login-yt'))->name('preview.yt-login');
+    Route::get('/_preview/yt-error', fn () => response()->view('components.layouts.public-error-yt', [
+        'code' => '404',
+        'title' => 'Video link not found.',
+        'slot' => 'The video redirect xyz for href.yt was not found.',
+    ], 404))->name('preview.yt-error');
     Route::get('/_preview/clicked', function () {
         $locale = PublicHost::resolveClickedLocale();
         app()->setLocale($locale);
