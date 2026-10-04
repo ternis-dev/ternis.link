@@ -53,6 +53,22 @@ class DomainResolutionTest extends TestCase
         $response->assertRedirect('https://links.t-api.de/v1/links');
     }
 
+    public function test_it_redirects_www_to_apex_for_canonical_domains(): void
+    {
+        foreach (['ternis.link', 'meinlink.at', 'href.nz', 'clicked.at', 'href.re'] as $apex) {
+            $response = $this->get("http://www.{$apex}/pages/stats?src=www");
+
+            $response->assertStatus(301);
+            $response->assertRedirect("http://{$apex}/pages/stats?src=www");
+        }
+    }
+
+    public function test_it_does_not_redirect_www_prefixed_subdomains(): void
+    {
+        $response = $this->get('http://www.dash.ternis.link/');
+        $response->assertStatus(404);
+    }
+
     public function test_it_resolves_registered_wildcard_subdomain(): void
     {
         Domain::create([

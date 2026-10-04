@@ -33,6 +33,16 @@ class ResolveDomain
             return redirect()->away('https://links.t-api.de'.$request->getRequestUri(), 301);
         }
 
+        // Redirect www.<apex> to the bare apex host (e.g.
+        // www.href.nz → href.nz), preserving scheme and URI.
+        if (str_starts_with($hostname, 'www.')) {
+            $apex = substr($hostname, 4);
+
+            if (in_array($apex, (array) config('domains.www_redirect', []), true)) {
+                return redirect()->away($request->getScheme().'://'.$apex.$request->getRequestUri(), 301);
+            }
+        }
+
         // 1. Direct match in config
         if (isset($domainMap[$hostname])) {
             $request->attributes->set('domain_type', $domainMap[$hostname]);

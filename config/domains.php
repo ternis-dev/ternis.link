@@ -58,6 +58,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | WWW → Apex Redirects
+    |--------------------------------------------------------------------------
+    | www.<host> gets a 301 to the bare apex host, handled by the
+    | ResolveDomain middleware before any domain resolution runs.
+    */
+
+    'www_redirect' => [
+        'ternis.link',
+        'meinlink.at',
+        'href.nz',
+        'clicked.at',
+        'href.re',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Canonical Hosts (used for absolute cross-domain links + redirects)
     |--------------------------------------------------------------------------
     | route('login') resolves against APP_URL (href.nz), which 404s for
