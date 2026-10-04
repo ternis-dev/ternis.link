@@ -10,6 +10,10 @@
     <link rel="canonical" href="https://meinlink.at/new">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 
+    {{-- Font preloading: load before CSS parsing to eliminate content shift --}}
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+
     @vite(['resources/css/meinlink.css'])
     @livewireStyles
 

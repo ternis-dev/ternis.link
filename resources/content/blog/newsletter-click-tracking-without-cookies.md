@@ -48,6 +48,15 @@ With clicked.at links, you send plain `<a href="...">` text links. No images, no
 
 The hash is a one-way function: you cannot reverse it back to an IP. It exists only to deduplicate clicks (so one reader clicking twice doesn't inflate your count to 2). It is never shared, never sold, never used for advertising.
 
+## What about subscriber-level attribution?
+
+clicked.at's redirect layer is built privacy-first by default: our database deliberately never logs, harvests, or stores reader email addresses or personal profiles.
+
+However, if your newsletter or marketing workflow requires attributing specific clicks to individual subscribers in your own CRM or analytics stack, you have two clean options:
+
+1. **Parameter passthrough (`?email=` or `?uid=`)**: You can append subscriber tokens, user IDs, or ESP merge tags directly to your clicked.at URL (e.g., `clicked.at/special-offer?email={{subscriber.email}}` or `clicked.at/announcement?uid=usr_123`). The parameters pass through cleanly to your destination URL so your own site or CRM records the lead, while clicked.at's own analytics database remains strictly aggregated and free of personal data.
+2. **Generating unique links per subscriber via API**: If you need individual link-level tracking in your sending tool, you can use the [clicked.at API](/pages/blog/2026-09-29-automate-short-links-with-the-api) to programmatically generate unique links per recipient or segment (e.g., `clicked.at/{per-user-slug}` or campaign-coded links). This gives you granular click intelligence in your ESP while keeping the redirect infrastructure fast, lightweight, and cookie-free.
+
 ## The practical result
 
 You get per-link click counts, referrer breakdown, device split, and timing data — everything you need to understand which content resonates — without running a surveillance operation on your readers.

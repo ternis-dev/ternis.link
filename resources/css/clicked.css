@@ -67,3 +67,169 @@
 .animate-pop {
     animation: pop 0.3s ease;
 }
+
+/* ==========================================================
+ * PRELOADER & ENTRANCE ANIMATION (clicked.at)
+ * Prevents FOUT / content shift while Inter & Space Grotesk load.
+ * All preloader typography uses system fonts only so it never shifts.
+ * ========================================================== */
+
+.cl-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fafafa;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cl-loader {
+        background-color: #09090b;
+    }
+}
+
+.cl-loader.cl-loader-done {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.cl-loader-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    width: min(88vw, 380px);
+    padding: 2rem 1.5rem;
+    border-radius: 1.5rem;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(228, 228, 231, 0.8);
+    box-shadow: 0 20px 40px -15px rgba(109, 40, 217, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: cl-loader-pop 0.3s ease-out both;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cl-loader-inner {
+        background: rgba(24, 24, 27, 0.85);
+        border-color: rgba(39, 39, 42, 0.8);
+        box-shadow: 0 20px 40px -15px rgba(109, 40, 217, 0.25);
+    }
+}
+
+@keyframes cl-loader-pop {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.cl-load-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: #18181b;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cl-load-brand {
+        color: #f4f4f5;
+    }
+}
+
+.cl-load-tagline {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.8125rem;
+    color: #71717a;
+    margin-top: -0.85rem;
+    text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cl-load-tagline {
+        color: #a1a1aa;
+    }
+}
+
+.cl-load-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.cl-load-track {
+    flex: 1 1 auto;
+    position: relative;
+    height: 7px;
+    border-radius: 9999px;
+    background: rgba(228, 228, 231, 0.9);
+    overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cl-load-track {
+        background: rgba(39, 39, 42, 0.9);
+    }
+}
+
+.cl-loader-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #7c3aed 0%, #6366f1 100%);
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.5);
+    transition: width 0.05s linear;
+}
+
+.cl-load-pct {
+    flex: 0 0 2.8rem;
+    text-align: right;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #71717a;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cl-load-pct {
+        color: #a1a1aa;
+    }
+}
+
+.cl-load-status {
+    margin: 0;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.8125rem;
+    color: #71717a;
+    min-height: 1.25rem;
+    text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cl-load-status {
+        color: #a1a1aa;
+    }
+}
+
+.cl-enter {
+    animation: cl-enter-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cl-enter-rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cl-loader-inner { animation: none; }
+    .cl-enter { animation: none; }
+}
+

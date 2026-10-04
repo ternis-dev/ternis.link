@@ -111,10 +111,51 @@
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
 
+    {{-- Font preloading: load before CSS parsing to eliminate content shift --}}
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+
+    <noscript>
+        <style>
+            .cl-loader { display: none !important; }
+            .cl-enter { animation: none !important; opacity: 1 !important; transform: none !important; }
+        </style>
+    </noscript>
+
     @vite(['resources/css/clicked.css'])
     @livewireStyles
 </head>
 <body class="min-h-screen bg-zinc-50 font-sans text-zinc-900 antialiased selection:bg-violet-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-100">
+
+    {{-- =====================================================
+         Preloader — branded progress bar for clicked.at.
+         Prevents content shift (FOUT) while Inter & Space Grotesk
+         fonts load in the background. System fonts only on loader.
+         ===================================================== --}}
+    <div class="cl-loader" id="cl-loader" aria-hidden="true" role="presentation">
+        <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+            <div class="absolute -top-48 left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-gradient-to-b from-violet-500/12 via-indigo-500/6 to-transparent blur-3xl"></div>
+        </div>
+        <div class="cl-loader-inner">
+            <div class="cl-load-brand">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 via-indigo-600 to-violet-700 text-white shadow-md shadow-violet-500/30">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 3.5V2M5.06 5.06L4 4M3.5 9H2M5.06 12.94L4 14M12.94 5.06L14 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M9 9L20.5 14.5L14.5 16L12.5 22L9 9Z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>clicked<span class="text-violet-600 dark:text-violet-400">.at</span></span>
+            </div>
+            <p class="cl-load-tagline">Newsletter &amp; email click tracking</p>
+            <div class="cl-load-row">
+                <div class="cl-load-track">
+                    <div class="cl-loader-fill" id="cl-loader-fill"></div>
+                </div>
+                <span class="cl-load-pct" id="cl-load-pct">0%</span>
+            </div>
+            <p class="cl-load-status" id="cl-load-status">Initializing click tracker…</p>
+        </div>
+    </div>
 
     <a href="#get-started" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-violet-600 focus:px-4 focus:py-2 focus:text-white">
         Skip to get started
@@ -126,6 +167,7 @@
         <div class="absolute top-[700px] -right-40 h-[500px] w-[500px] rounded-full bg-violet-200/30 blur-3xl dark:bg-violet-900/10"></div>
     </div>
 
+    <div class="cl-wrap cl-enter">
     {{-- ── NAVIGATION ────────────────────────────────────── --}}
     <header class="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/80">
         <div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
@@ -563,7 +605,96 @@
             </nav>
         </div>
     </footer>
+    </div>
 
     @livewireScripts
+
+    <script>
+    /* ── Preloader: fills progress bar smoothly and holds until
+     * Inter & Space Grotesk fonts are loaded (or timeout safety).
+     * Eliminates content shift / FOUT when custom fonts render. */
+    (function () {
+        var loader = document.getElementById('cl-loader');
+        var fill   = document.getElementById('cl-loader-fill');
+        var pct    = document.getElementById('cl-load-pct');
+        var status = document.getElementById('cl-load-status');
+        if (!loader || !fill) return;
+
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var mobile  = window.matchMedia('(max-width: 640px)').matches;
+        var start   = null;
+        var FILL_MS = reduced ? 0 : (mobile ? 320 : 500);
+        var HOLD_MS = reduced ? 0 : (mobile ? 50 : 80);
+
+        function setFill(eased) {
+            var percent = Math.min(100, Math.round(eased * 100));
+            fill.style.width = percent + '%';
+            if (pct) pct.textContent = percent + '%';
+        }
+
+        setFill(0);
+
+        function dismiss() {
+            loader.classList.add('cl-loader-done');
+            var removed = false;
+            function cleanUp() {
+                if (removed) return;
+                removed = true;
+                loader.hidden = true;
+            }
+            loader.addEventListener('transitionend', cleanUp, { once: true });
+            setTimeout(cleanUp, 500);
+        }
+
+        function finish() {
+            if (status) status.textContent = 'Ready';
+            setTimeout(dismiss, HOLD_MS);
+        }
+
+        function waitForFonts(callback) {
+            if (document.fonts && document.fonts.ready) {
+                var timeout = new Promise(function (resolve) { setTimeout(resolve, 800); });
+                Promise.race([document.fonts.ready, timeout]).then(callback).catch(callback);
+            } else {
+                callback();
+            }
+        }
+
+        function animateFill(ts) {
+            if (!start) start = ts;
+            var elapsed  = ts - start;
+            var progress = Math.min(1, elapsed / Math.max(FILL_MS, 1));
+            var eased    = 1 - Math.pow(1 - progress, 3);
+            setFill(eased);
+
+            if (progress < 1) {
+                requestAnimationFrame(animateFill);
+            } else {
+                waitForFonts(finish);
+            }
+        }
+
+        function run() {
+            if (reduced) {
+                dismiss();
+            } else {
+                requestAnimationFrame(animateFill);
+            }
+        }
+
+        window.addEventListener('pageshow', function (e) {
+            if (e.persisted && loader) {
+                loader.classList.add('cl-loader-done');
+                loader.hidden = true;
+            }
+        });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', run);
+        } else {
+            run();
+        }
+    })();
+    </script>
 </body>
 </html>

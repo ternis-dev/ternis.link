@@ -10,6 +10,10 @@
     <link rel="canonical" href="https://meinlink.at/login">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 
+    {{-- Font preloading: load before CSS parsing to eliminate content shift --}}
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+
     @vite(['resources/css/meinlink.css'])
 </head>
 <body class="min-h-screen bg-zinc-50 font-sans text-zinc-900 antialiased selection:bg-red-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-100">

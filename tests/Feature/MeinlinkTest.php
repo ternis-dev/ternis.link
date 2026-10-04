@@ -46,6 +46,18 @@ class MeinlinkTest extends TestCase
             ->assertDontSee('sk-root', escape: false);
     }
 
+    public function test_meinlink_landing_includes_preloader_and_font_preloads(): void
+    {
+        $this->get('http://meinlink.at/')
+            ->assertOk()
+            ->assertSee('<link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>', escape: false)
+            ->assertSee('<link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>', escape: false)
+            ->assertSee('id="ml-loader"', escape: false)
+            ->assertSee('id="ml-loader-fill"', escape: false)
+            ->assertSee('id="ml-load-pct"', escape: false)
+            ->assertSee('ml-wrap ml-enter', escape: false);
+    }
+
     public function test_hrefnz_landing_is_untouched(): void
     {
         $this->get('http://href.nz/')

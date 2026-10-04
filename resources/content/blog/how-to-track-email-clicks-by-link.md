@@ -39,12 +39,20 @@ Now you have a real signal. Your readers skipped the main article and went strai
 
 ## Setting up per-link tracking in practice
 
-**Before you write your issue**, create a clicked.at link for each destination URL you plan to include. Use a meaningful slug: `clicked.at/oct-launch` is far more useful in your dashboard six months later than `clicked.at/a8Fk2zQ1`.
+**Before you write your issue**, create a clicked.at link for each destination URL you plan to include. You can choose a descriptive slug: `clicked.at/oct-launch` is immediately recognizable when readers hover over it or when you look at link lists.
 
 Name your links after what they represent, not just the destination:
 
 - `clicked.at/issue-47-article` (not `clicked.at/thenewsletterbible.com`)
 - `clicked.at/issue-47-sponsor` (not `clicked.at/acmecorp-landing`)
+
+### Tags, descriptions, and API automation
+
+You don't have to rely solely on the slug to keep things organized. clicked.at supports **tags** and **descriptions** for every link:
+
+- **Tags** (e.g. `newsletter`, `issue-47`, `sponsor`, `editorial`) let you group and filter links across campaigns in the dashboard with a single click.
+- **Descriptions** let you document the exact link placement, campaign context, or target audience for future reference.
+- **Automate with the API**: If you publish issues frequently or through a CMS/ESP, the [clicked.at API](/pages/blog/2026-09-29-automate-short-links-with-the-api) can generate your short links on the fly, automatically applying tags and descriptions. With the API and tags in place, even compact random slugs remain perfectly organized and searchable in your dashboard six months later.
 
 When the issue goes out and clicks start arriving, you can see at a glance which section of that specific issue drove engagement. Over multiple issues, patterns emerge: does your product recommendation always outperform editorial? Does position in the email matter more than topic?
 

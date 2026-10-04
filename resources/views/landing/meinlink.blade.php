@@ -118,6 +118,17 @@
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
 
+    {{-- Font preloading: load before CSS parsing to eliminate content shift --}}
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
+
+    <noscript>
+        <style>
+            .ml-loader { display: none !important; }
+            .ml-enter { animation: none !important; opacity: 1 !important; transform: none !important; }
+        </style>
+    </noscript>
+
     @vite(['resources/css/meinlink.css'])
     @livewireStyles
 
@@ -127,6 +138,37 @@
     @endif
 </head>
 <body class="min-h-screen bg-zinc-50 font-sans text-zinc-900 antialiased selection:bg-red-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-100">
+
+    {{-- =====================================================
+         Preloader — Marken-Ladebalken für meinlink.at.
+         Verhindert Layout-Verschiebungen (FOUT / Content Shift),
+         während Inter & Space Grotesk geladen werden.
+         ===================================================== --}}
+    <div class="ml-loader" id="ml-loader" aria-hidden="true" role="presentation">
+        <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+            <div class="absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-b from-red-500/10 via-rose-500/5 to-transparent blur-3xl"></div>
+        </div>
+        <div class="ml-loader-inner">
+            <div class="ml-load-brand">
+                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 via-rose-600 to-red-600 text-white shadow-md shadow-red-500/25">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>meinlink<span class="text-red-600">.at</span></span>
+            </div>
+            <p class="ml-load-tagline">Schneller &amp; sicherer URL-Kürzer</p>
+            <div class="ml-load-row">
+                <div class="ml-load-track">
+                    <div class="ml-loader-fill" id="ml-loader-fill"></div>
+                </div>
+                <span class="ml-load-pct" id="ml-load-pct">0%</span>
+            </div>
+            <p class="ml-load-status" id="ml-load-status">Kurzlink-Dienst wird initialisiert…</p>
+        </div>
+    </div>
+
     <a href="#shorten" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-red-600 focus:px-4 focus:py-2 focus:text-white">
         Direkt zum Formular springen
     </a>
@@ -137,6 +179,7 @@
         <div class="absolute top-[600px] -left-40 h-[400px] w-[400px] rounded-full bg-zinc-200/50 blur-3xl dark:bg-zinc-800/20"></div>
     </div>
 
+    <div class="ml-wrap ml-enter">
     {{-- Navigation Header --}}
     <header class="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/75 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/75">
         <div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
@@ -462,7 +505,96 @@
             </nav>
         </div>
     </footer>
+    </div>
 
     @livewireScripts
+
+    <script>
+    /* ── Preloader: füllt Ladebalken gleichmäßig und wartet auf
+     * Inter & Space Grotesk Schriftarten (inkl. Sicherheits-Timeout).
+     * Beseitigt FOUT / Content Shift vollständig. */
+    (function () {
+        var loader = document.getElementById('ml-loader');
+        var fill   = document.getElementById('ml-loader-fill');
+        var pct    = document.getElementById('ml-load-pct');
+        var status = document.getElementById('ml-load-status');
+        if (!loader || !fill) return;
+
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var mobile  = window.matchMedia('(max-width: 640px)').matches;
+        var start   = null;
+        var FILL_MS = reduced ? 0 : (mobile ? 320 : 500);
+        var HOLD_MS = reduced ? 0 : (mobile ? 50 : 80);
+
+        function setFill(eased) {
+            var percent = Math.min(100, Math.round(eased * 100));
+            fill.style.width = percent + '%';
+            if (pct) pct.textContent = percent + '%';
+        }
+
+        setFill(0);
+
+        function dismiss() {
+            loader.classList.add('ml-loader-done');
+            var removed = false;
+            function cleanUp() {
+                if (removed) return;
+                removed = true;
+                loader.hidden = true;
+            }
+            loader.addEventListener('transitionend', cleanUp, { once: true });
+            setTimeout(cleanUp, 500);
+        }
+
+        function finish() {
+            if (status) status.textContent = 'Bereit';
+            setTimeout(dismiss, HOLD_MS);
+        }
+
+        function waitForFonts(callback) {
+            if (document.fonts && document.fonts.ready) {
+                var timeout = new Promise(function (resolve) { setTimeout(resolve, 800); });
+                Promise.race([document.fonts.ready, timeout]).then(callback).catch(callback);
+            } else {
+                callback();
+            }
+        }
+
+        function animateFill(ts) {
+            if (!start) start = ts;
+            var elapsed  = ts - start;
+            var progress = Math.min(1, elapsed / Math.max(FILL_MS, 1));
+            var eased    = 1 - Math.pow(1 - progress, 3);
+            setFill(eased);
+
+            if (progress < 1) {
+                requestAnimationFrame(animateFill);
+            } else {
+                waitForFonts(finish);
+            }
+        }
+
+        function run() {
+            if (reduced) {
+                dismiss();
+            } else {
+                requestAnimationFrame(animateFill);
+            }
+        }
+
+        window.addEventListener('pageshow', function (e) {
+            if (e.persisted && loader) {
+                loader.classList.add('ml-loader-done');
+                loader.hidden = true;
+            }
+        });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', run);
+        } else {
+            run();
+        }
+    })();
+    </script>
 </body>
 </html>
