@@ -35,6 +35,8 @@ class LinkEditForm extends Component
 
     public ?string $tags = null;
 
+    public bool $user_tracking_enabled = false;
+
     public ?string $expires_at = null;
 
     public bool $is_active = true;
@@ -64,6 +66,7 @@ class LinkEditForm extends Component
             'utm_medium' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'string', 'max:255'],
+            'user_tracking_enabled' => ['boolean'],
             'expires_at' => $expires,
             'is_active' => ['boolean'],
         ];
@@ -107,6 +110,7 @@ class LinkEditForm extends Component
                 'utm_medium' => $this->utm_medium,
                 'utm_campaign' => $this->utm_campaign,
                 'tags' => $this->tags !== null && trim($this->tags) !== '' ? LinkService::normalizeTags($this->tags) : null,
+                'user_tracking_enabled' => $this->user_tracking_enabled,
                 'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
                 'is_active' => $this->is_active,
             ], auth()->user());
@@ -164,6 +168,7 @@ class LinkEditForm extends Component
         $this->utm_medium = $this->link->utm_medium;
         $this->utm_campaign = $this->link->utm_campaign;
         $this->tags = $this->link->tags ? implode(', ', $this->link->tags) : null;
+        $this->user_tracking_enabled = (bool) $this->link->user_tracking_enabled;
         $this->expires_at = $this->link->expires_at?->format('Y-m-d\TH:i');
         $this->is_active = (bool) $this->link->is_active;
         $this->resetValidation();

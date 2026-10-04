@@ -9,9 +9,12 @@
         <x-ui.button href="{{ route('dashboard.links.export', $link->id) }}" size="sm">Export CSV</x-ui.button>
     </div>
 
-    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 {{ ($link->user_tracking_enabled || $uniqueUsers > 0) ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }}">
         <x-ui.stat :value="number_format($totalClicks)" :label="'Clicks · last '.$period.' days'" />
         <x-ui.stat :value="number_format($uniqueVisitors)" label="Unique Visitors" />
+        @if ($link->user_tracking_enabled || $uniqueUsers > 0)
+            <x-ui.stat :value="number_format($uniqueUsers)" label="Identified Users" />
+        @endif
         <x-ui.stat :value="$averagePerDay" label="Avg. per day" />
         <x-ui.stat :value="$peakDay ? $peakDay['label'] : '—'" :label="'Peak day'.($peakDay ? ' ('.$peakDay['count'].')' : '')" />
     </div>
@@ -102,6 +105,8 @@
                 <thead>
                     <tr>
                         <th>Timestamp</th>
+                        <th>User / Tags</th>
+                        <th>Parameters</th>
                         <th>Referrer</th>
                         <th>User Agent</th>
                         <th>IP Hash</th>
@@ -113,10 +118,40 @@
                             <td class="text-xs whitespace-nowrap text-neutral-500">
                                 {{ $click->created_at->format('Y-m-d H:i:s') }}
                             </td>
-                            <td class="max-w-[250px] truncate">
+                            <td class="max-w-[200px]">
+                                <div class="flex flex-col gap-1">
+                                    @if ($click->user_identifier)
+                                        <span class="inline-flex items-center font-mono text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+                                            {{ $click->user_identifier }}
+                                        </span>
+                                    @endif
+                                    @if ($click->tags && count($click->tags) > 0)
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach ($click->tags as $tag)
+                                                <span class="inline-flex items-center rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                                                    {{ $tag }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    @if (! $click->user_identifier && (! $click->tags || count($click->tags) === 0))
+                                        <span class="text-xs text-neutral-400">—</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="max-w-[220px] truncate text-xs font-mono text-neutral-600 dark:text-neutral-400">
+                                @if ($click->query_params && count($click->query_params) > 0)
+                                    <span title="{{ json_encode($click->query_params, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}">
+                                        ?{{ http_build_query($click->query_params) }}
+                                    </span>
+                                @else
+                                    <span class="text-neutral-400">—</span>
+                                @endif
+                            </td>
+                            <td class="max-w-[200px] truncate">
                                 {{ $click->referrer ?? 'Direct / None' }}
                             </td>
-                            <td class="max-w-[250px] truncate text-xs text-neutral-500">
+                            <td class="max-w-[200px] truncate text-xs text-neutral-500">
                                 {{ $click->user_agent ?? 'Unknown' }}
                             </td>
                             <td>

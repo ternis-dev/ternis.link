@@ -27,6 +27,12 @@ class ClickController extends Controller
                 // Non-admins cannot see direct URL redirect clicks
                 $query->where('is_direct_url', false);
             })
+            ->when($request->filled('tag'), function ($query) use ($request) {
+                $query->whereJsonContains('tags', $request->query('tag'));
+            })
+            ->when($request->filled('user_identifier'), function ($query) use ($request) {
+                $query->where('user_identifier', $request->query('user_identifier'));
+            })
             ->orderByDesc('created_at')
             ->paginate(50);
 
@@ -52,6 +58,7 @@ class ClickController extends Controller
         $summary = [
             'total_clicks' => $baseQuery->count(),
             'unique_visitors' => (clone $baseQuery)->distinct('ip_hash')->count('ip_hash'),
+            'unique_users' => (clone $baseQuery)->whereNotNull('user_identifier')->distinct('user_identifier')->count('user_identifier'),
             'top_referrers' => (clone $baseQuery)
                 ->selectRaw('referrer, COUNT(*) as count')
                 ->whereNotNull('referrer')

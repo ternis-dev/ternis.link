@@ -149,6 +149,11 @@ class RedirectController extends Controller
         $target = $this->targets->pick($link, $request);
         $destination = LinkService::destinationWithUtm($link, $target?->destination_url ?? (string) $link->destination_url);
 
+        $incomingQuery = $request->query();
+        if (is_array($incomingQuery) && $incomingQuery !== []) {
+            $destination = \App\Support\UserTracking::mergeQueryIntoDestination($destination, $incomingQuery);
+        }
+
         if ($debugTarget) {
             return response()->json([
                 'slug' => $link->slug,

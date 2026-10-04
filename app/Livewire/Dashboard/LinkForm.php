@@ -79,6 +79,8 @@ class LinkForm extends Component
 
     public ?string $tags = null;
 
+    public bool $user_tracking_enabled = false;
+
     public ?string $expires_at = null;
 
     public ?string $createdSlug = null;
@@ -110,6 +112,7 @@ class LinkForm extends Component
             'utm_medium' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'string', 'max:255'],
+            'user_tracking_enabled' => ['boolean'],
         ];
 
         // The length picker is only enforced when it applies: eligible
@@ -229,6 +232,7 @@ class LinkForm extends Component
                     'utm_medium' => $this->utm_medium,
                     'utm_campaign' => $this->utm_campaign,
                 ],
+                userTrackingEnabled: $this->user_tracking_enabled,
             );
         } catch (ValidationException $e) {
             // Service-level rejections (scanner junk, slug races) land
@@ -271,6 +275,7 @@ class LinkForm extends Component
         $this->utm_medium = null;
         $this->utm_campaign = null;
         $this->tags = null;
+        $this->user_tracking_enabled = false;
         $this->expires_at = null;
     }
 

@@ -180,7 +180,7 @@ class DashboardController extends Controller
 
         return response()->streamDownload(function () use ($clicks) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['timestamp', 'referrer', 'user_agent', 'country_code', 'city', 'ip_hash']);
+            fputcsv($out, ['timestamp', 'referrer', 'user_agent', 'country_code', 'city', 'ip_hash', 'user_identifier', 'tags', 'query_params']);
 
             foreach ($clicks as $click) {
                 fputcsv($out, [
@@ -190,6 +190,9 @@ class DashboardController extends Controller
                     $click->country_code,
                     $click->city,
                     $click->ip_hash,
+                    $click->user_identifier,
+                    $click->tags ? implode(', ', $click->tags) : null,
+                    $click->query_params ? json_encode($click->query_params) : null,
                 ]);
             }
 

@@ -76,6 +76,7 @@ class LinkAnalytics extends Component
 
         $totalClicks = (clone $baseQuery)->count();
         $uniqueVisitors = (clone $baseQuery)->distinct('ip_hash')->count('ip_hash');
+        $uniqueUsers = (clone $baseQuery)->whereNotNull('user_identifier')->distinct('user_identifier')->count('user_identifier');
 
         $topReferrers = (clone $baseQuery)
             ->selectRaw('referrer, COUNT(*) as count')
@@ -103,6 +104,7 @@ class LinkAnalytics extends Component
         return view('livewire.dashboard.link-analytics', [
             'totalClicks' => $totalClicks,
             'uniqueVisitors' => $uniqueVisitors,
+            'uniqueUsers' => $uniqueUsers,
             'averagePerDay' => round($totalClicks / $this->averageDivisor(), 1),
             'peakDay' => $clicksByDay->sortByDesc('count')->first(),
             'maxDailyClicks' => max(1, (int) $clicksByDay->max('count')),

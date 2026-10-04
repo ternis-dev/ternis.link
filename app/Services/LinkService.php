@@ -233,6 +233,7 @@ class LinkService
         ?string $ogImageUrl = null,
         ?string $password = null,
         ?array $utm = null,
+        bool $userTrackingEnabled = false,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -356,6 +357,7 @@ class LinkService
             'creator_ip_hash' => $creatorIpHash,
             'creator_ip_encrypted' => IpCapture::enabled() ? $creatorIp : null,
             'is_active' => true,
+            'user_tracking_enabled' => $userTrackingEnabled,
             'expires_at' => $expiresAt,
             'password_hash' => $password !== null ? Hash::make($password) : null,
         ]);

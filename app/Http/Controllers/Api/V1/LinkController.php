@@ -102,6 +102,7 @@ class LinkController extends Controller
                 'utm_medium' => $request->validated('utm_medium'),
                 'utm_campaign' => $request->validated('utm_campaign'),
             ],
+            userTrackingEnabled: (bool) $request->validated('user_tracking_enabled', false),
         );
 
         Activity::record(ActivityLog::LINK_CREATED, $user, $link, array_filter([

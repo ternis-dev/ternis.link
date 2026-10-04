@@ -26,6 +26,9 @@ class RecordClick implements ShouldQueue
         /** Raw visitor IP (or null when capture is off); the model's encrypted cast encrypts it on write. */
         public ?string $ip = null,
         public ?string $linkTargetId = null,
+        public ?array $queryParams = null,
+        public ?array $tags = null,
+        public ?string $userIdentifier = null,
     ) {}
 
     public function handle(): void
@@ -40,6 +43,9 @@ class RecordClick implements ShouldQueue
             'country_code' => $this->countryCode,
             'city' => $this->city,
             'is_direct_url' => $this->isDirectUrl,
+            'query_params' => $this->queryParams,
+            'tags' => $this->tags,
+            'user_identifier' => $this->userIdentifier,
         ]);
 
         // Increment denormalized counter

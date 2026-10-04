@@ -130,6 +130,19 @@
         </div>
     </details>
 
+    <details class="rounded-xl border border-neutral-200 dark:border-neutral-800">
+        <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">User tracking &amp; parameters (optional)</summary>
+        <div class="space-y-4 px-4 pb-4">
+            <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" wire:model="user_tracking_enabled" class="mt-1 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-800">
+                <div class="text-sm">
+                    <span class="font-medium text-neutral-800 dark:text-neutral-200">Enable user tracking</span>
+                    <p class="text-xs text-neutral-500 dark:text-neutral-400">Captures user/subscriber identifiers passed in the URL (e.g. <code>?uid=</code>, <code>?email=</code>) following privacy best practices (raw emails are automatically pseudonymized with SHA-256). Respects Do Not Track.</p>
+                </div>
+            </label>
+        </div>
+    </details>
+
     <x-ui.input
         label="Expiration Date (optional)"
         name="expires_at"

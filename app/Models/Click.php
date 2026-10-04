@@ -23,11 +23,16 @@ class Click extends Model
         'country_code',
         'city',
         'is_direct_url',
+        'query_params',
+        'tags',
+        'user_identifier',
         'created_at',
     ];
 
     protected $casts = [
         'is_direct_url' => 'boolean',
+        'query_params' => 'array',
+        'tags' => 'array',
         'created_at' => 'datetime',
         'ip_encrypted' => 'encrypted',
     ];

@@ -27,6 +27,7 @@ class UpdateLinkRequest extends FormRequest
             'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'array', 'max:10'],
             'tags.*' => ['string', 'max:30', 'regex:/^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$/'],
+            'user_tracking_enabled' => ['nullable', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
             'expires_at' => ['nullable', 'date', 'after:now'],
             'targets' => ['nullable', 'array', 'max:20'],

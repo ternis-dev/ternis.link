@@ -41,6 +41,7 @@ class StoreLinkRequest extends FormRequest
             'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'array', 'max:10'],
             'tags.*' => ['string', 'max:30', 'regex:/^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$/'],
+            'user_tracking_enabled' => ['nullable', 'boolean'],
         ];
 
         // Same semantics as the dashboard form: the picker is only

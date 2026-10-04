@@ -20,9 +20,20 @@ class ClickTrackerService
      *
      * @param  bool  $isDirectUrl  True for href.nz/url/* redirects (admin-only visibility)
      */
-    public function track(Link $link, Request $request, bool $isDirectUrl = false, ?LinkTarget $target = null): void
-    {
+    public function track(
+        Link $link,
+        Request $request,
+        bool $isDirectUrl = false,
+        ?LinkTarget $target = null,
+        ?array $queryParams = null,
+        ?array $tags = null,
+        ?string $userIdentifier = null,
+    ): void {
         $geo = $this->geoIp->lookup($request);
+
+        $queryParams ??= \App\Support\UserTracking::extractQueryParams($request);
+        $tags ??= \App\Support\UserTracking::extractTags($request);
+        $userIdentifier ??= \App\Support\UserTracking::extractUserIdentifier($request, $link);
 
         RecordClick::dispatch(
             linkId: $link->id,
@@ -34,6 +45,9 @@ class ClickTrackerService
             city: $geo['city'],
             ip: IpCapture::enabled() ? $request->ip() : null,
             linkTargetId: $target?->id,
+            queryParams: $queryParams,
+            tags: $tags,
+            userIdentifier: $userIdentifier,
         );
     }
 }

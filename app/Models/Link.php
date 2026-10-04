@@ -31,6 +31,7 @@ class Link extends Model
         'utm_source',
         'utm_medium',
         'utm_campaign',
+        'user_tracking_enabled',
         'click_count',
         'is_active',
         'is_removed',
@@ -41,6 +42,7 @@ class Link extends Model
 
     protected $casts = [
         'tags' => 'array',
+        'user_tracking_enabled' => 'boolean',
         'creator_ip_encrypted' => 'encrypted',
         'is_active' => 'boolean',
         'is_removed' => 'boolean',
