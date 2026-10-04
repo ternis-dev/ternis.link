@@ -470,6 +470,65 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     margin-bottom: 0.35rem;
 }
 
+/* --- domain selector pill ------------------------------------ */
+/* Sketchbook-themed tab switcher for choosing the short link    *
+ * domain (href.nz / href.yt). No Tailwind — all custom.        */
+.sk-domain-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.sk-domain-row .sk-label {
+    margin-bottom: 0;
+}
+
+.sk-domain-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    background: rgba(43, 43, 43, 0.06);
+    border: 1.5px solid var(--sk-rule);
+    border-radius: 10px;
+    padding: 0.2rem;
+}
+
+.sk-domain-btn {
+    font-family: var(--font-hand);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--sk-soft);
+    background: transparent;
+    border: 1.5px solid transparent;
+    border-radius: 7px;
+    padding: 0.2rem 0.75rem 0.3rem;
+    cursor: pointer;
+    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+    white-space: nowrap;
+}
+
+.sk-domain-btn:hover {
+    color: var(--sk-ink);
+    background: rgba(43, 43, 43, 0.05);
+}
+
+.sk-domain-btn.is-active {
+    color: var(--sk-ink);
+    background: var(--sk-card);
+    border-color: var(--sk-faint);
+    font-weight: 700;
+    box-shadow: 1px 2px 0 rgba(0, 0, 0, 0.08);
+}
+
+.sk-domain-btn:focus-visible {
+    outline: 2px dashed var(--sk-ink);
+    outline-offset: 2px;
+}
+
 /* --- label row + live URL state ------------------------------ */
 .sk-label-row {
     display: flex;

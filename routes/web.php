@@ -587,7 +587,7 @@ Route::get('/', function () {
         // href.yt is the video-first & creator shortener domain with
         // its own custom theme, custom CSS and JS
         if (PublicHost::isYt()) {
-            return view('landing.yt');
+            return view('landing.yt', ['stats' => NetworkStats::overview()]);
         }
 
         return view('landing.public');
@@ -711,7 +711,7 @@ if (app()->environment('local', 'testing')) {
     Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
     Route::get('/_preview/re', fn () => view('landing.business', ['stats' => NetworkStats::overview()]))->name('preview.re');
     Route::get('/_preview/int', fn () => view('landing.internal'))->name('preview.int');
-    Route::get('/_preview/yt', fn () => view('landing.yt'))->name('preview.yt');
+    Route::get('/_preview/yt', fn () => view('landing.yt', ['stats' => NetworkStats::overview()]))->name('preview.yt');
     Route::get('/_preview/yt-new', fn () => view('landing.new-yt'))->name('preview.yt-new');
     Route::get('/_preview/yt-login', fn () => view('auth.login-yt'))->name('preview.yt-login');
     Route::get('/_preview/yt-error', fn () => response()->view('components.layouts.public-error-yt', [
