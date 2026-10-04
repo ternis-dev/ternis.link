@@ -7,6 +7,20 @@
         <x-slot:actions>{{ $actions }}</x-slot:actions>
     @endif
 </x-layouts.public-error-meinlink>
+@elseif (request()->attributes->get('domain_type') === 'public' && \App\Support\PublicHost::isQr())
+<x-layouts.public-error-qr :code="$code" :title="$title">
+    {{ $slot }}
+    @if (trim($actions ?? '') !== '')
+        <x-slot:actions>{{ $actions }}</x-slot:actions>
+    @endif
+</x-layouts.public-error-qr>
+@elseif (request()->attributes->get('domain_type') === 'public' && \App\Support\PublicHost::isClicked())
+<x-layouts.public-error-clicked :code="$code" :title="$title">
+    {{ $slot }}
+    @if (trim($actions ?? '') !== '')
+        <x-slot:actions>{{ $actions }}</x-slot:actions>
+    @endif
+</x-layouts.public-error-clicked>
 @elseif (request()->attributes->get('domain_type') === 'public')
 <x-layouts.public-error :code="$code" :title="$title">
     {{ $slot }}

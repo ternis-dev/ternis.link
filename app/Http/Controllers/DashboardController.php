@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\Click;
 use App\Models\Link;
+use App\Models\QrGeneration;
 use App\Support\LinkQrCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -209,6 +210,7 @@ class DashboardController extends Controller
         $link = auth()->user()->links()->notRemoved()->with('domain')->findOrFail($link);
 
         $filename = 'qr-'.$link->slug.'.png';
+        QrGeneration::create(['link_id' => $link->id, 'format' => 'png']);
 
         return response(LinkQrCode::png($link), 200, [
             'Content-Type' => 'image/png',
@@ -287,6 +289,7 @@ class DashboardController extends Controller
 
         $host = $page->domain?->hostname ?? config('domains.public_host', 'href.nz');
         $url = 'https://'.$host.($page->parent_id === null ? '/' : '/'.$page->slug);
+        QrGeneration::create(['format' => 'png']);
 
         return response(LinkQrCode::pngForUrl($url), 200, [
             'Content-Type' => 'image/png',

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BioButton;
 use App\Models\BioPage;
 use App\Models\Domain;
+use App\Models\QrGeneration;
 use App\Services\BioService;
 use App\Support\LinkQrCode;
 use Illuminate\Http\JsonResponse;
@@ -339,6 +340,7 @@ class BioController extends Controller
 
         $host = $page->domain?->hostname ?? config('domains.public_host', 'href.nz');
         $url = 'https://'.$host.($page->parent_id === null ? '/' : '/'.$page->slug);
+        QrGeneration::create(['format' => $format]);
 
         if ($format === 'png') {
             return response(LinkQrCode::pngForUrl($url), 200, [

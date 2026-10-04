@@ -60,8 +60,10 @@ class DomainResolutionTest extends TestCase
         // The dedicated QR tool routes must survive the same
         // production conditions (stale map + missing DB row).
         $qrResponse = $this->get('http://qr.href.nz/url/https://example.com');
-        $qrResponse->assertOk();
-        $qrResponse->assertHeader('content-type', 'image/svg+xml');
+        $qrResponse->assertRedirect('http://qr.t-api.de/url/https://example.com');
+        $this->get('http://qr.t-api.de/url/https://example.com')
+            ->assertOk()
+            ->assertHeader('content-type', 'image/svg+xml');
     }
 
     public function test_it_resolves_business_domain_landing_page(): void

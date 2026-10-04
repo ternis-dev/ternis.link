@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+@php($compact = $compact ?? false)
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
@@ -61,12 +62,17 @@
             border-bottom: 3px solid;
             border-right: 3px solid;
         }
+        .qr-compact main { padding-top: 2rem; }
+        .qr-compact #qr-app { max-width: 42rem; margin-left: auto; margin-right: auto; }
+        .qr-compact #qr-app > :last-child,
+        .qr-compact main > section,
+        .qr-compact footer { display: none; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white">
+<body class="min-h-screen flex flex-col antialiased selection:bg-emerald-500 selection:text-white {{ $compact ? 'qr-compact' : '' }}">
 
     {{-- Top Utility Bar --}}
-    <header class="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-50">
+    <header class="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-50 {{ $compact ? 'hidden' : '' }}">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <a href="https://qr.href.nz/" class="flex items-center gap-2.5 text-white font-bold text-lg tracking-tight group">
@@ -91,7 +97,7 @@
 
     {{-- Hero & Main Application --}}
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 w-full">
-        <div class="text-center max-w-3xl mx-auto mb-10">
+        <div class="text-center max-w-3xl mx-auto mb-10 {{ $compact ? 'hidden' : '' }}">
             <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-3">
                 Generate <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Any QR Code</span> in Real Time.
             </h1>
@@ -111,40 +117,40 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Payload Type</label>
                     <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" id="type-pills">
                         <button type="button" data-type="url" class="type-pill active px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-emerald-500/20 border-emerald-500/40 text-emerald-300">
-                            🔗 URL
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/></svg> URL
                         </button>
                         <button type="button" data-type="text" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            📝 Text
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h10M4 19h16"/></svg> Text
                         </button>
                         <button type="button" data-type="wifi" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            📶 Wi-Fi
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9a11 11 0 0 1 14 0M8 12a7 7 0 0 1 8 0M11 15a3 3 0 0 1 2 0M12 19h.01"/></svg> Wi-Fi
                         </button>
                         <button type="button" data-type="vcard" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            👤 Contact
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg> Contact
                         </button>
                         <button type="button" data-type="email" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            ✉️ Email
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Email
                         </button>
                         <button type="button" data-type="phone" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            📞 Phone
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h3l2 5-2 2a14 14 0 0 0 5 5l2-2 5 2v3c-8 2-17-7-15-15Z"/></svg> Phone
                         </button>
                         <button type="button" data-type="sms" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            💬 SMS
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H8l-4 4V5Z"/></svg> SMS
                         </button>
                         <button type="button" data-type="whatsapp" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            📱 WhatsApp
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20l1-4a8 8 0 1 1 3 3l-4 1Z"/><path d="M9 9c1 4 4 5 6 6"/></svg> WhatsApp
                         </button>
                         <button type="button" data-type="geo" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            📍 Geo
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg> Geo
                         </button>
                         <button type="button" data-type="event" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            📅 Event
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg> Event
                         </button>
                         <button type="button" data-type="crypto" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            ₿ Crypto
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4v16M13 4v16M6 7h7a3 3 0 0 1 0 6H6h8a3 3 0 0 1 0 6H6"/></svg> Crypto
                         </button>
                         <button type="button" data-type="raw" class="type-pill px-3 py-2 rounded-xl text-xs font-medium border text-center transition-all bg-slate-800/40 border-slate-700/60 text-slate-300 hover:border-slate-600">
-                            ⚡ Raw
+                            <svg class="inline-block w-4 h-4 mr-1 align-text-bottom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m13 2-9 12h7l-1 8 9-12h-7l1-8Z"/></svg> Raw
                         </button>
                     </div>
                 </div>
@@ -419,36 +425,43 @@
 
         </div>
 
+        @if (! $compact)
         {{-- Features & Capabilities --}}
         <section class="mt-16 sm:mt-24 pt-12 border-t border-slate-800">
             <h2 class="text-2xl sm:text-3xl font-bold text-center text-white mb-10">Why use qr.href.nz?</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                    <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 shrink-0 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <h3 class="text-base font-semibold text-white mb-2">Infinite Vector Scalability</h3>
+                    <h3 class="text-base font-semibold text-white">Infinite Vector Scalability</h3>
+                    </div>
                     <p class="text-xs text-slate-400 leading-relaxed">
                         Export pure SVG vector codes that never pixelate. Perfect for billboards, packaging, business cards, print flyers, and 4K displays.
                     </p>
                 </div>
 
                 <div class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                    <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 shrink-0 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     </div>
-                    <h3 class="text-base font-semibold text-white mb-2">Zero Tracking & Privacy-First</h3>
+                    <h3 class="text-base font-semibold text-white">Zero Tracking & Privacy-First</h3>
+                    </div>
                     <p class="text-xs text-slate-400 leading-relaxed">
                         No middleman redirects required unless you want them. Direct text, Wi-Fi passwords, and contacts encode right on your device with no data stored.
                     </p>
                 </div>
 
                 <div class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                    <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 shrink-0 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
                     </div>
-                    <h3 class="text-base font-semibold text-white mb-2">Direct HTTP REST API</h3>
+                    <h3 class="text-base font-semibold text-white">Direct HTTP REST API</h3>
+                    </div>
                     <p class="text-xs text-slate-400 leading-relaxed">
                         Embed QR codes directly into HTML emails, Markdown, invoices, or automation bots with simple GET URLs like <code class="text-emerald-300">qr.href.nz/url/{url}</code>.
                     </p>
@@ -467,8 +480,8 @@
 
                 <div class="space-y-4 font-mono text-xs">
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
-                        <div class="text-emerald-400 mb-1"># 1. URL QR Code (SVG default, ?format=png for PNG)</div>
-                        <div class="text-slate-300 select-all">https://qr.href.nz/url/https://example.com</div>
+                        <div class="text-emerald-400 mb-1"># 1. URL QR Code (append .svg or .png)</div>
+                        <div class="text-slate-300 select-all">https://qr.href.nz/url/https://example.com.svg</div>
                     </div>
 
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
@@ -493,6 +506,7 @@
                 </div>
             </div>
         </section>
+        @endif
     </main>
 
     {{-- Footer --}}
@@ -595,11 +609,11 @@
         });
 
         function buildDirectUrl(format = 'svg', download = false) {
-            const origin = window.location.origin;
+            const origin = `${window.location.protocol}//{{ config('domains.qr_api_host', 'qr.t-api.de') }}`;
             let path = '';
             const params = new URLSearchParams();
 
-            if (format !== 'svg') params.set('format', format);
+            const suffix = `.${format}`;
             if (cfgColorHex.value !== '#000000') params.set('color', cfgColorHex.value.replace('#', ''));
             if (cfgBgHex.value !== '#ffffff') params.set('bg', cfgBgHex.value.replace('#', ''));
             if (cfgSize.value !== '300') params.set('size', cfgSize.value);
@@ -611,10 +625,10 @@
             switch (activeType) {
                 case 'url':
                     const u = encodeURIComponent(document.getElementById('input-url').value || 'https://href.nz');
-                    return `${origin}/url/${u}${qs}`;
+                    return `${origin}/url/${u}${suffix}${qs}`;
                 case 'text':
                     const t = encodeURIComponent(document.getElementById('input-text').value || 'Hello');
-                    return `${origin}/text/${t}${qs}`;
+                    return `${origin}/text/${t}${suffix}${qs}`;
                 case 'wifi':
                     const ssid = encodeURIComponent(document.getElementById('wifi-ssid').value || 'WiFi');
                     const pass = encodeURIComponent(document.getElementById('wifi-password').value || '');
@@ -636,7 +650,7 @@
                     return `${origin}/email/${em}?subject=${sub}&body=${body}${params.toString() ? '&' + params.toString() : ''}`;
                 case 'phone':
                     const p = encodeURIComponent(document.getElementById('input-phone').value || '+1234567890');
-                    return `${origin}/phone/${p}${qs}`;
+                    return `${origin}/phone/${p}${suffix}${qs}`;
                 case 'sms':
                     const sp = encodeURIComponent(document.getElementById('sms-phone').value || '');
                     const sm = encodeURIComponent(document.getElementById('sms-message').value || '');
@@ -660,9 +674,9 @@
                     return `${origin}/crypto/${caddr}?currency=${ccoin}${params.toString() ? '&' + params.toString() : ''}`;
                 case 'raw':
                     const r = encodeURIComponent(document.getElementById('input-raw').value || '');
-                    return `${origin}/raw/${r}${qs}`;
+                    return `${origin}/raw/${r}${suffix}${qs}`;
                 default:
-                    return `${origin}/url/https%3A%2F%2Fhref.nz${qs}`;
+                    return `${origin}/url/https%3A%2F%2Fhref.nz${suffix}${qs}`;
             }
         }
 

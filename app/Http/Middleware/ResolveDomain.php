@@ -33,6 +33,12 @@ class ResolveDomain
         // the QR host entry.
         $qrHost = (string) config('domains.qr_host', 'qr.href.nz');
         if ($hostname === $qrHost) {
+            if (! in_array($request->path(), ['', '/', 'new'], true)) {
+                $apiHost = (string) config('domains.qr_api_host', 'qr.t-api.de');
+
+                return redirect()->away($request->getScheme().'://'.$apiHost.$request->getRequestUri(), 301);
+            }
+
             $request->attributes->set('domain_type', 'public');
             $request->attributes->set('domain_hostname', $hostname);
             $request->attributes->set('domain_model', Domain::where('hostname', $hostname)->first());

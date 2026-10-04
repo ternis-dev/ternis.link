@@ -31,6 +31,15 @@ class TernisAuthTest extends TestCase
         $response->assertSee('Login with Ternis Auth SSO');
     }
 
+    public function test_clicked_login_uses_clicked_branding(): void
+    {
+        $response = $this->get('http://clicked.at/login');
+
+        $response->assertOk();
+        $response->assertSee('clicked');
+        $response->assertSee('Sign in with Ternis Auth');
+    }
+
     public function test_auth_redirect_redirects_to_ternis_auth(): void
     {
         $response = $this->get('http://dash.ternis.link/auth/redirect');

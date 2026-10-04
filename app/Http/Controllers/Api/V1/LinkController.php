@@ -9,6 +9,7 @@ use App\Models\ActivityLog;
 use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\QrGeneration;
 use App\Services\LinkService;
 use App\Support\Activity;
 use App\Support\LinkQrCode;
@@ -159,6 +160,7 @@ class LinkController extends Controller
         }
 
         $link->load('domain');
+        QrGeneration::create(['link_id' => $link->id, 'format' => $format]);
 
         if ($format === 'png') {
             return response(LinkQrCode::png($link), 200, [

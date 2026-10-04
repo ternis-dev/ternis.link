@@ -190,7 +190,7 @@ class QrCodeTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->get('http://href.nz/v1/qr?url='.urlencode('https://example.com/loose'))->assertStatus(200);
+        $this->get('http://links.t-api.de/v1/qr?url='.urlencode('https://example.com/loose'))->assertStatus(200);
         $this->get('http://href.nz/qrtrack01/qr')->assertStatus(200);
 
         $this->assertDatabaseHas('qr_generations', [

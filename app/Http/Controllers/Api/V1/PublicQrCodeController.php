@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\RecordQrGeneration;
 use App\Models\Domain;
+use App\Models\QrGeneration;
 use App\Services\LinkService;
 use App\Services\QrCodeService;
 use App\Services\SlugResolverService;
@@ -56,7 +56,7 @@ class PublicQrCodeController extends Controller
         ]);
 
         $format = $request->input('format', 'svg');
-        RecordQrGeneration::dispatch(null, $format);
+        QrGeneration::create(['format' => $format]);
 
         return $this->render($request->input('url'), $format);
     }
@@ -81,7 +81,7 @@ class PublicQrCodeController extends Controller
      */
     public function pretty(Request $request, string $url): Response
     {
-        RecordQrGeneration::dispatch(null, 'png');
+        QrGeneration::create(['format' => 'png']);
 
         return $this->render($this->cleanUrl($url), 'png');
     }
@@ -91,7 +91,7 @@ class PublicQrCodeController extends Controller
      */
     public function prettyMime(Request $request, string $url, string $mime): Response
     {
-        RecordQrGeneration::dispatch(null, $mime);
+        QrGeneration::create(['format' => $mime]);
 
         return $this->render($this->cleanUrl($url), $mime);
     }
@@ -117,12 +117,12 @@ class PublicQrCodeController extends Controller
                 abort(404);
             }
 
-            RecordQrGeneration::dispatch($link->id, $mime);
+            QrGeneration::create(['link_id' => $link->id, 'format' => $mime]);
 
             return $this->render(LinkQrCode::shortUrl($link), $mime);
         }
 
-        RecordQrGeneration::dispatch(null, $mime);
+        QrGeneration::create(['format' => $mime]);
 
         return $this->render($this->cleanUrl($url), $mime);
     }
@@ -153,7 +153,7 @@ class PublicQrCodeController extends Controller
             abort(404);
         }
 
-        RecordQrGeneration::dispatch($link->id, $mime);
+        QrGeneration::create(['link_id' => $link->id, 'format' => $mime]);
 
         return $this->render(LinkQrCode::shortUrl($link), $mime);
     }

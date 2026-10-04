@@ -18,6 +18,8 @@ return [
         'clicked.at' => 'public',
         // Dedicated QR code generator utility
         'qr.href.nz' => 'public',
+        // Official QR API
+        'qr.t-api.de' => 'api',
         // Business (ternis official)
         'href.re' => 'business',
         // Ternis family/partners
@@ -95,6 +97,8 @@ return [
     'clicked_host' => env('DOMAIN_CLICKED', 'clicked.at'),
 
     'qr_host' => env('DOMAIN_QR', 'qr.href.nz'),
+
+    'qr_api_host' => env('DOMAIN_QR_API', 'qr.t-api.de'),
 
     'business_host' => env('DOMAIN_BUSINESS', 'href.re'),
 

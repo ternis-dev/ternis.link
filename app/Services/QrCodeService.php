@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Jobs\RecordQrGeneration;
+use App\Models\QrGeneration;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
@@ -153,7 +153,7 @@ class QrCodeService
             errorCorrection: $errorCorrection
         );
 
-        RecordQrGeneration::dispatch(null, $format);
+        QrGeneration::create(['format' => $format]);
 
         $contentType = $format === 'png' ? 'image/png' : 'image/svg+xml';
         $disposition = $download ? 'attachment' : 'inline';
@@ -181,7 +181,7 @@ class QrCodeService
         $download = $request->boolean('download');
 
         if ($format === 'json' || $request->wantsJson()) {
-            RecordQrGeneration::dispatch(null, 'json');
+            QrGeneration::create(['format' => 'json']);
 
             $dataUri = $this->renderDataUri(
                 payload: $payload,

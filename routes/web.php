@@ -677,6 +677,10 @@ Route::get('/new', function () {
         abort(404);
     }
 
+    if (PublicHost::isQr()) {
+        return view('landing.qr', ['compact' => true]);
+    }
+
     if (PublicHost::isMeinlink()) {
         return view('landing.new-meinlink');
     }
@@ -734,8 +738,8 @@ Route::get('/imprint', function (Request $request) {
     return DomainUrls::handleImpressumRedirect($request);
 })->name('imprint');
 
-// Dedicated QR code generator routes for qr.href.nz
-Route::domain((string) config('domains.qr_host', 'qr.href.nz'))->group(function () {
+// Dedicated QR code generator routes for the official QR API host.
+Route::domain((string) config('domains.qr_api_host', 'qr.t-api.de'))->group(function () {
     Route::get('/url/{url}', [QrController::class, 'generateUrl'])->where('url', '.*')->name('qr.direct-url');
     Route::get('/text/{text}', [QrController::class, 'generateText'])->where('text', '.*')->name('qr.direct-text');
     Route::get('/wifi/{ssid?}', [QrController::class, 'generateWifi'])->where('ssid', '.*')->name('qr.direct-wifi');
@@ -752,6 +756,10 @@ Route::domain((string) config('domains.qr_host', 'qr.href.nz'))->group(function 
     Route::get('/crypto/{address?}', [QrController::class, 'generateCrypto'])->where('address', '.*')->name('qr.direct-crypto');
     Route::get('/raw/{data}', [QrController::class, 'generateRaw'])->where('data', '.*')->name('qr.direct-raw');
 });
+
+Route::domain((string) config('domains.qr_api_host', 'qr.t-api.de'))
+    ->get('/', fn () => redirect('/v1/'))
+    ->name('qr.api.home');
 
 Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(function () {
     // Direct URL redirects (preferred)
