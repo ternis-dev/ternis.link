@@ -556,6 +556,12 @@ Route::get('/', function () {
             return view('landing.meinlink');
         }
 
+        // clicked.at is the newsletter & email click-tracking branded
+        // domain — same public rules, dedicated marketing landing.
+        if (PublicHost::isClicked()) {
+            return view('landing.clicked');
+        }
+
         return view('landing.public');
     }
 
@@ -662,6 +668,7 @@ if (app()->environment('local', 'testing')) {
     // Never available in production.
     Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
     Route::get('/_preview/re', fn () => view('landing.business', ['stats' => NetworkStats::overview()]))->name('preview.re');
+    Route::get('/_preview/clicked', fn () => view('landing.clicked'))->name('preview.clicked');
     Route::get('/_preview/at-new', fn () => view('landing.new-meinlink'))->name('preview.at-new');
     Route::get('/_preview/at-login', fn () => view('auth.login-meinlink'))->name('preview.at-login');
     Route::get('/_preview/at-error', fn () => response()->view('components.layouts.public-error-meinlink', [

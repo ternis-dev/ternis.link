@@ -14,6 +14,8 @@ return [
         'href.nz' => 'public',
         // Public link shortener, German-language (own landing + theme)
         'meinlink.at' => 'public',
+        // Newsletter & email click-tracking branded domain
+        'clicked.at' => 'public',
         // Business (ternis official)
         'href.re' => 'business',
         // Ternis family/partners
@@ -48,6 +50,7 @@ return [
         'href.re',
         'href.nz',
         'meinlink.at',
+        'clicked.at',
     ],
 
     /*
@@ -69,6 +72,8 @@ return [
     'public_host' => env('DOMAIN_PUBLIC', 'href.nz'),
 
     'meinlink_host' => env('DOMAIN_MEINLINK', 'meinlink.at'),
+
+    'clicked_host' => env('DOMAIN_CLICKED', 'clicked.at'),
 
     'business_host' => env('DOMAIN_BUSINESS', 'href.re'),
 
