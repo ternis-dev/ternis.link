@@ -38,6 +38,32 @@ class DomainResolutionTest extends TestCase
         $response->assertSee('qr.href.nz');
     }
 
+    /**
+     * Production failure mode: a deployment whose cached config
+     * map predates the QR host entry AND whose domains table was
+     * never seeded with it. The middleware must still resolve the
+     * host via the qr_host config (with its built-in default).
+     */
+    public function test_it_resolves_qr_host_without_domain_map_or_db_row(): void
+    {
+        $domainMap = config('domains.map');
+        unset($domainMap['qr.href.nz']);
+        config(['domains.map' => $domainMap]);
+
+        Domain::where('hostname', 'qr.href.nz')->delete();
+
+        $response = $this->get('http://qr.href.nz/');
+
+        $response->assertOk();
+        $response->assertSee('qr.href.nz');
+
+        // The dedicated QR tool routes must survive the same
+        // production conditions (stale map + missing DB row).
+        $qrResponse = $this->get('http://qr.href.nz/url/https://example.com');
+        $qrResponse->assertOk();
+        $qrResponse->assertHeader('content-type', 'image/svg+xml');
+    }
+
     public function test_it_resolves_business_domain_landing_page(): void
     {
         $response = $this->get('http://href.re/');
