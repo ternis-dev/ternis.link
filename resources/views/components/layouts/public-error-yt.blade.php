@@ -19,22 +19,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $code }} — {{ $title }} · href.yt</title>
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#ff0033">
+    <meta name="theme-color" content="#0c0e12">
     <link rel="canonical" href="https://href.yt{{ request()->getPathInfo() }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
+
+    {{-- Font preloading --}}
+    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/space-grotesk-var.woff2" as="font" type="font/woff2" crossorigin>
 
     @vite(['resources/css/yt.css'])
 </head>
 <body class="yt-canvas min-h-screen font-sans text-neutral-100 antialiased selection:bg-red-600 selection:text-white">
 
     <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-96 overflow-hidden">
-        <div class="absolute -top-48 left-1/2 -translate-x-1/2 h-96 w-[700px] rounded-full bg-gradient-to-b from-red-600/15 via-rose-600/10 to-transparent blur-3xl"></div>
+        <div class="absolute -top-48 left-1/2 -translate-x-1/2 h-96 w-[700px] rounded-full bg-gradient-to-b from-red-600/20 via-rose-600/10 to-transparent blur-3xl"></div>
     </div>
 
     <div class="mx-auto flex min-h-screen max-w-xl flex-col justify-between px-4 py-8 sm:px-6">
         <header class="flex items-center justify-between">
             <a href="/" class="group flex items-center gap-2.5" aria-label="href.yt home">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-700 text-white shadow-md shadow-red-600/25 transition duration-200 group-hover:scale-105">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-700 text-white shadow-md shadow-red-600/25 transition duration-200 group-hover:scale-105">
                     <svg class="h-4 w-4 translate-x-0.5 fill-current" viewBox="0 0 24 24">
                         <polygon points="5 3 19 12 5 21 5 3"/>
                     </svg>
@@ -45,24 +49,24 @@
             </a>
 
             <nav aria-label="Navigation">
-                <a href="/" class="text-xs font-medium text-neutral-400 hover:text-white transition">
+                <a href="/" class="yt-link text-xs font-medium hover:text-white transition">
                     &larr; Back to home
                 </a>
             </nav>
         </header>
 
         <main id="error-content" class="my-auto py-10 text-center" tabindex="-1">
-            <div class="yt-card yt-scanlines overflow-hidden rounded-2xl p-8 sm:p-10">
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">
-                    <span class="yt-rec-dot h-1.5 w-1.5 rounded-full bg-red-500"></span>
+            <div class="yt-desk yt-scanlines overflow-hidden rounded-3xl p-8 sm:p-12 backdrop-blur-xl">
+                <span class="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-bold text-red-400">
+                    <span class="yt-rec-dot h-2 w-2 rounded-full bg-red-500"></span>
                     <span>{{ $kicker }}</span>
                 </span>
 
-                <p class="font-display mt-5 text-6xl font-black tracking-tight text-white sm:text-7xl">
+                <p class="font-display mt-6 text-7xl font-black tracking-tight text-white sm:text-8xl">
                     {{ $code }}<span class="text-red-500">.</span>
                 </p>
 
-                <h1 class="mt-3 text-xl font-bold tracking-tight text-white sm:text-2xl">
+                <h1 class="mt-4 text-2xl font-bold tracking-tight text-white sm:text-3xl">
                     {{ $title }}
                 </h1>
 
@@ -71,7 +75,7 @@
                 </div>
 
                 @if ($hint)
-                    <p class="mx-auto mt-3 max-w-md text-xs text-neutral-500">
+                    <p class="mx-auto mt-3 max-w-md text-xs text-neutral-400">
                         {{ $hint }}
                     </p>
                 @endif
@@ -82,10 +86,10 @@
                     </div>
                 @else
                     <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-                        <a href="/" class="yt-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-semibold">
+                        <a href="/" class="yt-btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-xs font-bold shadow-lg shadow-red-600/30">
                             Back to href.yt
                         </a>
-                        <a href="/new" class="yt-btn-secondary inline-flex items-center rounded-xl px-5 py-2.5 text-xs font-semibold">
+                        <a href="/new" class="yt-btn-secondary inline-flex items-center rounded-xl px-5 py-3 text-xs font-semibold">
                             Accelerate New Link
                         </a>
                     </div>
@@ -93,7 +97,7 @@
             </div>
         </main>
 
-        <footer class="border-t border-white/5 pt-6 text-center text-xs text-neutral-500">
+        <footer class="border-t border-white/10 pt-6 text-center text-xs text-neutral-400">
             <div class="flex flex-wrap items-center justify-center gap-4">
                 <span>href.yt</span>
                 <span>·</span>
@@ -103,7 +107,7 @@
                 <span>·</span>
                 <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}" class="hover:text-white transition">Imprint</a>
             </div>
-            <p class="mt-3 text-[11px] leading-relaxed text-neutral-600">
+            <p class="mt-3 text-[11px] leading-relaxed text-neutral-400">
                 Disclaimer: href.yt is an independent utility and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates.
             </p>
         </footer>

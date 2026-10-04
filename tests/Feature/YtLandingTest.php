@@ -99,6 +99,30 @@ class YtLandingTest extends TestCase
         $response->assertSee('Back to href.yt', escape: false);
     }
 
+    public function test_href_yt_landing_includes_interactive_simulator_presets_and_api_docs(): void
+    {
+        $response = $this->get('http://href.yt/');
+
+        $response->assertStatus(200);
+
+        // Interactive presets & timestamp tools
+        $response->assertSee('Quick Test Presets:', escape: false);
+        $response->assertSee('data-sample-url', escape: false);
+        $response->assertSee('Timestamp Injector:', escape: false);
+        $response->assertSee('data-timestamp-add="30"', escape: false);
+
+        // Simulator
+        $response->assertSee('Live Simulator &amp; Contexts', escape: false);
+        $response->assertSee('Twitch Chat', escape: false);
+        $response->assertSee('OBS Overlay', escape: false);
+        $response->assertSee('Video Bio', escape: false);
+
+        // Developer & Streamer API
+        $response->assertSee('Creator &amp; Streamer API', escape: false);
+        $response->assertSee('curl -X POST "https://ternis.link/api/v1/links"', escape: false);
+        $response->assertSee('data-api-lang="curl"', escape: false);
+    }
+
     public function test_href_yt_local_previews(): void
     {
         $this->get('/_preview/yt')->assertStatus(200)->assertSee('Make the', escape: false);

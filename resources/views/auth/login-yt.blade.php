@@ -6,7 +6,7 @@
     <title>Creator Studio Login — href.yt</title>
     <meta name="description" content="href.yt Creator Login — Sign in with Ternis Auth SSO to claim custom video slugs and view real-time click retention.">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#ff0033">
+    <meta name="theme-color" content="#0c0e12">
     <link rel="canonical" href="https://href.yt/login">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
 
@@ -19,13 +19,13 @@
 <body class="yt-canvas min-h-screen font-sans text-neutral-100 antialiased selection:bg-red-600 selection:text-white">
 
     <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-96 overflow-hidden">
-        <div class="absolute -top-48 left-1/2 -translate-x-1/2 h-96 w-[700px] rounded-full bg-gradient-to-b from-red-600/15 via-rose-600/10 to-transparent blur-3xl"></div>
+        <div class="absolute -top-48 left-1/2 -translate-x-1/2 h-96 w-[700px] rounded-full bg-gradient-to-b from-red-600/20 via-rose-600/10 to-transparent blur-3xl"></div>
     </div>
 
     <div class="mx-auto flex min-h-screen max-w-xl flex-col justify-between px-4 py-8 sm:px-6">
         <header class="flex items-center justify-between">
             <a href="/" class="group flex items-center gap-2.5" aria-label="href.yt home">
-                <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-700 text-white shadow-md shadow-red-600/25 transition duration-200 group-hover:scale-105">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-rose-700 text-white shadow-md shadow-red-600/25 transition duration-200 group-hover:scale-105">
                     <svg class="h-4 w-4 translate-x-0.5 fill-current" viewBox="0 0 24 24">
                         <polygon points="5 3 19 12 5 21 5 3"/>
                     </svg>
@@ -48,8 +48,8 @@
 
         <main class="my-auto py-10">
             <div class="text-center">
-                <div class="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-0.5 text-xs font-medium text-red-300">
-                    <span class="yt-rec-dot h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                <div class="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-semibold text-red-400">
+                    <span class="yt-rec-dot h-2 w-2 rounded-full bg-red-500"></span>
                     <span>Creator Studio Access</span>
                 </div>
                 <h1 class="font-display mt-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
@@ -60,7 +60,7 @@
                 </p>
             </div>
 
-            <div class="yt-card mt-8 overflow-hidden rounded-2xl p-6 sm:p-8">
+            <div class="yt-desk mt-8 overflow-hidden rounded-3xl p-6 sm:p-8 backdrop-blur-xl">
                 @if (session('error'))
                     <div class="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs font-medium text-red-300" role="alert">
                         {{ session('error') }}
@@ -74,7 +74,7 @@
                 <div class="mt-6">
                     <a
                         href="{{ \App\Support\DomainUrls::dashboard('/login') }}"
-                        class="yt-btn-primary flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold text-white"
+                        class="yt-btn-primary flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold text-white shadow-lg shadow-red-600/30"
                     >
                         <span>Sign in with Ternis Auth</span>
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -84,31 +84,23 @@
                     </a>
                 </div>
 
-                <div class="mt-6 border-t border-white/10 pt-5">
-                    <h2 class="text-xs font-semibold uppercase tracking-wider text-neutral-400">Features for verified accounts</h2>
-                    <ul class="mt-3 space-y-2.5 text-xs text-neutral-300">
-                        <li class="flex items-center gap-2.5">
-                            <svg class="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
+                <div class="mt-8 border-t border-white/10 pt-6">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Features for verified accounts</h2>
+                    <ul class="mt-4 space-y-3 text-xs text-neutral-300">
+                        <li class="flex items-start gap-3">
+                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-bold">✓</span>
                             <span>Custom branded vanity video slugs (e.g., <code>href.yt/my-channel</code>)</span>
                         </li>
-                        <li class="flex items-center gap-2.5">
-                            <svg class="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
+                        <li class="flex items-start gap-3">
+                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-bold">✓</span>
                             <span>Live click counts, referring channels, and viewer geography</span>
                         </li>
-                        <li class="flex items-center gap-2.5">
-                            <svg class="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
+                        <li class="flex items-start gap-3">
+                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-bold">✓</span>
                             <span>Scoped REST API keys for stream overlays and automation pipelines</span>
                         </li>
-                        <li class="flex items-center gap-2.5">
-                            <svg class="h-4 w-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
+                        <li class="flex items-start gap-3">
+                            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 font-bold">✓</span>
                             <span>Permanent invariants that never expire in your video descriptions</span>
                         </li>
                     </ul>
@@ -120,7 +112,7 @@
             </p>
         </main>
 
-        <footer class="border-t border-white/5 pt-6 text-center text-xs text-neutral-500">
+        <footer class="border-t border-white/10 pt-6 text-center text-xs text-neutral-400">
             <div class="flex flex-wrap items-center justify-center gap-4">
                 <span>href.yt</span>
                 <span>·</span>
@@ -130,7 +122,7 @@
                 <span>·</span>
                 <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}" class="hover:text-white transition">Imprint</a>
             </div>
-            <p class="mt-3 text-[11px] leading-relaxed text-neutral-600">
+            <p class="mt-3 text-[11px] leading-relaxed text-neutral-400">
                 Disclaimer: href.yt is an independent utility and is not affiliated, associated, authorized, endorsed by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates.
             </p>
         </footer>
