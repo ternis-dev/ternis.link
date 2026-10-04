@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Api\V1\PublicQrCodeController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\BioPageController;
@@ -273,6 +274,8 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
     ->name('admin.')
     ->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('dashboard');
+        Route::get('/stats', [AdminStatsController::class, 'index'])->name('stats');
+        Route::get('/stats/{section}', [AdminStatsController::class, 'show'])->name('stats.show');
         Route::get('/links', [AdminController::class, 'links'])->name('links');
         Route::get('/bio', [AdminController::class, 'bio'])->name('bio');
         Route::get('/users', [AdminController::class, 'users'])->name('users');

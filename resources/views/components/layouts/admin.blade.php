@@ -3,6 +3,7 @@
 @php
 $nav = [
     ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'label' => 'Overview', 'icon' => '<path d="M3 3h7v7H3zM14 3h3v4h-3zM14 10h3v7h-3zM3 13h7v4H3z"/>'],
+    ['route' => 'admin.stats', 'match' => 'admin.stats*', 'label' => 'Stats & Analytics', 'icon' => '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>'],
     ['route' => 'admin.links', 'match' => 'admin.links*', 'label' => 'Links', 'icon' => '<path d="M10 13a5 5 0 0 0 7.54.54l2.1-2.1a5 5 0 0 0-7.07-7.07l-1.06 1.06M14 11a5 5 0 0 0-7.54-.54l-2.1 2.1a5 5 0 0 0 7.07 7.07l1.06-1.06"/>'],
     ['route' => 'admin.bio', 'match' => 'admin.bio*', 'label' => 'Bio Pages', 'icon' => '<path d="M4 5h16v14H4zM4 10h16M9 10v9"/>'],
     ['route' => 'admin.users', 'match' => 'admin.users*', 'label' => 'Users', 'icon' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'],

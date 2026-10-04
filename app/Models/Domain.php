@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Domain extends Model
 {
@@ -42,7 +43,12 @@ class Domain extends Model
 
     public function bioPages(): HasMany
     {
-        return $this->hasMany(\App\Models\BioPage::class);
+        return $this->hasMany(BioPage::class);
+    }
+
+    public function clicks(): HasManyThrough
+    {
+        return $this->hasManyThrough(Click::class, Link::class);
     }
 
     public function isSystemDomain(): bool
