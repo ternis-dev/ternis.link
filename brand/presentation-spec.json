@@ -1,0 +1,48 @@
+{
+  "brand": "ternis.link",
+  "tagline": "High-performance link infrastructure & analytics",
+  "brief": "Modern URL shortening, multi-domain routing, and real-time analytics platform by ternis-edv.de. Focuses on high-performance redirects, SSO authentication, and a clean engineering-grade grayscale aesthetic.",
+  "adjectives": [
+    "engineered",
+    "precise",
+    "connected",
+    "minimal"
+  ],
+  "criteria": "Success: unmistakable monogram ownership (TEL), distinct silhouette at 16 px, pure monochrome reproducibility, seamless fit with the Tailwind v4 UI.",
+  "industry": "software",
+  "mockups": [
+    "readme",
+    "terminal",
+    "app-icon",
+    "website",
+    "sticker",
+    "social"
+  ],
+  "nav": [
+    "Dashboard",
+    "Domains",
+    "Analytics",
+    "Docs"
+  ],
+  "brand_color": "#171717",
+  "greyscale": false,
+  "final": true,
+  "round": 2,
+  "concepts": [
+    {
+      "name": "TEL Nexus",
+      "symbol": "symbol-master.svg",
+      "lockup": "logo-horizontal.svg",
+      "stacked": "logo-stacked.svg",
+      "avatar": "export/symbol-master-square.svg",
+      "idea": "An integrated monogram ligature where T forms the header crossbar, E forms the 3-tier routing ladder, and L forms the base foundation foot.",
+      "rationale": [
+        "Unifies TE (Ternis) and L (Link) in a single authoritative glyph",
+        "Signature link eyelets provide distinct physical connection cues",
+        "Flawless 16 px legibility in browser tabs and toolbar extensions",
+        "100/100 production-ready SVG geometry with balanced optical margins"
+      ]
+    }
+  ],
+  "recommendation": "TEL Nexus anchors ternis.link with commanding typographic ownership, instant initials recognition, and durable micro-size fidelity across browser extensions, CLI tools, and web dashboards."
+}

@@ -6,7 +6,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'ternis.link' }}</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     {!! $head !!}
     <script>
         // Paint order: explicit browser toggle > account preference > OS.
@@ -28,11 +31,11 @@
         <div class="mx-auto flex {{ $maxWidth }} items-center justify-between gap-4 px-4 py-3 sm:px-6">
             @if (\App\Support\DomainUrls::isInternal())
                 <div class="flex items-center gap-2.5">
-                    <a href="/" class="font-display text-xl font-bold tracking-tight">int<span class="text-neutral-400 dark:text-neutral-500">.ternis.link</span></a>
+                    <x-ui.logo prefix="int" />
                     <x-ui.badge tone="solid" class="hidden sm:inline-flex">Internal Gateway</x-ui.badge>
                 </div>
             @else
-                <a href="/" class="font-display text-xl font-bold tracking-tight">ternis<span class="text-neutral-400 dark:text-neutral-500">.link</span></a>
+                <x-ui.logo />
             @endif
             <div class="flex items-center gap-2 sm:gap-3">
                 <button

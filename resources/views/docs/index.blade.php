@@ -14,7 +14,10 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Docs · ternis.link">
     <meta name="twitter:description" content="Guides for the ternis.link network: shorten links, use the API, custom domains, accounts, and how it all works.">
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     <script>
         try {
             const stored = localStorage.getItem('tl-theme');
@@ -32,7 +35,10 @@
 <body class="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-950">
     <header class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <a href="/" class="font-display text-xl font-bold tracking-tight">ternis<span class="text-neutral-400 dark:text-neutral-500">.link</span> <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">docs</span></a>
+            <div class="flex items-center gap-2">
+                <x-ui.logo />
+                <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">docs</span>
+            </div>
             <nav class="flex items-center gap-1 text-sm" aria-label="Network">
                 <a href="https://href.nz" class="rounded-lg px-2 py-1 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">href.nz</a>
                 <a href="https://ternis.link/pages/stats" class="rounded-lg px-2 py-1 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">stats</a>

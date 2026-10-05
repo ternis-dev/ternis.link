@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-tel-b">
+  <title id="title-tel-b">ternis.link — TEL Concentric (L inside E inside T)</title>
+  <g id="symbol" fill="#000000">
+    <!-- Outer Letter T -->
+    <path fill-rule="evenodd" d="
+      M 41 40
+      L 215 40
+      A 13 13 0 0 1 228 53
+      A 13 13 0 0 1 215 66
+      L 80 66
+      L 80 203
+      A 13 13 0 0 1 67 216
+      A 13 13 0 0 1 54 203
+      L 54 66
+      L 41 66
+      A 13 13 0 0 1 28 53
+      A 13 13 0 0 1 41 40
+      Z
+      M 41 47 A 6 6 0 1 0 41 59 A 6 6 0 1 0 41 47 Z
+      M 215 47 A 6 6 0 1 0 215 59 A 6 6 0 1 0 215 47 Z
+    "/>
+
+    <!-- Middle Letter E (nested inside T) -->
+    <path fill-rule="evenodd" d="
+      M 106 80
+      L 186 80
+      A 12 12 0 0 1 198 92
+      A 12 12 0 0 1 186 104
+      L 118 104
+      L 118 134
+      L 154 134
+      A 12 12 0 0 1 166 146
+      A 12 12 0 0 1 154 158
+      L 118 158
+      L 118 192
+      L 186 192
+      A 12 12 0 0 1 198 204
+      A 12 12 0 0 1 186 216
+      L 106 216
+      A 12 12 0 0 1 94 204
+      L 94 92
+      A 12 12 0 0 1 106 80
+      Z
+      M 186 86 A 6 6 0 1 0 186 98 A 6 6 0 1 0 186 86 Z
+      M 154 140 A 6 6 0 1 0 154 152 A 6 6 0 1 0 154 140 Z
+      M 186 198 A 6 6 0 1 0 186 210 A 6 6 0 1 0 186 198 Z
+    "/>
+
+    <!-- Inner Letter L (nested inside lower bay of E) -->
+    <path fill-rule="evenodd" d="
+      M 141 158
+      A 11 11 0 0 1 152 169
+      L 152 164
+      L 167 164
+      A 11 11 0 0 1 178 175
+      A 11 11 0 0 1 167 186
+      L 141 186
+      A 11 11 0 0 1 130 175
+      L 130 169
+      A 11 11 0 0 1 141 158
+      Z
+      M 167 170 A 5 5 0 1 0 167 180 A 5 5 0 1 0 167 170 Z
+    "/>
+  </g>
+</svg>

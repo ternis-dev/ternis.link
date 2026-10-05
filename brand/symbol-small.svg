@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="symbol-small-title">
+  <title id="symbol-small-title">ternis.link logo symbol (small cut)</title>
+  <path fill="currentColor" fill-rule="evenodd" d="
+    M 56 44
+    L 200 44
+    A 22 22 0 0 1 222 66
+    A 22 22 0 0 1 200 88
+    L 132 88
+    L 132 116
+    L 160 116
+    A 18 18 0 0 1 178 134
+    A 18 18 0 0 1 160 152
+    L 132 152
+    L 132 170
+    L 188 170
+    A 22 22 0 0 1 210 192
+    A 22 22 0 0 1 188 214
+    L 106 214
+    A 22 22 0 0 1 84 192
+    L 84 88
+    L 56 88
+    A 22 22 0 0 1 34 66
+    A 22 22 0 0 1 56 44
+    Z
+    
+    M 56 56 A 10 10 0 1 0 56 76 A 10 10 0 1 0 56 56 Z
+    M 200 56 A 10 10 0 1 0 200 76 A 10 10 0 1 0 200 56 Z
+    M 160 125 A 9 9 0 1 0 160 143 A 9 9 0 1 0 160 125 Z
+    M 188 182 A 10 10 0 1 0 188 202 A 10 10 0 1 0 188 182 Z
+  "/>
+</svg>

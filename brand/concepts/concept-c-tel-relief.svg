@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-tel-c">
+  <title id="title-tel-c">ternis.link — TEL Interlocking Relief</title>
+  <g id="symbol" fill="#000000">
+    <!-- TE Chassis (T crossbar + E spine & mid-arm) -->
+    <path fill-rule="evenodd" d="
+      M 58 46
+      L 198 46
+      A 20 20 0 0 1 218 66
+      A 20 20 0 0 1 198 86
+      L 128 86
+      L 128 118
+      L 160 118
+      A 16 16 0 0 1 176 134
+      A 16 16 0 0 1 160 150
+      L 128 150
+      L 128 192
+      A 20 20 0 0 1 108 212
+      L 108 212
+      A 20 20 0 0 1 88 192
+      L 88 86
+      L 58 86
+      A 20 20 0 0 1 38 66
+      A 20 20 0 0 1 58 46
+      Z
+      
+      M 58 58 A 8 8 0 1 0 58 74 A 8 8 0 1 0 58 58 Z
+      M 198 58 A 8 8 0 1 0 198 74 A 8 8 0 1 0 198 58 Z
+      M 160 126 A 8 8 0 1 0 160 142 A 8 8 0 1 0 160 126 Z
+    "/>
+    
+    <!-- L Component (Nested inside the lower bay with crisp 10px isolation) -->
+    <path fill-rule="evenodd" d="
+      M 148 142
+      A 14 14 0 0 1 162 156
+      L 162 184
+      L 192 184
+      A 14 14 0 0 1 206 198
+      A 14 14 0 0 1 192 212
+      L 148 212
+      A 14 14 0 0 1 134 198
+      L 134 156
+      A 14 14 0 0 1 148 142
+      Z
+      M 192 191 A 7 7 0 1 0 192 205 A 7 7 0 1 0 192 191 Z
+    "/>
+  </g>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-b">
+  <title id="title-b">ternis.link — Concept B: Vector Link</title>
+  <g id="symbol" fill="#000000" transform="rotate(-45 128 128)">
+    <!-- Lower Link Loop -->
+    <path fill-rule="evenodd" d="
+      M 72 84
+      C 54 84 40 98 40 116
+      L 40 140
+      C 40 158 54 172 72 172
+      L 140 172
+      C 158 172 172 158 172 140
+      L 172 134
+      L 144 134
+      L 144 140
+      C 144 142 142 144 140 144
+      L 72 144
+      C 70 144 68 142 68 140
+      L 68 116
+      C 68 114 70 112 72 112
+      L 96 112
+      L 96 84
+      Z
+    "/>
+    <!-- Upper Link Loop -->
+    <path fill-rule="evenodd" d="
+      M 116 84
+      C 98 84 84 98 84 116
+      L 84 122
+      L 112 122
+      L 112 116
+      C 112 114 114 112 116 112
+      L 184 112
+      C 186 112 188 114 188 116
+      L 188 140
+      C 188 142 186 144 184 144
+      L 160 144
+      L 160 172
+      L 184 172
+      C 202 172 216 158 216 140
+      L 216 116
+      C 216 98 202 84 184 84
+      Z
+    "/>
+  </g>
+</svg>

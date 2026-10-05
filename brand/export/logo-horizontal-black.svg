@@ -1,0 +1,23 @@
+<svg fill="#000000" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 256" width="880" height="256" role="img" aria-labelledby="lockup-title"><title>ternis.link logo</title>
+  <title id="lockup-title">ternis.link logo</title>
+  <style>
+    .symbol-path { fill:#000000; }
+    .wm-brand { font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 88px; font-weight: 700; letter-spacing: -0.03em; fill:#000000; }
+    .wm-tld { font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 88px; font-weight: 700; letter-spacing: -0.03em; fill:#000000; }
+    @media (prefers-color-scheme: dark) {
+      .symbol-path { fill:#000000; }
+      .wm-brand { fill:#000000; }
+      .wm-tld { fill:#000000; }
+    }
+  </style>
+  <g id="symbol" transform="translate(32, 28) scale(0.78125)">
+    <path class="symbol-path" fill-rule="evenodd" d="
+      M 58 46 L 198 46 A 20 20 0 0 1 218 66 A 20 20 0 0 1 198 86 L 128 86 L 128 118 L 158 118 A 16 16 0 0 1 174 134 A 16 16 0 0 1 158 150 L 128 150 L 128 172 L 186 172 A 20 20 0 0 1 206 192 A 20 20 0 0 1 186 212 L 108 212 A 20 20 0 0 1 88 192 L 88 86 L 58 86 A 20 20 0 0 1 38 66 A 20 20 0 0 1 58 46 Z
+      M 58 58 A 8 8 0 1 0 58 74 A 8 8 0 1 0 58 58 Z
+      M 198 58 A 8 8 0 1 0 198 74 A 8 8 0 1 0 198 58 Z
+      M 158 127 A 7 7 0 1 0 158 141 A 7 7 0 1 0 158 127 Z
+      M 186 184 A 8 8 0 1 0 186 200 A 8 8 0 1 0 186 184 Z
+    "/>
+  </g>
+  <text x="272" y="158" class="wm-brand">ternis<tspan class="wm-tld">.link</tspan></text>
+</svg>

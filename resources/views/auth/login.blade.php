@@ -1,5 +1,6 @@
 <x-layouts.app title="Login — ternis.link">
     <div class="mx-auto flex max-w-xl flex-col items-center py-16 text-center">
+        <x-ui.logo variant="symbol" size="xl" :href="null" class="mb-6" />
         <h1 class="font-display text-4xl font-bold tracking-tight">Sign in to ternis.link</h1>
         <p class="mt-3 max-w-md text-neutral-500 dark:text-neutral-400">Authenticate with your Ternis account to manage links, create custom short links, and view analytics.</p>
 
