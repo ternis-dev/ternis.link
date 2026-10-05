@@ -272,8 +272,20 @@ body:has(.pd-root).dark {
     color: #4f46e5;
 }
 
-/* ---------- Modal ---------- */
+/* ---------- Bulk action bar ---------- */
 
+.pd div[class*='sticky'][class*='rounded-xl'] {
+    border-radius: 9999px;
+    border-color: #e0d6c2;
+    box-shadow: 0 12px 32px -8px rgba(79, 70, 229, 0.3);
+}
+
+.dark .pd div[class*='sticky'][class*='rounded-xl'] {
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: #1e1a2b;
+}
+
+/* ---------- Modal ---------- */
 .pd div[role='dialog'] {
     border-radius: 1.25rem;
     border-color: #e9e1d3;
