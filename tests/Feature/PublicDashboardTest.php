@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Dashboard\LinkImport;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -9,6 +10,7 @@ use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PublicDashboardTest extends TestCase
@@ -143,6 +145,68 @@ class PublicDashboardTest extends TestCase
 
         $this->assertStringContainsString('pub-exp-1', $content);
         $this->assertStringNotContainsString('dash-exp-1', $content);
+    }
+
+    public function test_public_import_page_renders(): void
+    {
+        $this->actingAs($this->user)
+            ->get('http://my.href.nz/links/import')
+            ->assertOk()
+            ->assertSee('Import Links', escape: false);
+    }
+
+    public function test_public_import_page_requires_login(): void
+    {
+        $this->get('http://my.href.nz/links/import')
+            ->assertRedirect('http://my.href.nz/login');
+    }
+
+    public function test_public_import_enforces_hostname_partition(): void
+    {
+        $component = Livewire::actingAs($this->user)
+            ->test(LinkImport::class, ['scope' => 'public'])
+            ->set('csv', "https://example.com/a,href.nz,pub-imp-a\nhttps://example.com/b,clicked.at,dash-imp-b")
+            ->call('import');
+
+        $results = $component->get('results');
+        $this->assertTrue($results[0]['ok']);
+        $this->assertFalse($results[1]['ok']);
+        $this->assertStringContainsString('dash.ternis.link', $results[1]['message']);
+        $this->assertDatabaseHas('links', ['slug' => 'pub-imp-a', 'user_id' => $this->user->id]);
+        $this->assertDatabaseMissing('links', ['slug' => 'dash-imp-b']);
+    }
+
+    public function test_personal_import_rejects_public_hostnames(): void
+    {
+        $component = Livewire::actingAs($this->user)
+            ->test(LinkImport::class, ['scope' => 'personal'])
+            ->set('csv', 'https://example.com/a,href.nz,pers-imp-a')
+            ->call('dryRunImport');
+
+        $results = $component->get('results');
+        $this->assertFalse($results[0]['ok']);
+        $this->assertStringContainsString('my.href.nz', $results[0]['message']);
+    }
+
+    public function test_overview_shows_domain_breakdown_and_first_run_state(): void
+    {
+        // First run: empty-state CTA instead of an empty table.
+        $this->actingAs($this->user)
+            ->get('http://my.href.nz/')
+            ->assertOk()
+            ->assertSee('Shorten your first link', escape: false);
+
+        $this->makeLink('href.nz', 'pub-bd-1');
+        $this->makeLink('href.nz', 'pub-bd-2');
+        $this->makeLink('meinlink.at', 'pub-bd-3');
+
+        $this->actingAs($this->user)
+            ->get('http://my.href.nz/')
+            ->assertOk()
+            ->assertSee('Links by domain', escape: false)
+            ->assertSee('href.nz', escape: false)
+            ->assertSee('meinlink.at', escape: false)
+            ->assertDontSee('Shorten your first link', escape: false);
     }
 
     public function test_qr_download_scoped_to_public_links(): void

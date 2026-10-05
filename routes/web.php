@@ -165,6 +165,7 @@ Route::domain((string) config('domains.public_dashboard_host', 'my.href.nz'))
         Route::get('/new', [PublicDashboardController::class, 'createLink'])->name('public-dashboard.new');
         Route::get('/links', [PublicDashboardController::class, 'links'])->name('public-dashboard.links');
         Route::get('/links/create', [PublicDashboardController::class, 'createLink'])->name('public-dashboard.links.create');
+        Route::get('/links/import', [PublicDashboardController::class, 'importLinks'])->name('public-dashboard.links.import');
         Route::get('/links/export', [PublicDashboardController::class, 'exportLinks'])->name('public-dashboard.links.export-all');
         Route::get('/links/{link}', [PublicDashboardController::class, 'showLink'])->name('public-dashboard.links.show');
         Route::get('/links/{link}/edit', [PublicDashboardController::class, 'editLink'])->name('public-dashboard.links.edit');

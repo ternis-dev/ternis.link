@@ -8,6 +8,7 @@ use App\Services\JunkUrlDetector;
 use App\Services\LinkService;
 use App\Services\UnsafeUrlValidator;
 use App\Support\Activity;
+use App\Support\DomainUrls;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -26,6 +27,15 @@ class LinkImport extends Component
     public array $results = [];
 
     public bool $dryRun = true;
+
+    /**
+     * Dashboard scope, mirrors LinkTable: 'public' only accepts
+     * my.href.nz hostnames, 'personal' rejects them (use the other
+     * dashboard's importer instead).
+     */
+    public ?string $scope = null;
+
+    public string $theme = 'dashboard';
 
     public function dryRunImport(LinkService $links, JunkUrlDetector $junk, UnsafeUrlValidator $unsafe): void
     {
@@ -78,6 +88,23 @@ class LinkImport extends Component
 
             if (! $domain || ! $this->canUseDomain($domain)) {
                 $results[] = ['row' => $rowNumber, 'ok' => false, 'message' => 'Unknown or unusable domain.'];
+
+                continue;
+            }
+
+            // Enforce the dashboard split: each importer only accepts
+            // its own side's hostnames.
+            $publicHosts = DomainUrls::publicDashboardHostnames();
+            $isPublicHost = in_array($domain->hostname, $publicHosts, true);
+
+            if ($this->scope === 'public' && ! $isPublicHost) {
+                $results[] = ['row' => $rowNumber, 'ok' => false, 'message' => "Domain {$domain->hostname} is managed on dash.ternis.link."];
+
+                continue;
+            }
+
+            if ($this->scope === 'personal' && $isPublicHost) {
+                $results[] = ['row' => $rowNumber, 'ok' => false, 'message' => "Domain {$domain->hostname} is imported on my.href.nz."];
 
                 continue;
             }
@@ -141,7 +168,13 @@ class LinkImport extends Component
 
     private function defaultDomain(): ?Domain
     {
-        return Domain::where('hostname', config('domains.public_host', 'href.nz'))->first();
+        // The default must be importable under the active scope:
+        // href.nz belongs to my.href.nz, clicked.at to dash.
+        $hostname = $this->scope === 'public'
+            ? config('domains.public_host', 'href.nz')
+            : ($this->scope === 'personal' ? 'clicked.at' : config('domains.public_host', 'href.nz'));
+
+        return Domain::where('hostname', $hostname)->first();
     }
 
     private function canUseDomain(Domain $domain): bool

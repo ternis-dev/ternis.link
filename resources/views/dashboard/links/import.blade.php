@@ -7,6 +7,6 @@
     />
 
     <div class="max-w-3xl">
-        <livewire:dashboard.link-import />
+        <livewire:dashboard.link-import scope="personal" />
     </div>
 </x-layouts.dashboard>

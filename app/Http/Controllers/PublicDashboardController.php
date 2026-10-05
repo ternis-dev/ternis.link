@@ -49,7 +49,14 @@ class PublicDashboardController extends Controller
                 ->count(),
         ];
 
-        return view('public-dashboard.index', compact('stats'));
+        $byDomain = (clone $base)
+            ->join('domains', 'domains.id', '=', 'links.domain_id')
+            ->selectRaw('domains.hostname, count(*) as link_count, coalesce(sum(links.click_count), 0) as click_sum')
+            ->groupBy('domains.hostname')
+            ->orderByDesc('link_count')
+            ->get();
+
+        return view('public-dashboard.index', compact('stats', 'byDomain'));
     }
 
     /**
@@ -66,6 +73,14 @@ class PublicDashboardController extends Controller
     public function createLink()
     {
         return view('public-dashboard.links.create');
+    }
+
+    /**
+     * CSV import page (Livewire: Dashboard\LinkImport scoped to public hosts).
+     */
+    public function importLinks()
+    {
+        return view('public-dashboard.links.import');
     }
 
     /**
