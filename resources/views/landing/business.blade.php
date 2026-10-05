@@ -114,34 +114,46 @@ $faqJsonLd = array_map(fn ($faq) => [
 
         <section id="principles" class="scroll-mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Business only</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Public guest shortening is disabled on this domain. Need a quick public link? Use <a href="https://href.nz" class="font-medium text-neutral-900 underline underline-offset-2 hover:text-black dark:text-white dark:hover:text-neutral-200" rel="noopener">href.nz</a>.</p>
+                <div class="flex items-center gap-2.5">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <div class="font-display text-lg font-bold">Business only</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Public guest shortening is disabled on this domain. Need a quick public link? Use <a href="https://href.nz" class="font-medium text-neutral-900 underline underline-offset-2 hover:text-black dark:text-white dark:hover:text-neutral-200" rel="noopener">href.nz</a>.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Trusted by default</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Recipients can trust href.re redirects — they are issued internally and access-controlled via <a href="https://ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">ternis.link</a>.</p>
+                <div class="flex items-center gap-2.5">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <div class="font-display text-lg font-bold">Trusted by default</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Recipients can trust href.re redirects — they are issued internally and access-controlled via <a href="https://ternis.link" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white" rel="noopener">ternis.link</a>.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 20v-6M12 20V6M17 20v-9"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Measured</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Every business redirect logs referrer, country and timestamp asynchronously for insights without tracking cookies.</p>
+                <div class="flex items-center gap-2.5">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 20v-6M12 20V6M17 20v-9"/></svg>
+                    <div class="font-display text-lg font-bold">Measured</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Every business redirect logs referrer, country and timestamp asynchronously for insights without tracking cookies.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12L20.5 12 12 20.5Z"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Custom slugs</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Semantic aliases for invoices and partner notices — like <code>href.re/inv-2026-0891</code> — that look sharp and recognizable.</p>
+                <div class="flex items-center gap-2.5">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12L20.5 12 12 20.5Z"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>
+                    <div class="font-display text-lg font-bold">Custom slugs</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Semantic aliases for invoices and partner notices — like <code>href.re/inv-2026-0891</code> — that look sharp and recognizable.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">API access</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Provision links programmatically from billing engines, notifications, and CI/CD pipelines via the versioned REST API.</p>
+                <div class="flex items-center gap-2.5">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/></svg>
+                    <div class="font-display text-lg font-bold">API access</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Provision links programmatically from billing engines, notifications, and CI/CD pipelines via the versioned REST API.</p>
             </x-ui.card>
             <x-ui.card>
-                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <div class="font-display mt-3 text-lg font-bold">Lifecycle governance</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Permanent invariants for contracts and documentation that never rot, or scheduled expiration for time-bound notices.</p>
+                <div class="flex items-center gap-2.5">
+                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <div class="font-display text-lg font-bold">Lifecycle governance</div>
+                </div>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Permanent invariants for contracts and documentation that never rot, or scheduled expiration for time-bound notices.</p>
             </x-ui.card>
         </section>
 

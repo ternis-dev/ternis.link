@@ -612,8 +612,9 @@ body.yt-root ::selection {
     align-items: center;
     justify-content: center;
     width: 2.75rem;
-    height: 100%;
-    min-height: 3.35rem;
+    height: 2.75rem;
+    flex-shrink: 0;
+    align-self: center;
     margin: 0;
     border-radius: 8px;
     background: var(--yt-red-glow);
