@@ -1,6 +1,6 @@
 <x-layouts.public-dashboard title="Link Analytics — {{ $link->slug }}">
     <div class="mb-6">
-        <a href="{{ route('public-dashboard.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
+        <a href="{{ $backHref ?? route('public-dashboard.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← {{ $backLabel ?? 'Back to Links' }}</a>
         <div class="mt-2 flex flex-wrap items-center gap-3">
             <h2 class="font-display text-2xl font-bold tracking-tight">{{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}</h2>
             <span class="pd-domain-chip">{{ $link->domain->hostname ?? 'href.nz' }}</span>

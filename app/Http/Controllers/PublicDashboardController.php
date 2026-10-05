@@ -84,6 +84,25 @@ class PublicDashboardController extends Controller
     }
 
     /**
+     * Per-key page: public links created with this API key, regardless
+     * of its `show_on_dashboard` setting. Strictly per-user and scoped
+     * to public hostnames; key management itself stays on dash.
+     */
+    public function showApiKey(string $key)
+    {
+        $apiKey = auth()->user()->apiKeys()->findOrFail($key);
+
+        $links = $this->baseQuery(auth()->user())->where('links.api_key_id', $apiKey->id);
+
+        $stats = [
+            'total_links' => (clone $links)->count(),
+            'total_clicks' => (clone $links)->sum('links.click_count'),
+        ];
+
+        return view('public-dashboard.api-keys.show', compact('apiKey', 'stats'));
+    }
+
+    /**
      * Link detail + analytics page (Livewire: LinkAnalytics).
      *
      * Strictly per-user AND scoped to public hostnames: ternis/business
@@ -96,8 +115,9 @@ class PublicDashboardController extends Controller
             ->findOrFail($link);
 
         $qrSvg = LinkQrCode::svgDataUri($link);
+        ['backHref' => $backHref, 'backLabel' => $backLabel] = $this->linkBackContext($request);
 
-        return view('public-dashboard.links.show', compact('link', 'qrSvg'));
+        return view('public-dashboard.links.show', compact('link', 'qrSvg', 'backHref', 'backLabel'));
     }
 
     /**
@@ -109,7 +129,9 @@ class PublicDashboardController extends Controller
             ->with(['domain', 'apiKey:id,name,key_prefix'])
             ->findOrFail($link);
 
-        return view('public-dashboard.links.edit', compact('link'));
+        ['backHref' => $backHref, 'backLabel' => $backLabel] = $this->linkBackContext($request);
+
+        return view('public-dashboard.links.edit', compact('link', 'backHref', 'backLabel'));
     }
 
     /**
@@ -231,6 +253,31 @@ class PublicDashboardController extends Controller
         }
 
         return Storage::disk('local')->download($export->path, 'ternis-export.zip');
+    }
+
+    /**
+     * Back-link context for link detail/edit pages. When `from_api_key`
+     * names an owned key, point back at its public per-key page;
+     * otherwise fall back to the main links list.
+     *
+     * @return array{backHref: string, backLabel: string}
+     */
+    private function linkBackContext(Request $request): array
+    {
+        $fromApiKey = $request->query('from_api_key');
+
+        if (is_string($fromApiKey) && $fromApiKey !== ''
+            && auth()->user()->apiKeys()->whereKey($fromApiKey)->exists()) {
+            return [
+                'backHref' => route('public-dashboard.api-keys.show', $fromApiKey),
+                'backLabel' => 'Back to API key links',
+            ];
+        }
+
+        return [
+            'backHref' => route('public-dashboard.links'),
+            'backLabel' => 'Back to Links',
+        ];
     }
 
     /**

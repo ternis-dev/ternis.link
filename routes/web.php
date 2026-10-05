@@ -171,6 +171,7 @@ Route::domain((string) config('domains.public_dashboard_host', 'my.href.nz'))
         Route::get('/links/{link}/edit', [PublicDashboardController::class, 'editLink'])->name('public-dashboard.links.edit');
         Route::get('/links/{link}/export', [PublicDashboardController::class, 'exportClicks'])->name('public-dashboard.links.export');
         Route::get('/links/{link}/qr', [PublicDashboardController::class, 'qrCode'])->name('public-dashboard.links.qr');
+        Route::get('/api-keys/{key}', [PublicDashboardController::class, 'showApiKey'])->name('public-dashboard.api-keys.show');
         Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name('public-dashboard.settings.export-download');
     });
 

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Dashboard\LinkImport;
 use App\Livewire\Dashboard\LinkTable;
+use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -11,6 +12,7 @@ use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -246,6 +248,64 @@ class PublicDashboardTest extends TestCase
             ->get('http://dash.ternis.link/links')
             ->assertOk()
             ->assertSee('>Dashboard<', escape: false);
+    }
+
+    public function test_public_per_key_page_lists_only_that_key_public_links(): void
+    {
+        $key = ApiKey::create([
+            'user_id' => $this->user->id,
+            'key_hash' => ApiKey::hashToken('tl_'.Str::random(48)),
+            'key_prefix' => 'tl_pubkey',
+            'api_version' => 1,
+            'name' => 'Public Key',
+        ]);
+
+        $keyedPublic = Link::create([
+            'slug' => 'pub-key-1', 'destination_url' => 'https://example.com/a',
+            'domain_id' => Domain::where('hostname', 'href.nz')->firstOrFail()->id,
+            'user_id' => $this->user->id, 'api_key_id' => $key->id, 'is_active' => true,
+        ]);
+        Link::create([
+            'slug' => 'pub-nokey-1', 'destination_url' => 'https://example.com/b',
+            'domain_id' => Domain::where('hostname', 'href.nz')->firstOrFail()->id,
+            'user_id' => $this->user->id, 'is_active' => true,
+        ]);
+        Link::create([
+            'slug' => 'dash-key-1', 'destination_url' => 'https://example.com/c',
+            'domain_id' => Domain::where('hostname', 'clicked.at')->firstOrFail()->id,
+            'user_id' => $this->user->id, 'api_key_id' => $key->id, 'is_active' => true,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get("http://my.href.nz/api-keys/{$key->id}")
+            ->assertOk()
+            ->assertSee('Public Key', escape: false)
+            ->assertSee('pub-key-1')
+            ->assertDontSee('pub-nokey-1')
+            ->assertDontSee('dash-key-1');
+
+        // Row deep-link keeps the per-key back context.
+        $this->actingAs($this->user)
+            ->get("http://my.href.nz/links/{$keyedPublic->id}?from_api_key={$key->id}")
+            ->assertOk()
+            ->assertSee('Back to API key links', escape: false);
+
+        // A foreign key id falls back to the plain links list.
+        $this->actingAs($this->user)
+            ->get("http://my.href.nz/links/{$keyedPublic->id}?from_api_key=01K9999999999999999999999")
+            ->assertOk()
+            ->assertSee('Back to Links', escape: false);
+
+        // Another user's key is invisible here.
+        $other = User::factory()->create();
+        $foreign = ApiKey::create([
+            'user_id' => $other->id, 'key_hash' => ApiKey::hashToken('tl_'.Str::random(48)),
+            'key_prefix' => 'tl_foreign', 'api_version' => 1, 'name' => 'Foreign',
+        ]);
+
+        $this->actingAs($this->user)
+            ->get("http://my.href.nz/api-keys/{$foreign->id}")
+            ->assertNotFound();
     }
 
     public function test_qr_download_scoped_to_public_links(): void
