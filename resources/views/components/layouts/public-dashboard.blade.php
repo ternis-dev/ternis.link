@@ -2,68 +2,72 @@
 
 @php
 $dashHost = config('domains.dashboard_host', 'dash.ternis.link');
-$scheme = request()->getScheme();
-$nav = [
-    ['route' => 'public-dashboard', 'match' => 'public-dashboard', 'label' => 'Overview', 'icon' => '<path d="M3 3h7v7H3zM14 3h3v4h-3zM14 10h3v7h-3zM3 13h7v4H3z"/>'],
-    ['route' => 'public-dashboard.links', 'match' => 'public-dashboard.links*', 'label' => 'Links', 'icon' => '<path d="M10 13a5 5 0 0 0 7.54.54l2.1-2.1a5 5 0 0 0-7.07-7.07l-1.06 1.06M14 11a5 5 0 0 0-7.54-.54l-2.1 2.1a5 5 0 0 0 7.07 7.07l1.06-1.06"/>'],
-];
+$isLocal = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true);
+$homeHref = $isLocal ? url('/dashboard') : route('public-dashboard');
 
-$homeHref = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true)
-    ? url('/dashboard')
-    : route('public-dashboard');
-$nav[0]['href'] = $homeHref;
+$nav = [
+    ['href' => $homeHref, 'match' => 'public-dashboard', 'label' => 'Overview'],
+    ['href' => $isLocal ? url('/links') : route('public-dashboard.links'), 'match' => 'public-dashboard.links*', 'label' => 'Links'],
+];
 @endphp
 
-<x-layouts.app :title="$title" maxWidth="max-w-[1440px]">
-    <div class="flex flex-col gap-6 lg:flex-row">
-        <aside class="lg:w-60 lg:shrink-0">
-            <nav aria-label="Public dashboard" data-nav="side" class="no-scrollbar flex gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 lg:sticky lg:top-6 lg:flex-col dark:border-neutral-800 dark:bg-neutral-900">
+<x-layouts.app :title="$title" maxWidth="max-w-6xl">
+    <x-slot:head>
+        @vite(['resources/css/public-dashboard.css'])
+    </x-slot:head>
+
+    <div class="pd pd-root">
+        {{-- Brand band --}}
+        <div class="pd-hero mb-8 overflow-hidden rounded-3xl px-6 py-8 text-white sm:px-10">
+            <div class="flex flex-wrap items-end justify-between gap-6">
+                <div>
+                    <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide">
+                        <span class="inline-block h-2 w-2 rounded-full bg-emerald-300"></span>
+                        my.href.nz · public links
+                    </p>
+                    <h1 class="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">Your short links, minus the clutter.</h1>
+                    <p class="mt-2 max-w-xl text-sm text-white/80">href.nz, meinlink.at &amp; href.yt in one focused workspace. Everything else lives on dash.ternis.link.</p>
+                </div>
                 <button
                     type="button"
                     x-data
                     @click="$dispatch('open-link-creator')"
-                    class="mb-2 hidden lg:flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-neutral-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
+                    class="cursor-pointer rounded-full bg-white px-5 py-2.5 text-sm font-bold text-indigo-700 shadow-lg transition hover:bg-indigo-50"
                 >
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                    Create Link
+                    + New short link
                 </button>
+            </div>
+            <nav aria-label="Public dashboard" class="mt-6 flex flex-wrap gap-2">
                 @foreach ($nav as $item)
                     <a
-                        href="{{ $item['href'] ?? route($item['route']) }}"
-                        @class([
-                            'flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                            'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' => request()->routeIs($item['match']),
-                            'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white' => ! request()->routeIs($item['match']),
-                        ])
+                        href="{{ $item['href'] }}"
+                        @class(['pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white'])
                         @if (request()->routeIs($item['match'])) aria-current="page" @endif
-                    >
-                        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $item['icon'] !!}</svg>
-                        {{ $item['label'] }}
-                    </a>
+                    >{{ $item['label'] }}</a>
                 @endforeach
-                <div class="mt-2 hidden border-t border-neutral-200 pt-2 lg:block dark:border-neutral-800">
-                    <p class="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Account on dash</p>
-                    @foreach ([['label' => 'API Keys', 'path' => '/api-keys'], ['label' => 'Domains', 'path' => '/domains'], ['label' => 'Settings', 'path' => '/settings']] as $ext)
-                        <a
-                            href="{{ $scheme }}://{{ $dashHost }}{{ $ext['path'] }}"
-                            class="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
-                        >
-                            <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
-                            {{ $ext['label'] }}
-                        </a>
-                    @endforeach
-                </div>
+                <span class="mx-1 hidden h-6 w-px self-center bg-white/25 sm:inline-block" aria-hidden="true"></span>
+                <a href="https://{{ $dashHost }}/api-keys" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">API Keys ↗</a>
+                <a href="https://{{ $dashHost }}/domains" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">Domains ↗</a>
+                <a href="https://{{ $dashHost }}/settings" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">Settings ↗</a>
             </nav>
-        </aside>
-        <section class="min-w-0 flex-1">
+        </div>
+
+        <section class="min-w-0">
             {{ $slot }}
         </section>
+
+        <p class="mt-10 text-center text-xs text-neutral-500 dark:text-neutral-500">
+            Looking for clicked.at, ternis.link or href.re links?
+            <a href="https://{{ $dashHost }}/" class="font-semibold underline underline-offset-2">Open dash.ternis.link →</a>
+        </p>
     </div>
 
     @unless (request()->routeIs('public-dashboard.links.create', 'public-dashboard.new'))
-        <x-ui.modal name="link-creator" title="New Short Link">
-            <livewire:dashboard.link-form :modal="true" scope="public" />
-        </x-ui.modal>
+        <div class="pd">
+            <x-ui.modal name="link-creator" title="New Short Link">
+                <livewire:dashboard.link-form :modal="true" scope="public" theme="public" />
+            </x-ui.modal>
+        </div>
 
         <div
             x-data

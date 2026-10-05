@@ -51,6 +51,13 @@ class LinkTable extends Component
     public ?string $scope = null;
 
     /**
+     * Presentation theme: 'dashboard' (neutral) or 'public' (my.href.nz
+     * fresh-minimal theme + public-dashboard route names). Logic is
+     * identical; only route prefixing and styling hooks change.
+     */
+    public string $theme = 'dashboard';
+
+    /**
      * Selected link ids for bulk actions (page-scoped, verified
      * against ownership at execution time).
      *

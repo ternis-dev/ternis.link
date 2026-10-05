@@ -56,7 +56,9 @@ class PublicDashboardTest extends TestCase
         $this->actingAs($this->user)
             ->get('http://my.href.nz/')
             ->assertOk()
-            ->assertViewHas('stats', fn ($stats) => $stats['total_links'] === 3);
+            ->assertViewHas('stats', fn ($stats) => $stats['total_links'] === 3)
+            ->assertSee('pd-hero', escape: false)
+            ->assertSee('pd-stat', escape: false);
     }
 
     public function test_links_table_partitions_public_and_personal(): void

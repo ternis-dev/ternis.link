@@ -196,7 +196,7 @@
         @if ($modal)
             <x-ui.button type="button" x-on:click="$dispatch('close-link-creator')" variant="ghost">Close</x-ui.button>
         @else
-            <x-ui.button href="{{ route('dashboard.links') }}" variant="ghost">Cancel</x-ui.button>
+            <x-ui.button href="{{ route(($theme ?? 'dashboard') === 'public' ? 'public-dashboard.links' : 'dashboard.links') }}" variant="ghost">Cancel</x-ui.button>
         @endif
     </div>
 </form>

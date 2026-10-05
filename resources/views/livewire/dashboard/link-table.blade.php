@@ -1,3 +1,6 @@
+@php
+    $rp = ($theme ?? 'dashboard') === 'public' ? 'public-dashboard.' : 'dashboard.';
+@endphp
 <div>
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div class="flex min-w-0 flex-1 flex-wrap items-center gap-3">
@@ -30,7 +33,7 @@
         </div>
         <div class="flex items-center gap-2">
             @include('livewire.partials.column-customizer')
-            <x-ui.button href="{{ route('dashboard.links.create') }}" variant="primary">+ Create Link</x-ui.button>
+            <x-ui.button href="{{ route($rp.'links.create') }}" variant="primary">+ Create Link</x-ui.button>
         </div>
     </div>
 
@@ -83,7 +86,7 @@
                     @foreach ($visibleColumns as $column)
                         @if ($column === 'slug')
                             <td>
-                                <a href="{{ route('dashboard.links.show', array_merge([$link->id], $rowQuery)) }}" class="font-semibold underline-offset-2 hover:underline">
+                                <a href="{{ route($rp.'links.show', array_merge([$link->id], $rowQuery)) }}" class="font-semibold underline-offset-2 hover:underline">
                                     {{ $link->slug }}
                                 </a>
                                 @if ($link->apiKey)
@@ -133,8 +136,8 @@
                     @endforeach
                     <td>
                         <div class="flex gap-2">
-                            <x-ui.button href="{{ route('dashboard.links.show', array_merge([$link->id], $rowQuery)) }}" size="sm">Analytics</x-ui.button>
-                            <x-ui.button href="{{ route('dashboard.links.edit', array_merge([$link->id], $rowQuery)) }}" size="sm">Edit</x-ui.button>
+                            <x-ui.button href="{{ route($rp.'links.show', array_merge([$link->id], $rowQuery)) }}" size="sm">Analytics</x-ui.button>
+                            <x-ui.button href="{{ route($rp.'links.edit', array_merge([$link->id], $rowQuery)) }}" size="sm">Edit</x-ui.button>
                             @if ($link->is_active)
                                 <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
                             @endif
@@ -152,7 +155,7 @@
                                 </div>
                             </x-ui.empty-state>
                         @else
-                            <x-ui.empty-state>No short links found. <a href="{{ route('dashboard.links.create') }}" class="underline underline-offset-2">Create your first short link!</a></x-ui.empty-state>
+                            <x-ui.empty-state>No short links found. <a href="{{ route($rp.'links.create') }}" class="underline underline-offset-2">Create your first short link!</a></x-ui.empty-state>
                         @endif
                     </td>
                 </tr>

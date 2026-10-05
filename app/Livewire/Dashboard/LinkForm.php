@@ -94,6 +94,13 @@ class LinkForm extends Component
      */
     public ?string $scope = null;
 
+    /**
+     * Presentation theme: 'dashboard' (neutral) or 'public' (my.href.nz
+     * fresh-minimal theme + public-dashboard route names). Logic is
+     * identical; only route prefixing and styling hooks change.
+     */
+    public string $theme = 'dashboard';
+
     protected function rules(): array
     {
         $minLength = auth()->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;

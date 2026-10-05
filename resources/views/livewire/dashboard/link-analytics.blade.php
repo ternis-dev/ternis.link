@@ -6,7 +6,7 @@
                 <span class="text-xs text-neutral-500 dark:text-neutral-400">Longer ranges unlock as the link ages.</span>
             @endif
         </div>
-        <x-ui.button href="{{ route('dashboard.links.export', $link->id) }}" size="sm">Export CSV</x-ui.button>
+        <x-ui.button href="{{ route(($theme ?? 'dashboard') === 'public' ? 'public-dashboard.links.export' : 'dashboard.links.export', $link->id) }}" size="sm">Export CSV</x-ui.button>
     </div>
 
     <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 {{ ($link->user_tracking_enabled || $uniqueUsers > 0) ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }}">

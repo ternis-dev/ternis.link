@@ -1,0 +1,304 @@
+@import 'tailwindcss';
+
+/* ==========================================================
+ * my.href.nz — fresh minimal public dashboard theme.
+ *
+ * Everything below is scoped under `.pd` (rendered by
+ * x-layouts.public-dashboard), so dash.ternis.link and
+ * admin.ternis.link are untouched. Shared Livewire components
+ * (link table, forms, analytics) emit the same neutral markup
+ * on both dashboards — this file re-skins it here.
+ *
+ * Tailwind v4 puts utilities in cascade layers, so these
+ * unlayered author rules win without !important.
+ * ========================================================== */
+
+/* ---------- Page canvas ---------- */
+
+body:has(.pd-root) {
+    background-color: #faf7f1;
+}
+
+.dark body:has(.pd-root),
+body:has(.pd-root).dark {
+    background-color: #14111d;
+}
+
+.dark body:has(.pd-root) {
+    background-color: #14111d;
+}
+
+/* ---------- Hero band ---------- */
+
+.pd-hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #a855f7 100%);
+}
+
+.dark .pd-hero {
+    background: linear-gradient(135deg, #3730a3 0%, #5b21b6 55%, #7e22ce 100%);
+}
+
+/* ---------- Pills & nav ---------- */
+
+.pd-pill {
+    border-radius: 9999px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.pd-pill[aria-current='page'] {
+    background-color: #4f46e5;
+    color: #fff;
+}
+
+.dark .pd-pill[aria-current='page'] {
+    background-color: #818cf8;
+    color: #14111d;
+}
+
+/* ---------- Stat bands ---------- */
+
+.pd-stat {
+    border-radius: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background: #fff;
+    border: 1px solid #e9e1d3;
+    box-shadow: 0 1px 2px rgba(28, 25, 23, 0.05);
+}
+
+.dark .pd-stat {
+    background: #1e1a2b;
+    border-color: rgba(255, 255, 255, 0.09);
+    box-shadow: none;
+}
+
+.pd-stat .pd-stat-value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.pd-stat .pd-stat-label {
+    margin-top: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #78716c;
+}
+
+.dark .pd-stat .pd-stat-label {
+    color: #a8a29e;
+}
+
+.pd-stat-accent {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-color: transparent;
+    color: #fff;
+}
+
+.pd-stat-accent .pd-stat-label {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* ---------- Cards ---------- */
+
+.pd .pd-card,
+.pd section[class*='rounded-xl'][class*='bg-white'],
+.pd div[class*='overflow-x-auto'][class*='rounded-xl'] {
+    border-radius: 1.25rem;
+    border-color: #e9e1d3;
+    box-shadow: 0 1px 2px rgba(28, 25, 23, 0.05);
+}
+
+.dark .pd .pd-card,
+.dark .pd section[class*='rounded-xl'][class*='bg-white'],
+.dark .pd div[class*='overflow-x-auto'][class*='rounded-xl'] {
+    border-color: rgba(255, 255, 255, 0.09);
+    background-color: #1e1a2b;
+    box-shadow: none;
+}
+
+/* ---------- Buttons ---------- */
+
+.pd a[class*='bg-neutral-900'],
+.pd button[class*='bg-neutral-900'] {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+    border-radius: 9999px;
+}
+
+.pd a[class*='bg-neutral-900']:hover,
+.pd button[class*='bg-neutral-900']:hover {
+    background-color: #4338ca;
+    border-color: #4338ca;
+}
+
+.pd a[class*='border-neutral-300'],
+.pd button[class*='border-neutral-300'] {
+    border-color: #e0d6c2;
+    border-radius: 9999px;
+}
+
+.pd a[class*='border-neutral-300']:hover,
+.pd button[class*='border-neutral-300']:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+}
+
+.dark .pd a[class*='border-neutral-300']:hover,
+.dark .pd button[class*='border-neutral-300']:hover {
+    color: #a5b4fc;
+}
+
+.pd a[class*='border-transparent'],
+.pd button[class*='border-transparent'] {
+    border-radius: 9999px;
+}
+
+/* ---------- Forms ---------- */
+
+.pd input:not([type='checkbox']):not([type='submit']),
+.pd select,
+.pd textarea {
+    border-radius: 0.75rem;
+    border-color: #e0d6c2;
+}
+
+.pd input:not([type='checkbox']):not([type='submit']):focus,
+.pd select:focus,
+.pd textarea:focus {
+    border-color: #4f46e5;
+}
+
+.dark .pd input:not([type='checkbox']):not([type='submit']),
+.dark .pd select,
+.dark .pd textarea {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pd input[type='checkbox'] {
+    accent-color: #4f46e5;
+}
+
+.pd details {
+    border-radius: 1rem;
+    border-color: #e9e1d3;
+}
+
+.dark .pd details {
+    border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* ---------- Tables ---------- */
+
+.pd .ui-table thead th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #78716c;
+    background-color: #f5f0e6;
+    border-bottom: 1px solid #e9e1d3;
+}
+
+.dark .pd .ui-table thead th {
+    color: #a8a29e;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.pd .ui-table tbody td {
+    border-top: 1px solid #f1ebe0;
+}
+
+.dark .pd .ui-table tbody td {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.pd .ui-table tbody tr:hover td {
+    background-color: #f7f3ec;
+}
+
+.dark .pd .ui-table tbody tr:hover td {
+    background-color: rgba(129, 140, 248, 0.06);
+}
+
+.pd .ui-table tbody a {
+    color: #4f46e5;
+}
+
+.dark .pd .ui-table tbody a {
+    color: #a5b4fc;
+}
+
+.pd .ui-table code {
+    background-color: #eef2ff;
+    color: #4338ca;
+    border-radius: 0.5rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.dark .pd .ui-table code {
+    background-color: rgba(129, 140, 248, 0.15);
+    color: #c7d2fe;
+}
+
+/* Status dots: neutral ring becomes emerald signal. */
+.pd span[class*='rounded-full'][class*='bg-neutral-900'] {
+    background-color: #10b981;
+}
+
+/* ---------- Analytics bars ---------- */
+
+.pd div[role='progressbar'] > div {
+    background: linear-gradient(90deg, #4f46e5, #a855f7);
+}
+
+/* ---------- Pagination ---------- */
+
+.pd nav[aria-label='Pagination'] [aria-current='page'] {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+}
+
+.pd nav[aria-label='Pagination'] button:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+}
+
+/* ---------- Modal ---------- */
+
+.pd div[role='dialog'] {
+    border-radius: 1.25rem;
+    border-color: #e9e1d3;
+    box-shadow: 0 25px 50px -12px rgba(79, 70, 229, 0.25);
+}
+
+.dark .pd div[role='dialog'] {
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: #1e1a2b;
+}
+
+/* ---------- Domain chips ---------- */
+
+.pd-domain-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background-color: #eef2ff;
+    color: #4338ca;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
+}
+
+.dark .pd-domain-chip {
+    background-color: rgba(129, 140, 248, 0.15);
+    color: #c7d2fe;
+}

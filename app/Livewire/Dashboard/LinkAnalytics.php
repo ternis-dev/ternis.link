@@ -25,6 +25,13 @@ class LinkAnalytics extends Component
 
     public const CHART_TYPES = ['bar', 'line'];
 
+    /**
+     * Presentation theme: 'dashboard' (neutral) or 'public' (my.href.nz
+     * fresh-minimal theme + public-dashboard route names). Logic is
+     * identical; only route prefixing and styling hooks change.
+     */
+    public string $theme = 'dashboard';
+
     public function mount(): void
     {
         // A fresh link starts on the longest window its age allows
