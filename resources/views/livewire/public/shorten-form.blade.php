@@ -226,7 +226,7 @@
     @endif
 
     @if (! $minimal)
-    <div class="sk-tray" data-sk-tray data-t-copy="{{ $this->t('tray.copy') }}" hidden>
+    <div class="{{ $theme === 'yt' ? 'yt-tray' : 'sk-tray' }}" data-sk-tray data-t-copy="{{ $this->t('tray.copy') }}" hidden>
         <div class="sk-tray-head">
             <p class="sk-tray-title">{{ $this->t('tray.title') }}</p>
             <button type="button" class="sk-tray-toggle" data-sk-tray-toggle data-t-show="{{ $this->t('tray.show') }}" data-t-hide="{{ $this->t('tray.hide') }}" aria-expanded="true" aria-controls="sk-recent-links">

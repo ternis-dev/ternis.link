@@ -99,7 +99,7 @@
 
         {{-- ── Shorten form ────────────────────────────────── --}}
         <section class="yt-form-zone" id="shorten" aria-label="Shorten a link">
-            <livewire:public.shorten-form />
+            <livewire:public.shorten-form :theme="'yt'" />
         </section>
 
         {{-- ── Live stats ──────────────────────────────────── --}}
@@ -228,7 +228,7 @@
         {{-- ── Footer ──────────────────────────────────────── --}}
         <footer class="yt-foot">
             <p class="yt-foot-links">
-                href.yt &copy; {{ date('Y') }} sketched by <a href="https://ternis.dev">ternis.dev</a>
+                href.yt &copy; {{ date('Y') }} built by <a href="https://ternis.dev">ternis.dev</a>
                 <span class="yt-foot-sep" aria-hidden="true">·</span>
                 <a href="https://ternis.link/pages/legal/privacy">privacy</a>
                 <span class="yt-foot-sep" aria-hidden="true">·</span>
