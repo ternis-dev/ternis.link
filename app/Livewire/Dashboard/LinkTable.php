@@ -93,6 +93,12 @@ class LinkTable extends Component
         ];
     }
 
+    /**
+     * Domain filter (public theme only): '' = all public hosts,
+     * otherwise one of DomainUrls::publicDashboardHostnames().
+     */
+    public string $domainFilter = '';
+
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -108,10 +114,16 @@ class LinkTable extends Component
         $this->resetPage();
     }
 
+    public function updatingDomainFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function resetFilters(): void
     {
         $this->search = '';
         $this->tag = '';
+        $this->domainFilter = '';
         if ($this->lockedApiKeyId === null) {
             $this->apiKeyFilter = '';
         }
@@ -230,6 +242,9 @@ class LinkTable extends Component
                     $q->whereDoesntHave('domain')
                         ->orWhereHas('domain', fn ($qq) => $qq->whereNotIn('hostname', DomainUrls::publicDashboardHostnames()));
                 });
+            })
+            ->when($this->domainFilter !== '' && in_array($this->domainFilter, DomainUrls::publicDashboardHostnames(), true), function ($query) {
+                $query->whereHas('domain', fn ($q) => $q->where('hostname', $this->domainFilter));
             })
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {

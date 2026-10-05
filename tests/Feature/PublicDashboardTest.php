@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Dashboard\LinkImport;
+use App\Livewire\Dashboard\LinkTable;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -207,6 +208,30 @@ class PublicDashboardTest extends TestCase
             ->assertSee('href.nz', escape: false)
             ->assertSee('meinlink.at', escape: false)
             ->assertDontSee('Shorten your first link', escape: false);
+    }
+
+    public function test_link_table_filters_by_domain_on_public_theme(): void
+    {
+        $this->makeLink('href.nz', 'pub-df-1');
+        $this->makeLink('meinlink.at', 'pub-df-2');
+
+        // Unfiltered public table shows both.
+        Livewire::actingAs($this->user)
+            ->test(LinkTable::class, ['scope' => 'public', 'theme' => 'public'])
+            ->assertSee('pub-df-1')
+            ->assertSee('pub-df-2')
+            ->assertSee('All domains')
+            // Narrow to meinlink.at: href.nz row disappears.
+            ->set('domainFilter', 'meinlink.at')
+            ->assertSee('pub-df-2')
+            ->assertDontSee('pub-df-1');
+
+        // Unknown hostnames are ignored, never empty the table by injection.
+        Livewire::actingAs($this->user)
+            ->test(LinkTable::class, ['scope' => 'public', 'theme' => 'public'])
+            ->set('domainFilter', 'evil.test')
+            ->assertSee('pub-df-1')
+            ->assertSee('pub-df-2');
     }
 
     public function test_global_header_adapts_to_public_dashboard(): void

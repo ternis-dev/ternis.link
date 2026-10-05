@@ -19,6 +19,14 @@
                     @endforeach
                 </x-ui.select>
             @endif
+            @if (($theme ?? 'dashboard') === 'public')
+                <x-ui.select name="table-domain" wire:model.live="domainFilter" class="w-auto" aria-label="Filter by domain">
+                    <option value="">All domains</option>
+                    @foreach (\App\Support\DomainUrls::publicDashboardHostnames() as $hostname)
+                        <option value="{{ $hostname }}">{{ $hostname }}</option>
+                    @endforeach
+                </x-ui.select>
+            @endif
             @if (! isset($lockedApiKeyId) || $lockedApiKeyId === null)
                 @if (isset($apiKeys) && $apiKeys->isNotEmpty())
                     <x-ui.select name="table-api-key" wire:model.live="apiKeyFilter" class="w-auto" aria-label="Filter by API key">
@@ -147,7 +155,7 @@
             @empty
                 <tr>
                     <td colspan="{{ $columnCount }}">
-                        @if ($search !== '' || $tag !== '' || ($lockedApiKeyId === null && $apiKeyFilter !== ''))
+                        @if ($search !== '' || $tag !== '' || ($domainFilter ?? '') !== '' || ($lockedApiKeyId === null && $apiKeyFilter !== ''))
                             <x-ui.empty-state>
                                 No short links match your current search or filter.
                                 <div class="mt-2">
