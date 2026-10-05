@@ -111,18 +111,24 @@ $faqJsonLd = array_map(fn ($faq) => [
             <h2 class="text-center font-display text-2xl font-bold tracking-tight">How it works</h2>
             <ol class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <li class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                    <span aria-hidden="true" class="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">1</span>
-                    <p class="mt-3 font-medium">Sign in with Ternis Auth</p>
+                    <div class="flex items-center gap-3">
+                        <span aria-hidden="true" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">1</span>
+                        <p class="font-medium">Sign in with Ternis Auth</p>
+                    </div>
                     <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">One account across the family of services — no new password.</p>
                 </li>
                 <li class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                    <span aria-hidden="true" class="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">2</span>
-                    <p class="mt-3 font-medium">Claim your subdomain</p>
+                    <div class="flex items-center gap-3">
+                        <span aria-hidden="true" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">2</span>
+                        <p class="font-medium">Claim your subdomain</p>
+                    </div>
                     <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Pick your <code>{name}.ternis.link</code> on the Domains page — verified instantly.</p>
                 </li>
                 <li class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                    <span aria-hidden="true" class="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">3</span>
-                    <p class="mt-3 font-medium">Share &amp; measure</p>
+                    <div class="flex items-center gap-3">
+                        <span aria-hidden="true" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">3</span>
+                        <p class="font-medium">Share &amp; measure</p>
+                    </div>
                     <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Create branded links, tag them, and watch the analytics roll in.</p>
                 </li>
             </ol>
@@ -174,6 +180,12 @@ $faqJsonLd = array_map(fn ($faq) => [
 
         <p class="mt-10 text-sm text-neutral-500 dark:text-neutral-400">
             Just need one quick link with no account? <a href="https://href.nz" class="font-semibold text-neutral-900 underline underline-offset-2 dark:text-neutral-100">Use href.nz</a>
+        </p>
+        <p class="mt-3 max-w-2xl text-xs text-neutral-400 dark:text-neutral-500">
+            The wider Ternis network also covers German-language links on <a href="https://meinlink.at" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">meinlink.at</a>,
+            click tracking on <a href="https://clicked.at" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">clicked.at</a>,
+            and creator-focused links on <a href="https://href.yt" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">href.yt</a>;
+            <a href="https://href.re" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">href.re</a> supports other Ternis applications.
         </p>
     </div>
 </x-layouts.app>
