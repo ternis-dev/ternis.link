@@ -65,7 +65,14 @@ class PublicDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('public-dashboard.index', compact('stats', 'byDomain', 'expiringSoon'));
+        $topLinks = (clone $base)
+            ->with('domain')
+            ->where('links.click_count', '>', 0)
+            ->orderByDesc('links.click_count')
+            ->limit(5)
+            ->get();
+
+        return view('public-dashboard.index', compact('stats', 'byDomain', 'expiringSoon', 'topLinks'));
     }
 
     /**

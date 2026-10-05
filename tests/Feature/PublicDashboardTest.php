@@ -252,6 +252,27 @@ class PublicDashboardTest extends TestCase
             ->assertViewHas('expiringSoon', fn ($collection) => $collection->pluck('id')->all() === [$soon->id]);
     }
 
+    public function test_overview_lists_top_performers_by_clicks(): void
+    {
+        $hot = $this->makeLink('href.nz', 'pub-top-hot');
+        $hot->update(['click_count' => 42]);
+        $warm = $this->makeLink('meinlink.at', 'pub-top-warm');
+        $warm->update(['click_count' => 7]);
+        $this->makeLink('href.yt', 'pub-top-zero');
+
+        $response = $this->actingAs($this->user)->get('http://my.href.nz/');
+
+        $response->assertOk()
+            ->assertSee('Top performers', escape: false)
+            ->assertSee('pub-top-hot')
+            ->assertSee('pub-top-warm')
+            ->assertViewHas('topLinks', fn ($collection) => $collection->pluck('id')->all() === [$hot->id, $warm->id]);
+
+        // Order on the page follows clicks desc.
+        $content = $response->getContent();
+        $this->assertTrue(strpos($content, 'pub-top-hot') < strpos($content, 'pub-top-warm'));
+    }
+
     public function test_global_header_adapts_to_public_dashboard(): void
     {
         $this->actingAs($this->user)

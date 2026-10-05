@@ -77,4 +77,19 @@
             </ul>
         </div>
     @endif
+
+    @if (($topLinks ?? collect())->isNotEmpty())
+        <div class="pd-card mt-6 rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 class="mb-1 font-display text-lg font-bold tracking-tight">Top performers</h3>
+            <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Your most-clicked links right now.</p>
+            <ul class="space-y-2">
+                @foreach ($topLinks as $top)
+                    <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-neutral-50 px-4 py-2.5 text-sm dark:bg-white/5">
+                        <a href="{{ route('public-dashboard.links.show', $top->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($top->domain->hostname ?? 'href.nz').'/'.$top->slug }}</a>
+                        <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">{{ number_format($top->click_count) }} clicks</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 </x-layouts.public-dashboard>
