@@ -74,6 +74,21 @@
                 <p class="yt-login-hint">
                     Hands you over to <code>{{ config('domains.dashboard_host', 'dash.ternis.link') }}</code> — verified in seconds.
                 </p>
+
+                <div class="yt-login-perks">
+                    <div class="yt-login-perk">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Custom Branded Slugs
+                    </div>
+                    <div class="yt-login-perk">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Real-Time Click Heatmaps
+                    </div>
+                    <div class="yt-login-perk">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Unlimited Daily Link Quota
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -90,7 +105,7 @@
 
         <footer class="yt-foot">
             <p class="yt-foot-links">
-                href.yt &copy; {{ date('Y') }} sketched by <a href="https://ternis.dev">ternis.dev</a>
+                href.yt &copy; {{ date('Y') }} built by <a href="https://ternis.dev">ternis.dev</a>
                 <span class="yt-foot-sep" aria-hidden="true">·</span>
                 <a href="https://ternis.link/pages/legal/privacy">privacy</a>
                 <span class="yt-foot-sep" aria-hidden="true">·</span>

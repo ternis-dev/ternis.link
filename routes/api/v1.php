@@ -33,9 +33,9 @@ use Illuminate\Support\Facades\Route;
 // links.t-api.de/ (/v{latest}/), so it must never 404 while v1 exists.
 Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, 'throttle:api'])->get('/', [VersionController::class, 'show']);
 
-// Public: anonymous link creation (IP-throttled, no auth).
-Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', LogApiRequest::class, 'throttle:10,1'])->post('links/public', [PublicLinkController::class, 'store']);
-Route::middleware(['ensure.domain:api,public', 'ensure.api-version:1', LogApiRequest::class, 'throttle:30,1'])->group(function () {
+// Public: anonymous link creation (IP-throttled, no auth, API domains only).
+Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, 'throttle:10,1'])->post('links/public', [PublicLinkController::class, 'store']);
+Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, 'throttle:30,1'])->group(function () {
     Route::match(['get', 'post'], 'qr', PublicQrCodeController::class);
     Route::match(['get', 'post'], 'qr/{type}', [PublicQrCodeController::class, 'forType'])
         ->where('type', '[a-zA-Z0-9_-]+');

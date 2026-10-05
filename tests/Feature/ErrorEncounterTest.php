@@ -62,7 +62,7 @@ class ErrorEncounterTest extends TestCase
 
     public function test_validation_noise_is_not_logged(): void
     {
-        $this->postJson('http://href.nz/v1/links/public', [
+        $this->postJson('http://links.t-api.de/v1/links/public', [
             'destination_url' => 'https://example.com/ok',
             'slug' => 'custom-not-allowed',
         ])->assertStatus(422);

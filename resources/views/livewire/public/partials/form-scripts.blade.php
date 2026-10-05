@@ -150,7 +150,7 @@
 
             var qr = document.createElement('a');
             qr.className = 'sk-tray-qr';
-            qr.href = '/v1/qr?url=' + encodeURIComponent(item.short) + '&format=png';
+            qr.href = item.short + '/qr.png';
             qr.target = '_blank';
             qr.rel = 'noopener';
             qr.textContent = 'qr';

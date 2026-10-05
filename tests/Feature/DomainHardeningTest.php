@@ -69,13 +69,29 @@ class DomainHardeningTest extends TestCase
             ->assertStatus(200);
     }
 
-    public function test_public_api_allows_api_and_public_hosts(): void
+    public function test_v1_api_restricted_to_api_domains_only(): void
     {
+        // Allowed on API domain (links.t-api.de, *.t-api.de)
         $this->postJson('http://links.t-api.de/v1/links/public', ['destination_url' => 'https://example.com/hardening-api'])
             ->assertStatus(201);
 
+        $this->get('http://links.t-api.de/v1/qr?url=https%3A%2F%2Fexample.com')
+            ->assertStatus(200);
+
+        // 404 on public short-link hosts (href.nz, href.yt)
         $this->postJson('http://href.nz/v1/links/public', ['destination_url' => 'https://example.com/hardening-public'])
-            ->assertStatus(201);
+            ->assertStatus(404);
+
+        $this->get('http://href.yt/v1/qr?url=https%3A%2F%2Fexample.com')
+            ->assertStatus(404);
+
+        $this->postJson('http://href.yt/v1/links/public', ['destination_url' => 'https://example.com/hardening-yt'])
+            ->assertStatus(404);
+
+        // api.ternis.link 301 redirects to links.t-api.de
+        $this->get('http://api.ternis.link/v1/qr?url=https%3A%2F%2Fexample.com')
+            ->assertStatus(301)
+            ->assertRedirect('https://links.t-api.de/v1/qr?url=https%3A%2F%2Fexample.com');
     }
 
     public function test_public_api_404s_on_dashboard_host(): void

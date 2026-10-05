@@ -79,9 +79,19 @@ class QrCodeTest extends TestCase
             ->assertRedirect('http://dash.ternis.link/login');
     }
 
-    public function test_public_host_can_generate_qr_for_a_free_link(): void
+    public function test_public_host_cannot_call_v1_qr_directly_and_uses_pretty_qr(): void
     {
         $this->get('http://href.nz/v1/qr?url='.urlencode('https://href.nz/qrtest1').'&format=png')
+            ->assertStatus(404);
+
+        $this->get('http://href.yt/v1/qr?url='.urlencode('https://href.yt/qrtest1').'&format=png')
+            ->assertStatus(404);
+
+        $this->get('http://href.nz/qrtest1/qr')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'image/png');
+
+        $this->get('http://links.t-api.de/v1/qr?url='.urlencode('https://href.nz/qrtest1').'&format=png')
             ->assertStatus(200)
             ->assertHeader('Content-Type', 'image/png');
     }

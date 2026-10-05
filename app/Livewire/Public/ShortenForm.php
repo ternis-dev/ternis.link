@@ -7,6 +7,7 @@ use App\Exceptions\UnsafeUrlException;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
+use App\Services\QrCodeService;
 use App\Services\TurnstileService;
 use App\Support\IpHash;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -80,12 +81,57 @@ class ShortenForm extends Component
         ];
     }
 
+    /** Toggle inline QR code viewer on result card. */
+    public bool $showQr = true;
+
     public function mount(): void
     {
         $host = strtolower((string) request()->getHost());
-        $this->selectedDomain = $host === (string) config('domains.yt_host', 'href.yt')
-            ? 'href.yt'
-            : 'href.nz';
+        if ($host === (string) config('domains.yt_host', 'href.yt')) {
+            $this->selectedDomain = 'href.yt';
+            if ($this->theme === 'sketch') {
+                $this->theme = 'yt';
+            }
+        } else {
+            $this->selectedDomain = 'href.nz';
+        }
+    }
+
+    public function toggleQr(): void
+    {
+        $this->showQr = ! $this->showQr;
+    }
+
+    public function getQrSvgDataUriProperty(): ?string
+    {
+        if (! $this->shortUrl) {
+            return null;
+        }
+
+        return app(QrCodeService::class)->renderDataUri(
+            payload: $this->shortUrl,
+            format: 'svg',
+            size: 260,
+            margin: 2,
+            foregroundColor: '#000000',
+            backgroundColor: '#ffffff'
+        );
+    }
+
+    public function getQrPngDataUriProperty(): ?string
+    {
+        if (! $this->shortUrl) {
+            return null;
+        }
+
+        return app(QrCodeService::class)->renderDataUri(
+            payload: $this->shortUrl,
+            format: 'png',
+            size: 600,
+            margin: 4,
+            foregroundColor: '#000000',
+            backgroundColor: '#ffffff'
+        );
     }
 
     /**

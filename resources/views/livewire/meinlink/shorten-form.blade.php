@@ -220,7 +220,7 @@
                     <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white p-3 shadow-xs dark:border-zinc-700 dark:bg-white">
                         <template x-if="showQr">
                             <img
-                                :src="'{{ url('/v1/qr') }}?url=' + encodeURIComponent('{{ $shortUrl }}') + '&format=svg'"
+                                :src="'{{ $shortUrl }}/qr.svg'"
                                 alt="QR-Code für {{ $shortUrl }}"
                                 class="h-44 w-44 sm:h-48 sm:w-48"
                             />
@@ -229,7 +229,7 @@
                     <p class="mt-3 text-xs font-medium text-zinc-600 dark:text-zinc-400">Scannen mit der Smartphone-Kamera zum direkten Öffnen</p>
                     <div class="mt-3 flex items-center gap-2">
                         <a
-                            href="{{ url('/v1/qr?url='.urlencode($shortUrl).'&format=png') }}"
+                            href="{{ $shortUrl }}/qr.png"
                             download="qr-meinlink.png"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                         >
@@ -241,7 +241,7 @@
                             <span>PNG herunterladen</span>
                         </a>
                         <a
-                            href="{{ url('/v1/qr?url='.urlencode($shortUrl).'&format=svg') }}"
+                            href="{{ $shortUrl }}/qr.svg"
                             download="qr-meinlink.svg"
                             class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                         >
@@ -823,7 +823,7 @@
                             <div class="overflow-hidden rounded-xl border border-zinc-200 bg-white p-2.5 shadow-2xs dark:border-zinc-700 dark:bg-white">
                                 <template x-if="activeQrIndex === index">
                                     <img
-                                        :src="'{{ url('/v1/qr') }}?url=' + encodeURIComponent(item.short) + '&format=svg'"
+                                        :src="item.short + '/qr.svg'"
                                         :alt="'QR-Code für ' + item.short"
                                         class="h-36 w-36 sm:h-40 sm:w-40"
                                     />
@@ -832,7 +832,7 @@
                             <p class="mt-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">Scannen mit Smartphone zum direkten Öffnen</p>
                             <div class="mt-2 flex items-center gap-2">
                                 <a
-                                    :href="'{{ url('/v1/qr') }}?url=' + encodeURIComponent(item.short) + '&format=png'"
+                                    :href="item.short + '/qr.png'"
                                     download="qr-code.png"
                                     class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-semibold text-zinc-700 shadow-2xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                                 >
@@ -844,7 +844,7 @@
                                     <span>PNG</span>
                                 </a>
                                 <a
-                                    :href="'{{ url('/v1/qr') }}?url=' + encodeURIComponent(item.short) + '&format=svg'"
+                                    :href="item.short + '/qr.svg'"
                                     download="qr-code.svg"
                                     class="inline-flex items-center gap-1 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs font-semibold text-zinc-700 shadow-2xs transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                                 >

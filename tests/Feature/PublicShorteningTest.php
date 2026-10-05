@@ -57,7 +57,7 @@ class PublicShorteningTest extends TestCase
 
     public function test_guest_custom_slug_is_rejected(): void
     {
-        $response = $this->postJson('http://href.nz/v1/links/public', [
+        $response = $this->postJson('http://links.t-api.de/v1/links/public', [
             'destination_url' => 'https://example.com/custom',
             'slug' => 'guest-slug-1',
         ]);
@@ -69,7 +69,7 @@ class PublicShorteningTest extends TestCase
 
     public function test_guest_custom_slug_below_minimum_is_rejected(): void
     {
-        $response = $this->postJson('http://href.nz/v1/links/public', [
+        $response = $this->postJson('http://links.t-api.de/v1/links/public', [
             'destination_url' => 'https://example.com/short',
             'slug' => 'abc',
         ]);

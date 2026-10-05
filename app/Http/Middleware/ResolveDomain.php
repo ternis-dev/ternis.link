@@ -51,6 +51,16 @@ class ResolveDomain
             return redirect()->away('https://links.t-api.de'.$request->getRequestUri(), 301);
         }
 
+        // All *.t-api.de subdomains and apex t-api.de are API domains
+        if ($hostname === 't-api.de' || str_ends_with($hostname, '.t-api.de')) {
+            $request->attributes->set('domain_type', 'api');
+            $request->attributes->set('domain_hostname', $hostname);
+            $domain = Domain::where('hostname', $hostname)->first();
+            $request->attributes->set('domain_model', $domain);
+
+            return $next($request);
+        }
+
         // Redirect www.<apex> to the bare apex host (e.g.
         // www.href.nz → href.nz), preserving scheme and URI.
         if (str_starts_with($hostname, 'www.')) {

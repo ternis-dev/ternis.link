@@ -54,13 +54,52 @@
                     {{ $this->t('result.open') }}
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4.5h5.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 4.5 11 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M19.5 13.5V18a2 2 0 0 1-2 2h-11a2 2 0 0 1-2-2v-11a2 2 0 0 1 2-2H11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
                 </a>
-                <a href="{{ url('/v1/qr?url='.urlencode($shortUrl).'&format=png') }}" target="_blank" rel="noopener" class="sk-open">{{ $this->t('result.qr') }}</a>
+                <button
+                    type="button"
+                    wire:click="toggleQr"
+                    class="sk-open sk-qr-btn{{ $showQr ? ' is-active' : '' }}"
+                    aria-expanded="{{ $showQr ? 'true' : 'false' }}"
+                    title="{{ $showQr ? 'Hide QR' : 'Show QR' }}"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/>
+                    </svg>
+                    {{ $this->t('result.qr') }}
+                </button>
                 <button type="button" wire:click="resetForm" class="sk-again">
                     {{-- refresh --}}
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 1 2.2 5.3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4.5 17.5v-4h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     {{ $this->t('result.again') }}
                 </button>
             </div>
+            @if ($showQr && $this->qrSvgDataUri)
+                <div class="sk-qr-inline" role="region" aria-label="Inline QR Code">
+                    <div class="sk-qr-card">
+                        <div class="sk-qr-frame">
+                            <img src="{{ $this->qrSvgDataUri }}" alt="QR Code for {{ $shortUrl }}" class="sk-qr-image" width="160" height="160" loading="eager" />
+                        </div>
+                        <div class="sk-qr-details">
+                            <span class="sk-qr-badge">Inline Vector QR</span>
+                            <h4 class="sk-qr-title">Ready for Video &amp; Streams</h4>
+                            <p class="sk-qr-caption">Scannable on all phones. Perfect for video end-cards, merch tables, or stream overlays.</p>
+                            <div class="sk-qr-actions">
+                                <a href="{{ $this->qrPngDataUri }}" download="qr-{{ basename($shortUrl) }}.png" class="sk-qr-action">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    PNG (600px)
+                                </a>
+                                <a href="{{ $this->qrSvgDataUri }}" download="qr-{{ basename($shortUrl) }}.svg" class="sk-qr-action">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    SVG (Vector)
+                                </a>
+                                <a href="{{ $shortUrl }}/qr" target="_blank" rel="noopener" class="sk-qr-action sk-qr-action-ghost" title="Direct URL: {{ $shortUrl }}/qr">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                                    Permalink
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
             <p class="sk-copied" data-copy-feedback hidden>{{ $this->t('result.copied') }}</p>
         </div>
     @else

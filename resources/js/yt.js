@@ -1,6 +1,7 @@
 /* ==========================================================
  * href.yt — custom JS
- * Preloader, scroll-counter animation for stats.
+ * Preloader, scroll-counter, creator presets, simulator tabs,
+ * keyboard shortcuts, and interactive creator utilities.
  * ========================================================== */
 
 (function () {
@@ -134,6 +135,82 @@
             /* Fallback: run immediately */
             counters.forEach(animateCounter);
         }
+    }());
+
+    /* ── Creator URL Presets ────────────────────────────────
+     * Fills the destination input and dispatches input event
+     * so Livewire updates the model reactively.              */
+    (function initPresets() {
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-preset-url]');
+            if (!btn) return;
+
+            var url = btn.getAttribute('data-preset-url');
+            if (!url) return;
+
+            var input = document.getElementById('public_destination_url');
+            if (!input) return;
+
+            input.value = url;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.focus();
+
+            // Smooth scroll to form if not in view
+            var formZone = document.getElementById('shorten') || input;
+            if (formZone && typeof formZone.scrollIntoView === 'function') {
+                formZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    }());
+
+    /* ── Live Preview Simulator Tabs ────────────────────────
+     * Switches between Description, Pinned Comment, and Outro */
+    (function initSimulator() {
+        document.addEventListener('click', function (e) {
+            var tab = e.target.closest('[data-sim-tab]');
+            if (!tab) return;
+
+            var tabs = document.querySelectorAll('.yt-sim-tab');
+            var targetId = tab.getAttribute('aria-controls');
+            var views = document.querySelectorAll('.yt-sim-view');
+
+            tabs.forEach(function (t) {
+                var isActive = (t === tab);
+                t.classList.toggle('is-active', isActive);
+                t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            views.forEach(function (v) {
+                if (v.id === targetId) {
+                    v.classList.add('is-active');
+                    v.hidden = false;
+                } else {
+                    v.classList.remove('is-active');
+                    v.hidden = true;
+                }
+            });
+        });
+    }());
+
+    /* ── Keyboard Shortcuts ─────────────────────────────────
+     * Press '/' to focus link input from anywhere.           */
+    (function initKeyShortcuts() {
+        document.addEventListener('keydown', function (e) {
+            // Ignore if active element is an input, textarea, or contenteditable
+            var active = document.activeElement;
+            var isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+
+            if (e.key === '/' && !isInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                var input = document.getElementById('public_destination_url');
+                if (input) {
+                    e.preventDefault();
+                    input.focus();
+                    input.select();
+                }
+            } else if (e.key === 'Escape' && isInput) {
+                active.blur();
+            }
+        });
     }());
 
 }());

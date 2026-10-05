@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>make a short link — href.yt</title>
-    <meta name="description" content="Create a short href.yt link. Guests are welcome; members get custom slugs and click stats.">
+    <meta name="description" content="Create a short href.yt link with instant inline vector QR code. Guests are welcome; members get custom slugs and click stats.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="canonical" href="https://href.yt/new">
     <meta name="theme-color" content="#0f0f0f">
@@ -45,10 +45,14 @@
 
         <main class="yt-new-main">
             <div class="yt-new-intro">
+                <div class="yt-badge" aria-hidden="true">
+                    <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><polygon points="3,2 14,8 3,14"/></svg>
+                    Focused Creator Shortener
+                </div>
                 <h1 class="yt-new-title">
                     Make something <span style="color:var(--yt-red)">short.</span>
                 </h1>
-                <p class="yt-new-sub">Drop in a destination URL and get a clean href.yt link back.</p>
+                <p class="yt-new-sub">Drop in a destination URL and get a clean href.yt link with inline QR code back.</p>
             </div>
 
             @guest
@@ -62,8 +66,18 @@
                 </p>
             @endguest
 
+            {{-- Quick Presets --}}
+            <div class="yt-presets-bar" style="margin-bottom: 1.25rem;">
+                <span class="yt-presets-label">Quick fill:</span>
+                <div class="yt-presets-list">
+                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtube.com/watch?v=dQw4w9WgXcQ">📺 YouTube</button>
+                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtube.com/@creator?sub_confirmation=1">🔔 Subscribe</button>
+                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtu.be/dQw4w9WgXcQ?t=1m30s">⏱ Timestamp</button>
+                </div>
+            </div>
+
             <section id="new-link" aria-label="Create a short link">
-                <livewire:public.shorten-form :compact="true" :minimal="true" />
+                <livewire:public.shorten-form :compact="true" :minimal="true" :theme="'yt'" />
             </section>
 
             <p class="yt-new-back">
@@ -78,7 +92,8 @@
             <p class="yt-foot-links">
                 href.yt ·
                 <a href="https://ternis.link/pages/legal/privacy">privacy</a> ·
-                <a href="https://ternis.link/pages/legal/terms">terms</a>
+                <a href="https://ternis.link/pages/legal/terms">terms</a> ·
+                <a href="{{ \App\Support\DomainUrls::impressum('href.yt', 'en') }}">imprint</a>
             </p>
             <p class="yt-foot-disclaimer">
                 href.yt is an independent link shortening service and is not affiliated with, endorsed by, authorized by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc., or any of their subsidiaries or affiliates. "YouTube" is a registered trademark of Google LLC.
