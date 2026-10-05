@@ -22,7 +22,7 @@ class AdminAllLinksTest extends TestCase
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
         $admin = User::factory()->admin()->create();
         $owner = User::factory()->create();
-        $domain = Domain::where('hostname', 'href.nz')->first();
+        $domain = Domain::where('hostname', 'clicked.at')->first();
 
         $link = Link::create([
             'slug' => 'other-users-link',

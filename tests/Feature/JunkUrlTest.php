@@ -180,12 +180,13 @@ class JunkUrlTest extends TestCase
     public function test_dashboard_tables_use_custom_pagination(): void
     {
         $user = User::factory()->create();
+        $dashDomain = Domain::where('hostname', 'clicked.at')->firstOrFail();
 
         for ($i = 0; $i < 25; $i++) {
             Link::create([
                 'slug' => 'page-test-'.$i,
                 'destination_url' => 'https://example.com/page-'.$i,
-                'domain_id' => $this->publicDomain->id,
+                'domain_id' => $dashDomain->id,
                 'user_id' => $user->id,
                 'is_active' => true,
             ]);

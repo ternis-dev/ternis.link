@@ -179,9 +179,10 @@ class ApiKeyLinksTest extends TestCase
 
     public function test_link_pages_keep_per_key_back_link(): void
     {
+        $dashDomain = Domain::where('hostname', 'clicked.at')->firstOrFail();
         $link = Link::create([
             'slug' => 'backlink1', 'destination_url' => 'https://example.com',
-            'domain_id' => $this->domain->id, 'user_id' => $this->user->id,
+            'domain_id' => $dashDomain->id, 'user_id' => $this->user->id,
             'api_key_id' => $this->apiKey->id, 'is_active' => true,
         ]);
 

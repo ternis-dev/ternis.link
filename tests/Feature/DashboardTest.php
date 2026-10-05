@@ -29,7 +29,7 @@ class DashboardTest extends TestCase
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
 
         $this->user = User::factory()->create();
-        $this->domain = Domain::where('hostname', 'href.nz')->first();
+        $this->domain = Domain::where('hostname', 'clicked.at')->first();
     }
 
     public function test_guest_cannot_access_dashboard(): void

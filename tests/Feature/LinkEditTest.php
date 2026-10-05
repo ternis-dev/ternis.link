@@ -31,7 +31,7 @@ class LinkEditTest extends TestCase
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
 
         $this->user = User::factory()->create();
-        $this->domain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $this->domain = Domain::where('hostname', 'clicked.at')->firstOrFail();
         $this->link = Link::create([
             'slug' => 'edit-me-1',
             'destination_url' => 'https://example.com/original',
@@ -62,7 +62,7 @@ class LinkEditTest extends TestCase
             ->assertStatus(200)
             ->assertSee('Edit Short Link', escape: false)
             ->assertSee('id="destination_url"', escape: false)
-            ->assertSee('href.nz/edit-me-1', escape: false);
+            ->assertSee('clicked.at/edit-me-1', escape: false);
     }
 
     public function test_edit_page_404s_for_strangers(): void

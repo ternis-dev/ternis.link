@@ -7,6 +7,6 @@
     />
 
     <div class="max-w-2xl">
-        <livewire:dashboard.link-form />
+        <livewire:dashboard.link-form scope="personal" />
     </div>
 </x-layouts.dashboard>

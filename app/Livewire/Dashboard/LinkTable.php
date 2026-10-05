@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\Link;
 use App\Services\LinkService;
 use App\Support\Activity;
+use App\Support\DomainUrls;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -40,6 +41,14 @@ class LinkTable extends Component
     public string $sortBy = 'created_at';
 
     public string $sortDir = 'desc';
+
+    /**
+     * Dashboard scope: null = legacy global (all own links),
+     * 'public' = only my.href.nz hostnames (href.nz, meinlink.at,
+     * href.yt, qr.href.nz), 'personal' = everything else (dash side of
+     * the split: clicked.at, ternis.link, href.re, partner, custom).
+     */
+    public ?string $scope = null;
 
     /**
      * Selected link ids for bulk actions (page-scoped, verified
@@ -102,13 +111,17 @@ class LinkTable extends Component
         $this->resetPage();
     }
 
-    public function mount(?string $apiKeyId = null): void
+    public function mount(?string $apiKeyId = null, ?string $scope = null): void
     {
         // Embedded on the per-key page: pin the scope and mirror it
         // into the filter so the query below needs a single branch.
         if ($apiKeyId !== null && $apiKeyId !== '') {
             $this->lockedApiKeyId = $apiKeyId;
             $this->apiKeyFilter = $apiKeyId;
+        }
+
+        if (in_array($scope, ['public', 'personal'], true)) {
+            $this->scope = $scope;
         }
     }
 
@@ -202,6 +215,15 @@ class LinkTable extends Component
 
         $links = $base
             ->with(['domain', 'user', 'apiKey:id,name,key_prefix'])
+            ->when($this->scope === 'public', function ($query) {
+                $query->whereHas('domain', fn ($q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames()));
+            })
+            ->when($this->scope === 'personal', function ($query) {
+                $query->where(function ($q) {
+                    $q->whereDoesntHave('domain')
+                        ->orWhereHas('domain', fn ($qq) => $qq->whereNotIn('hostname', DomainUrls::publicDashboardHostnames()));
+                });
+            })
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('slug', 'like', "%{$this->search}%")

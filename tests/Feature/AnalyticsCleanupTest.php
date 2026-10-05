@@ -27,12 +27,12 @@ class AnalyticsCleanupTest extends TestCase
         $this->domain = Domain::where('hostname', 'href.nz')->first();
     }
 
-    private function trackableLink(?User $user = null): Link
+    private function trackableLink(?User $user = null, ?Domain $domain = null): Link
     {
         return Link::create([
             'slug' => 'geo-link-1',
             'destination_url' => 'https://example.com/geo',
-            'domain_id' => $this->domain->id,
+            'domain_id' => ($domain ?? $this->domain)->id,
             'user_id' => $user?->id,
             'is_active' => true,
         ]);
@@ -117,7 +117,8 @@ class AnalyticsCleanupTest extends TestCase
     public function test_dashboard_hides_direct_url_clicks_from_non_admins(): void
     {
         $user = User::factory()->create();
-        $link = $this->trackableLink($user);
+        $dashDomain = Domain::where('hostname', 'clicked.at')->firstOrFail();
+        $link = $this->trackableLink($user, $dashDomain);
 
         Click::create(['link_id' => $link->id, 'is_direct_url' => false]);
         Click::create(['link_id' => $link->id, 'is_direct_url' => false]);
@@ -132,7 +133,8 @@ class AnalyticsCleanupTest extends TestCase
     public function test_dashboard_hides_direct_url_clicks_from_everyone(): void
     {
         $admin = User::factory()->admin()->create();
-        $link = $this->trackableLink($admin);
+        $dashDomain = Domain::where('hostname', 'clicked.at')->firstOrFail();
+        $link = $this->trackableLink($admin, $dashDomain);
 
         Click::create(['link_id' => $link->id, 'is_direct_url' => false]);
         Click::create(['link_id' => $link->id, 'is_direct_url' => true]);

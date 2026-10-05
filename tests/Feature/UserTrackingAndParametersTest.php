@@ -260,16 +260,17 @@ class UserTrackingAndParametersTest extends TestCase
 
     public function test_csv_export_includes_query_params_tags_and_user_identifier(): void
     {
+        $dashDomain = Domain::where('hostname', 'clicked.at')->firstOrFail();
         $link = Link::create([
             'slug' => 'csvexport1',
             'destination_url' => 'https://example.com/target',
-            'domain_id' => $this->domain->id,
+            'domain_id' => $dashDomain->id,
             'user_id' => $this->user->id,
             'is_active' => true,
             'user_tracking_enabled' => true,
         ]);
 
-        $this->get('http://href.nz/csvexport1?uid=usr_csv&tags=sale,lead&code=save10');
+        $this->get('http://clicked.at/csvexport1?uid=usr_csv&tags=sale,lead&code=save10');
 
         $this->actingAs($this->user);
         $response = $this->get("http://dash.ternis.link/links/{$link->id}/export");

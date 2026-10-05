@@ -46,6 +46,8 @@ class QrCodeTest extends TestCase
 
     public function test_detail_page_shows_qr_code(): void
     {
+        $this->link->update(['domain_id' => Domain::where('hostname', 'clicked.at')->firstOrFail()->id]);
+
         $this->actingAs($this->user)
             ->get("http://dash.ternis.link/links/{$this->link->id}")
             ->assertStatus(200)
@@ -56,6 +58,8 @@ class QrCodeTest extends TestCase
 
     public function test_png_download_returns_image(): void
     {
+        $this->link->update(['domain_id' => Domain::where('hostname', 'clicked.at')->firstOrFail()->id]);
+
         $response = $this->actingAs($this->user)
             ->get("http://dash.ternis.link/links/{$this->link->id}/qr");
 

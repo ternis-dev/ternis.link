@@ -30,7 +30,7 @@
             </a>
             <nav aria-label="Account">
                 @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="yt-login">
+                    <a href="{{ \App\Support\DomainUrls::publicDashboard('/') }}" class="yt-login">
                         <span>open dashboard</span>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </a>
@@ -62,7 +62,7 @@
                 </p>
             @else
                 <p class="yt-new-notice">
-                    Signed in — links you make here land in your <a href="{{ \App\Support\DomainUrls::dashboard('/') }}">dashboard</a> with stats.
+                    Signed in — links you make here land in your <a href="{{ \App\Support\DomainUrls::publicDashboard('/') }}">dashboard</a> with stats.
                 </p>
             @endguest
 

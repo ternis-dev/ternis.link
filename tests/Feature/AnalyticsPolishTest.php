@@ -30,7 +30,7 @@ class AnalyticsPolishTest extends TestCase
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
 
         $this->user = User::factory()->create();
-        $this->domain = Domain::where('hostname', 'href.nz')->first();
+        $this->domain = Domain::where('hostname', 'clicked.at')->first();
         $this->link = Link::create([
             'slug' => 'analyticspolish',
             'destination_url' => 'https://ternis.dev',

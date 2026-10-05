@@ -32,7 +32,7 @@ class TernisAuthController extends Controller
     public function showLogin(Request $request)
     {
         if (auth()->check()) {
-            return redirect()->route('dashboard');
+            return $this->homeRedirect($request);
         }
 
         if ($request->attributes->get('domain_type') === 'public') {
@@ -78,7 +78,7 @@ class TernisAuthController extends Controller
     public function silent(Request $request)
     {
         if (auth()->check()) {
-            return redirect()->route('dashboard');
+            return $this->homeRedirect($request);
         }
 
         $state = Str::random(40);
@@ -164,7 +164,7 @@ class TernisAuthController extends Controller
 
         Activity::record(ActivityLog::AUTH_LOGIN, $user, $user);
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended($this->homeUrl($request));
     }
 
     /**
@@ -185,6 +185,24 @@ class TernisAuthController extends Controller
         ]);
 
         report($e);
+    }
+
+    /**
+     * Home URL for the current host: my.href.nz guests land back on the
+     * public dashboard, everyone else on dash.ternis.link.
+     */
+    private function homeUrl(Request $request): string
+    {
+        if ($request->attributes->get('domain_type') === 'public-dashboard') {
+            return route('public-dashboard');
+        }
+
+        return route('dashboard');
+    }
+
+    private function homeRedirect(Request $request)
+    {
+        return redirect()->away($this->homeUrl($request));
     }
 
     /**
@@ -255,7 +273,7 @@ class TernisAuthController extends Controller
 
         Activity::record(ActivityLog::AUTH_LOGIN, $user, $user, ['via' => 'demo']);
 
-        return redirect()->route('dashboard');
+        return $this->homeRedirect($request);
     }
 
     /**

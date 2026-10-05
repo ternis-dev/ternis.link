@@ -7,5 +7,5 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <livewire:dashboard.link-table />
+    <livewire:dashboard.link-table scope="personal" />
 </x-layouts.dashboard>

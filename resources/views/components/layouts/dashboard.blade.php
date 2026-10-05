@@ -100,7 +100,7 @@ $nav[0]['href'] = $homeHref;
 
     @unless (request()->routeIs('dashboard.links.create', 'dashboard.new'))
         <x-ui.modal name="link-creator" title="New Short Link">
-            <livewire:dashboard.link-form :modal="true" />
+            <livewire:dashboard.link-form :modal="true" scope="personal" />
         </x-ui.modal>
 
         <div

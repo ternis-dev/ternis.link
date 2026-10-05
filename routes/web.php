@@ -12,6 +12,7 @@ use App\Http\Controllers\ExtensionController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
+use App\Http\Controllers\PublicDashboardController;
 use App\Http\Controllers\QrController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\SiteFilesController;
@@ -87,7 +88,7 @@ $redirectToDashboard = function () {
 $serveOrRedirect = function (string $method) use ($redirectToDashboard) {
     $type = request()->attributes->get('domain_type');
 
-    if (in_array($type, ['dashboard', 'admin'], true)) {
+    if (in_array($type, ['dashboard', 'admin', 'public-dashboard'], true)) {
         return app(TernisAuthController::class)->{$method}(request());
     }
 
@@ -114,7 +115,7 @@ Route::middleware('throttle:10,1')->group(function () use ($serveOrRedirect) {
 Route::post('/logout', function () use ($redirectToDashboard) {
     $type = request()->attributes->get('domain_type');
 
-    if (in_array($type, ['dashboard', 'admin'], true)) {
+    if (in_array($type, ['dashboard', 'admin', 'public-dashboard'], true)) {
         return app(TernisAuthController::class)->logout(request());
     }
 
@@ -129,7 +130,7 @@ if (app()->environment('local', 'testing')) {
     Route::get('/auth/demo', function () use ($redirectToDashboard) {
         $type = request()->attributes->get('domain_type');
 
-        if (in_array($type, ['dashboard', 'admin'], true)) {
+        if (in_array($type, ['dashboard', 'admin', 'public-dashboard'], true)) {
             return app(TernisAuthController::class)->demoLogin(request());
         }
 
@@ -140,6 +141,37 @@ if (app()->environment('local', 'testing')) {
         abort(404);
     })->name('auth.demo');
 }
+
+/*
+|----------------------------------------------------------------------
+| Public dashboard (my.href.nz ONLY) — authenticated home for href.nz,
+| meinlink.at and href.yt links. Strict hostname partition with
+| dash.ternis.link (clicked.at, ternis.link, href.re, partner and
+| custom domains stay there). Account-level sections (API keys,
+| domains, bio, notifications, activity, settings) stay single-homed
+| on dash; this group serves overview + links only. my.href.yt 301s
+| to my.href.nz in ResolveDomain so a single pinned host suffices.
+|
+| Registered BEFORE the dash group: every route is pinned to the
+| my.href.nz host, so dash/localhost requests skip them and fall
+| through to the dash versions below. (Host-blind routes below would
+| otherwise shadow these — Laravel matches the FIRST route per URI.)
+|----------------------------------------------------------------------
+*/
+Route::domain((string) config('domains.public_dashboard_host', 'my.href.nz'))
+    ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
+    ->group(function () {
+        Route::get('/', [PublicDashboardController::class, 'index'])->name('public-dashboard');
+        Route::get('/new', [PublicDashboardController::class, 'createLink'])->name('public-dashboard.new');
+        Route::get('/links', [PublicDashboardController::class, 'links'])->name('public-dashboard.links');
+        Route::get('/links/create', [PublicDashboardController::class, 'createLink'])->name('public-dashboard.links.create');
+        Route::get('/links/export', [PublicDashboardController::class, 'exportLinks'])->name('public-dashboard.links.export-all');
+        Route::get('/links/{link}', [PublicDashboardController::class, 'showLink'])->name('public-dashboard.links.show');
+        Route::get('/links/{link}/edit', [PublicDashboardController::class, 'editLink'])->name('public-dashboard.links.edit');
+        Route::get('/links/{link}/export', [PublicDashboardController::class, 'exportClicks'])->name('public-dashboard.links.export');
+        Route::get('/links/{link}/qr', [PublicDashboardController::class, 'qrCode'])->name('public-dashboard.links.qr');
+        Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name('public-dashboard.settings.export-download');
+    });
 
 /*
 |----------------------------------------------------------------------
@@ -181,6 +213,10 @@ Route::get('/dashboard', function () {
         return redirect('/', 301);
     }
 
+    if ($type === 'public-dashboard') {
+        return redirect('/', 301);
+    }
+
     if ($host === 'ternis.link' || $type === 'ternis') {
         $target = request()->getScheme().'://'.$dashHost;
 
@@ -198,6 +234,10 @@ Route::get('/dashboard/{any}', function (string $any) {
     $qs = $query ? '?'.$query : '';
 
     if ($type === 'dashboard') {
+        return redirect('/'.$any.$qs, 301);
+    }
+
+    if ($type === 'public-dashboard') {
         return redirect('/'.$any.$qs, 301);
     }
 

@@ -112,7 +112,7 @@ class DashboardSettingsTest extends TestCase
 
     public function test_analytics_renders_chart_js_canvases_with_data(): void
     {
-        $domain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $domain = Domain::where('hostname', 'clicked.at')->firstOrFail();
         $link = Link::create([
             'slug' => 'chartjs123',
             'destination_url' => 'https://example.com',
@@ -139,7 +139,7 @@ class DashboardSettingsTest extends TestCase
 
     public function test_analytics_browsers_chart_keeps_html_legend(): void
     {
-        $domain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $domain = Domain::where('hostname', 'clicked.at')->firstOrFail();
         $link = Link::create([
             'slug' => 'chartlgnd1',
             'destination_url' => 'https://example.com',

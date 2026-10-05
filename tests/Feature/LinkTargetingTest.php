@@ -33,7 +33,7 @@ class LinkTargetingTest extends TestCase
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
 
         $this->user = User::factory()->create();
-        $this->domain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $this->domain = Domain::where('hostname', 'clicked.at')->firstOrFail();
 
         $this->rawApiKey = 'tl_'.Str::random(48);
         ApiKey::create([

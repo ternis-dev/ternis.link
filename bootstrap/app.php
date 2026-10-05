@@ -36,6 +36,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->prepend(ResolveDomain::class);
 
+        // Guests hitting an auth route bounce to the SAME host's /login:
+        // route('login') resolves against APP_URL (href.nz) and would
+        // funnel my.href.nz guests through the wrong host's SSO flow
+        // (session + PKCE live where the flow starts).
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->getSchemeAndHttpHost().'/login');
+
         $middleware->alias([
             'resolve.domain' => ResolveDomain::class,
             'enforce.domain' => EnforceDomainAccess::class,

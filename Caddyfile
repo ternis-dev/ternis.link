@@ -82,6 +82,14 @@ dash.ternis.link, admin.ternis.link {
     encode gzip
 }
 
+# Public dashboard (href.nz + meinlink.at + href.yt links only)
+my.href.nz, my.href.yt {
+    root * /var/www/ternis-link/public
+    php_fastcgi unix//run/php/php-fpm.sock
+    file_server
+    encode gzip
+}
+
 # Developer documentation
 docs.ternis.link {
     root * /var/www/ternis-link/public

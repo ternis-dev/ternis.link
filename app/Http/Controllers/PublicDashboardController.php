@@ -1,0 +1,234 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Click;
+use App\Models\QrGeneration;
+use App\Models\User;
+use App\Support\DomainUrls;
+use App\Support\LinkQrCode;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+/**
+ * Public links dashboard (my.href.nz ONLY) — the authenticated home for
+ * href.nz + meinlink.at + href.yt (+ qr.href.nz) links.
+ *
+ * Strict hostname partition with dash.ternis.link:
+ * - here: only links on PublicDashboard hostnames
+ * - dash: everything else (clicked.at, ternis.link, href.re, partner,
+ *   custom domains) — enforced by scoping every query below.
+ *
+ * Account-level sections (API keys, domains, bio, notifications,
+ * activity, settings) stay single-homed on dash.ternis.link; this
+ * controller serves overview + links CRUD + per-link analytics only.
+ */
+class PublicDashboardController extends Controller
+{
+    /**
+     * Overview stats for the signed-in user's public shortener links.
+     */
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        $base = $this->baseQuery($user);
+        $clicks = Click::whereIn('link_id', (clone $base)->select('links.id'))
+            ->where('is_direct_url', false);
+
+        $stats = [
+            'total_links' => (clone $base)->count(),
+            'total_clicks' => (clone $clicks)->count(),
+            'links_this_month' => (clone $base)
+                ->where('links.created_at', '>=', now()->startOfMonth())
+                ->count(),
+            'clicks_today' => (clone $clicks)
+                ->where('clicks.created_at', '>=', now()->startOfDay())
+                ->count(),
+        ];
+
+        return view('public-dashboard.index', compact('stats'));
+    }
+
+    /**
+     * Links management page (Livewire: LinkTable scoped to public hosts).
+     */
+    public function links()
+    {
+        return view('public-dashboard.links.index');
+    }
+
+    /**
+     * Create link page (Livewire: LinkForm scoped to public hosts).
+     */
+    public function createLink()
+    {
+        return view('public-dashboard.links.create');
+    }
+
+    /**
+     * Link detail + analytics page (Livewire: LinkAnalytics).
+     *
+     * Strictly per-user AND scoped to public hostnames: ternis/business
+     * links 404 here (manage them on dash.ternis.link).
+     */
+    public function showLink(Request $request, string $link)
+    {
+        $link = $this->baseQuery(auth()->user())
+            ->with(['domain', 'apiKey:id,name,key_prefix'])
+            ->findOrFail($link);
+
+        $qrSvg = LinkQrCode::svgDataUri($link);
+
+        return view('public-dashboard.links.show', compact('link', 'qrSvg'));
+    }
+
+    /**
+     * Link edit page (Livewire: LinkEditForm). Same scope as showLink.
+     */
+    public function editLink(Request $request, string $link)
+    {
+        $link = $this->baseQuery(auth()->user())
+            ->with(['domain', 'apiKey:id,name,key_prefix'])
+            ->findOrFail($link);
+
+        return view('public-dashboard.links.edit', compact('link'));
+    }
+
+    /**
+     * Export the user's public shortener catalog as CSV.
+     */
+    public function exportLinks(Request $request)
+    {
+        $links = $this->baseQuery(auth()->user())
+            ->with(['domain', 'apiKey:id,name'])
+            ->orderByDesc('links.created_at')
+            ->cursor();
+
+        $filename = 'public-links-export-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($links) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, [
+                'slug',
+                'short_url',
+                'destination_url',
+                'domain',
+                'api_key',
+                'click_count',
+                'status',
+                'tags',
+                'description',
+                'created_at',
+                'expires_at',
+            ]);
+
+            foreach ($links as $link) {
+                fputcsv($out, [
+                    $link->slug,
+                    $link->short_url,
+                    $link->destination_url,
+                    $link->domain?->hostname ?? config('domains.public_host', 'href.nz'),
+                    $link->apiKey?->name ?? 'Dashboard',
+                    $link->click_count,
+                    $link->is_active && ! $link->isExpired() ? 'active' : ($link->isExpired() ? 'expired' : 'disabled'),
+                    $link->tags ? implode(', ', $link->tags) : '',
+                    $link->description ?? '',
+                    $link->created_at?->toIso8601String(),
+                    $link->expires_at?->toIso8601String() ?? '',
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * Export a link's clicks as CSV (scoped like showLink).
+     */
+    public function exportClicks(string $link)
+    {
+        $link = $this->baseQuery(auth()->user())->with('domain')->findOrFail($link);
+
+        $clicks = $link->clicks()
+            ->where('is_direct_url', false)
+            ->orderBy('created_at')
+            ->cursor();
+
+        $filename = 'link-'.$link->slug.'-clicks-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($clicks) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['timestamp', 'referrer', 'user_agent', 'country_code', 'city', 'ip_hash', 'user_identifier', 'tags', 'query_params']);
+
+            foreach ($clicks as $click) {
+                fputcsv($out, [
+                    $click->created_at?->toIso8601String(),
+                    $click->referrer,
+                    $click->user_agent,
+                    $click->country_code,
+                    $click->city,
+                    $click->ip_hash,
+                    $click->user_identifier,
+                    $click->tags ? implode(', ', $click->tags) : null,
+                    $click->query_params ? json_encode($click->query_params) : null,
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * Download the link's QR code as PNG (scoped like showLink).
+     */
+    public function qrCode(string $link)
+    {
+        $link = $this->baseQuery(auth()->user())->with('domain')->findOrFail($link);
+
+        $filename = 'qr-'.$link->slug.'.png';
+        QrGeneration::create(['link_id' => $link->id, 'format' => 'png']);
+
+        return response(LinkQrCode::png($link), 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
+    }
+
+    /**
+     * Download an own privacy export ZIP (owner only, before expiry).
+     * Served on both dashboards so public-only users are not stranded.
+     */
+    public function downloadExport(string $export)
+    {
+        $user = auth()->user();
+        $export = $user->privacyExports()->findOrFail($export);
+
+        if ($export->status !== 'done' || ! $export->path
+            || ! Storage::disk('local')->exists($export->path)) {
+            abort(404, 'Export not ready.');
+        }
+
+        if ($export->expires_at && $export->expires_at->isPast()) {
+            abort(410, 'Export expired.');
+        }
+
+        return Storage::disk('local')->download($export->path, 'ternis-export.zip');
+    }
+
+    /**
+     * Base query: own non-removed links on public-dashboard hostnames.
+     *
+     * @param  User  $user
+     * @return HasMany|Builder
+     */
+    private function baseQuery($user): object
+    {
+        return $user->links()->notRemoved()->whereHas(
+            'domain',
+            fn (Builder $q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames())
+        );
+    }
+}

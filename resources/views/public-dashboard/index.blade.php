@@ -1,7 +1,7 @@
-<x-layouts.dashboard title="Dashboard — ternis.link">
+<x-layouts.public-dashboard title="Dashboard — my.href.nz">
     <x-ui.page-header title="Dashboard">
         <x-slot:subtitle>
-            Welcome back, {{ auth()->user()->name }} (Plan: <strong>{{ auth()->user()->plan?->name ?? 'free' }}</strong>)
+            Your href.nz, meinlink.at &amp; href.yt links — welcome back, {{ auth()->user()->name }}.
         </x-slot:subtitle>
         <x-slot:actions>
             <x-ui.button variant="primary" x-data @click="$dispatch('open-link-creator')">+ Create Link</x-ui.button>
@@ -17,8 +17,8 @@
 
     <x-ui.card title="Recent Links">
         <div class="mb-4 flex justify-end">
-            <x-ui.button href="{{ route('dashboard.links') }}" size="sm">View All</x-ui.button>
+            <x-ui.button href="{{ route('public-dashboard.links') }}" size="sm">View All</x-ui.button>
         </div>
-        <livewire:dashboard.link-table scope="personal" />
+        <livewire:dashboard.link-table scope="public" />
     </x-ui.card>
-</x-layouts.dashboard>
+</x-layouts.public-dashboard>

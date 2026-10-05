@@ -71,6 +71,14 @@ class ResolveDomain
             }
         }
 
+        // Public dashboard alias: my.href.yt is not canonical — 301 to
+        // my.href.nz so sessions/cookies stay on a single host.
+        $publicDash = (string) config('domains.public_dashboard_host', 'my.href.nz');
+        $publicDashAlias = (string) config('domains.public_dashboard_alias', 'my.href.yt');
+        if ($publicDashAlias !== '' && $hostname === $publicDashAlias) {
+            return redirect()->away($request->getScheme().'://'.$publicDash.$request->getRequestUri(), 301);
+        }
+
         // 1. Direct match in config
         if (isset($domainMap[$hostname])) {
             $request->attributes->set('domain_type', $domainMap[$hostname]);

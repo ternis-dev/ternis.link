@@ -6,7 +6,10 @@ use App\Models\ActivityLog;
 use App\Models\Click;
 use App\Models\Link;
 use App\Models\QrGeneration;
+use App\Support\DomainUrls;
 use App\Support\LinkQrCode;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,19 +20,23 @@ class DashboardController extends Controller
      *
      * System-wide stats live on the admin host (AdminController); this
      * endpoint is strictly per-user, including for admins.
+     *
+     * Since the my.href.nz split, href.nz / meinlink.at / href.yt /
+     * qr.href.nz links live on the public dashboard — every query here
+     * excludes those hostnames (see personalQuery()).
      */
     public function index(Request $request)
     {
         $user = $request->user();
 
-        $clicks = Click::whereIn('link_id', $user->links()->notRemoved()->select('links.id'))
+        $clicks = Click::whereIn('link_id', $this->personalQuery($user)->select('links.id'))
             ->where('is_direct_url', false);
 
         $stats = [
-            'total_links' => $user->links()->notRemoved()->count(),
+            'total_links' => $this->personalQuery($user)->count(),
             'total_clicks' => (clone $clicks)->count(),
-            'links_this_month' => $user->links()->notRemoved()
-                ->where('created_at', '>=', now()->startOfMonth())
+            'links_this_month' => $this->personalQuery($user)
+                ->where('links.created_at', '>=', now()->startOfMonth())
                 ->count(),
             'clicks_today' => (clone $clicks)
                 ->where('created_at', '>=', now()->startOfDay())
@@ -74,7 +81,7 @@ class DashboardController extends Controller
      */
     public function showLink(Request $request, string $link)
     {
-        $link = auth()->user()->links()->notRemoved()->with(['domain', 'apiKey:id,name,key_prefix'])->findOrFail($link);
+        $link = $this->personalQuery(auth()->user())->with(['domain', 'apiKey:id,name,key_prefix'])->findOrFail($link);
 
         $qrSvg = LinkQrCode::svgDataUri($link);
         ['backHref' => $backHref, 'backLabel' => $backLabel, 'fromApiKey' => $fromApiKey] = $this->linkBackContext($request);
@@ -89,7 +96,7 @@ class DashboardController extends Controller
      */
     public function editLink(Request $request, string $link)
     {
-        $link = auth()->user()->links()->notRemoved()->with(['domain', 'apiKey:id,name,key_prefix'])->findOrFail($link);
+        $link = $this->personalQuery(auth()->user())->with(['domain', 'apiKey:id,name,key_prefix'])->findOrFail($link);
 
         ['backHref' => $backHref, 'backLabel' => $backLabel, 'fromApiKey' => $fromApiKey] = $this->linkBackContext($request);
 
@@ -105,7 +112,7 @@ class DashboardController extends Controller
     public function exportLinks(Request $request)
     {
         $user = auth()->user();
-        $query = $user->links()->notRemoved()->with(['domain', 'apiKey:id,name']);
+        $query = $this->personalQuery($user)->with(['domain', 'apiKey:id,name']);
 
         if ($request->filled('tag')) {
             $tag = strtolower(trim((string) $request->query('tag')));
@@ -170,7 +177,7 @@ class DashboardController extends Controller
     public function exportClicks(string $link)
     {
         $user = auth()->user();
-        $link = $user->links()->notRemoved()->with('domain')->findOrFail($link);
+        $link = $this->personalQuery($user)->with('domain')->findOrFail($link);
 
         $clicks = $link->clicks()
             ->where('is_direct_url', false)
@@ -207,7 +214,7 @@ class DashboardController extends Controller
      */
     public function qrCode(string $link)
     {
-        $link = auth()->user()->links()->notRemoved()->with('domain')->findOrFail($link);
+        $link = $this->personalQuery(auth()->user())->with('domain')->findOrFail($link);
 
         $filename = 'qr-'.$link->slug.'.png';
         QrGeneration::create(['link_id' => $link->id, 'format' => 'png']);
@@ -369,6 +376,24 @@ class DashboardController extends Controller
             ->paginate(25);
 
         return view('dashboard.activity.index', compact('entries'));
+    }
+
+    /**
+     * Personal link scope: own non-removed links EXCLUDING the public
+     * dashboard hostnames (href.nz, meinlink.at, href.yt, qr.href.nz —
+     * those live on my.href.nz). Links without a domain row stay here.
+     *
+     * @return HasMany|Builder
+     */
+    private function personalQuery($user): object
+    {
+        return $user->links()->notRemoved()->where(function (Builder $q) {
+            $q->whereDoesntHave('domain')
+                ->orWhereHas(
+                    'domain',
+                    fn (Builder $qq) => $qq->whereNotIn('hostname', DomainUrls::publicDashboardHostnames())
+                );
+        });
     }
 
     /**

@@ -20,6 +20,8 @@ return [
         'href.yt' => 'public',
         // Dedicated QR code generator utility
         'qr.href.nz' => 'public',
+        // Public dashboard (my.href.nz canonical; my.href.yt aliases via redirect)
+        'my.href.nz' => 'public-dashboard',
         // Official QR API
         'qr.t-api.de' => 'api',
         // Business (ternis official)
@@ -90,6 +92,10 @@ return [
 
     'dashboard_host' => env('DOMAIN_DASHBOARD', 'dash.ternis.link'),
 
+    'public_dashboard_host' => env('DOMAIN_PUBLIC_DASHBOARD', 'my.href.nz'),
+
+    'public_dashboard_alias' => env('DOMAIN_PUBLIC_DASHBOARD_ALIAS', 'my.href.yt'),
+
     'admin_host' => env('DOMAIN_ADMIN', 'admin.ternis.link'),
 
     'docs_host' => env('DOMAIN_DOCS', 'docs.ternis.link'),
@@ -120,6 +126,7 @@ return [
         'ternis' => true,   // family/partner auth required
         'business' => true,   // business auth required
         'public' => false,  // anyone can access
+        'public-dashboard' => true, // SSO login required (public links dashboard)
         'api' => false,  // per-route auth
         'dashboard' => true,   // SSO login required
         'admin' => true,   // admin role required

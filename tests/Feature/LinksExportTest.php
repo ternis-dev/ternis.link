@@ -27,7 +27,7 @@ class LinksExportTest extends TestCase
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
 
         $this->user = User::factory()->create();
-        $this->domain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $this->domain = Domain::where('hostname', 'clicked.at')->firstOrFail();
     }
 
     public function test_guest_cannot_export_links_catalog(): void
@@ -59,7 +59,7 @@ class LinksExportTest extends TestCase
         $this->assertStringContainsString('slug,short_url,destination_url,domain,api_key,click_count,status,tags,description,created_at,expires_at', $content);
         $this->assertStringContainsString('exportable-slug-1', $content);
         $this->assertStringContainsString('https://example.com/one', $content);
-        $this->assertStringContainsString('href.nz', $content);
+        $this->assertStringContainsString('clicked.at', $content);
         $this->assertStringContainsString('Dashboard', $content);
         $this->assertStringContainsString('42', $content);
         $this->assertStringContainsString('"marketing, promo"', $content);

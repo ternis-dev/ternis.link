@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Services\LinkService;
 use App\Support\Activity;
+use App\Support\DomainUrls;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -86,6 +87,12 @@ class LinkForm extends Component
     public ?string $createdSlug = null;
 
     public ?string $createdDomain = null;
+
+    /**
+     * Dashboard scope, mirrors LinkTable: 'public' limits the domain
+     * picker to my.href.nz hostnames, 'personal' excludes them.
+     */
+    public ?string $scope = null;
 
     protected function rules(): array
     {
@@ -169,8 +176,12 @@ class LinkForm extends Component
         return [max(self::MIN_GENERATED_LENGTH, $planMin), $max];
     }
 
-    public function mount(): void
+    public function mount(?string $scope = null): void
     {
+        if (in_array($scope, ['public', 'personal'], true)) {
+            $this->scope = $scope;
+        }
+
         $firstDomain = $this->getAvailableDomains()->first();
         if ($firstDomain) {
             $this->domain_id = $firstDomain->id;
@@ -200,6 +211,21 @@ class LinkForm extends Component
         }
 
         $domain = Domain::findOrFail($this->domain_id);
+
+        // Enforce the dashboard split server-side: my.href.nz may only
+        // create public-shortener links, dash.ternis.link everything else.
+        $publicHosts = DomainUrls::publicDashboardHostnames();
+        if ($this->scope === 'public' && ! in_array($domain->hostname, $publicHosts, true)) {
+            $this->addError('domain_id', 'This dashboard only creates href.nz / meinlink.at / href.yt links.');
+
+            return;
+        }
+        if ($this->scope === 'personal' && in_array($domain->hostname, $publicHosts, true)) {
+            $this->addError('domain_id', 'Public shortener links are created on my.href.nz.');
+
+            return;
+        }
+
         $customSlug = trim((string) $this->slug) !== '' ? trim((string) $this->slug) : null;
 
         // A custom slug always wins; the picker only sizes auto-generated ones.
@@ -296,8 +322,11 @@ class LinkForm extends Component
     private function getAvailableDomains()
     {
         $user = auth()->user();
+        $publicHosts = DomainUrls::publicDashboardHostnames();
 
         return Domain::where('is_active', true)
+            ->when($this->scope === 'public', fn ($q) => $q->whereIn('hostname', $publicHosts))
+            ->when($this->scope === 'personal', fn ($q) => $q->whereNotIn('hostname', $publicHosts))
             ->where(function ($query) use ($user) {
                 $query->whereNull('domains.user_id');
 

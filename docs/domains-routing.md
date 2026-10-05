@@ -10,7 +10,8 @@ Every host in the network does exactly one job. Pick the right one and the app b
 | `meinlink.at` | Shortening links as a guest, in German — same rules, own design. | Optional |
 | `href.re` | Official business links. No guest form. | Required |
 | `ternis.link` | Family, relatives, partners. Public network stats live here too. | Required |
-| `dash.ternis.link` | Your dashboard: links, stats, domains, API keys. | Required |
+| `dash.ternis.link` | Your dashboard: `clicked.at`, `ternis.link`, `href.re`, partner and custom-domain links, plus stats, domains, API keys. | Required |
+| `my.href.nz` | Public-links dashboard: your `href.nz`, `meinlink.at` and `href.yt` links only. Account pages (API keys, domains, settings) stay on `dash.ternis.link`. | Required |
 | `admin.ternis.link` | Admin console: moderation, users, system overview. | Admins only |
 | `docs.ternis.link` | These guides. | Never |
 | `links.t-api.de` | The public API (`/v1`). Keys or guest endpoints only. | Per endpoint |

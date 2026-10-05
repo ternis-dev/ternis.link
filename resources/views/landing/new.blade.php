@@ -23,7 +23,7 @@
             <a href="/" class="sk-brand" aria-label="href.nz home">href<span>.nz</span></a>
             <nav aria-label="Account">
                 @auth
-                    <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" class="sk-login">open dashboard <span aria-hidden="true">→</span></a>
+                    <a href="{{ \App\Support\DomainUrls::publicDashboard('/') }}" class="sk-login">open dashboard <span aria-hidden="true">→</span></a>
                 @else
                     <a href="{{ url('/login') }}" class="sk-login">members log in <span aria-hidden="true">→</span></a>
                 @endauth
@@ -45,7 +45,7 @@
                 </p>
             @else
                 <p class="sk-new-login" role="note">
-                    Signed in — links you make here land in your <a href="{{ \App\Support\DomainUrls::dashboard('/') }}">dashboard</a> with stats.
+                    Signed in — links you make here land in your <a href="{{ \App\Support\DomainUrls::publicDashboard('/') }}">dashboard</a> with stats.
                 </p>
             @endguest
 
