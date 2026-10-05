@@ -23,6 +23,24 @@
     $('qrImg').removeAttribute('src');
   }
 
+  /* Point the Manage button at the dashboard that owns the link:
+   * public shorteners → my.href.nz, everything else → dash. Guest
+   * links belong to no account, so the button stays hidden for them. */
+  const PUBLIC_DASH_HOSTS = ['href.nz', 'meinlink.at', 'href.yt', 'qr.href.nz'];
+
+  function pointManageButton(link, mode) {
+    const btn = $('openDash');
+    const hostname = link?.domain?.hostname || '';
+    if (mode === 'guest' || !link?.id || !hostname) {
+      btn.hidden = true;
+      return;
+    }
+    const base = PUBLIC_DASH_HOSTS.includes(hostname) ? 'https://my.href.nz' : 'https://dash.ternis.link';
+    btn.hidden = false;
+    btn.href = `${base}/links/${link.id}`;
+    btn.textContent = 'Manage →';
+  }
+
   async function renderHistory() {
     const { history = [] } = await chrome.storage.local.get({ history: [] });
     const ul = $('history');
@@ -101,8 +119,9 @@
         if (domainSel && (await api().getSettings()).apiKey) {
           await api().setSettings({ defaultDomainId: domainSel });
         }
-        const { shortUrl, mode } = await api().shorten(destination, { slug });
+        const { link, shortUrl, mode } = await api().shorten(destination, { slug });
         showResult(shortUrl);
+        pointManageButton(link, mode);
         await api().pushHistory({ shortUrl, destination, mode });
         await renderHistory();
         await navigator.clipboard.writeText(shortUrl).catch(() => {});
