@@ -35,6 +35,10 @@ class TernisAuthController extends Controller
             return $this->homeRedirect($request);
         }
 
+        if ($request->attributes->get('domain_type') === 'public-dashboard') {
+            return view('auth.login-public-dashboard');
+        }
+
         if ($request->attributes->get('domain_type') === 'public') {
             if (PublicHost::isMeinlink($request->getHost())) {
                 return view('auth.login-meinlink');

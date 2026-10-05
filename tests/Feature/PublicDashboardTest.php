@@ -100,6 +100,31 @@ class PublicDashboardTest extends TestCase
             ->assertOk();
     }
 
+    public function test_login_page_uses_public_theme_and_local_sso(): void
+    {
+        $this->get('http://my.href.nz/login')
+            ->assertOk()
+            ->assertSee('Log in to your links', escape: false)
+            ->assertSee('/auth/redirect', escape: false);
+    }
+
+    public function test_dash_links_page_points_at_public_dashboard(): void
+    {
+        $this->makeLink('href.nz', 'pub-banner-1');
+
+        $this->actingAs($this->user)
+            ->get('http://dash.ternis.link/links')
+            ->assertOk()
+            ->assertSee('my.href.nz', escape: false);
+
+        $other = User::factory()->create();
+
+        $this->actingAs($other)
+            ->get('http://dash.ternis.link/links')
+            ->assertOk()
+            ->assertDontSee('my.href.nz', escape: false);
+    }
+
     public function test_alias_host_redirects_to_canonical(): void
     {
         $this->get('http://my.href.yt/links')

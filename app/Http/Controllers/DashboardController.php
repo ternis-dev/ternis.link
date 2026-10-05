@@ -43,7 +43,12 @@ class DashboardController extends Controller
                 ->count(),
         ];
 
-        return view('dashboard.index', compact('stats'));
+        $publicCount = $user->links()->notRemoved()->whereHas(
+            'domain',
+            fn (Builder $q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames())
+        )->count();
+
+        return view('dashboard.index', compact('stats', 'publicCount'));
     }
 
     /**
@@ -51,7 +56,12 @@ class DashboardController extends Controller
      */
     public function links()
     {
-        return view('dashboard.links.index');
+        $publicCount = auth()->user()->links()->notRemoved()->whereHas(
+            'domain',
+            fn (Builder $q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames())
+        )->count();
+
+        return view('dashboard.links.index', compact('publicCount'));
     }
 
     /**
