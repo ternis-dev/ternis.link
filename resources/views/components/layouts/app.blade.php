@@ -51,7 +51,12 @@
                     <img src="{{ auth()->user()->avatarUrl(34) }}" alt="{{ auth()->user()->name }}" class="h-8 w-8 rounded-full border border-neutral-300 object-cover dark:border-neutral-700">
                     <span class="hidden text-sm font-medium md:inline">{{ auth()->user()->name }}</span>
                     <x-ui.badge>{{ auth()->user()->role->value ?? auth()->user()->role }}</x-ui.badge>
-                    <x-ui.button href="{{ in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true) ? url('/dashboard') : \App\Support\DomainUrls::dashboard('/') }}" size="sm">Dashboard</x-ui.button>
+                    @if (request()->routeIs('public-dashboard*'))
+                        <x-ui.button href="{{ route('public-dashboard') }}" size="sm" variant="primary">My links</x-ui.button>
+                        <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/') }}" size="sm" variant="ghost">Account</x-ui.button>
+                    @else
+                        <x-ui.button href="{{ in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true) ? url('/dashboard') : \App\Support\DomainUrls::dashboard('/') }}" size="sm">Dashboard</x-ui.button>
+                    @endif
                     @if (auth()->user()->isAdmin())
                         <x-ui.button href="{{ \App\Support\DomainUrls::admin('/') }}" size="sm" variant="ghost">Admin</x-ui.button>
                     @endif

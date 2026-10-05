@@ -209,6 +209,20 @@ class PublicDashboardTest extends TestCase
             ->assertDontSee('Shorten your first link', escape: false);
     }
 
+    public function test_global_header_adapts_to_public_dashboard(): void
+    {
+        $this->actingAs($this->user)
+            ->get('http://my.href.nz/')
+            ->assertOk()
+            ->assertSee('My links', escape: false)
+            ->assertSee('Account', escape: false);
+
+        $this->actingAs($this->user)
+            ->get('http://dash.ternis.link/links')
+            ->assertOk()
+            ->assertSee('>Dashboard<', escape: false);
+    }
+
     public function test_qr_download_scoped_to_public_links(): void
     {
         $public = $this->makeLink('href.nz', 'pub-qr-1');

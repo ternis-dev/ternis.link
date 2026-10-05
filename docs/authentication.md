@@ -10,7 +10,7 @@ Your login session lives on `dash.ternis.link`. That's why signing in from `href
 
 ## Roles
 
-Your role decides which corners of the network you can use: regular members get the dashboard, family and partners get the `ternis.link` areas, and admins additionally get the admin console and business areas. If you open something above your role, you'll get a plain "no access" page pointing you back.
+Your role decides which corners of the network you can use: regular members get the dashboards — `my.href.nz` for `href.nz`, `meinlink.at` and `href.yt` links, `dash.ternis.link` for everything else (account, API keys, domains, settings live there) — family and partners additionally get the `ternis.link` areas, and admins get the admin console and business areas. If you open something above your role, you'll get a plain "no access" page pointing you back.
 
 ## API keys
 
