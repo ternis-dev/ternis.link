@@ -62,4 +62,19 @@
             </ul>
         </div>
     @endif
+
+    @if (($expiringSoon ?? collect())->isNotEmpty())
+        <div class="pd-card mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-400/20 dark:bg-amber-400/10">
+            <h3 class="mb-1 font-display text-lg font-bold tracking-tight">Expiring soon</h3>
+            <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">These links switch off within 7 days. Extend or deactivate them early.</p>
+            <ul class="space-y-2">
+                @foreach ($expiringSoon as $expiring)
+                    <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white/70 px-4 py-2.5 text-sm dark:bg-black/20">
+                        <a href="{{ route('public-dashboard.links.edit', $expiring->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($expiring->domain->hostname ?? 'href.nz').'/'.$expiring->slug }}</a>
+                        <span class="text-xs font-semibold text-amber-700 dark:text-amber-300">expires {{ $expiring->expires_at->diffForHumans() }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 </x-layouts.public-dashboard>

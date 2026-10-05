@@ -56,7 +56,16 @@ class PublicDashboardController extends Controller
             ->orderByDesc('link_count')
             ->get();
 
-        return view('public-dashboard.index', compact('stats', 'byDomain'));
+        $expiringSoon = (clone $base)
+            ->with('domain')
+            ->where('links.is_active', true)
+            ->where('links.expires_at', '>', now())
+            ->where('links.expires_at', '<=', now()->addDays(7))
+            ->orderBy('links.expires_at')
+            ->limit(5)
+            ->get();
+
+        return view('public-dashboard.index', compact('stats', 'byDomain', 'expiringSoon'));
     }
 
     /**

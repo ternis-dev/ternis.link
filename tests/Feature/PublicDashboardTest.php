@@ -236,6 +236,22 @@ class PublicDashboardTest extends TestCase
             ->assertSee('pub-df-2');
     }
 
+    public function test_overview_flags_links_expiring_within_seven_days(): void
+    {
+        $soon = $this->makeLink('href.nz', 'pub-exp-soon');
+        $soon->update(['expires_at' => now()->addDays(3)]);
+
+        $later = $this->makeLink('href.nz', 'pub-exp-later');
+        $later->update(['expires_at' => now()->addDays(30)]);
+
+        $this->actingAs($this->user)
+            ->get('http://my.href.nz/')
+            ->assertOk()
+            ->assertSee('Expiring soon', escape: false)
+            ->assertSee('pub-exp-soon')
+            ->assertViewHas('expiringSoon', fn ($collection) => $collection->pluck('id')->all() === [$soon->id]);
+    }
+
     public function test_global_header_adapts_to_public_dashboard(): void
     {
         $this->actingAs($this->user)
