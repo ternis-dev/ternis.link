@@ -53,12 +53,12 @@ class TernisAuthService
     /**
      * Build the authorization URL to redirect the user to Ternis Auth.
      */
-    public function getAuthorizationUrl(string $state, string $codeChallenge): string
+    public function getAuthorizationUrl(string $state, string $codeChallenge, ?string $redirectUri = null): string
     {
         $params = http_build_query([
             'response_type' => 'code',
             'client_id' => $this->clientId,
-            'redirect_uri' => $this->redirectUri,
+            'redirect_uri' => $redirectUri ?? $this->redirectUri,
             'scope' => $this->scopes,
             'state' => $state,
             'code_challenge' => $codeChallenge,
@@ -72,12 +72,12 @@ class TernisAuthService
      * Build a silent SSO check URL (prompt=none).
      * Returns auth code immediately if session exists, or ?error=login_required.
      */
-    public function getSilentAuthUrl(string $state, string $codeChallenge): string
+    public function getSilentAuthUrl(string $state, string $codeChallenge, ?string $redirectUri = null): string
     {
         $params = http_build_query([
             'response_type' => 'code',
             'client_id' => $this->clientId,
-            'redirect_uri' => $this->redirectUri,
+            'redirect_uri' => $redirectUri ?? $this->redirectUri,
             'scope' => $this->scopes,
             'state' => $state,
             'code_challenge' => $codeChallenge,
@@ -93,13 +93,13 @@ class TernisAuthService
      *
      * @return array{access_token: string, refresh_token: ?string, expires_in: int}
      */
-    public function exchangeCode(string $code, string $codeVerifier): array
+    public function exchangeCode(string $code, string $codeVerifier, ?string $redirectUri = null): array
     {
         $response = Http::asForm()->post("{$this->baseUrl}/oauth/token", [
             'grant_type' => 'authorization_code',
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
-            'redirect_uri' => $this->redirectUri,
+            'redirect_uri' => $redirectUri ?? $this->redirectUri,
             'code' => $code,
             'code_verifier' => $codeVerifier,
         ]);

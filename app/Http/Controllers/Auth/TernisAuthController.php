@@ -69,7 +69,14 @@ class TernisAuthController extends Controller
         $request->session()->put('oauth_state', $state);
         $request->session()->put('oauth_code_verifier', $codeVerifier);
 
-        $url = $this->authService->getAuthorizationUrl($state, $codeChallenge);
+        // Each dashboard host completes SSO on itself: the provider
+        // returns the code to this host's callback, where the session
+        // holding state + verifier lives. Falls back to the configured
+        // URI for unknown hosts (local dev, tests).
+        $redirectUri = $this->callbackUrl($request);
+        $request->session()->put('oauth_redirect_uri', $redirectUri);
+
+        $url = $this->authService->getAuthorizationUrl($state, $codeChallenge, $redirectUri);
 
         return redirect()->away($url);
     }
@@ -92,7 +99,10 @@ class TernisAuthController extends Controller
         $request->session()->put('oauth_state', $state);
         $request->session()->put('oauth_code_verifier', $codeVerifier);
 
-        return redirect()->away($this->authService->getSilentAuthUrl($state, $codeChallenge));
+        $redirectUri = $this->callbackUrl($request);
+        $request->session()->put('oauth_redirect_uri', $redirectUri);
+
+        return redirect()->away($this->authService->getSilentAuthUrl($state, $codeChallenge, $redirectUri));
     }
 
     /**
@@ -139,6 +149,14 @@ class TernisAuthController extends Controller
             abort(403, 'Missing OAuth code verifier in session.');
         }
 
+        // The redirect URI the flow started with (per-host since the
+        // dashboard split); authorize + token calls must send the same
+        // value. Falls back to the configured URI for flows predating it.
+        $redirectUri = $request->session()->pull(
+            'oauth_redirect_uri',
+            (string) config('services.ternis_auth.redirect_uri', '')
+        );
+
         // A stale, reused, or hand-pasted code (e.g. reloading a callback
         // URL) makes the provider reject the exchange — send the user back
         // to login with a friendly message instead of a 500. Each step is
@@ -149,6 +167,7 @@ class TernisAuthController extends Controller
             $tokenData = $this->authService->exchangeCode(
                 $request->query('code'),
                 $codeVerifier,
+                $redirectUri !== '' ? $redirectUri : null,
             );
         } catch (\Throwable $e) {
             $this->logSsoFailure('token-exchange', $e);
@@ -210,7 +229,8 @@ class TernisAuthController extends Controller
 
     /**
      * Home URL for the current host: my.href.nz guests land back on the
-     * public dashboard, everyone else on dash.ternis.link.
+     * public dashboard, admin guests on the admin console, everyone
+     * else on dash.ternis.link.
      */
     private function homeUrl(Request $request): string
     {
@@ -218,7 +238,32 @@ class TernisAuthController extends Controller
             return route('public-dashboard');
         }
 
+        if ($request->attributes->get('domain_type') === 'admin') {
+            return route('admin.dashboard');
+        }
+
         return route('dashboard');
+    }
+
+    /**
+     * Callback URL for the SSO flow starting on this host. Only the
+     * hosts that serve their own login get a same-host callback;
+     * anything else falls back to the configured URI.
+     */
+    private function callbackUrl(Request $request): string
+    {
+        $host = $request->getHost();
+        $known = [
+            (string) config('domains.dashboard_host', 'dash.ternis.link'),
+            (string) config('domains.admin_host', 'admin.ternis.link'),
+            (string) config('domains.public_dashboard_host', 'my.href.nz'),
+        ];
+
+        if (in_array($host, $known, true)) {
+            return $request->getSchemeAndHttpHost().'/auth/callback';
+        }
+
+        return (string) config('services.ternis_auth.redirect_uri', '');
     }
 
     private function homeRedirect(Request $request)

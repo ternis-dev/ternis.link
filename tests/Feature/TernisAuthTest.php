@@ -54,6 +54,21 @@ class TernisAuthTest extends TestCase
         $this->assertNotNull(session('oauth_code_verifier'));
     }
 
+    public function test_auth_redirect_uses_same_host_callback(): void
+    {
+        foreach ([
+            'http://dash.ternis.link' => 'http%3A%2F%2Fdash.ternis.link%2Fauth%2Fcallback',
+            'http://admin.ternis.link' => 'http%3A%2F%2Fadmin.ternis.link%2Fauth%2Fcallback',
+            'http://my.href.nz' => 'http%3A%2F%2Fmy.href.nz%2Fauth%2Fcallback',
+        ] as $origin => $encoded) {
+            $response = $this->get("{$origin}/auth/redirect");
+
+            $response->assertStatus(302);
+            $this->assertStringContainsString("redirect_uri={$encoded}", $response->headers->get('Location'));
+            $this->assertSame("{$origin}/auth/callback", session('oauth_redirect_uri'));
+        }
+    }
+
     public function test_auth_callback_provisions_user_and_logs_in(): void
     {
         Http::fake([
