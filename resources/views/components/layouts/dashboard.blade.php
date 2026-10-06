@@ -51,6 +51,7 @@ $nav[0]['href'] = $homeHref;
                 type="button"
                 x-data
                 @click="$dispatch('open-link-creator')"
+                title="Keyboard shortcut: C"
                 class="ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
             >
                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -68,6 +69,7 @@ $nav[0]['href'] = $homeHref;
                         type="button"
                         x-data
                         @click="$dispatch('open-link-creator')"
+                        title="Keyboard shortcut: C"
                         class="mb-2 hidden lg:flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-neutral-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100"
                     >
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>

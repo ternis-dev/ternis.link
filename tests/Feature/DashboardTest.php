@@ -162,4 +162,26 @@ class DashboardTest extends TestCase
             ->call('sort', 'slug')
             ->assertSee('aria-sort="descending"', escape: false);
     }
+
+    public function test_overview_shows_getting_started_until_first_link(): void
+    {
+        $this->actingAs($this->user)
+            ->get('http://dash.ternis.link')
+            ->assertOk()
+            ->assertSee('Get started in three steps', escape: false)
+            ->assertSee('title="Keyboard shortcut: C"', escape: false);
+
+        Link::create([
+            'slug' => 'first-ever',
+            'destination_url' => 'https://example.com/first',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->user)
+            ->get('http://dash.ternis.link')
+            ->assertOk()
+            ->assertDontSee('Get started in three steps', escape: false);
+    }
 }
