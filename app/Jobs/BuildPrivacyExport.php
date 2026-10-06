@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\ActivityLog;
+use App\Models\ErrorEncounter;
 use App\Models\PrivacyExport;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -69,7 +71,7 @@ class BuildPrivacyExport implements ShouldQueue
             // activity.csv (own actions + admin actions on own stuff; no IPs/user-agents)
             $activityHandle = fopen(Storage::disk('local')->path("{$dir}/activity.csv"), 'w');
             fputcsv($activityHandle, ['occurred_at', 'action', 'actor', 'subject_type', 'subject_label', 'metadata']);
-            \App\Models\ActivityLog::visibleTo($user->id)->orderBy('created_at')->chunk(1000, function ($entries) use ($activityHandle, $user) {
+            ActivityLog::visibleTo($user->id)->orderBy('created_at')->chunk(1000, function ($entries) use ($activityHandle, $user) {
                 foreach ($entries as $e) {
                     fputcsv($activityHandle, [
                         $e->created_at?->toIso8601String(),
@@ -86,7 +88,7 @@ class BuildPrivacyExport implements ShouldQueue
             // errors.csv (own error encounters: what/where/when, no IPs/user-agents)
             $errorsHandle = fopen(Storage::disk('local')->path("{$dir}/errors.csv"), 'w');
             fputcsv($errorsHandle, ['occurred_at', 'http_code', 'exception', 'method', 'host', 'path', 'message']);
-            \App\Models\ErrorEncounter::where('user_id', $user->id)->orderBy('created_at')->chunk(1000, function ($errors) use ($errorsHandle) {
+            ErrorEncounter::where('user_id', $user->id)->orderBy('created_at')->chunk(1000, function ($errors) use ($errorsHandle) {
                 foreach ($errors as $e) {
                     fputcsv($errorsHandle, [
                         $e->created_at?->toIso8601String(),

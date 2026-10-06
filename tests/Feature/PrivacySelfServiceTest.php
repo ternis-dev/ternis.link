@@ -2,14 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Models\ActivityLog;
 use App\Models\ApiKey;
 use App\Models\Domain;
+use App\Models\ErrorEncounter;
 use App\Models\Link;
+use App\Models\PrivacyExport;
 use App\Models\User;
+use App\Notifications\SecurityAlert;
+use App\Services\AccountErasureService;
+use App\Support\Activity;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -54,10 +61,10 @@ class PrivacySelfServiceTest extends TestCase
         $response->assertStatus(202);
 
         $exportId = $response->json('id');
-        $export = \App\Models\PrivacyExport::findOrFail($exportId);
+        $export = PrivacyExport::findOrFail($exportId);
         $this->assertSame('done', $export->fresh()->status);
 
-        $zipPath = \Illuminate\Support\Facades\Storage::disk('local')->path($export->fresh()->path);
+        $zipPath = Storage::disk('local')->path($export->fresh()->path);
         $this->assertFileExists($zipPath);
 
         $zip = new \ZipArchive;
@@ -87,9 +94,9 @@ class PrivacySelfServiceTest extends TestCase
             'is_active' => true,
         ]);
 
-        \App\Support\Activity::record(\App\Models\ActivityLog::LINK_CREATED, $this->user, $link, ['slug' => 'priv03']);
+        Activity::record(ActivityLog::LINK_CREATED, $this->user, $link, ['slug' => 'priv03']);
 
-        \App\Models\ErrorEncounter::create([
+        ErrorEncounter::create([
             'http_code' => 404,
             'error_message' => 'Link not found.',
             'exception_class' => 'NotFoundHttpException',
@@ -100,13 +107,13 @@ class PrivacySelfServiceTest extends TestCase
             'ip_hash' => hash('sha256', '9.9.9.9'),
         ]);
 
-        $this->user->notify(new \App\Notifications\SecurityAlert('Export test', ['line one'], null, null));
+        $this->user->notify(new SecurityAlert('Export test', ['line one'], null, null));
 
         $response = $this->postJson('http://links.t-api.de/v1/account/export', [], ['Authorization' => "Bearer {$this->rawApiKey}"]);
         $response->assertStatus(202);
 
-        $export = \App\Models\PrivacyExport::findOrFail($response->json('id'));
-        $zipPath = \Illuminate\Support\Facades\Storage::disk('local')->path($export->fresh()->path);
+        $export = PrivacyExport::findOrFail($response->json('id'));
+        $zipPath = Storage::disk('local')->path($export->fresh()->path);
 
         $zip = new \ZipArchive;
         $zip->open($zipPath);
@@ -141,7 +148,7 @@ class PrivacySelfServiceTest extends TestCase
             'is_active' => true,
         ]);
 
-        app(\App\Services\AccountErasureService::class)->erase($this->user);
+        app(AccountErasureService::class)->erase($this->user);
 
         $this->assertNull($link->fresh()->user_id);
         $this->assertNull($link->fresh()->creator_ip_hash);
