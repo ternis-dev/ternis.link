@@ -160,30 +160,30 @@
                     
                     {{-- URL Form --}}
                     <div class="type-form" id="form-url">
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Destination URL or Website</label>
+                        <label for="input-url" class="block text-xs font-medium text-slate-300 mb-1.5">Destination URL or Website</label>
                         <input type="url" id="input-url" placeholder="https://example.com/page" value="https://href.nz" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 text-sm">
                         <p class="text-[11px] text-slate-400 mt-1.5">Works with any webpage, app download link, YouTube video, or short link.</p>
                     </div>
 
                     {{-- Text Form --}}
                     <div class="type-form hidden" id="form-text">
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Plain Text Content</label>
+                        <label for="input-text" class="block text-xs font-medium text-slate-300 mb-1.5">Plain Text Content</label>
                         <textarea id="input-text" rows="4" placeholder="Enter any text or notes to encode..." class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 text-sm">Welcome to qr.href.nz</textarea>
                     </div>
 
                     {{-- Wi-Fi Form --}}
                     <div class="type-form hidden space-y-3" id="form-wifi">
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Network Name (SSID)</label>
+                            <label for="wifi-ssid" class="block text-xs font-medium text-slate-300 mb-1">Network Name (SSID)</label>
                             <input type="text" id="wifi-ssid" placeholder="Office-Guest-WiFi" class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                                <label for="wifi-password" class="block text-xs font-medium text-slate-300 mb-1">Password</label>
                                 <input type="text" id="wifi-password" placeholder="Passphrase" class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Encryption</label>
+                                <label for="wifi-encryption" class="block text-xs font-medium text-slate-300 mb-1">Encryption</label>
                                 <select id="wifi-encryption" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                                     <option value="WPA">WPA / WPA2 / WPA3</option>
                                     <option value="WEP">WEP</option>
@@ -200,31 +200,31 @@
                     <div class="type-form hidden space-y-3" id="form-vcard">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">First Name</label>
+                                <label for="vcard-fn" class="block text-xs font-medium text-slate-300 mb-1">First Name</label>
                                 <input type="text" id="vcard-fn" placeholder="Alex" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Last Name</label>
+                                <label for="vcard-ln" class="block text-xs font-medium text-slate-300 mb-1">Last Name</label>
                                 <input type="text" id="vcard-ln" placeholder="Smith" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Phone</label>
+                                <label for="vcard-phone" class="block text-xs font-medium text-slate-300 mb-1">Phone</label>
                                 <input type="tel" id="vcard-phone" placeholder="+1234567890" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Email</label>
+                                <label for="vcard-email" class="block text-xs font-medium text-slate-300 mb-1">Email</label>
                                 <input type="email" id="vcard-email" placeholder="alex@company.com" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Company / Organization</label>
+                                <label for="vcard-org" class="block text-xs font-medium text-slate-300 mb-1">Company / Organization</label>
                                 <input type="text" id="vcard-org" placeholder="Ternis Dev" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Job Title</label>
+                                <label for="vcard-title" class="block text-xs font-medium text-slate-300 mb-1">Job Title</label>
                                 <input type="text" id="vcard-title" placeholder="Lead Engineer" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                         </div>
@@ -233,22 +233,22 @@
                     {{-- Email Form --}}
                     <div class="type-form hidden space-y-3" id="form-email">
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Recipient Email</label>
+                            <label for="email-to" class="block text-xs font-medium text-slate-300 mb-1">Recipient Email</label>
                             <input type="email" id="email-to" placeholder="contact@example.com" class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Subject</label>
+                            <label for="email-subject" class="block text-xs font-medium text-slate-300 mb-1">Subject</label>
                             <input type="text" id="email-subject" placeholder="Inquiry" class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Message Body</label>
+                            <label for="email-body" class="block text-xs font-medium text-slate-300 mb-1">Message Body</label>
                             <textarea id="email-body" rows="2" placeholder="Hello..." class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm"></textarea>
                         </div>
                     </div>
 
                     {{-- Phone Form --}}
                     <div class="type-form hidden" id="form-phone">
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Phone Number</label>
+                        <label for="input-phone" class="block text-xs font-medium text-slate-300 mb-1.5">Phone Number</label>
                         <input type="tel" id="input-phone" placeholder="+1234567890" class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         <p class="text-[11px] text-slate-400 mt-1.5">Scanning immediately dials or prompts to call this number.</p>
                     </div>
@@ -256,11 +256,11 @@
                     {{-- SMS Form --}}
                     <div class="type-form hidden space-y-3" id="form-sms">
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
+                            <label for="sms-phone" class="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
                             <input type="tel" id="sms-phone" placeholder="+1234567890" class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Message</label>
+                            <label for="sms-message" class="block text-xs font-medium text-slate-300 mb-1">Message</label>
                             <textarea id="sms-message" rows="2" placeholder="Text message..." class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm"></textarea>
                         </div>
                     </div>
@@ -268,11 +268,11 @@
                     {{-- WhatsApp Form --}}
                     <div class="type-form hidden space-y-3" id="form-whatsapp">
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">WhatsApp Phone Number (with Country Code)</label>
+                            <label for="wa-phone" class="block text-xs font-medium text-slate-300 mb-1">WhatsApp Phone Number (with Country Code)</label>
                             <input type="tel" id="wa-phone" placeholder="436601234567" class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Pre-filled Chat Message</label>
+                            <label for="wa-message" class="block text-xs font-medium text-slate-300 mb-1">Pre-filled Chat Message</label>
                             <textarea id="wa-message" rows="2" placeholder="Hi, I saw your QR code..." class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm"></textarea>
                         </div>
                     </div>
@@ -281,16 +281,16 @@
                     <div class="type-form hidden space-y-3" id="form-geo">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Latitude</label>
+                                <label for="geo-lat" class="block text-xs font-medium text-slate-300 mb-1">Latitude</label>
                                 <input type="text" id="geo-lat" placeholder="48.2082" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Longitude</label>
+                                <label for="geo-lng" class="block text-xs font-medium text-slate-300 mb-1">Longitude</label>
                                 <input type="text" id="geo-lng" placeholder="16.3738" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Place Label</label>
+                            <label for="geo-label" class="block text-xs font-medium text-slate-300 mb-1">Place Label</label>
                             <input type="text" id="geo-label" placeholder="Vienna Center" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         </div>
                     </div>
@@ -298,11 +298,11 @@
                     {{-- Event Form --}}
                     <div class="type-form hidden space-y-3" id="form-event">
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Event Title</label>
+                            <label for="event-title" class="block text-xs font-medium text-slate-300 mb-1">Event Title</label>
                             <input type="text" id="event-title" placeholder="Product Launch" class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Location</label>
+                            <label for="event-location" class="block text-xs font-medium text-slate-300 mb-1">Location</label>
                             <input type="text" id="event-location" placeholder="Convention Center or Zoom link" class="w-full px-4 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                         </div>
                     </div>
@@ -311,7 +311,7 @@
                     <div class="type-form hidden space-y-3" id="form-crypto">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Coin</label>
+                                <label for="crypto-currency" class="block text-xs font-medium text-slate-300 mb-1">Coin</label>
                                 <select id="crypto-currency" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                                     <option value="bitcoin">Bitcoin (BTC)</option>
                                     <option value="ethereum">Ethereum (ETH)</option>
@@ -319,7 +319,7 @@
                                 </select>
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="block text-xs font-medium text-slate-300 mb-1">Wallet Address</label>
+                                <label for="crypto-address" class="block text-xs font-medium text-slate-300 mb-1">Wallet Address</label>
                                 <input type="text" id="crypto-address" placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm">
                             </div>
                         </div>
@@ -327,7 +327,7 @@
 
                     {{-- Raw Form --}}
                     <div class="type-form hidden" id="form-raw">
-                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Raw Payload</label>
+                        <label for="input-raw" class="block text-xs font-medium text-slate-300 mb-1.5">Raw Payload</label>
                         <textarea id="input-raw" rows="4" placeholder="Raw string encoded verbatim..." class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm font-mono"></textarea>
                     </div>
                 </div>
@@ -360,13 +360,13 @@
 
                         {{-- Size --}}
                         <div>
-                            <label class="block text-[11px] text-slate-400 mb-1.5">Size: <span id="label-size">350px</span></label>
+                            <label for="cfg-size" class="block text-[11px] text-slate-400 mb-1.5">Size: <span id="label-size">350px</span></label>
                             <input type="range" id="cfg-size" min="150" max="800" step="50" value="350" class="w-full accent-emerald-500">
                         </div>
 
                         {{-- Error Correction --}}
                         <div>
-                            <label class="block text-[11px] text-slate-400 mb-1.5">Error Correction</label>
+                            <label for="cfg-ec" class="block text-[11px] text-slate-400 mb-1.5">Error Correction</label>
                             <select id="cfg-ec" class="w-full px-2 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white">
                                 <option value="L">L (7% recovery)</option>
                                 <option value="M" selected>M (15% standard)</option>

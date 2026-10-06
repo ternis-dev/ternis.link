@@ -121,14 +121,14 @@ class PublicDashboardTest extends TestCase
         $this->actingAs($this->user)
             ->get('http://dash.ternis.link/links')
             ->assertOk()
-            ->assertSee('my.ternis.link', escape: false);
+            ->assertSee('of your links live on the public dashboard', escape: false);
 
         $other = User::factory()->create();
 
         $this->actingAs($other)
             ->get('http://dash.ternis.link/links')
             ->assertOk()
-            ->assertDontSee('my.ternis.link', escape: false);
+            ->assertDontSee('of your links live on the public dashboard', escape: false);
     }
 
     public function test_legacy_hosts_redirect_to_canonical(): void

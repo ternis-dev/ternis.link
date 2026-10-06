@@ -19,6 +19,7 @@
                 <div
                     x-show="open"
                     x-transition
+                    x-trap="open"
                     role="dialog"
                     aria-modal="true"
                     @if ($title) aria-label="{{ $title }}" @endif
