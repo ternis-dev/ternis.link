@@ -231,6 +231,44 @@ class TernisAuthTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_oauth_state_survives_provider_round_trip(): void
+    {
+        // Closest thing to a real browser: database sessions (prod
+        // parity), session cookie carried from /auth/redirect to the
+        // callback, state read back out of the provider URL.
+        config(['session.driver' => 'database']);
+
+        Http::fake([
+            'https://auth.ternis.net/oauth/token' => Http::response([
+                'access_token' => 'mock-access-token',
+                'refresh_token' => 'mock-refresh-token',
+                'expires_in' => 3600,
+            ]),
+            'https://auth.ternis.net/oauth/userinfo' => Http::response([
+                'sub' => '44444444-5555-6666-7777-888888888888',
+                'name' => 'Round Trip',
+                'email' => 'roundtrip@ternis.dev',
+                'user_type' => 'general',
+            ]),
+        ]);
+
+        $start = $this->get('http://dash.ternis.link/auth/redirect');
+        $start->assertStatus(302);
+
+        parse_str((string) parse_url((string) $start->headers->get('Location'), PHP_URL_QUERY), $params);
+        $this->assertArrayHasKey('state', $params);
+
+        $cookieName = (string) config('session.cookie');
+        $raw = $start->getCookie($cookieName, false);
+        $this->assertNotNull($raw);
+
+        $response = $this->withUnencryptedCookie($cookieName, $raw)
+            ->get("http://dash.ternis.link/auth/callback?code=mock_code&state={$params['state']}");
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+    }
+
     public function test_auth_callback_with_mismatched_state_aborts(): void
     {
         $response = $this->withSession([
