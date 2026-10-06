@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->group(base_path('routes/api/v1.php'));
         },
     )
+    ->withBroadcasting(__DIR__.'/../routes/channels.php')
     ->withMiddleware(function (Middleware $middleware): void {
         // Caddy terminates TLS and proxies to PHP-FPM. Trust it so
         // $request->ip() / isSecure() reflect the real client — critical

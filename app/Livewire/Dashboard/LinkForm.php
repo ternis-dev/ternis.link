@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Events\DashboardLinkChanged;
 use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Services\LinkService;
@@ -295,6 +296,8 @@ class LinkForm extends Component
         if ($this->modal) {
             $this->dispatch('link-created');
         }
+
+        broadcast(new DashboardLinkChanged((string) $user->id, $link->slug, 'created'))->toOthers();
 
         // Reset form (keep the chosen length)
         $this->destination_url = '';
