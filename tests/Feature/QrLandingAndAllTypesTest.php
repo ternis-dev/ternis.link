@@ -203,4 +203,15 @@ class QrLandingAndAllTypesTest extends TestCase
         $this->assertStringContainsString('Alice', $postResponse->json('payload'));
         $this->assertStringContainsString('Wonderland', $postResponse->json('payload'));
     }
+
+    public function test_qr_studio_layout_survives_narrow_screens(): void
+    {
+        $response = $this->get('http://qr.href.nz/');
+
+        $response->assertOk();
+        // Scrollable header nav, fluid preview image, wrapping API URLs.
+        $response->assertSee('overflow-x-auto', escape: false);
+        $response->assertSee('max-w-60', escape: false);
+        $response->assertSee('break-all', escape: false);
+    }
 }

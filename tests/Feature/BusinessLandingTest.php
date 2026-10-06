@@ -113,4 +113,14 @@ class BusinessLandingTest extends TestCase
         $response->assertSee('href.re', escape: false);
         $response->assertSee('Return to href.re', escape: false);
     }
+
+    public function test_business_header_and_stats_wrap_on_mobile(): void
+    {
+        $response = $this->get('http://href.re/');
+
+        $response->assertStatus(200);
+        // Wrapping header row + stacked stats (no 98px clipped columns).
+        $response->assertSee('max-sm:flex-wrap', escape: false);
+        $response->assertSee('grid-cols-1 gap-4 text-center sm:grid-cols-3', escape: false);
+    }
 }

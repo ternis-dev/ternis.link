@@ -161,12 +161,12 @@
         {{-- Left Studio: Tabbed Workbench --}}
         <div class="min-w-0 space-y-6">
             {{-- Studio Navigation Tabs --}}
-            <div class="flex rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/80">
+            <div class="flex overflow-x-auto rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/80">
                 <button
                     type="button"
                     wire:click="$set('activeTab', 'content')"
                     @class([
-                        'flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition cursor-pointer',
+                        'flex-1 flex shrink-0 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition cursor-pointer',
                         $activeTab === 'content'
                             ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
                             : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
@@ -181,7 +181,7 @@
                     type="button"
                     wire:click="$set('activeTab', 'design')"
                     @class([
-                        'flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition cursor-pointer',
+                        'flex-1 flex shrink-0 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition cursor-pointer',
                         $activeTab === 'design'
                             ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
                             : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
@@ -195,7 +195,7 @@
                     type="button"
                     wire:click="$set('activeTab', 'profile')"
                     @class([
-                        'flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition cursor-pointer',
+                        'flex-1 flex shrink-0 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition cursor-pointer',
                         $activeTab === 'profile'
                             ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
                             : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
@@ -209,7 +209,7 @@
                     type="button"
                     wire:click="$set('activeTab', 'settings')"
                     @class([
-                        'flex-1 flex items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold transition cursor-pointer',
+                        'flex-1 flex shrink-0 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition cursor-pointer',
                         $activeTab === 'settings'
                             ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
                             : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
@@ -471,11 +471,11 @@
                                                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
                                                 </button>
 
-                                                <button type="button" wire:click="toggleButton('{{ $b->id }}')" class="cursor-pointer text-xs font-medium text-neutral-600 hover:underline dark:text-neutral-300">
+                                                <button type="button" wire:click="toggleButton('{{ $b->id }}')" class="min-h-[24px] cursor-pointer px-0.5 text-xs font-medium text-neutral-600 hover:underline dark:text-neutral-300">
                                                     {{ $b->is_active ? 'Pause' : 'Resume' }}
                                                 </button>
 
-                                                <button type="button" wire:click="removeButton('{{ $b->id }}')" class="cursor-pointer text-xs font-medium text-red-600 hover:underline dark:text-red-400">
+                                                <button type="button" wire:click="removeButton('{{ $b->id }}')" class="min-h-[24px] cursor-pointer px-0.5 text-xs font-medium text-red-600 hover:underline dark:text-red-400">
                                                     Remove
                                                 </button>
                                             </div>
@@ -691,7 +691,7 @@
                                 <label class="block text-xs font-semibold text-neutral-700 dark:text-neutral-300">Accent Color
                                     <div class="mt-1.5 flex items-center gap-3">
                                         <input type="color" wire:model.live="accent" value="{{ $accent ?? '#171717' }}" class="h-10 w-14 cursor-pointer rounded-lg border border-neutral-300 dark:border-neutral-700 p-0.5">
-                                        <input type="text" wire:model.live="accent" placeholder="#171717" class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-mono dark:border-neutral-700 dark:bg-neutral-950">
+                                        <input type="text" wire:model.live="accent" placeholder="#171717" class="w-full min-w-0 flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-mono dark:border-neutral-700 dark:bg-neutral-950">
                                     </div>
                                 </label>
                                 <p class="mt-1 text-[11px] text-neutral-500">Highlights buttons, announcements, and accents.</p>
@@ -806,7 +806,7 @@
                         <x-ui.card title="Manage Sub-pages ({{ $family->children()->where('is_removed', false)->count() }}/10)">
                             <div class="space-y-3">
                                 @forelse ($family->children()->where('is_removed', false)->orderBy('sort_order')->get() as $sub)
-                                    <div class="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/50 p-3 text-xs dark:border-neutral-800 dark:bg-neutral-800/40">
+                                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50/50 p-3 text-xs dark:border-neutral-800 dark:bg-neutral-800/40">
                                         <div class="min-w-0">
                                             <span class="font-mono font-semibold text-neutral-900 dark:text-white">/{{ $sub->slug }}</span>
                                             <span class="ml-2 text-neutral-500">&bull; {{ $sub->title }}</span>

@@ -45,7 +45,7 @@ $icons = [
 @endforeach
 </div>
 @endif
-<div @if(($page->layout ?? 'list') === 'grid') style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start" @endif>
+<div class="biogrid" @if(($page->layout ?? 'list') === 'grid') style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start" @endif>
 @foreach($flowButtons as $button)
 @if($button->kind === 'divider')<hr style="margin:16px 0;opacity:.4;grid-column:1/-1">
 @elseif($button->kind === 'header')<h2 style="margin:20px 0 4px;font-size:16px;opacity:.8;grid-column:1/-1">{{ $button->label }}</h2>

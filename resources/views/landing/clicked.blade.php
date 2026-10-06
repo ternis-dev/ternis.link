@@ -174,7 +174,7 @@ $isDe = $locale === 'de';
     <div class="cl-wrap cl-enter">
     {{-- ── NAVIGATION ────────────────────────────────────── --}}
     <header class="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/80">
-        <div class="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+        <div class="mx-auto flex h-16 max-w-5xl items-center justify-between gap-2 px-4 max-sm:h-auto max-sm:flex-wrap max-sm:py-2 sm:px-6">
             {{-- Logo --}}
             <a href="/" class="group flex items-center gap-2.5 text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100" aria-label="clicked.at home">
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 via-indigo-600 to-violet-700 text-white shadow-md shadow-violet-500/30 transition duration-200 group-hover:scale-105 group-hover:shadow-violet-500/50">

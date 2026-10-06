@@ -86,11 +86,11 @@
                 </span>
             </div>
 
-            <nav class="flex items-center gap-4 text-xs font-medium text-slate-400">
-                <a href="#api" class="hover:text-white transition-colors">API Docs</a>
-                <a href="https://href.nz/" class="hover:text-emerald-400 transition-colors">Shortener</a>
-                <a href="https://clicked.at/" class="hover:text-purple-400 transition-colors">Analytics</a>
-                <a href="{{ \App\Support\DomainUrls::impressum('qr.href.nz') }}" class="hover:text-white transition-colors">Imprint</a>
+            <nav class="flex max-w-full items-center gap-4 overflow-x-auto text-xs font-medium text-slate-400">
+                <a href="#api" class="shrink-0 whitespace-nowrap hover:text-white transition-colors">API Docs</a>
+                <a href="https://href.nz/" class="shrink-0 whitespace-nowrap hover:text-emerald-400 transition-colors">Shortener</a>
+                <a href="https://clicked.at/" class="shrink-0 whitespace-nowrap hover:text-purple-400 transition-colors">Analytics</a>
+                <a href="{{ \App\Support\DomainUrls::impressum('qr.href.nz') }}" class="shrink-0 whitespace-nowrap hover:text-white transition-colors">Imprint</a>
             </nav>
         </div>
     </header>
@@ -392,7 +392,7 @@
                 {{-- QR Display Container --}}
                 <div class="p-6 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-center min-h-[340px] mb-5 relative scan-reticle">
                     <div id="qr-preview-wrapper" class="p-3 bg-white rounded-xl shadow-md transition-all">
-                        <img id="qr-preview-img" src="/url/https://href.nz?format=svg&size=350" alt="Generated QR code preview" class="w-60 h-60 object-contain block">
+                        <img id="qr-preview-img" src="/url/https://href.nz?format=svg&size=350" alt="Generated QR code preview" class="block h-auto w-full max-w-60 object-contain">
                     </div>
                 </div>
 
@@ -481,27 +481,27 @@
                 <div class="space-y-4 font-mono text-xs">
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
                         <div class="text-emerald-400 mb-1"># 1. URL QR Code (append .svg or .png)</div>
-                        <div class="text-slate-300 select-all">https://qr.href.nz/url/https://example.com.svg</div>
+                        <div class="text-slate-300 break-all select-all">https://qr.href.nz/url/https://example.com.svg</div>
                     </div>
 
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
                         <div class="text-emerald-400 mb-1"># 2. Plain Text QR Code</div>
-                        <div class="text-slate-300 select-all">https://qr.href.nz/text/Hello%20World</div>
+                        <div class="text-slate-300 break-all select-all">https://qr.href.nz/text/Hello%20World</div>
                     </div>
 
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
                         <div class="text-emerald-400 mb-1"># 3. Wi-Fi Auto-Connect QR Code</div>
-                        <div class="text-slate-300 select-all">https://qr.href.nz/wifi?ssid=MyNetwork&password=SecretPass&encryption=WPA</div>
+                        <div class="text-slate-300 break-all select-all">https://qr.href.nz/wifi?ssid=MyNetwork&password=SecretPass&encryption=WPA</div>
                     </div>
 
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
                         <div class="text-emerald-400 mb-1"># 4. vCard Contact QR Code</div>
-                        <div class="text-slate-300 select-all">https://qr.href.nz/vcard?name=John+Doe&phone=+123456789&email=john@example.com</div>
+                        <div class="text-slate-300 break-all select-all">https://qr.href.nz/vcard?name=John+Doe&phone=+123456789&email=john@example.com</div>
                     </div>
 
                     <div class="bg-slate-950 border border-slate-800 rounded-xl p-4">
                         <div class="text-emerald-400 mb-1"># 5. Styling query parameters (color, size, error correction)</div>
-                        <div class="text-slate-300 select-all">https://qr.href.nz/url/https://example.com?color=10b981&bg=0f172a&size=500&error_correction=H&download=1</div>
+                        <div class="text-slate-300 break-all select-all">https://qr.href.nz/url/https://example.com?color=10b981&bg=0f172a&size=500&error_correction=H&download=1</div>
                     </div>
                 </div>
             </div>

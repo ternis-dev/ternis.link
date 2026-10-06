@@ -1,7 +1,7 @@
 @props(['label' => '', 'value' => '', 'share' => 0])
 
 <div>
-    <div class="mb-1.5 flex items-baseline justify-between gap-4">
+    <div class="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
         <span class="max-w-[70%] truncate text-sm" title="{{ $label }}">{{ $label }}</span>
         <span class="text-xs whitespace-nowrap text-neutral-500 dark:text-neutral-400">{{ $value }}</span>
     </div>

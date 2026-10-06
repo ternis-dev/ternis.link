@@ -299,8 +299,14 @@ body:has(.pd-root) {
     background-color: #1b1b22;
 }
 
-/* ---------- Domain chips ---------- */
+/* Small phones: keep big tabular numbers inside narrow stat cards. */
+@media (max-width: 400px) {
+    .pd-stat .pd-stat-value {
+        font-size: 1.6rem;
+    }
+}
 
+/* ---------- Domain chips ---------- */
 .pd-domain-chip {
     display: inline-flex;
     align-items: center;

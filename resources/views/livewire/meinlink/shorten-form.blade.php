@@ -227,7 +227,7 @@
                         </template>
                     </div>
                     <p class="mt-3 text-xs font-medium text-zinc-600 dark:text-zinc-400">Scannen mit der Smartphone-Kamera zum direkten Öffnen</p>
-                    <div class="mt-3 flex items-center gap-2">
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
                         <a
                             href="{{ $shortUrl }}/qr.png"
                             download="qr-meinlink.png"

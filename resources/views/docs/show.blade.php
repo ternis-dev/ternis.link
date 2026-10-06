@@ -49,6 +49,23 @@
 
     <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         <div class="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)]">
+            <details class="lg:hidden">
+                <summary class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium dark:border-neutral-800">Guides in this section</summary>
+                <ul class="mt-2 space-y-1 text-sm">
+                    <li>
+                        <a href="/" class="block rounded-lg px-3 py-1.5 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">← All guides</a>
+                    </li>
+                    @foreach ($pages as $page)
+                        <li>
+                            <a href="{{ url('/'.$page['slug']) }}" @class([
+                                'block rounded-lg px-3 py-1.5',
+                                'bg-neutral-200 font-semibold dark:bg-neutral-800' => $page['slug'] === $slug,
+                                'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white' => $page['slug'] !== $slug,
+                            ])>{{ $page['title'] }}</a>
+                        </li>
+                    @endforeach
+                </ul>
+            </details>
             <nav class="hidden lg:block" aria-label="Docs pages">
                 <p class="mb-2 px-3 text-xs font-medium tracking-wide text-neutral-500 uppercase dark:text-neutral-500"><a href="/" class="hover:text-neutral-900 dark:hover:text-white">← All guides</a></p>
                 <ul class="sticky top-6 space-y-1 text-sm">

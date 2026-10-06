@@ -77,15 +77,19 @@ class BioPagesTest extends TestCase
             'domain_id' => $this->domain->id,
             'title' => 'My links',
             'bio' => 'All my things',
+            'layout' => 'grid',
         ], $this->headers());
 
         $response->assertCreated();
         $pageId = $response->json('id');
 
+        // Grid layout stacks to one column on small phones.
         $this->get('http://bio.example.com/')
             ->assertOk()
             ->assertSee('My links', escape: false)
-            ->assertSee('All my things', escape: false);
+            ->assertSee('All my things', escape: false)
+            ->assertSee('class="biogrid"', escape: false)
+            ->assertSee('@media (max-width:420px){.biogrid{grid-template-columns:1fr !important}}', escape: false);
 
         $page = BioPage::findOrFail($pageId);
         $this->assertSame(1, $page->fresh()->view_count);

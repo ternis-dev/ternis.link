@@ -62,9 +62,9 @@ $faqJsonLd = array_map(fn ($faq) => [
 </head>
 <body class="flex min-h-screen flex-col">
     <header class="border-b border-neutral-200 dark:border-neutral-800">
-        <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
+        <div class="mx-auto flex h-16 max-w-4xl items-center justify-between gap-3 px-4 max-sm:h-auto max-sm:flex-wrap max-sm:py-3 sm:px-6">
             <a href="/" class="font-display text-2xl font-bold tracking-tight">href<span>.re</span></a>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center justify-end gap-3">
                 <button
                     type="button"
                     data-theme-toggle
@@ -194,7 +194,7 @@ $faqJsonLd = array_map(fn ($faq) => [
                 <span class="font-display text-lg font-bold">Live from the network</span>
                 <a href="https://ternis.link/pages/stats" class="text-sm text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">All stats →</a>
             </div>
-            <dl class="mt-3 grid grid-cols-3 gap-4 text-center">
+            <dl class="mt-3 grid grid-cols-1 gap-4 text-center sm:grid-cols-3">
                 <div>
                     <dd class="font-display text-2xl font-bold tracking-tight">{{ number_format($stats['total_links'] ?? 0) }}</dd>
                     <dt class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">short links created</dt>

@@ -79,6 +79,13 @@ class DocsTest extends TestCase
         $this->get('http://docs.ternis.link/abc123')->assertNotFound();
     }
 
+    public function test_docs_show_offers_mobile_toc(): void
+    {
+        $this->get('http://docs.ternis.link/architecture')
+            ->assertOk()
+            ->assertSee('Guides in this section', escape: false);
+    }
+
     public function test_docs_links_slug_renders_the_links_doc(): void
     {
         // Regression: dashboard /links (registered first) used to

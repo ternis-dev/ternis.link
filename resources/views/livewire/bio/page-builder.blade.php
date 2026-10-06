@@ -32,10 +32,10 @@
 
     <x-ui.card title="Your pages">
         @forelse ($pages as $p)
-            <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-3 last:border-0 dark:border-neutral-800">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-100 py-3 last:border-0 dark:border-neutral-800">
                 <div class="min-w-0">
                     <p class="truncate font-medium">{{ $p->title }}</p>
-                    <p class="font-mono text-xs text-neutral-500">{{ $p->domain?->hostname }}{{ $p->parent_id ? '/' . $p->slug : '' }}</p>
+                    <p class="truncate font-mono text-xs text-neutral-500">{{ $p->domain?->hostname }}{{ $p->parent_id ? '/' . $p->slug : '' }}</p>
                 </div>
                 <div class="flex shrink-0 gap-2">
                     <x-ui.button wire:click="selectPage('{{ $p->id }}')" variant="ghost">Edit</x-ui.button>
@@ -60,8 +60,8 @@
             <x-ui.button href="{{ route('dashboard.bio.show', $editing->id) }}" variant="ghost">Stats</x-ui.button>
             <x-ui.button wire:click="makeDraftLink" variant="ghost">Preview draft link</x-ui.button>
             @if ($draftUrl)
-                <span class="inline-flex items-center gap-2 rounded-lg bg-amber-100 px-3 py-1.5 font-mono text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-200" x-data="{ copied: false }">
-                    <span class="select-all">{{ $draftUrl }}</span>
+                <span class="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg bg-amber-100 px-3 py-1.5 font-mono text-xs text-amber-900 dark:bg-amber-900/40 dark:text-amber-200" x-data="{ copied: false }">
+                    <span class="min-w-0 flex-1 break-all select-all">{{ $draftUrl }}</span>
                     <button type="button" class="cursor-pointer font-sans font-semibold underline" x-on:click="navigator.clipboard.writeText('{{ $draftUrl }}'); copied = true; setTimeout(() => copied = false, 2000)" x-text="copied ? 'Copied!' : 'Copy'">Copy</button>
                     <span class="font-sans">expires {{ $draftExpires }}</span>
                 </span>
@@ -276,20 +276,20 @@
                             dragging = null;
                         "
                         class="flex cursor-grab items-center justify-between gap-3 rounded-lg border border-neutral-100 px-3 py-2 text-sm active:cursor-grabbing dark:border-neutral-800">
-                        <span class="min-w-0">
+                        <span class="min-w-0 break-words">
                             <span class="text-neutral-400" aria-hidden="true">⠿</span>
                             <strong>{{ $b->kind }}</strong>@if(in_array($b->kind, ['link', 'social'], true))<span class="text-neutral-500"> · {{ $b->action }}</span>@endif — {{ $b->label }}
                             <span class="text-neutral-500">({{ number_format($b->tap_count) }} taps)</span>
                             @unless ($b->is_active)<span class="ml-1 rounded bg-neutral-200 px-1.5 py-0.5 text-[11px] font-semibold dark:bg-neutral-700">paused</span>@endunless
                             @if ($b->starts_at || $b->ends_at)<span class="ml-1 text-xs text-neutral-500">⏱ {{ $b->starts_at?->format('M j') ?? '…' }} → {{ $b->ends_at?->format('M j') ?? '…' }}</span>@endif
                         </span>
-                        <span class="flex shrink-0 items-center gap-1.5 text-xs">
-                            <button type="button" wire:click="startEditButton('{{ $b->id }}')" class="cursor-pointer hover:underline">Edit</button>
-                            <button type="button" wire:click="duplicateButton('{{ $b->id }}')" class="cursor-pointer hover:underline" title="Duplicate" aria-label="Duplicate button">⧉</button>
-                            <button type="button" wire:click="moveButton('{{ $b->id }}', 'up')" class="cursor-pointer hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === 0) title="Move up" aria-label="Move button up">↑</button>
-                            <button type="button" wire:click="moveButton('{{ $b->id }}', 'down')" class="cursor-pointer hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === $buttonList->count() - 1) title="Move down" aria-label="Move button down">↓</button>
-                            <button type="button" wire:click="toggleButton('{{ $b->id }}')" class="cursor-pointer hover:underline">{{ $b->is_active ? 'Pause' : 'Resume' }}</button>
-                            <button type="button" wire:click="removeButton('{{ $b->id }}')" class="cursor-pointer text-red-600 hover:underline">Remove</button>
+                        <span class="flex shrink-0 items-center gap-1 text-xs">
+                            <button type="button" wire:click="startEditButton('{{ $b->id }}')" class="min-h-[24px] cursor-pointer px-0.5 hover:underline">Edit</button>
+                            <button type="button" wire:click="duplicateButton('{{ $b->id }}')" class="min-h-[24px] cursor-pointer px-0.5 hover:underline" title="Duplicate" aria-label="Duplicate button">⧉</button>
+                            <button type="button" wire:click="moveButton('{{ $b->id }}', 'up')" class="min-h-[24px] cursor-pointer px-0.5 hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === 0) title="Move up" aria-label="Move button up">↑</button>
+                            <button type="button" wire:click="moveButton('{{ $b->id }}', 'down')" class="min-h-[24px] cursor-pointer px-0.5 hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === $buttonList->count() - 1) title="Move down" aria-label="Move button down">↓</button>
+                            <button type="button" wire:click="toggleButton('{{ $b->id }}')" class="min-h-[24px] cursor-pointer px-0.5 hover:underline">{{ $b->is_active ? 'Pause' : 'Resume' }}</button>
+                            <button type="button" wire:click="removeButton('{{ $b->id }}')" class="min-h-[24px] cursor-pointer px-0.5 text-red-600 hover:underline">Remove</button>
                         </span>
                     </li>
                     @endif

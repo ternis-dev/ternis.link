@@ -47,9 +47,9 @@ $barColor = match ($color) {
                     $pct = max(4, round(($val / $max) * 100));
                     $humanDate = \Carbon\Carbon::parse($date)->format('M d');
                     @endphp
-                    <div class="group relative flex-1 flex flex-col items-center justify-end h-full min-w-[8px]">
-                        {{-- Tooltip --}}
-                        <div class="pointer-events-none absolute -top-9 z-30 hidden rounded-md bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white shadow-lg group-hover:block whitespace-nowrap dark:bg-white dark:text-neutral-900">
+                    <div class="group relative flex-1 flex flex-col items-center justify-end h-full min-w-[8px]" @if ($val > 0) tabindex="0" aria-label="{{ $humanDate }}: {{ number_format($val) }} clicks" @endif>
+                        {{-- Tooltip (hover, keyboard focus, and touch via focus) --}}
+                        <div class="pointer-events-none absolute -top-9 z-30 hidden rounded-md bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white shadow-lg group-hover:block group-focus-within:block whitespace-nowrap dark:bg-white dark:text-neutral-900">
                             {{ $humanDate }}: {{ number_format($val) }}
                         </div>
                         {{-- Bar --}}

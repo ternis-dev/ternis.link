@@ -6,7 +6,7 @@
 
     <div class="pd-card mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
         <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ auth()->user()->name }} · {{ auth()->user()->plan?->name ?? 'free' }} plan</p>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
             <a href="{{ route('public-dashboard.links.import') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Import CSV</a>
             <a href="{{ route('public-dashboard.links.export-all') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Export CSV</a>
             <a href="{{ route('public-dashboard.links.qr-zip') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">QR ZIP</a>

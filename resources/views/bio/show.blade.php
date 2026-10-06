@@ -32,6 +32,7 @@ body{font-family:system-ui,sans-serif;margin:0;background:{{ $page->theme === 'd
 .muted{opacity:.65;font-size:14px}
 .bio-modal{border:1px solid #d4d4d4;border-radius:16px;padding:20px;max-width:min(420px,90vw);text-align:center}
 .bio-modal::backdrop{background:rgba(0,0,0,.5)}
+@media (max-width:420px){.biogrid{grid-template-columns:1fr !important}}
 .draft-banner{position:sticky;top:0;z-index:10;background:#fef08a;color:#713f12;font-size:13px;padding:8px 12px;text-align:center}
 .announce{margin:0 0 12px;padding:10px 14px;border-radius:12px;background:#fef9c3;color:#713f12;font-size:14px}
 .announce a{color:inherit;font-weight:600}
