@@ -114,6 +114,66 @@ class TernisAuthTest extends TestCase
         $this->get('http://dash.ternis.link/auth/consume?ticket=x')->assertNotFound();
     }
 
+    public function test_callback_hands_login_back_to_origin_host(): void
+    {
+        Http::fake([
+            'https://auth.ternis.net/oauth/token' => Http::response([
+                'access_token' => 'mock-access-token',
+                'refresh_token' => 'mock-refresh-token',
+                'expires_in' => 3600,
+            ]),
+            'https://auth.ternis.net/oauth/userinfo' => Http::response([
+                'sub' => '22222222-3333-4444-5555-666666666666',
+                'name' => 'Handoff User',
+                'email' => 'handoff@ternis.dev',
+                'user_type' => 'general',
+            ]),
+        ]);
+
+        $response = $this->withSession([
+            'oauth_state' => 'handoff_state',
+            'oauth_code_verifier' => 'test_code_verifier_1234567890123456789012345678901234567890',
+            'sso_origin' => 'http://my.href.nz',
+        ])->get('http://dash.ternis.link/auth/callback?code=mock_code&state=handoff_state');
+
+        $target = $response->headers->get('Location');
+        $this->assertStringStartsWith('http://my.href.nz/auth/consume?ticket=', $target);
+        // The dash session is authenticated too (ticket hands it onward).
+        $this->assertAuthenticated();
+
+        // Following the ticket signs in on the origin host.
+        $ticket = substr($target, (int) strpos($target, 'ticket=') + 7);
+
+        $this->get("http://my.href.nz/auth/consume?ticket={$ticket}")
+            ->assertRedirect(route('public-dashboard'));
+        $this->assertAuthenticated();
+    }
+
+    public function test_callback_without_origin_stays_on_dash(): void
+    {
+        Http::fake([
+            'https://auth.ternis.net/oauth/token' => Http::response([
+                'access_token' => 'mock-access-token',
+                'refresh_token' => 'mock-refresh-token',
+                'expires_in' => 3600,
+            ]),
+            'https://auth.ternis.net/oauth/userinfo' => Http::response([
+                'sub' => '33333333-4444-5555-6666-777777777777',
+                'name' => 'Dash User',
+                'email' => 'dashflow@ternis.dev',
+                'user_type' => 'general',
+            ]),
+        ]);
+
+        $response = $this->withSession([
+            'oauth_state' => 'dash_state',
+            'oauth_code_verifier' => 'test_code_verifier_1234567890123456789012345678901234567890',
+        ])->get('http://dash.ternis.link/auth/callback?code=mock_code&state=dash_state');
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+    }
+
     public function test_auth_callback_provisions_user_and_logs_in(): void
     {
         Http::fake([
