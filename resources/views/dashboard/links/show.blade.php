@@ -22,6 +22,10 @@
         </x-slot:subtitle>
         <x-slot:actions>
             <x-ui.button href="{{ route('dashboard.links.edit', array_merge([$link->id], $query)) }}" size="sm">Edit Link</x-ui.button>
+            <form method="POST" action="{{ route('dashboard.links.duplicate', $link->id) }}" class="inline">
+                @csrf
+                <x-ui.button type="submit" size="sm">Duplicate</x-ui.button>
+            </form>
             <x-ui.button href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" size="sm" target="_blank">Visit Link ↗</x-ui.button>
             <x-ui.button href="{{ route('dashboard.links.qr', $link->id) }}" size="sm">Download QR</x-ui.button>
         </x-slot:actions>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Click;
 use App\Models\QrGeneration;
 use App\Models\User;
+use App\Services\LinkService;
 use App\Support\DomainUrls;
 use App\Support\LinkQrCode;
 use Illuminate\Database\Eloquent\Builder;
@@ -255,6 +256,20 @@ class PublicDashboardController extends Controller
             'Content-Type' => 'image/png',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
+    }
+
+    /**
+     * Duplicate a link (fresh slug, same setup) and continue on its
+     * edit page. Scoped like showLink.
+     */
+    public function duplicate(string $link)
+    {
+        $link = $this->baseQuery(auth()->user())->with('domain')->findOrFail($link);
+
+        $copy = app(LinkService::class)->duplicate($link, auth()->user());
+
+        return redirect()->route('public-dashboard.links.edit', $copy->id)
+            ->with('info', "Duplicated as {$copy->domain->hostname}/{$copy->slug} — set a slug, expiry, or password to finish.");
     }
 
     /**

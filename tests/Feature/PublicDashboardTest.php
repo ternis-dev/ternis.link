@@ -331,6 +331,46 @@ class PublicDashboardTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_duplicate_clones_link_with_fresh_slug(): void
+    {
+        $original = $this->makeLink('href.nz', 'pub-dupe-1');
+        $original->update([
+            'description' => 'Campaign link',
+            'tags' => ['launch', 'promo'],
+            'expires_at' => now()->addDays(9),
+        ]);
+
+        // Guests bounce to same-host login.
+        $this->post("http://my.ternis.link/links/{$original->id}/duplicate")
+            ->assertRedirect('http://my.ternis.link/login');
+
+        $response = $this->actingAs($this->user)
+            ->post("http://my.ternis.link/links/{$original->id}/duplicate");
+
+        $copy = Link::where('destination_url', $original->destination_url)
+            ->where('id', '!=', $original->id)
+            ->firstOrFail();
+
+        $response->assertRedirect("http://my.ternis.link/links/{$copy->id}/edit");
+        $response->assertSessionHas('info');
+        $this->assertNotSame($original->slug, $copy->slug);
+        $this->assertSame('Campaign link', $copy->description);
+        $this->assertSame(['launch', 'promo'], $copy->tags);
+        $this->assertNull($copy->expires_at);
+        $this->assertSame(0, $copy->click_count);
+
+        // Wrong side and strangers 404.
+        $personal = $this->makeLink('clicked.at', 'dash-dupe-1');
+
+        $this->actingAs($this->user)
+            ->post("http://my.ternis.link/links/{$personal->id}/duplicate")
+            ->assertNotFound();
+
+        $this->actingAs(User::factory()->create())
+            ->post("http://my.ternis.link/links/{$original->id}/duplicate")
+            ->assertNotFound();
+    }
+
     /**
      * @return list<string>
      */

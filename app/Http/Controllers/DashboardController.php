@@ -6,6 +6,7 @@ use App\Models\ActivityLog;
 use App\Models\Click;
 use App\Models\Link;
 use App\Models\QrGeneration;
+use App\Services\LinkService;
 use App\Support\DomainUrls;
 use App\Support\LinkQrCode;
 use Illuminate\Database\Eloquent\Builder;
@@ -265,6 +266,20 @@ class DashboardController extends Controller
             readfile($tmp);
             @unlink($tmp);
         }, 'qr-codes-'.now()->format('Y-m-d').'.zip', ['Content-Type' => 'application/zip']);
+    }
+
+    /**
+     * Duplicate a link (fresh slug, same setup) and continue on its
+     * edit page. Scoped like showLink.
+     */
+    public function duplicate(string $link)
+    {
+        $link = $this->personalQuery(auth()->user())->with('domain')->findOrFail($link);
+
+        $copy = app(LinkService::class)->duplicate($link, auth()->user());
+
+        return redirect()->route('dashboard.links.edit', $copy->id)
+            ->with('info', "Duplicated as {$copy->domain->hostname}/{$copy->slug} — set a slug, expiry, or password to finish.");
     }
 
     /**

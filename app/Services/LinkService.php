@@ -216,6 +216,31 @@ class LinkService
      * @throws UnsafeUrlException On structurally unsafe guest destinations (HTTP 422).
      * @throws ThrottleRequestsException On per-minute rate-limit violations (HTTP 429).
      */
+    /**
+     * Duplicate a link: same destination, domain, and metadata with a
+     * fresh auto-generated slug. Passwords and expiry never carry over
+     * (re-set them deliberately); stats start at zero on the new row.
+     */
+    public function duplicate(Link $link, ?User $user = null): Link
+    {
+        return $this->create(
+            destinationUrl: $link->destination_url,
+            domain: $link->domain,
+            user: $user ?? $link->user,
+            description: $link->description,
+            tags: $link->tags ?? [],
+            ogTitle: $link->og_title,
+            ogDescription: $link->og_description,
+            ogImageUrl: $link->og_image_url,
+            utm: [
+                'utm_source' => $link->utm_source,
+                'utm_medium' => $link->utm_medium,
+                'utm_campaign' => $link->utm_campaign,
+            ],
+            userTrackingEnabled: (bool) $link->user_tracking_enabled,
+        );
+    }
+
     public function create(
         string $destinationUrl,
         Domain $domain,

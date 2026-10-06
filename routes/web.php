@@ -175,6 +175,7 @@ Route::domain((string) config('domains.public_dashboard_host', 'my.ternis.link')
         Route::get('/links/{link}/edit', [PublicDashboardController::class, 'editLink'])->name('public-dashboard.links.edit');
         Route::get('/links/{link}/export', [PublicDashboardController::class, 'exportClicks'])->name('public-dashboard.links.export');
         Route::get('/links/{link}/qr', [PublicDashboardController::class, 'qrCode'])->name('public-dashboard.links.qr');
+        Route::post('/links/{link}/duplicate', [PublicDashboardController::class, 'duplicate'])->name('public-dashboard.links.duplicate');
         Route::get('/api-keys/{key}', [PublicDashboardController::class, 'showApiKey'])->name('public-dashboard.api-keys.show');
         Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name('public-dashboard.settings.export-download');
     });
@@ -295,6 +296,7 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::get('/links/{link}/edit', [DashboardController::class, 'editLink'])->name('dashboard.links.edit');
     Route::get('/links/{link}/export', [DashboardController::class, 'exportClicks'])->name('dashboard.links.export');
     Route::get('/links/{link}/qr', [DashboardController::class, 'qrCode'])->name('dashboard.links.qr');
+    Route::post('/links/{link}/duplicate', [DashboardController::class, 'duplicate'])->name('dashboard.links.duplicate');
     Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
     Route::get('/api-keys/{key}', [DashboardController::class, 'showApiKey'])->name('dashboard.api-keys.show');
     Route::get('/bio', [DashboardController::class, 'bio'])->name('dashboard.bio');

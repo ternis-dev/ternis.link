@@ -20,6 +20,10 @@
         @endif
         <div class="mt-4 flex flex-wrap gap-2">
             <a href="{{ route('public-dashboard.links.edit', $link->id) }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Edit link</a>
+            <form method="POST" action="{{ route('public-dashboard.links.duplicate', $link->id) }}" class="inline">
+                @csrf
+                <button type="submit" class="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Duplicate</button>
+            </form>
             <a href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" target="_blank" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Visit link ↗</a>
             <a href="{{ route('public-dashboard.links.qr', $link->id) }}" class="rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-indigo-500">Download QR</a>
         </div>

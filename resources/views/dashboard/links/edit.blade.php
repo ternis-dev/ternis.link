@@ -6,6 +6,10 @@
         :backLabel="$backLabel ?? 'Back to Links'"
     />
 
+    @if (session('info'))
+        <x-ui.alert tone="info" class="mb-6 max-w-2xl">{{ session('info') }}</x-ui.alert>
+    @endif
+
     <div class="max-w-2xl">
         <livewire:dashboard.link-edit-form :link="$link" />
     </div>
