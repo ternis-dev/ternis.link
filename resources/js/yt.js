@@ -164,10 +164,11 @@
     }());
 
     /* ── Live Preview Simulator Tabs ────────────────────────
-     * Switches between Description, Pinned Comment, and Outro */
+     * Switches between Description, Pinned Comment, and Outro.
+     * Click activates; arrow keys move focus and activate
+     * (roving tabindex per the tabs pattern). */
     (function initSimulator() {
-        document.addEventListener('click', function (e) {
-            var tab = e.target.closest('[data-sim-tab]');
+        function activate(tab) {
             if (!tab) return;
 
             var tabs = document.querySelectorAll('.yt-sim-tab');
@@ -178,6 +179,7 @@
                 var isActive = (t === tab);
                 t.classList.toggle('is-active', isActive);
                 t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                t.tabIndex = isActive ? 0 : -1;
             });
 
             views.forEach(function (v) {
@@ -189,6 +191,36 @@
                     v.hidden = true;
                 }
             });
+        }
+
+        document.addEventListener('click', function (e) {
+            var tab = e.target.closest('[data-sim-tab]');
+            if (!tab) return;
+            activate(tab);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            var tab = e.target.closest && e.target.closest('[data-sim-tab]');
+            if (!tab) return;
+
+            var tabs = Array.prototype.slice.call(document.querySelectorAll('.yt-sim-tab'));
+            var i = tabs.indexOf(tab);
+            var next = null;
+
+            if (e.key === 'ArrowRight') next = tabs[(i + 1) % tabs.length];
+            else if (e.key === 'ArrowLeft') next = tabs[(i - 1 + tabs.length) % tabs.length];
+            else if (e.key === 'Home') next = tabs[0];
+            else if (e.key === 'End') next = tabs[tabs.length - 1];
+            else return;
+
+            e.preventDefault();
+            activate(next);
+            next.focus();
+        });
+
+        // First paint: only the active tab is in tab order.
+        document.querySelectorAll('.yt-sim-tab').forEach(function (t) {
+            t.tabIndex = t.classList.contains('is-active') ? 0 : -1;
         });
     }());
 

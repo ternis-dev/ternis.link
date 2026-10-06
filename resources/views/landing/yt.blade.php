@@ -14,6 +14,7 @@
     <meta property="og:url" content="https://href.yt/">
     <meta name="twitter:card" content="summary">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <noscript><style>.yt-loader { display: none !important; }</style></noscript>
     @vite(['resources/css/landing-public.css', 'resources/css/yt.css', 'resources/js/yt.js'])
     @livewireStyles
     @if (config('services.turnstile.key'))
@@ -113,19 +114,24 @@
             </span>
             <div class="yt-presets-list">
                 <button type="button" class="yt-preset-btn" data-preset-url="https://youtube.com/watch?v=dQw4w9WgXcQ">
-                    📺 Video Link
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="3"/><polygon points="10.5,9.5 15.5,12 10.5,14.5" fill="currentColor" stroke="none"/></svg>
+                    Video Link
                 </button>
                 <button type="button" class="yt-preset-btn" data-preset-url="https://youtube.com/@creator?sub_confirmation=1" title="Appends 1-click channel subscription prompt">
-                    🔔 1-Click Subscribe
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+                    1-Click Subscribe
                 </button>
                 <button type="button" class="yt-preset-btn" data-preset-url="https://youtu.be/dQw4w9WgXcQ?t=1m30s" title="Starts playback at specific timestamp">
-                    ⏱ Timestamp Jump
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                    Timestamp Jump
                 </button>
                 <button type="button" class="yt-preset-btn" data-preset-url="https://twitch.tv/streamer">
-                    🟣 Twitch Live
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Twitch Live
                 </button>
                 <button type="button" class="yt-preset-btn" data-preset-url="https://store.example.com/drop?utm_source=youtube&utm_medium=video_desc">
-                    🛍 Merch Drop + UTM
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h15l-1.5 9h-12z"/><path d="M6 7 5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+                    Merch Drop + UTM
                 </button>
             </div>
         </section>
@@ -136,35 +142,35 @@
         </section>
 
         {{-- ── Live stats ──────────────────────────────────── --}}
-        <dl class="yt-stats" aria-label="Network stats">
-            <div class="yt-stat">
+        <div class="yt-stats" role="list" aria-label="Network stats">
+            <div class="yt-stat" role="listitem">
                 <div class="yt-stat-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
                 </div>
-                <dd class="yt-stat-num"
+                <p class="yt-stat-num"
                     data-target="{{ $stats['total_links'] ?? 0 }}"
-                    data-suffix="">0</dd>
-                <dt class="yt-stat-label">links created</dt>
+                    data-suffix="">0</p>
+                <p class="yt-stat-label">links created</p>
             </div>
-            <div class="yt-stat">
+            <div class="yt-stat" role="listitem">
                 <div class="yt-stat-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></svg>
                 </div>
-                <dd class="yt-stat-num"
+                <p class="yt-stat-num"
                     data-target="{{ $stats['total_clicks'] ?? 0 }}"
-                    data-suffix="">0</dd>
-                <dt class="yt-stat-label">redirects counted</dt>
+                    data-suffix="">0</p>
+                <p class="yt-stat-label">redirects counted</p>
             </div>
-            <div class="yt-stat">
+            <div class="yt-stat" role="listitem">
                 <div class="yt-stat-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H12L11 22l8.5-11.5H13L13 2Z"/></svg>
                 </div>
-                <dd class="yt-stat-num"
+                <p class="yt-stat-num"
                     data-target="{{ $stats['links_today'] ?? 0 }}"
-                    data-suffix="">0</dd>
-                <dt class="yt-stat-label">created today</dt>
+                    data-suffix="">0</p>
+                <p class="yt-stat-label">created today</p>
             </div>
-        </dl>
+        </div>
 
         {{-- ── Interactive Simulator Section ───────────────── --}}
         <section class="yt-sim-section" id="simulator" aria-labelledby="sim-title">
@@ -176,22 +182,22 @@
 
             <div class="yt-sim-card">
                 <div class="yt-sim-tabs" role="tablist" aria-label="Simulator views">
-                    <button type="button" class="yt-sim-tab is-active" data-sim-tab="desc" role="tab" aria-selected="true" aria-controls="sim-desc-view">
+                    <button type="button" class="yt-sim-tab is-active" id="sim-tab-desc" data-sim-tab="desc" role="tab" aria-selected="true" aria-controls="sim-desc-view">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>
                         Video Description
                     </button>
-                    <button type="button" class="yt-sim-tab" data-sim-tab="pin" role="tab" aria-selected="false" aria-controls="sim-pin-view">
+                    <button type="button" class="yt-sim-tab" id="sim-tab-pin" data-sim-tab="pin" role="tab" aria-selected="false" aria-controls="sim-pin-view">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         Pinned Comment
                     </button>
-                    <button type="button" class="yt-sim-tab" data-sim-tab="outro" role="tab" aria-selected="false" aria-controls="sim-outro-view">
+                    <button type="button" class="yt-sim-tab" id="sim-tab-outro" data-sim-tab="outro" role="tab" aria-selected="false" aria-controls="sim-outro-view">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
                         End-Card QR Overlay
                     </button>
                 </div>
 
                 {{-- Tab 1: Video Description --}}
-                <div class="yt-sim-view is-active" id="sim-desc-view" role="tabpanel">
+                <div class="yt-sim-view is-active" id="sim-desc-view" role="tabpanel" aria-labelledby="sim-tab-desc" tabindex="0">
                     <div class="yt-mock-desc">
                         <p class="yt-mock-title">How I Built a Viral SaaS in 14 Days (Full Breakdown)</p>
                         <p class="yt-mock-meta">142K views · 2 days ago</p>
@@ -205,7 +211,7 @@
                 </div>
 
                 {{-- Tab 2: Pinned Comment --}}
-                <div class="yt-sim-view" id="sim-pin-view" role="tabpanel" hidden>
+                <div class="yt-sim-view" id="sim-pin-view" role="tabpanel" aria-labelledby="sim-tab-pin" tabindex="0" hidden>
                     <div class="yt-mock-comment">
                         <div class="yt-mock-avatar">YT</div>
                         <div class="yt-mock-comment-content">
@@ -222,7 +228,7 @@
                 </div>
 
                 {{-- Tab 3: End-Card QR Overlay --}}
-                <div class="yt-sim-view" id="sim-outro-view" role="tabpanel" hidden>
+                <div class="yt-sim-view" id="sim-outro-view" role="tabpanel" aria-labelledby="sim-tab-outro" tabindex="0" hidden>
                     <div class="yt-mock-video">
                         <div class="yt-mock-video-bg">
                             <div class="yt-mock-video-inner">

@@ -50,6 +50,27 @@ class YtLandingTest extends TestCase
         $response->assertSee('not affiliated with, endorsed by, authorized by, or in any way officially connected with YouTube, Google LLC, Alphabet Inc.', escape: false);
     }
 
+    public function test_href_yt_landing_uses_accessible_markup(): void
+    {
+        $response = $this->get('http://href.yt/');
+
+        $response->assertStatus(200);
+
+        // Stats are a real list (valid dl); presets use SVG, not emoji.
+        $response->assertSee('role="list" aria-label="Network stats"', escape: false);
+        $response->assertSee('role="listitem"', escape: false);
+        $response->assertDontSee('📺');
+        $response->assertDontSee('🔔');
+
+        // Simulator tabs are labelled and wired to their panels.
+        $response->assertSee('aria-labelledby="sim-tab-desc"', escape: false);
+        $response->assertSee('aria-labelledby="sim-tab-pin"', escape: false);
+        $response->assertSee('id="sim-tab-outro"', escape: false);
+
+        // Preloader never traps no-JS visitors.
+        $response->assertSee('<noscript>', escape: false);
+    }
+
     public function test_href_yt_v1_endpoints_are_forbidden_and_return_404(): void
     {
         // Must NOT allow calling /v1/qr on href.yt
