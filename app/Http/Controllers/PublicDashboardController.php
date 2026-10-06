@@ -72,7 +72,14 @@ class PublicDashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('public-dashboard.index', compact('stats', 'byDomain', 'expiringSoon', 'topLinks'));
+        $recentClicks = Click::whereIn('link_id', (clone $base)->select('links.id'))
+            ->where('is_direct_url', false)
+            ->with('link.domain')
+            ->orderByDesc('created_at')
+            ->limit(8)
+            ->get();
+
+        return view('public-dashboard.index', compact('stats', 'byDomain', 'expiringSoon', 'topLinks', 'recentClicks'));
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Dashboard\LinkImport;
 use App\Livewire\Dashboard\LinkTable;
 use App\Models\ApiKey;
+use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -271,6 +272,24 @@ class PublicDashboardTest extends TestCase
         // Order on the page follows clicks desc.
         $content = $response->getContent();
         $this->assertTrue(strpos($content, 'pub-top-hot') < strpos($content, 'pub-top-warm'));
+    }
+
+    public function test_overview_shows_latest_clicks_feed(): void
+    {
+        $public = $this->makeLink('href.nz', 'pub-feed-1');
+        $personal = $this->makeLink('clicked.at', 'dash-feed-1');
+
+        Click::create(['link_id' => $public->id, 'referrer' => 'https://example.com/post', 'is_direct_url' => false]);
+        Click::create(['link_id' => $public->id, 'is_direct_url' => true]);
+        Click::create(['link_id' => $personal->id, 'referrer' => 'https://example.com/other', 'is_direct_url' => false]);
+
+        $response = $this->actingAs($this->user)->get('http://my.href.nz/');
+
+        $response->assertOk()
+            ->assertSee('Latest clicks', escape: false)
+            ->assertSee('pub-feed-1')
+            ->assertSee('example.com', escape: false)
+            ->assertViewHas('recentClicks', fn ($collection) => $collection->pluck('link_id')->all() === [$public->id]);
     }
 
     public function test_qr_zip_contains_only_public_links(): void

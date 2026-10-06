@@ -92,4 +92,19 @@
             </ul>
         </div>
     @endif
+
+    @if (($recentClicks ?? collect())->isNotEmpty())
+        <div class="pd-card mt-6 rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 class="mb-1 font-display text-lg font-bold tracking-tight">Latest clicks</h3>
+            <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Fresh traffic across your public links.</p>
+            <ul class="space-y-2">
+                @foreach ($recentClicks as $click)
+                    <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-neutral-50 px-4 py-2.5 text-sm dark:bg-white/5">
+                        <a href="{{ route('public-dashboard.links.show', $click->link->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($click->link->domain->hostname ?? 'href.nz').'/'.$click->link->slug }}</a>
+                        <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ $click->created_at->diffForHumans() }}@if ($click->referrer) · {{ Str::limit(parse_url($click->referrer, PHP_URL_HOST) ?? $click->referrer, 28) }}@endif</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 </x-layouts.public-dashboard>
