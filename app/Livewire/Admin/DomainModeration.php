@@ -75,6 +75,8 @@ class DomainModeration extends Component
                 DomainUrls::dashboard('/domains'),
                 'View your domains',
             );
+
+            $this->dispatch('notify', message: "Domain {$domain->hostname} deactivated.", type: 'info');
         }
     }
 

@@ -60,7 +60,8 @@ class DashboardSettingsTest extends TestCase
             ->set('theme', 'dark')
             ->call('save')
             ->assertHasNoErrors()
-            ->assertSet('saved', true);
+            ->assertSet('saved', true)
+            ->assertDispatched('notify', message: 'Settings saved.', type: 'success');
 
         $this->assertSame('top', $this->user->fresh()->nav_layout);
         $this->assertSame('dark', $this->user->fresh()->theme);

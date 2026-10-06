@@ -294,6 +294,8 @@ class LinkForm extends Component
 
         if ($this->modal) {
             $this->dispatch('link-created');
+        } else {
+            $this->dispatch('notify', message: "Short link {$link->slug} created.", type: 'success');
         }
 
         // Reset form (keep the chosen length)

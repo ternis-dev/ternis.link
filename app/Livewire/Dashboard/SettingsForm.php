@@ -59,6 +59,7 @@ class SettingsForm extends Component
 
         // Applies immediately in this browser (localStorage + repaint).
         $this->dispatch('tl:theme-preference', theme: $this->theme);
+        $this->dispatch('notify', message: 'Settings saved.', type: 'success');
     }
 
     public function render()

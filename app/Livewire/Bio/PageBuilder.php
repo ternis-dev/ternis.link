@@ -235,6 +235,8 @@ class PageBuilder extends Component
         $this->reset(['title', 'bio', 'avatar_url', 'slug', 'parent_id', 'template']);
         $this->theme = 'minimal';
         $this->selectPage($page->id);
+
+        $this->dispatch('notify', message: 'Bio page created.', type: 'success');
     }
 
     public function createSub(BioService $bio): void
@@ -278,6 +280,8 @@ class PageBuilder extends Component
 
         $this->reset(['slug', 'subTitle']);
         $this->selectPage($page->id);
+
+        $this->dispatch('notify', message: 'Sub-page created.', type: 'success');
     }
 
     public function savePage(BioService $bio): void
@@ -318,6 +322,8 @@ class PageBuilder extends Component
 
         $this->page_password = null;
         $bio->forgetCaches($page->fresh());
+
+        $this->dispatch('notify', message: 'Page saved.', type: 'success');
     }
 
     public function removePassword(BioService $bio): void
@@ -329,6 +335,8 @@ class PageBuilder extends Component
         }
 
         $bio->clearPassword($page);
+
+        $this->dispatch('notify', message: 'Page password removed.', type: 'info');
     }
 
     public function duplicateSub(BioService $bio, string $pageId): void
@@ -445,6 +453,8 @@ class PageBuilder extends Component
         $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newThumbnail', 'newContactEmail', 'newContactPhone', 'newOpenNew', 'newBadge', 'newEventAt', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
         $this->newKind = 'link';
         $this->newAction = 'url';
+
+        $this->dispatch('notify', message: 'Button added.', type: 'success');
     }
 
     public function toggleButton(BioService $bio, string $buttonId): void
@@ -460,6 +470,8 @@ class PageBuilder extends Component
         )->all();
 
         $bio->syncButtons($page, $current, auth()->user());
+
+        $this->dispatch('notify', message: 'Button toggled.', type: 'info');
     }
 
     public function moveButton(BioService $bio, string $buttonId, string $direction): void
@@ -604,6 +616,8 @@ class PageBuilder extends Component
         if ($this->editingButtonId === $buttonId) {
             $this->cancelEditButton();
         }
+
+        $this->dispatch('notify', message: 'Button removed.', type: 'info');
     }
 
     public function startEditButton(string $buttonId): void
@@ -692,6 +706,8 @@ class PageBuilder extends Component
         }
 
         $this->cancelEditButton();
+
+        $this->dispatch('notify', message: 'Button updated.', type: 'success');
     }
 
     public function deactivatePage(BioService $bio, string $pageId): void
@@ -708,6 +724,8 @@ class PageBuilder extends Component
         if ($this->editingPageId === $pageId) {
             $this->editingPageId = null;
         }
+
+        $this->dispatch('notify', message: 'Page deactivated.', type: 'info');
     }
 
     public function duplicateButton(BioService $bio, string $buttonId): void
@@ -808,6 +826,8 @@ class PageBuilder extends Component
             $this->editingPageId = $page->parent_id;
             $this->selectPage($page->parent_id);
         }
+
+        $this->dispatch('notify', message: 'Sub-page deleted.', type: 'error');
     }
 
     public function checkLinks(BioService $bio): void
@@ -825,6 +845,14 @@ class PageBuilder extends Component
         } finally {
             $this->checkingLinks = false;
         }
+
+        $broken = collect($this->linkHealth ?? [])->where('ok', false)->count();
+
+        $this->dispatch(
+            'notify',
+            message: $broken === 0 ? 'All button links are healthy.' : "{$broken} button link(s) need attention.",
+            type: $broken === 0 ? 'success' : 'error',
+        );
     }
 
     /**

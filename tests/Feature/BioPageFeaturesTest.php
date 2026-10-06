@@ -191,7 +191,8 @@ class BioPageFeaturesTest extends TestCase
             ->set('button_style', 'soft')
             ->set('page_password', 'builder-secret')
             ->call('savePage')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('notify', message: 'Page saved.', type: 'success');
 
         $fresh = $page->fresh();
         $this->assertSame('soft', $fresh->button_style);

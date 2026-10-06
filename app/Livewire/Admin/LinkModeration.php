@@ -65,6 +65,8 @@ class LinkModeration extends Component
                 DomainUrls::dashboard('/links'),
                 'View your links',
             );
+
+            $this->dispatch('notify', message: "Link {$link->slug} deactivated.", type: 'info');
         }
     }
 
@@ -114,6 +116,8 @@ class LinkModeration extends Component
                 DomainUrls::dashboard('/links'),
                 'View your links',
             );
+
+            $this->dispatch('notify', message: "Link {$link->slug} removed.", type: 'error');
         }
     }
 

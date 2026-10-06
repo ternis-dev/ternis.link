@@ -137,6 +137,8 @@ class LinkEditForm extends Component
         Activity::record(ActivityLog::LINK_UPDATED, auth()->user(), $this->link, [
             'slug' => $this->link->slug,
         ]);
+
+        $this->dispatch('notify', message: "Link {$this->link->slug} saved.", type: 'success');
     }
 
     public function removePassword(LinkService $linkService): void
@@ -146,6 +148,8 @@ class LinkEditForm extends Component
         $this->link = $link->fresh();
         $this->syncFromModel();
         $this->saved = true;
+
+        $this->dispatch('notify', message: 'Password removed — link is public again.', type: 'info');
     }
 
     public function render()

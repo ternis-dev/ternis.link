@@ -82,7 +82,8 @@ class DomainManagerTest extends TestCase
             ->set('hostname', 'Links.Example.COM ')
             ->call('addDomain')
             ->assertHasNoErrors()
-            ->assertSee('_ternis-verify.links.example.com');
+            ->assertSee('_ternis-verify.links.example.com')
+            ->assertDispatched('notify', message: 'links.example.com added — publish the TXT record to verify it.', type: 'success');
 
         $this->assertDatabaseHas('domains', [
             'hostname' => 'links.example.com',

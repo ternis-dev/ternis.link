@@ -67,6 +67,8 @@ class LinkTargeting extends Component
         $this->persist($links, $link, $rows);
         $this->reset(['label', 'destination_url', 'country_codes', 'device']);
         $this->weight = 100;
+
+        $this->dispatch('notify', message: 'Target added.', type: 'success');
     }
 
     public function startEdit(string $targetId): void
@@ -120,6 +122,8 @@ class LinkTargeting extends Component
 
         $this->persist($links, $link, $rows);
         $this->cancelEdit();
+
+        $this->dispatch('notify', message: 'Target updated.', type: 'success');
     }
 
     public function toggleTarget(LinkService $links, string $targetId): void
@@ -135,6 +139,8 @@ class LinkTargeting extends Component
         )->all();
 
         $this->persist($links, $link, $rows);
+
+        $this->dispatch('notify', message: 'Target toggled.', type: 'info');
     }
 
     public function removeTarget(LinkService $links, string $targetId): void
@@ -155,6 +161,8 @@ class LinkTargeting extends Component
         if ($this->editingTargetId === $targetId) {
             $this->cancelEdit();
         }
+
+        $this->dispatch('notify', message: 'Target removed.', type: 'info');
     }
 
     public function render()

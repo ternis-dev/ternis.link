@@ -49,6 +49,8 @@ class BioModeration extends Component
                 DomainUrls::dashboard('/bio'),
                 'View your bio pages',
             );
+
+            $this->dispatch('notify', message: "Bio page “{$page->title}” deactivated.", type: 'info');
         }
     }
 
@@ -85,6 +87,8 @@ class BioModeration extends Component
                 DomainUrls::dashboard('/bio'),
                 'View your bio pages',
             );
+
+            $this->dispatch('notify', message: "Bio page “{$page->title}” removed.", type: 'error');
         }
     }
 

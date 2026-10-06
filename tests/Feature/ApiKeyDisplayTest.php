@@ -130,7 +130,8 @@ class ApiKeyDisplayTest extends TestCase
         $test->call('startEditing', $key->id)
             ->set('editingKeyName', 'After Rename')
             ->call('saveKeyName')
-            ->assertSet('editingKeyId', null);
+            ->assertSet('editingKeyId', null)
+            ->assertDispatched('notify');
 
         $this->assertSame('After Rename', $key->fresh()->name);
     }

@@ -244,6 +244,8 @@ class VisualBuilder extends Component
         $this->savedRecently = true;
         session()->flash('status', 'Page settings saved successfully.');
         $bio->forgetCaches($page->fresh());
+
+        $this->dispatch('notify', message: 'Page settings saved.', type: 'success');
     }
 
     public function createSub(BioService $bio): void
@@ -274,6 +276,8 @@ class VisualBuilder extends Component
 
         $this->reset(['newSubSlug', 'newSubTitle', 'showNewSubModal']);
         $this->edit($page->id);
+
+        $this->dispatch('notify', message: 'Sub-page created.', type: 'success');
     }
 
     public function deleteSub(BioService $bio, string $subId): void
@@ -296,6 +300,8 @@ class VisualBuilder extends Component
         if ($this->editingPageId === $subId) {
             $this->edit($this->family->id);
         }
+
+        $this->dispatch('notify', message: 'Sub-page deleted.', type: 'error');
     }
 
     public function duplicateSub(BioService $bio, string $subId): void
@@ -398,6 +404,8 @@ class VisualBuilder extends Component
         $this->reset(['newLabel', 'newSublabel', 'newUrl', 'newIcon', 'newThumbnail', 'newContactEmail', 'newContactPhone', 'newOpenNew', 'newBadge', 'newEventAt', 'newStartsAt', 'newEndsAt', 'newTargetPage', 'newModalTitle', 'newModalBody']);
         $this->newKind = 'link';
         $this->newAction = 'url';
+
+        $this->dispatch('notify', message: 'Button added.', type: 'success');
     }
 
     public function toggleButton(BioService $bio, string $buttonId): void
@@ -413,6 +421,8 @@ class VisualBuilder extends Component
         )->all();
 
         $bio->syncButtons($page, $rows, auth()->user());
+
+        $this->dispatch('notify', message: 'Button toggled.', type: 'info');
     }
 
     public function removeButton(BioService $bio, string $buttonId): void
@@ -433,6 +443,8 @@ class VisualBuilder extends Component
         if ($this->editingButtonId === $buttonId) {
             $this->cancelEditButton();
         }
+
+        $this->dispatch('notify', message: 'Button removed.', type: 'info');
     }
 
     public function duplicateButton(BioService $bio, string $buttonId): void
@@ -608,6 +620,8 @@ class VisualBuilder extends Component
         }
 
         $this->cancelEditButton();
+
+        $this->dispatch('notify', message: 'Button updated.', type: 'success');
     }
 
     public function reorder(BioService $bio, array $orderedIds): void

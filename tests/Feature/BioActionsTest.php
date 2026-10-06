@@ -170,7 +170,8 @@ class BioActionsTest extends TestCase
             ->set('newAction', 'subpage')
             ->set('newTargetPage', $sub->id)
             ->call('addButton')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('notify', message: 'Button added.', type: 'success');
 
         $this->assertDatabaseHas('bio_buttons', [
             'bio_page_id' => $root->id,

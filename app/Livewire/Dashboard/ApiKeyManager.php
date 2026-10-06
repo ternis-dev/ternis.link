@@ -65,6 +65,8 @@ class ApiKeyManager extends Component
         $this->newlyCreatedKey = $rawKey;
         $this->keyName = '';
         $this->newKeyShowOnDashboard = true;
+
+        $this->dispatch('notify', message: "API key “{$key->name}” created — copy it now, it won't be shown again.", type: 'success');
     }
 
     /**
@@ -82,6 +84,8 @@ class ApiKeyManager extends Component
             'key_prefix' => $key->key_prefix,
             'show_on_dashboard' => $key->fresh()->show_on_dashboard,
         ]);
+
+        $this->dispatch('notify', message: $key->fresh()->show_on_dashboard ? "Links for “{$key->name}” show on the dashboard." : "Links for “{$key->name}” moved to its key page.", type: 'info');
     }
 
     public function startEditing(string $keyId): void
@@ -118,6 +122,8 @@ class ApiKeyManager extends Component
         ]);
 
         $this->cancelEditing();
+
+        $this->dispatch('notify', message: "API key renamed to “{$key->fresh()->name}”.", type: 'success');
     }
 
     public function revokeKey(string $keyId): void
@@ -137,6 +143,8 @@ class ApiKeyManager extends Component
             DomainUrls::dashboard('/api-keys'),
             'View API keys',
         );
+
+        $this->dispatch('notify', message: "API key “{$key->name}” revoked.", type: 'error');
     }
 
     public function dismissNewKey(): void

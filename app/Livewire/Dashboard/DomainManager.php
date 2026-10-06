@@ -107,6 +107,8 @@ class DomainManager extends Component
         Activity::record(ActivityLog::DOMAIN_REGISTERED, auth()->user(), $domain, [
             'hostname' => $domain->hostname,
         ]);
+
+        $this->dispatch('notify', message: "{$domain->hostname} added — publish the TXT record to verify it.", type: 'success');
     }
 
     /**
@@ -142,6 +144,8 @@ class DomainManager extends Component
             DomainUrls::dashboard('/domains'),
             'View your domains',
         );
+
+        $this->dispatch('notify', message: "{$domain->hostname} verified and ready for links.", type: 'success');
     }
 
     /**
@@ -172,6 +176,8 @@ class DomainManager extends Component
             DomainUrls::dashboard('/domains'),
             'View your domains',
         );
+
+        $this->dispatch('notify', message: "{$domain->hostname} deactivated — links and stats preserved.", type: 'info');
     }
 
     /**

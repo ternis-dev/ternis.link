@@ -70,6 +70,8 @@ class UserTable extends Component
             'Manage users',
             auth()->user(),
         );
+
+        $this->dispatch('notify', message: "Role for {$user->email} set to {$role}.", type: 'success');
     }
 
     public function updatePlan(string $userId, string $planId): void
@@ -102,6 +104,8 @@ class UserTable extends Component
             'Manage users',
             auth()->user(),
         );
+
+        $this->dispatch('notify', message: "Plan for {$user->email} set to {$plan->name}.", type: 'success');
     }
 
     public function render()
