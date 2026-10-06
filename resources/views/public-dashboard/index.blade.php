@@ -36,7 +36,7 @@
             <a href="{{ route('public-dashboard.links') }}" class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">View all →</a>
         </div>
         @if ($stats['total_links'] === 0)
-            <div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-500 p-8 text-center text-white">
+            <div class="rounded-xl bg-indigo-600 p-8 text-center text-white">
                 <h4 class="font-display text-xl font-bold">Shorten your first link</h4>
                 <p class="mx-auto mt-2 max-w-md text-sm text-white/80">Paste any long URL and get an 8-character link back — or sign the details with a custom slug, tags, and expiry.</p>
                 <div class="mt-5 flex flex-wrap justify-center gap-2">

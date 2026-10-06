@@ -32,7 +32,7 @@ $nav = [
                     type="button"
                     x-data
                     @click="$dispatch('open-link-creator')"
-                    class="cursor-pointer rounded-full bg-white px-5 py-2.5 text-sm font-bold text-indigo-700 shadow-lg transition hover:bg-indigo-50"
+                    class="cursor-pointer rounded-full bg-white px-5 py-2.5 text-sm font-bold text-indigo-700 transition hover:bg-indigo-50"
                 >
                     + New short link
                 </button>

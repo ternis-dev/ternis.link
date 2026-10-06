@@ -31,8 +31,8 @@
 
     <div class="pd-card mb-6 rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
         <div class="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-            <div class="rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-500 p-1.5">
-                <img src="{{ $qrSvg }}" alt="QR code for {{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}" class="h-40 w-40 rounded-xl bg-white p-2">
+            <div class="rounded-xl border border-neutral-200 bg-white p-1.5 dark:border-neutral-700 dark:bg-neutral-950">
+                <img src="{{ $qrSvg }}" alt="QR code for {{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}" class="h-40 w-40 rounded-lg bg-white p-2">
             </div>
             <div>
                 <h3 class="font-display text-lg font-bold tracking-tight">QR Code</h3>

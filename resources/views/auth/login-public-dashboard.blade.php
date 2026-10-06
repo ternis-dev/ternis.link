@@ -26,7 +26,7 @@
             <p class="mt-6 w-full rounded-2xl border border-red-300 bg-red-50 p-4 text-left text-sm text-red-800" role="alert">{{ session('error') }}</p>
         @endif
 
-        <a href="{{ url('/auth/redirect') }}" class="mt-8 rounded-full bg-indigo-600 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-indigo-600/25 transition hover:bg-indigo-500">
+        <a href="{{ url('/auth/redirect') }}" class="mt-8 rounded-full bg-indigo-600 px-8 py-3.5 text-base font-bold text-white transition hover:bg-indigo-500">
             Log in with Ternis Auth
         </a>
 
