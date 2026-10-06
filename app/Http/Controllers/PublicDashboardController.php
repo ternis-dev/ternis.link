@@ -2,40 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ScopesPublicLinks;
 use App\Models\Click;
 use App\Models\QrGeneration;
-use App\Models\User;
 use App\Services\LinkService;
-use App\Support\DomainUrls;
 use App\Support\LinkQrCode;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Public links dashboard (my.ternis.link ONLY) — the authenticated home for
+ * Public links dashboard (my.ternis.link) — the authenticated home for
  * href.nz + meinlink.at + href.yt (+ qr.href.nz) links.
  *
- * Strict hostname partition with dash.ternis.link:
- * - here: only links on PublicDashboard hostnames
- * - dash: everything else (clicked.at, ternis.link, href.re, partner,
- *   custom domains) — enforced by scoping every query below.
+ * Strict hostname partition with dash.ternis.link (clicked.at,
+ * ternis.link, href.re, partner and custom domains stay there; links
+ * without a domain row stay there too).
  *
  * Account-level sections (API keys, domains, bio, notifications,
  * activity, settings) stay single-homed on dash.ternis.link; this
  * controller serves overview + links CRUD + per-link analytics only.
+ *
+ * View/route prefixes make the legacy dashboard a thin subclass; the
+ * queries and exports below serve both UIs unchanged.
  */
 class PublicDashboardController extends Controller
 {
+    use ScopesPublicLinks;
+
+    protected string $views = 'public-dashboard';
+
+    protected string $routes = 'public-dashboard';
+
     /**
      * Overview stats for the signed-in user's public shortener links.
+     * Legacy opt-ins bounce to the legacy home instead.
      */
     public function index(Request $request)
     {
-        $user = $request->user();
+        if ($request->user()->public_dashboard_legacy) {
+            return redirect()->route('public-dashboard.legacy');
+        }
 
-        $base = $this->baseQuery($user);
+        return view($this->views.'.index', $this->overview($request->user()));
+    }
+
+    /**
+     * @return array{stats: array, byDomain: Collection, expiringSoon: Collection, topLinks: Collection, recentClicks: Collection}
+     */
+    protected function overview(object $user): array
+    {
+        $base = $this->publicLinksQuery($user);
         $clicks = Click::whereIn('link_id', (clone $base)->select('links.id'))
             ->where('is_direct_url', false);
 
@@ -80,7 +97,17 @@ class PublicDashboardController extends Controller
             ->limit(8)
             ->get();
 
-        return view('public-dashboard.index', compact('stats', 'byDomain', 'expiringSoon', 'topLinks', 'recentClicks'));
+        return compact('stats', 'byDomain', 'expiringSoon', 'topLinks', 'recentClicks');
+    }
+
+    /**
+     * Opt into the legacy dashboard and land on its home.
+     */
+    public function switchToLegacy(Request $request)
+    {
+        $request->user()->update(['public_dashboard_legacy' => true]);
+
+        return redirect()->route('public-dashboard.legacy');
     }
 
     /**
@@ -88,7 +115,7 @@ class PublicDashboardController extends Controller
      */
     public function links()
     {
-        return view('public-dashboard.links.index');
+        return view($this->views.'.links.index');
     }
 
     /**
@@ -96,7 +123,7 @@ class PublicDashboardController extends Controller
      */
     public function createLink()
     {
-        return view('public-dashboard.links.create');
+        return view($this->views.'.links.create');
     }
 
     /**
@@ -104,7 +131,7 @@ class PublicDashboardController extends Controller
      */
     public function importLinks()
     {
-        return view('public-dashboard.links.import');
+        return view($this->views.'.links.import');
     }
 
     /**
@@ -116,14 +143,14 @@ class PublicDashboardController extends Controller
     {
         $apiKey = auth()->user()->apiKeys()->findOrFail($key);
 
-        $links = $this->baseQuery(auth()->user())->where('links.api_key_id', $apiKey->id);
+        $links = $this->publicLinksQuery(auth()->user())->where('links.api_key_id', $apiKey->id);
 
         $stats = [
             'total_links' => (clone $links)->count(),
             'total_clicks' => (clone $links)->sum('links.click_count'),
         ];
 
-        return view('public-dashboard.api-keys.show', compact('apiKey', 'stats'));
+        return view($this->views.'.api-keys.show', compact('apiKey', 'stats'));
     }
 
     /**
@@ -134,14 +161,14 @@ class PublicDashboardController extends Controller
      */
     public function showLink(Request $request, string $link)
     {
-        $link = $this->baseQuery(auth()->user())
+        $link = $this->publicLinksQuery(auth()->user())
             ->with(['domain', 'apiKey:id,name,key_prefix'])
             ->findOrFail($link);
 
         $qrSvg = LinkQrCode::svgDataUri($link);
         ['backHref' => $backHref, 'backLabel' => $backLabel] = $this->linkBackContext($request);
 
-        return view('public-dashboard.links.show', compact('link', 'qrSvg', 'backHref', 'backLabel'));
+        return view($this->views.'.links.show', compact('link', 'qrSvg', 'backHref', 'backLabel'));
     }
 
     /**
@@ -149,21 +176,35 @@ class PublicDashboardController extends Controller
      */
     public function editLink(Request $request, string $link)
     {
-        $link = $this->baseQuery(auth()->user())
+        $link = $this->publicLinksQuery(auth()->user())
             ->with(['domain', 'apiKey:id,name,key_prefix'])
             ->findOrFail($link);
 
         ['backHref' => $backHref, 'backLabel' => $backLabel] = $this->linkBackContext($request);
 
-        return view('public-dashboard.links.edit', compact('link', 'backHref', 'backLabel'));
+        return view($this->views.'.links.edit', compact('link', 'backHref', 'backLabel'));
+    }
+
+    /**
+     * Duplicate a link (fresh slug, same setup) and continue on its
+     * edit page. Scoped like showLink.
+     */
+    public function duplicate(string $link)
+    {
+        $link = $this->publicLinksQuery(auth()->user())->with('domain')->findOrFail($link);
+
+        $copy = app(LinkService::class)->duplicate($link, auth()->user());
+
+        return redirect()->route($this->routes.'.links.edit', $copy->id)
+            ->with('info', "Duplicated as {$copy->domain->hostname}/{$copy->slug} — set a slug, expiry, or password to finish.");
     }
 
     /**
      * Export the user's public shortener catalog as CSV.
      */
-    public function exportLinks(Request $request)
+    public function exportLinks()
     {
-        $links = $this->baseQuery(auth()->user())
+        $links = $this->publicLinksQuery(auth()->user())
             ->with(['domain', 'apiKey:id,name'])
             ->orderByDesc('links.created_at')
             ->cursor();
@@ -211,7 +252,7 @@ class PublicDashboardController extends Controller
      */
     public function exportClicks(string $link)
     {
-        $link = $this->baseQuery(auth()->user())->with('domain')->findOrFail($link);
+        $link = $this->publicLinksQuery(auth()->user())->with('domain')->findOrFail($link);
 
         $clicks = $link->clicks()
             ->where('is_direct_url', false)
@@ -247,7 +288,7 @@ class PublicDashboardController extends Controller
      */
     public function qrCode(string $link)
     {
-        $link = $this->baseQuery(auth()->user())->with('domain')->findOrFail($link);
+        $link = $this->publicLinksQuery(auth()->user())->with('domain')->findOrFail($link);
 
         $filename = 'qr-'.$link->slug.'.png';
         QrGeneration::create(['link_id' => $link->id, 'format' => 'png']);
@@ -259,26 +300,12 @@ class PublicDashboardController extends Controller
     }
 
     /**
-     * Duplicate a link (fresh slug, same setup) and continue on its
-     * edit page. Scoped like showLink.
-     */
-    public function duplicate(string $link)
-    {
-        $link = $this->baseQuery(auth()->user())->with('domain')->findOrFail($link);
-
-        $copy = app(LinkService::class)->duplicate($link, auth()->user());
-
-        return redirect()->route('public-dashboard.links.edit', $copy->id)
-            ->with('info', "Duplicated as {$copy->domain->hostname}/{$copy->slug} — set a slug, expiry, or password to finish.");
-    }
-
-    /**
      * Download QR codes for all own public links as a ZIP archive
      * (one print-ready PNG per link, capped at 100 newest).
      */
     public function qrZip()
     {
-        $links = $this->baseQuery(auth()->user())
+        $links = $this->publicLinksQuery(auth()->user())
             ->with('domain')
             ->orderByDesc('links.created_at')
             ->limit(100)
@@ -327,40 +354,26 @@ class PublicDashboardController extends Controller
 
     /**
      * Back-link context for link detail/edit pages. When `from_api_key`
-     * names an owned key, point back at its public per-key page;
+     * names an owned key, point back at its per-key page on this UI;
      * otherwise fall back to the main links list.
      *
      * @return array{backHref: string, backLabel: string}
      */
-    private function linkBackContext(Request $request): array
+    protected function linkBackContext(Request $request): array
     {
         $fromApiKey = $request->query('from_api_key');
 
         if (is_string($fromApiKey) && $fromApiKey !== ''
             && auth()->user()->apiKeys()->whereKey($fromApiKey)->exists()) {
             return [
-                'backHref' => route('public-dashboard.api-keys.show', $fromApiKey),
+                'backHref' => route($this->routes.'.api-keys.show', $fromApiKey),
                 'backLabel' => 'Back to API key links',
             ];
         }
 
         return [
-            'backHref' => route('public-dashboard.links'),
+            'backHref' => route($this->routes.'.links'),
             'backLabel' => 'Back to Links',
         ];
-    }
-
-    /**
-     * Base query: own non-removed links on public-dashboard hostnames.
-     *
-     * @param  User  $user
-     * @return HasMany|Builder
-     */
-    private function baseQuery($user): object
-    {
-        return $user->links()->notRemoved()->whereHas(
-            'domain',
-            fn (Builder $q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames())
-        );
     }
 }

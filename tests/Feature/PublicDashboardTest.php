@@ -63,8 +63,43 @@ class PublicDashboardTest extends TestCase
             ->get('http://my.ternis.link/')
             ->assertOk()
             ->assertViewHas('stats', fn ($stats) => $stats['total_links'] === 3)
-            ->assertSee('pd-hero', escape: false)
-            ->assertSee('pd-stat', escape: false);
+            ->assertSee('nd-stat-value', escape: false)
+            ->assertSee('Links by domain', escape: false);
+    }
+
+    public function test_legacy_opt_in_redirects_home_to_legacy(): void
+    {
+        $this->user->update(['public_dashboard_legacy' => true]);
+
+        // New links/import pages stay put; only the home bounces.
+        $this->actingAs($this->user)
+            ->get('http://my.ternis.link/')
+            ->assertRedirect('http://my.ternis.link/_legacy');
+
+        $this->actingAs($this->user)
+            ->get('http://my.ternis.link/_legacy')
+            ->assertOk()
+            ->assertSee('pd-hero', escape: false);
+    }
+
+    public function test_dashboard_switch_round_trip(): void
+    {
+        // Guests bounce to same-host login on both switch routes.
+        $this->post('http://my.ternis.link/switch-to-legacy')
+            ->assertRedirect('http://my.ternis.link/login');
+
+        // Opt out by default.
+        $this->assertFalse($this->user->fresh()->public_dashboard_legacy);
+
+        $this->actingAs($this->user)
+            ->post('http://my.ternis.link/switch-to-legacy')
+            ->assertRedirect('http://my.ternis.link/_legacy');
+        $this->assertTrue($this->user->fresh()->public_dashboard_legacy);
+
+        $this->actingAs($this->user)
+            ->post('http://my.ternis.link/_legacy/use-new')
+            ->assertRedirect('http://my.ternis.link');
+        $this->assertFalse($this->user->fresh()->public_dashboard_legacy);
     }
 
     public function test_links_table_partitions_public_and_personal(): void
@@ -200,7 +235,7 @@ class PublicDashboardTest extends TestCase
         $this->actingAs($this->user)
             ->get('http://my.ternis.link/')
             ->assertOk()
-            ->assertSee('Shorten your first link', escape: false);
+            ->assertSee('Paste any long URL', escape: false);
 
         $this->makeLink('href.nz', 'pub-bd-1');
         $this->makeLink('href.nz', 'pub-bd-2');
@@ -212,7 +247,7 @@ class PublicDashboardTest extends TestCase
             ->assertSee('Links by domain', escape: false)
             ->assertSee('href.nz', escape: false)
             ->assertSee('meinlink.at', escape: false)
-            ->assertDontSee('Shorten your first link', escape: false);
+            ->assertDontSee('Paste any long URL', escape: false);
     }
 
     public function test_link_table_filters_by_domain_on_public_theme(): void

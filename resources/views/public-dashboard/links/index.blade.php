@@ -1,17 +1,18 @@
 <x-layouts.public-dashboard title="Links — my.ternis.link">
-    <div class="mb-6">
-        <h2 class="font-display text-2xl font-bold tracking-tight">Your Links</h2>
-        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">href.nz, meinlink.at &amp; href.yt — everything else lives on dash.ternis.link.</p>
-    </div>
+    <x-pd.head
+        title="Your Links"
+        subtitle="href.nz, meinlink.at and href.yt — everything else lives on dash.ternis.link."
+    >
+        <x-slot:actions>
+            <x-pd.button href="{{ route('public-dashboard.links.import') }}" variant="secondary" size="sm">Import CSV</x-pd.button>
+            <x-pd.button href="{{ route('public-dashboard.links.export-all') }}" variant="secondary" size="sm">Export CSV</x-pd.button>
+            <x-pd.button href="{{ route('public-dashboard.links.qr-zip') }}" variant="secondary" size="sm">QR ZIP</x-pd.button>
+            <x-pd.button variant="primary" size="sm" x-data @click="$dispatch('open-link-creator')">+ New link</x-pd.button>
+        </x-slot:actions>
+    </x-pd.head>
 
-    <div class="pd-card mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-        <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ auth()->user()->name }} · {{ auth()->user()->plan?->name ?? 'free' }} plan</p>
-        <div class="flex flex-wrap gap-2">
-            <a href="{{ route('public-dashboard.links.import') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Import CSV</a>
-            <a href="{{ route('public-dashboard.links.export-all') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Export CSV</a>
-            <a href="{{ route('public-dashboard.links.qr-zip') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">QR ZIP</a>
-            <button type="button" x-data @click="$dispatch('open-link-creator')" class="cursor-pointer rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-indigo-500">+ New link</button>
-        </div>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+        <p>{{ auth()->user()->name }} · {{ auth()->user()->plan?->name ?? 'free' }} plan</p>
     </div>
 
     <livewire:dashboard.link-table scope="public" theme="public" />

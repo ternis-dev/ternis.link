@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/css/clicked.css',
                 'resources/css/yt.css',
                 'resources/css/public-dashboard.css',
+                'resources/css/public-dashboard-legacy.css',
                 'resources/js/app.js',
                 'resources/js/yt.js',
             ],

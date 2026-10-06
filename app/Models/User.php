@@ -25,6 +25,7 @@ class User extends Authenticatable
         'plan_id',
         'nav_layout',
         'theme',
+        'public_dashboard_legacy',
         'notify_security_email',
         'notify_admin_security_email',
         'notify_server_error_email',
@@ -43,6 +44,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'role' => UserRole::class,
+        'public_dashboard_legacy' => 'boolean',
         'notify_security_email' => 'boolean',
         'notify_admin_security_email' => 'boolean',
         'notify_server_error_email' => 'boolean',

@@ -1,22 +1,18 @@
 <x-layouts.public-dashboard title="API Key Links — my.ternis.link">
-    <div class="mb-6">
-        <a href="{{ route('public-dashboard.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
-        <div class="mt-2 flex flex-wrap items-center gap-3">
-            <h2 class="font-display text-2xl font-bold tracking-tight">{{ $apiKey->name }}</h2>
-            <span class="pd-domain-chip">{{ $apiKey->key_prefix }}…</span>
-        </div>
-        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Public links created with this key. Key management lives on dash.ternis.link.</p>
-    </div>
+    <x-pd.head
+        :title="$apiKey->name"
+        subtitle="Public links created with this key. Key management lives on dash.ternis.link."
+        :backHref="route('public-dashboard.links')"
+        backLabel="Back to Links"
+    >
+        <x-slot:actions>
+            <x-pd.chip>{{ $apiKey->key_prefix }}…</x-pd.chip>
+        </x-slot:actions>
+    </x-pd.head>
 
     <div class="mb-6 grid grid-cols-2 gap-4">
-        <div class="pd-stat">
-            <div class="pd-stat-value">{{ number_format($stats['total_links']) }}</div>
-            <div class="pd-stat-label">Key links</div>
-        </div>
-        <div class="pd-stat">
-            <div class="pd-stat-value">{{ number_format($stats['total_clicks']) }}</div>
-            <div class="pd-stat-label">Key clicks</div>
-        </div>
+        <x-pd.stat :value="number_format($stats['total_links'])" label="Key links" />
+        <x-pd.stat :value="number_format($stats['total_clicks'])" label="Key clicks" />
     </div>
 
     <livewire:dashboard.link-table :api-key-id="$apiKey->id" :key="'public-key-'.$apiKey->id" scope="public" theme="public" />

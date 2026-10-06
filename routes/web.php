@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\ExtensionController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\LegacyPublicDashboardController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\PublicDashboardController;
@@ -147,18 +148,44 @@ if (app()->environment('local', 'testing')) {
 
 /*
 |----------------------------------------------------------------------
-| Public dashboard (my.ternis.link ONLY) — authenticated home for href.nz,
-| meinlink.at and href.yt links. Strict hostname partition with
-| dash.ternis.link (clicked.at, ternis.link, href.re, partner and
-| custom domains stay there). Account-level sections (API keys,
-| domains, bio, notifications, activity, settings) stay single-homed
-| on dash; this group serves overview + links only. Retired my.href.nz
-| and my.href.yt 302 to the canonical host in ResolveDomain.
+| Legacy public dashboard (my.ternis.link/_legacy/* ONLY) — the previous
+| indigo UI for href.nz, meinlink.at and href.yt links. Same strict
+| hostname partition as the new dashboard; account-level sections stay
+| single-homed on dash. Users opt in per account and switch back any
+| time; new users land on the new dashboard at the domain root.
 |
 | Registered BEFORE the dash group: every route is pinned to the
 | canonical host, so dash/localhost requests skip them and fall
 | through to the dash versions below. (Host-blind routes below would
 | otherwise shadow these — Laravel matches the FIRST route per URI.)
+|----------------------------------------------------------------------
+*/
+Route::domain((string) config('domains.public_dashboard_host', 'my.ternis.link'))
+    ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
+    ->group(function () {
+        Route::get('/_legacy', [LegacyPublicDashboardController::class, 'index'])->name('public-dashboard.legacy');
+        Route::get('/_legacy/new', [LegacyPublicDashboardController::class, 'createLink'])->name('public-dashboard.legacy.new');
+        Route::get('/_legacy/links', [LegacyPublicDashboardController::class, 'links'])->name('public-dashboard.legacy.links');
+        Route::get('/_legacy/links/create', [LegacyPublicDashboardController::class, 'createLink'])->name('public-dashboard.legacy.links.create');
+        Route::get('/_legacy/links/import', [LegacyPublicDashboardController::class, 'importLinks'])->name('public-dashboard.legacy.links.import');
+        Route::get('/_legacy/links/export', [LegacyPublicDashboardController::class, 'exportLinks'])->name('public-dashboard.legacy.links.export-all');
+        Route::get('/_legacy/links/qr-zip', [LegacyPublicDashboardController::class, 'qrZip'])->name('public-dashboard.legacy.links.qr-zip');
+        Route::get('/_legacy/links/{link}', [LegacyPublicDashboardController::class, 'showLink'])->name('public-dashboard.legacy.links.show');
+        Route::get('/_legacy/links/{link}/edit', [LegacyPublicDashboardController::class, 'editLink'])->name('public-dashboard.legacy.links.edit');
+        Route::get('/_legacy/links/{link}/export', [LegacyPublicDashboardController::class, 'exportClicks'])->name('public-dashboard.legacy.links.export');
+        Route::get('/_legacy/links/{link}/qr', [LegacyPublicDashboardController::class, 'qrCode'])->name('public-dashboard.legacy.links.qr');
+        Route::post('/_legacy/links/{link}/duplicate', [LegacyPublicDashboardController::class, 'duplicate'])->name('public-dashboard.legacy.links.duplicate');
+        Route::get('/_legacy/api-keys/{key}', [LegacyPublicDashboardController::class, 'showApiKey'])->name('public-dashboard.legacy.api-keys.show');
+        Route::get('/_legacy/settings/export/{export}/download', [LegacyPublicDashboardController::class, 'downloadExport'])->name('public-dashboard.legacy.settings.export-download');
+        Route::post('/_legacy/use-new', [LegacyPublicDashboardController::class, 'switchToNew'])->name('public-dashboard.legacy.switch-new');
+    });
+
+/*
+|----------------------------------------------------------------------
+| Public dashboard (my.ternis.link ONLY) — the new UI for href.nz,
+| meinlink.at and href.yt links. Same strict partition and feature
+| set as legacy (overview, links, import/export, QR, per-key pages).
+| Users with the legacy opt-in bounce to /_legacy from the home page.
 |----------------------------------------------------------------------
 */
 Route::domain((string) config('domains.public_dashboard_host', 'my.ternis.link'))
@@ -178,6 +205,7 @@ Route::domain((string) config('domains.public_dashboard_host', 'my.ternis.link')
         Route::post('/links/{link}/duplicate', [PublicDashboardController::class, 'duplicate'])->name('public-dashboard.links.duplicate');
         Route::get('/api-keys/{key}', [PublicDashboardController::class, 'showApiKey'])->name('public-dashboard.api-keys.show');
         Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name('public-dashboard.settings.export-download');
+        Route::post('/switch-to-legacy', [PublicDashboardController::class, 'switchToLegacy'])->name('public-dashboard.switch-legacy');
     });
 
 /*

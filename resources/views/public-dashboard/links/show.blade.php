@@ -1,50 +1,46 @@
 <x-layouts.public-dashboard title="Link Analytics — {{ $link->slug }}">
-    <div class="mb-6">
-        <a href="{{ $backHref ?? route('public-dashboard.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← {{ $backLabel ?? 'Back to Links' }}</a>
-        <div class="mt-2 flex flex-wrap items-center gap-3">
-            <h2 class="font-display text-2xl font-bold tracking-tight">{{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}</h2>
-            <span class="pd-domain-chip">{{ $link->domain->hostname ?? 'href.nz' }}</span>
-        </div>
-        <p class="mt-1 max-w-2xl truncate text-sm text-neutral-500 dark:text-neutral-400">
+    <x-pd.head
+        :title="($link->domain->hostname ?? 'href.nz').'/'.$link->slug"
+        :backHref="$backHref ?? route('public-dashboard.links')"
+        :backLabel="$backLabel ?? 'Back to Links'"
+    >
+        <x-slot:subtitle>
             Target: <a href="{{ $link->destination_url }}" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">{{ $link->destination_url }}</a>
-        </p>
-        @if ($link->description)
-            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{ $link->description }}</p>
-        @endif
-        @if (! empty($link->tags))
-            <p class="mt-1.5 flex flex-wrap gap-1.5">
-                @foreach ($link->tags as $tag)
-                    <span class="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-300">{{ $tag }}</span>
-                @endforeach
-            </p>
-        @endif
-        <div class="mt-4 flex flex-wrap gap-2">
-            <a href="{{ route('public-dashboard.links.edit', $link->id) }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Edit link</a>
-            <button type="button" data-copy="{{ $link->short_url }}" title="Copy short link" aria-label="Copy short link {{ $link->slug }} to clipboard" class="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Copy</button>
+            @if ($link->description)
+                <span class="mt-1 block text-xs">{{ $link->description }}</span>
+            @endif
+            @if (! empty($link->tags))
+                <span class="mt-1.5 flex flex-wrap gap-1.5">
+                    @foreach ($link->tags as $tag)
+                        <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">{{ $tag }}</span>
+                    @endforeach
+                </span>
+            @endif
+        </x-slot:subtitle>
+        <x-slot:actions>
+            <x-pd.button href="{{ route('public-dashboard.links.edit', $link->id) }}" variant="secondary" size="sm">Edit link</x-pd.button>
             <form method="POST" action="{{ route('public-dashboard.links.duplicate', $link->id) }}" class="inline">
                 @csrf
-                <button type="submit" class="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Duplicate</button>
+                <x-pd.button type="submit" variant="secondary" size="sm">Duplicate</x-pd.button>
             </form>
-            <a href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" target="_blank" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Visit link ↗</a>
-            <a href="{{ route('public-dashboard.links.qr', $link->id) }}" class="rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-indigo-500">Download QR</a>
-        </div>
-    </div>
+            <x-pd.button href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" variant="secondary" size="sm" target="_blank">Visit link ↗</x-pd.button>
+            <x-pd.button href="{{ route('public-dashboard.links.qr', $link->id) }}" variant="primary" size="sm">Download QR</x-pd.button>
+        </x-slot:actions>
+    </x-pd.head>
 
-    <div class="pd-card mb-6 rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-        <div class="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-            <div class="rounded-xl border border-neutral-200 bg-white p-1.5 dark:border-neutral-700 dark:bg-neutral-950">
-                <img src="{{ $qrSvg }}" alt="QR code for {{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}" class="h-40 w-40 rounded-lg bg-white p-2">
-            </div>
+    <x-pd.card title="QR Code" class="mb-6">
+        <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+            <img src="{{ $qrSvg }}" alt="QR code for {{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}" class="h-40 w-40 rounded-lg border border-neutral-200 bg-white p-2 dark:border-neutral-700">
             <div>
-                <h3 class="font-display text-lg font-bold tracking-tight">QR Code</h3>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Scan to open <code class="rounded bg-indigo-50 px-1 py-0.5 text-xs text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-300">https://{{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}</code></p>
+                <p class="text-sm font-medium">Scan to open <code class="rounded bg-emerald-50 px-1 py-0.5 text-xs text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">https://{{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}</code></p>
                 <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">PNG download, 600×600 — print-ready for flyers and stickers.</p>
-                <div class="mt-3">
-                    <a href="{{ route('public-dashboard.links.qr', $link->id) }}" class="rounded-full bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-indigo-500">Download PNG</a>
+                <div class="mt-3 flex gap-2">
+                    <x-pd.button href="{{ route('public-dashboard.links.qr', $link->id) }}" size="sm" variant="primary">Download PNG</x-pd.button>
+                    <x-pd.button size="sm" variant="secondary" data-copy="{{ $link->short_url }}" title="Copy short link">Copy link</x-pd.button>
                 </div>
             </div>
         </div>
-    </div>
+    </x-pd.card>
 
     <livewire:dashboard.link-analytics :link="$link" theme="public" />
 </x-layouts.public-dashboard>
