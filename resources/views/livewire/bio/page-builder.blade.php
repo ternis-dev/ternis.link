@@ -285,9 +285,9 @@
                         </span>
                         <span class="flex shrink-0 items-center gap-1.5 text-xs">
                             <button type="button" wire:click="startEditButton('{{ $b->id }}')" class="cursor-pointer hover:underline">Edit</button>
-                            <button type="button" wire:click="duplicateButton('{{ $b->id }}')" class="cursor-pointer hover:underline" title="Duplicate">⧉</button>
-                            <button type="button" wire:click="moveButton('{{ $b->id }}', 'up')" class="cursor-pointer hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === 0)>↑</button>
-                            <button type="button" wire:click="moveButton('{{ $b->id }}', 'down')" class="cursor-pointer hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === $buttonList->count() - 1)>↓</button>
+                            <button type="button" wire:click="duplicateButton('{{ $b->id }}')" class="cursor-pointer hover:underline" title="Duplicate" aria-label="Duplicate button">⧉</button>
+                            <button type="button" wire:click="moveButton('{{ $b->id }}', 'up')" class="cursor-pointer hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === 0) title="Move up" aria-label="Move button up">↑</button>
+                            <button type="button" wire:click="moveButton('{{ $b->id }}', 'down')" class="cursor-pointer hover:underline disabled:cursor-default disabled:opacity-30" @disabled($index === $buttonList->count() - 1) title="Move down" aria-label="Move button down">↓</button>
                             <button type="button" wire:click="toggleButton('{{ $b->id }}')" class="cursor-pointer hover:underline">{{ $b->is_active ? 'Pause' : 'Resume' }}</button>
                             <button type="button" wire:click="removeButton('{{ $b->id }}')" class="cursor-pointer text-red-600 hover:underline">Remove</button>
                         </span>
