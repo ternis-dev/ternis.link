@@ -273,6 +273,62 @@ class PublicDashboardTest extends TestCase
         $this->assertTrue(strpos($content, 'pub-top-hot') < strpos($content, 'pub-top-warm'));
     }
 
+    public function test_qr_zip_contains_only_public_links(): void
+    {
+        $this->makeLink('href.nz', 'pub-qr-zip');
+        $this->makeLink('clicked.at', 'dash-qr-zip');
+
+        $response = $this->actingAs($this->user)
+            ->get('http://my.href.nz/links/qr-zip');
+
+        $response->assertOk()
+            ->assertHeader('Content-Type', 'application/zip');
+
+        $names = $this->zipNames($response->streamedContent());
+        $this->assertContains('qr-href.nz-pub-qr-zip.png', $names);
+        $this->assertNotContains('qr-clicked.at-dash-qr-zip.png', $names);
+
+        // PNG magic bytes inside the first entry.
+        $tmp = tempnam(sys_get_temp_dir(), 'qr-test-');
+        file_put_contents($tmp, $response->streamedContent());
+        $zip = new \ZipArchive;
+        $zip->open($tmp);
+        $this->assertStringStartsWith("\x89PNG", $zip->getFromIndex(0));
+        $zip->close();
+        unlink($tmp);
+    }
+
+    public function test_qr_zip_requires_links_and_login(): void
+    {
+        $this->get('http://my.href.nz/links/qr-zip')
+            ->assertRedirect('http://my.href.nz/login');
+
+        $other = User::factory()->create();
+
+        $this->actingAs($other)
+            ->get('http://my.href.nz/links/qr-zip')
+            ->assertNotFound();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function zipNames(string $binary): array
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'qr-names-');
+        file_put_contents($tmp, $binary);
+        $zip = new \ZipArchive;
+        $zip->open($tmp);
+        $names = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $names[] = $zip->getNameIndex($i);
+        }
+        $zip->close();
+        unlink($tmp);
+
+        return $names;
+    }
+
     public function test_global_header_adapts_to_public_dashboard(): void
     {
         $this->actingAs($this->user)

@@ -167,6 +167,7 @@ Route::domain((string) config('domains.public_dashboard_host', 'my.href.nz'))
         Route::get('/links/create', [PublicDashboardController::class, 'createLink'])->name('public-dashboard.links.create');
         Route::get('/links/import', [PublicDashboardController::class, 'importLinks'])->name('public-dashboard.links.import');
         Route::get('/links/export', [PublicDashboardController::class, 'exportLinks'])->name('public-dashboard.links.export-all');
+        Route::get('/links/qr-zip', [PublicDashboardController::class, 'qrZip'])->name('public-dashboard.links.qr-zip');
         Route::get('/links/{link}', [PublicDashboardController::class, 'showLink'])->name('public-dashboard.links.show');
         Route::get('/links/{link}/edit', [PublicDashboardController::class, 'editLink'])->name('public-dashboard.links.edit');
         Route::get('/links/{link}/export', [PublicDashboardController::class, 'exportClicks'])->name('public-dashboard.links.export');
@@ -286,6 +287,7 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
     Route::get('/links/import', [DashboardController::class, 'importLinks'])->name('dashboard.links.import');
     Route::get('/links/export', [DashboardController::class, 'exportLinks'])->name('dashboard.links.export-all');
+    Route::get('/links/qr-zip', [DashboardController::class, 'qrZip'])->name('dashboard.links.qr-zip');
     Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
     Route::get('/links/{link}/edit', [DashboardController::class, 'editLink'])->name('dashboard.links.edit');
     Route::get('/links/{link}/export', [DashboardController::class, 'exportClicks'])->name('dashboard.links.export');

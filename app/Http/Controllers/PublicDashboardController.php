@@ -251,6 +251,38 @@ class PublicDashboardController extends Controller
     }
 
     /**
+     * Download QR codes for all own public links as a ZIP archive
+     * (one print-ready PNG per link, capped at 100 newest).
+     */
+    public function qrZip()
+    {
+        $links = $this->baseQuery(auth()->user())
+            ->with('domain')
+            ->orderByDesc('links.created_at')
+            ->limit(100)
+            ->get();
+
+        abort_if($links->isEmpty(), 404, 'No links to export.');
+
+        $tmp = tempnam(sys_get_temp_dir(), 'qr-zip-').'.zip';
+
+        $zip = new \ZipArchive;
+        $zip->open($tmp, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        foreach ($links as $link) {
+            $host = $link->domain?->hostname ?? config('domains.public_host', 'href.nz');
+            $zip->addFromString('qr-'.$host.'-'.$link->slug.'.png', LinkQrCode::png($link));
+        }
+
+        $zip->close();
+
+        return response()->streamDownload(function () use ($tmp) {
+            readfile($tmp);
+            @unlink($tmp);
+        }, 'qr-codes-'.now()->format('Y-m-d').'.zip', ['Content-Type' => 'application/zip']);
+    }
+
+    /**
      * Download an own privacy export ZIP (owner only, before expiry).
      * Served on both dashboards so public-only users are not stranded.
      */

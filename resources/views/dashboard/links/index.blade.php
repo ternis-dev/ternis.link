@@ -3,6 +3,7 @@
         <x-slot:actions>
             <x-ui.button href="{{ route('dashboard.links.import') }}" size="sm" variant="secondary">Import CSV</x-ui.button>
             <x-ui.button href="{{ route('dashboard.links.export-all') }}" size="sm" variant="secondary">Export CSV</x-ui.button>
+            <x-ui.button href="{{ route('dashboard.links.qr-zip') }}" size="sm" variant="secondary">QR ZIP</x-ui.button>
             <x-ui.button variant="primary" x-data @click="$dispatch('open-link-creator')">+ Create Link</x-ui.button>
         </x-slot:actions>
     </x-ui.page-header>

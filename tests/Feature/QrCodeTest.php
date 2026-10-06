@@ -83,6 +83,45 @@ class QrCodeTest extends TestCase
             ->assertRedirect('http://dash.ternis.link/login');
     }
 
+    public function test_qr_zip_contains_only_personal_links(): void
+    {
+        Link::create([
+            'slug' => 'dash-qr-zip',
+            'destination_url' => 'https://example.com/dash',
+            'domain_id' => Domain::where('hostname', 'clicked.at')->firstOrFail()->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+        Link::create([
+            'slug' => 'public-qr-zip',
+            'destination_url' => 'https://example.com/pub',
+            'domain_id' => Domain::where('hostname', 'href.nz')->firstOrFail()->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->get('http://dash.ternis.link/links/qr-zip');
+
+        $response->assertStatus(200)
+            ->assertHeader('Content-Type', 'application/zip');
+
+        $tmp = tempnam(sys_get_temp_dir(), 'qr-dash-');
+        file_put_contents($tmp, $response->streamedContent());
+        $zip = new \ZipArchive;
+        $zip->open($tmp);
+        $names = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $names[] = $zip->getNameIndex($i);
+        }
+        $this->assertStringStartsWith("\x89PNG", $zip->getFromIndex(0));
+        $zip->close();
+        unlink($tmp);
+
+        $this->assertContains('qr-clicked.at-dash-qr-zip.png', $names);
+        $this->assertNotContains('qr-href.nz-public-qr-zip.png', $names);
+    }
+
     public function test_public_host_cannot_call_v1_qr_directly_and_uses_pretty_qr(): void
     {
         $this->get('http://href.nz/v1/qr?url='.urlencode('https://href.nz/qrtest1').'&format=png')

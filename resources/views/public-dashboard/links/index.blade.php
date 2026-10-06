@@ -9,6 +9,7 @@
         <div class="flex gap-2">
             <a href="{{ route('public-dashboard.links.import') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Import CSV</a>
             <a href="{{ route('public-dashboard.links.export-all') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Export CSV</a>
+            <a href="{{ route('public-dashboard.links.qr-zip') }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">QR ZIP</a>
             <button type="button" x-data @click="$dispatch('open-link-creator')" class="cursor-pointer rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-indigo-500">+ New link</button>
         </div>
     </div>
