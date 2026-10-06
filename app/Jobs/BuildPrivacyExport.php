@@ -66,15 +66,76 @@ class BuildPrivacyExport implements ShouldQueue
             }
             fclose($keysHandle);
 
+            // activity.csv (own actions + admin actions on own stuff; no IPs/user-agents)
+            $activityHandle = fopen(Storage::disk('local')->path("{$dir}/activity.csv"), 'w');
+            fputcsv($activityHandle, ['occurred_at', 'action', 'actor', 'subject_type', 'subject_label', 'metadata']);
+            \App\Models\ActivityLog::visibleTo($user->id)->orderBy('created_at')->chunk(1000, function ($entries) use ($activityHandle, $user) {
+                foreach ($entries as $e) {
+                    fputcsv($activityHandle, [
+                        $e->created_at?->toIso8601String(),
+                        $e->action,
+                        $e->actor_id === $user->id ? 'self' : 'other',
+                        $e->subject_type,
+                        $e->subject_label,
+                        $e->metadata ? json_encode($e->metadata) : '',
+                    ]);
+                }
+            });
+            fclose($activityHandle);
+
+            // errors.csv (own error encounters: what/where/when, no IPs/user-agents)
+            $errorsHandle = fopen(Storage::disk('local')->path("{$dir}/errors.csv"), 'w');
+            fputcsv($errorsHandle, ['occurred_at', 'http_code', 'exception', 'method', 'host', 'path', 'message']);
+            \App\Models\ErrorEncounter::where('user_id', $user->id)->orderBy('created_at')->chunk(1000, function ($errors) use ($errorsHandle) {
+                foreach ($errors as $e) {
+                    fputcsv($errorsHandle, [
+                        $e->created_at?->toIso8601String(),
+                        $e->http_code,
+                        $e->exception_class,
+                        $e->method,
+                        $e->host,
+                        $e->path,
+                        $e->error_message,
+                    ]);
+                }
+            });
+            fclose($errorsHandle);
+
+            // bio-pages.csv (own pages and buttons; no password hashes)
+            $bioHandle = fopen(Storage::disk('local')->path("{$dir}/bio-pages.csv"), 'w');
+            fputcsv($bioHandle, ['id', 'title', 'slug', 'domain', 'is_active', 'bio', 'button_count', 'created_at']);
+            foreach ($user->bioPages()->with(['domain:id,hostname'])->withCount('buttons')->get() as $p) {
+                fputcsv($bioHandle, [
+                    $p->id, $p->title, $p->slug, $p->domain?->hostname,
+                    (int) $p->is_active, $p->bio, $p->buttons_count, $p->created_at?->toIso8601String(),
+                ]);
+            }
+            fclose($bioHandle);
+
+            // notifications.csv (own inbox)
+            $notificationsHandle = fopen(Storage::disk('local')->path("{$dir}/notifications.csv"), 'w');
+            fputcsv($notificationsHandle, ['created_at', 'title', 'lines', 'action_label', 'read_at']);
+            foreach ($user->notifications()->orderBy('created_at')->get() as $n) {
+                fputcsv($notificationsHandle, [
+                    $n->created_at?->toIso8601String(),
+                    $n->data['title'] ?? null,
+                    isset($n->data['lines']) ? implode("\n", (array) $n->data['lines']) : '',
+                    $n->data['action_label'] ?? '',
+                    $n->read_at?->toIso8601String(),
+                ]);
+            }
+            fclose($notificationsHandle);
+
             file_put_contents(
                 Storage::disk('local')->path("{$dir}/README.txt"),
                 "ternis.link privacy export. Aggregates only; no visitor IPs, no key digests, no SSO tokens.\n"
+                ."activity.csv holds your actions plus admin actions on your stuff; errors.csv holds error pages shown to you.\n"
             );
 
             $zipPath = "privacy/{$export->id}.zip";
             $zip = new \ZipArchive;
             $zip->open(Storage::disk('local')->path($zipPath), \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-            foreach (['profile.json', 'links.csv', 'domains.csv', 'api-keys.csv', 'README.txt'] as $f) {
+            foreach (['profile.json', 'links.csv', 'domains.csv', 'api-keys.csv', 'activity.csv', 'errors.csv', 'bio-pages.csv', 'notifications.csv', 'README.txt'] as $f) {
                 $zip->addFile(Storage::disk('local')->path("{$dir}/{$f}"), $f);
             }
             $zip->close();

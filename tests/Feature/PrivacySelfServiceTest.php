@@ -70,7 +70,58 @@ class PrivacySelfServiceTest extends TestCase
 
         $this->assertContains('links.csv', $names);
         $this->assertContains('profile.json', $names);
+        $this->assertContains('activity.csv', $names);
+        $this->assertContains('errors.csv', $names);
+        $this->assertContains('bio-pages.csv', $names);
+        $this->assertContains('notifications.csv', $names);
         $this->assertNotContains('api_keys.csv', array_diff($names, ['api-keys.csv']));
+    }
+
+    public function test_export_includes_activity_errors_bio_and_notifications(): void
+    {
+        $link = Link::create([
+            'slug' => 'priv03',
+            'destination_url' => 'https://example.com/r',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        \App\Support\Activity::record(\App\Models\ActivityLog::LINK_CREATED, $this->user, $link, ['slug' => 'priv03']);
+
+        \App\Models\ErrorEncounter::create([
+            'http_code' => 404,
+            'error_message' => 'Link not found.',
+            'exception_class' => 'NotFoundHttpException',
+            'method' => 'GET',
+            'host' => 'href.nz',
+            'path' => '/missing',
+            'user_id' => $this->user->id,
+            'ip_hash' => hash('sha256', '9.9.9.9'),
+        ]);
+
+        $this->user->notify(new \App\Notifications\SecurityAlert('Export test', ['line one'], null, null));
+
+        $response = $this->postJson('http://links.t-api.de/v1/account/export', [], ['Authorization' => "Bearer {$this->rawApiKey}"]);
+        $response->assertStatus(202);
+
+        $export = \App\Models\PrivacyExport::findOrFail($response->json('id'));
+        $zipPath = \Illuminate\Support\Facades\Storage::disk('local')->path($export->fresh()->path);
+
+        $zip = new \ZipArchive;
+        $zip->open($zipPath);
+
+        $activity = $zip->getFromName('activity.csv');
+        $this->assertStringContainsString('priv03', $activity);
+
+        $errors = $zip->getFromName('errors.csv');
+        $this->assertStringContainsString('Link not found.', $errors);
+        $this->assertStringNotContainsString(hash('sha256', '9.9.9.9'), $errors);
+
+        $notifications = $zip->getFromName('notifications.csv');
+        $this->assertStringContainsString('Export test', $notifications);
+
+        $zip->close();
     }
 
     public function test_deletion_requires_sso(): void
