@@ -166,4 +166,69 @@
     .theme-toggle .icon-moon {
         @apply block dark:hidden;
     }
+
+    /* Toasts — fixed bottom-right stack, created lazily by showToast().
+     * Neutral on dash/admin; indigo info accent on public pages. */
+    .tl-toasts {
+        @apply fixed right-4 bottom-4 z-[100] flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-2;
+    }
+
+    .tl-toast {
+        @apply flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-3.5 shadow-lg dark:border-neutral-700 dark:bg-neutral-900;
+        opacity: 0;
+        transform: translateY(8px);
+        transition:
+            opacity 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .tl-toast--in {
+        opacity: 1;
+        transform: none;
+    }
+
+    .tl-toast--leaving {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    .tl-toast-icon {
+        @apply mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full;
+    }
+
+    .tl-toast-icon svg {
+        @apply h-3.5 w-3.5;
+    }
+
+    .tl-toast--success .tl-toast-icon {
+        @apply bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300;
+    }
+
+    .tl-toast--error .tl-toast-icon {
+        @apply bg-red-100 text-red-700 dark:bg-red-400/15 dark:text-red-300;
+    }
+
+    .tl-toast--info .tl-toast-icon {
+        @apply bg-neutral-100 text-neutral-700 dark:bg-white/10 dark:text-neutral-200;
+    }
+
+    .tl-toasts--public .tl-toast--info .tl-toast-icon {
+        @apply bg-indigo-100 text-indigo-700 dark:bg-indigo-400/15 dark:text-indigo-300;
+    }
+
+    .tl-toast-body {
+        @apply min-w-0 flex-1;
+    }
+
+    .tl-toast-title {
+        @apply text-sm font-bold text-neutral-900 dark:text-white;
+    }
+
+    .tl-toast-message {
+        @apply text-sm text-neutral-600 dark:text-neutral-300;
+    }
+
+    .tl-toast-close {
+        @apply -mt-0.5 shrink-0 cursor-pointer rounded-md px-1 text-lg leading-none text-neutral-400 transition-colors hover:text-neutral-900 dark:hover:text-white;
+    }
 }

@@ -47,6 +47,17 @@ class LinkImport extends Component
     {
         $this->results = $this->parseRows($links, app(JunkUrlDetector::class), app(UnsafeUrlValidator::class), dryRun: false);
         $this->dryRun = false;
+
+        $created = collect($this->results)->where('ok', true)->count();
+        $failed = count($this->results) - $created;
+
+        $this->dispatch(
+            'notify',
+            message: $failed === 0
+                ? "Imported {$created} link(s)."
+                : "Imported {$created} link(s), {$failed} row(s) need attention.",
+            type: $failed === 0 ? 'success' : 'error',
+        );
     }
 
     /**

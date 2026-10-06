@@ -83,6 +83,35 @@ class LinkBulkUiTest extends TestCase
         $this->assertTrue((bool) $theirs->fresh()->is_active);
     }
 
+    public function test_table_actions_dispatch_notify_toasts(): void
+    {
+        $link = $this->makeLink('bulk-n01');
+
+        Livewire::actingAs($this->user)
+            ->test(LinkTable::class)
+            ->call('deactivate', $link->id)
+            ->assertHasNoErrors()
+            ->assertDispatched('notify', message: 'Deactivated bulk-n01.', type: 'info');
+
+        $other = $this->makeLink('bulk-n02');
+
+        Livewire::actingAs($this->user)
+            ->test(LinkTable::class)
+            ->set('selected', [$other->id])
+            ->call('bulkSetActive', false)
+            ->assertHasNoErrors()
+            ->assertDispatched('notify', message: '1 link(s) deactivated.', type: 'success');
+    }
+
+    public function test_import_dispatches_notify_toast(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(LinkImport::class)
+            ->set('csv', "https://example.com/a,href.nz,toast-a\nnot-a-url")
+            ->call('import')
+            ->assertDispatched('notify', message: 'Imported 1 link(s), 1 row(s) need attention.', type: 'error');
+    }
+
     public function test_table_bulk_empty_selection_notices(): void
     {
         Livewire::actingAs($this->user)

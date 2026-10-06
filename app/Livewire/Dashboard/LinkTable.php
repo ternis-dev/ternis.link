@@ -169,6 +169,8 @@ class LinkTable extends Component
             'slug' => $link->slug,
             'via' => 'dashboard',
         ]);
+
+        $this->dispatch('notify', message: "Deactivated {$link->slug}.", type: 'info');
     }
 
     public function toggleSelectAll(bool $select): void
@@ -208,6 +210,10 @@ class LinkTable extends Component
         $this->bulkNotice = $done === 0
             ? 'No eligible links selected.'
             : "{$done} link(s) ".($active ? 'activated' : 'deactivated').($skipped > 0 ? " ({$skipped} skipped)." : '.');
+
+        if ($done > 0) {
+            $this->dispatch('notify', message: $this->bulkNotice, type: 'success');
+        }
     }
 
     public function render()
