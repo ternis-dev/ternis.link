@@ -98,9 +98,3 @@ docs.ternis.link {
     file_server
     encode gzip
 }
-
-# Realtime socket server (Soketi, Pusher protocol — see docs/websockets.md)
-ws.ternis.link {
-    reverse_proxy 127.0.0.1:6001
-    encode gzip
-}

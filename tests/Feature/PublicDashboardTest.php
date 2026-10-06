@@ -247,7 +247,8 @@ class PublicDashboardTest extends TestCase
             ->get('http://my.ternis.link/links')
             ->assertOk()
             ->assertSee('data-copy="https://href.nz/pub-copy-1"', escape: false)
-            ->assertSee('wire:loading', escape: false);
+            ->assertSee('wire:loading', escape: false)
+            ->assertSee('wire:poll.30s.visible', escape: false);
 
         $this->actingAs($this->user)
             ->get("http://my.ternis.link/links/{$link->id}")

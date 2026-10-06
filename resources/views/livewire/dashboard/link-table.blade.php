@@ -1,7 +1,7 @@
 @php
     $rp = ($theme ?? 'dashboard') === 'public' ? 'public-dashboard.' : 'dashboard.';
 @endphp
-<div>
+<div wire:poll.30s.visible>
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div class="flex min-w-0 flex-1 flex-wrap items-center gap-3">
             <x-ui.input

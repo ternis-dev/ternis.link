@@ -96,23 +96,5 @@
     </footer>
 
     @livewireScripts
-
-    {{-- Realtime config for echo.js (signed-in users, socket broadcaster
-      configured). Absent blob → echo stays disabled, no errors. --}}
-    @auth
-        @if (config('broadcasting.default') !== 'null' && config('broadcasting.connections.pusher.key'))
-            <script type="application/json" id="tl-echo-config">
-                {!! json_encode([
-                    'key' => config('broadcasting.connections.pusher.key'),
-                    'cluster' => config('broadcasting.connections.pusher.options.cluster', 'eu'),
-                    'wsHost' => config('broadcasting.connections.pusher.options.host'),
-                    'wsPort' => (int) config('broadcasting.connections.pusher.options.port', 443),
-                    'wssPort' => (int) config('broadcasting.connections.pusher.options.port', 443),
-                    'forceTLS' => config('broadcasting.connections.pusher.options.scheme', 'https') === 'https',
-                    'userId' => (string) auth()->user()->getAuthIdentifier(),
-                ]) !!}
-            </script>
-        @endif
-    @endauth
 </body>
 </html>

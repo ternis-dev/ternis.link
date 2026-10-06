@@ -4,7 +4,6 @@
 
 import './charts.js';
 import { initCharts } from './charts.js';
-import './echo.js';
 
 function applyTheme(dark, persist = true) {
     document.documentElement.classList.toggle('dark', dark);

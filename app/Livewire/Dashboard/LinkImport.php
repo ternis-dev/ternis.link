@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Dashboard;
 
-use App\Events\DashboardLinkChanged;
 use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Services\JunkUrlDetector;
@@ -59,10 +58,6 @@ class LinkImport extends Component
                 : "Imported {$created} link(s), {$failed} row(s) need attention.",
             type: $failed === 0 ? 'success' : 'error',
         );
-
-        if ($created > 0) {
-            broadcast(new DashboardLinkChanged((string) auth()->user()->id, "{$created} link(s)", 'imported'))->toOthers();
-        }
     }
 
     /**

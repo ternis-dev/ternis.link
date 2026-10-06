@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Dashboard;
 
-use App\Events\DashboardLinkChanged;
 use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\Link;
@@ -21,7 +20,7 @@ class LinkTable extends Component
      * Refresh when a link is created through the quick-create modal
      * rendered on the same page.
      */
-    protected $listeners = ['link-created' => '$refresh', 'dashboard-link-changed' => '$refresh'];
+    protected $listeners = ['link-created' => '$refresh'];
 
     public string $search = '';
 
@@ -172,8 +171,6 @@ class LinkTable extends Component
         ]);
 
         $this->dispatch('notify', message: "Deactivated {$link->slug}.", type: 'info');
-
-        broadcast(new DashboardLinkChanged((string) auth()->user()->id, $link->slug, 'deactivated'))->toOthers();
     }
 
     public function toggleSelectAll(bool $select): void
@@ -216,8 +213,6 @@ class LinkTable extends Component
 
         if ($done > 0) {
             $this->dispatch('notify', message: $this->bulkNotice, type: 'success');
-
-            broadcast(new DashboardLinkChanged((string) $user->id, "{$done} link(s)", $active ? 'bulk-activated' : 'bulk-deactivated'))->toOthers();
         }
     }
 
