@@ -304,7 +304,7 @@ class TernisAuthTest extends TestCase
 
         $this->flushSession();
 
-        $response = $this->get("http://dash.ternis.link/auth/callback?code=mock_code&state=".urlencode($params['state']));
+        $response = $this->get('http://dash.ternis.link/auth/callback?code=mock_code&state='.urlencode($params['state']));
 
         $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticated();
