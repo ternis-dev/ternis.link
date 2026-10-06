@@ -44,11 +44,11 @@ class PublicDashboardTest extends TestCase
 
     public function test_guest_is_redirected_to_same_host_login(): void
     {
-        $this->get('http://my.href.nz/')
-            ->assertRedirect('http://my.href.nz/login');
+        $this->get('http://my.ternis.link/')
+            ->assertRedirect('http://my.ternis.link/login');
 
-        $this->get('http://my.href.nz/links')
-            ->assertRedirect('http://my.href.nz/login');
+        $this->get('http://my.ternis.link/links')
+            ->assertRedirect('http://my.ternis.link/login');
     }
 
     public function test_overview_shows_only_public_shortener_links(): void
@@ -60,7 +60,7 @@ class PublicDashboardTest extends TestCase
         $this->makeLink('ternis.link', 'dash-only-2');
 
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/')
+            ->get('http://my.ternis.link/')
             ->assertOk()
             ->assertViewHas('stats', fn ($stats) => $stats['total_links'] === 3)
             ->assertSee('pd-hero', escape: false)
@@ -72,43 +72,43 @@ class PublicDashboardTest extends TestCase
         $public = $this->makeLink('href.nz', 'pub-part-1');
         $personal = $this->makeLink('clicked.at', 'pers-part-1');
 
-        // Public link: visible on my.href.nz, 404 on dash.
+        // Public link: visible on my.ternis.link, 404 on dash.
         $this->actingAs($this->user)
-            ->get("http://my.href.nz/links/{$public->id}")
+            ->get("http://my.ternis.link/links/{$public->id}")
             ->assertOk();
         $this->actingAs($this->user)
             ->get("http://dash.ternis.link/links/{$public->id}")
             ->assertNotFound();
 
-        // Dash-side link: visible on dash, 404 on my.href.nz.
+        // Dash-side link: visible on dash, 404 on my.ternis.link.
         $this->actingAs($this->user)
             ->get("http://dash.ternis.link/links/{$personal->id}")
             ->assertOk();
         $this->actingAs($this->user)
-            ->get("http://my.href.nz/links/{$personal->id}")
+            ->get("http://my.ternis.link/links/{$personal->id}")
             ->assertNotFound();
     }
 
     public function test_public_create_and_links_pages_render(): void
     {
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/links')
+            ->get('http://my.ternis.link/links')
             ->assertOk()
             ->assertSee('Your Links', escape: false);
 
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/links/create')
+            ->get('http://my.ternis.link/links/create')
             ->assertOk()
             ->assertSee('Create Short Link', escape: false);
 
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/new')
+            ->get('http://my.ternis.link/new')
             ->assertOk();
     }
 
     public function test_login_page_uses_public_theme_and_local_sso(): void
     {
-        $this->get('http://my.href.nz/login')
+        $this->get('http://my.ternis.link/login')
             ->assertOk()
             ->assertSee('Log in to your links', escape: false)
             ->assertSee('/auth/redirect', escape: false);
@@ -121,20 +121,22 @@ class PublicDashboardTest extends TestCase
         $this->actingAs($this->user)
             ->get('http://dash.ternis.link/links')
             ->assertOk()
-            ->assertSee('my.href.nz', escape: false);
+            ->assertSee('my.ternis.link', escape: false);
 
         $other = User::factory()->create();
 
         $this->actingAs($other)
             ->get('http://dash.ternis.link/links')
             ->assertOk()
-            ->assertDontSee('my.href.nz', escape: false);
+            ->assertDontSee('my.ternis.link', escape: false);
     }
 
-    public function test_alias_host_redirects_to_canonical(): void
+    public function test_legacy_hosts_redirect_to_canonical(): void
     {
+        $this->get('http://my.href.nz/links')
+            ->assertRedirect('http://my.ternis.link/links');
         $this->get('http://my.href.yt/links')
-            ->assertRedirect('http://my.href.nz/links');
+            ->assertRedirect('http://my.ternis.link/links');
     }
 
     public function test_public_export_contains_only_public_links(): void
@@ -143,7 +145,7 @@ class PublicDashboardTest extends TestCase
         $this->makeLink('clicked.at', 'dash-exp-1');
 
         $content = $this->actingAs($this->user)
-            ->get('http://my.href.nz/links/export')
+            ->get('http://my.ternis.link/links/export')
             ->assertOk()
             ->streamedContent();
 
@@ -154,15 +156,15 @@ class PublicDashboardTest extends TestCase
     public function test_public_import_page_renders(): void
     {
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/links/import')
+            ->get('http://my.ternis.link/links/import')
             ->assertOk()
             ->assertSee('Import Links', escape: false);
     }
 
     public function test_public_import_page_requires_login(): void
     {
-        $this->get('http://my.href.nz/links/import')
-            ->assertRedirect('http://my.href.nz/login');
+        $this->get('http://my.ternis.link/links/import')
+            ->assertRedirect('http://my.ternis.link/login');
     }
 
     public function test_public_import_enforces_hostname_partition(): void
@@ -189,14 +191,14 @@ class PublicDashboardTest extends TestCase
 
         $results = $component->get('results');
         $this->assertFalse($results[0]['ok']);
-        $this->assertStringContainsString('my.href.nz', $results[0]['message']);
+        $this->assertStringContainsString('my.ternis.link', $results[0]['message']);
     }
 
     public function test_overview_shows_domain_breakdown_and_first_run_state(): void
     {
         // First run: empty-state CTA instead of an empty table.
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/')
+            ->get('http://my.ternis.link/')
             ->assertOk()
             ->assertSee('Shorten your first link', escape: false);
 
@@ -205,7 +207,7 @@ class PublicDashboardTest extends TestCase
         $this->makeLink('meinlink.at', 'pub-bd-3');
 
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/')
+            ->get('http://my.ternis.link/')
             ->assertOk()
             ->assertSee('Links by domain', escape: false)
             ->assertSee('href.nz', escape: false)
@@ -246,7 +248,7 @@ class PublicDashboardTest extends TestCase
         $later->update(['expires_at' => now()->addDays(30)]);
 
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/')
+            ->get('http://my.ternis.link/')
             ->assertOk()
             ->assertSee('Expiring soon', escape: false)
             ->assertSee('pub-exp-soon')
@@ -261,7 +263,7 @@ class PublicDashboardTest extends TestCase
         $warm->update(['click_count' => 7]);
         $this->makeLink('href.yt', 'pub-top-zero');
 
-        $response = $this->actingAs($this->user)->get('http://my.href.nz/');
+        $response = $this->actingAs($this->user)->get('http://my.ternis.link/');
 
         $response->assertOk()
             ->assertSee('Top performers', escape: false)
@@ -283,7 +285,7 @@ class PublicDashboardTest extends TestCase
         Click::create(['link_id' => $public->id, 'is_direct_url' => true]);
         Click::create(['link_id' => $personal->id, 'referrer' => 'https://example.com/other', 'is_direct_url' => false]);
 
-        $response = $this->actingAs($this->user)->get('http://my.href.nz/');
+        $response = $this->actingAs($this->user)->get('http://my.ternis.link/');
 
         $response->assertOk()
             ->assertSee('Latest clicks', escape: false)
@@ -298,7 +300,7 @@ class PublicDashboardTest extends TestCase
         $this->makeLink('clicked.at', 'dash-qr-zip');
 
         $response = $this->actingAs($this->user)
-            ->get('http://my.href.nz/links/qr-zip');
+            ->get('http://my.ternis.link/links/qr-zip');
 
         $response->assertOk()
             ->assertHeader('Content-Type', 'application/zip');
@@ -319,13 +321,13 @@ class PublicDashboardTest extends TestCase
 
     public function test_qr_zip_requires_links_and_login(): void
     {
-        $this->get('http://my.href.nz/links/qr-zip')
-            ->assertRedirect('http://my.href.nz/login');
+        $this->get('http://my.ternis.link/links/qr-zip')
+            ->assertRedirect('http://my.ternis.link/login');
 
         $other = User::factory()->create();
 
         $this->actingAs($other)
-            ->get('http://my.href.nz/links/qr-zip')
+            ->get('http://my.ternis.link/links/qr-zip')
             ->assertNotFound();
     }
 
@@ -351,7 +353,7 @@ class PublicDashboardTest extends TestCase
     public function test_global_header_adapts_to_public_dashboard(): void
     {
         $this->actingAs($this->user)
-            ->get('http://my.href.nz/')
+            ->get('http://my.ternis.link/')
             ->assertOk()
             ->assertSee('My links', escape: false)
             ->assertSee('Account', escape: false);
@@ -389,7 +391,7 @@ class PublicDashboardTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get("http://my.href.nz/api-keys/{$key->id}")
+            ->get("http://my.ternis.link/api-keys/{$key->id}")
             ->assertOk()
             ->assertSee('Public Key', escape: false)
             ->assertSee('pub-key-1')
@@ -398,13 +400,13 @@ class PublicDashboardTest extends TestCase
 
         // Row deep-link keeps the per-key back context.
         $this->actingAs($this->user)
-            ->get("http://my.href.nz/links/{$keyedPublic->id}?from_api_key={$key->id}")
+            ->get("http://my.ternis.link/links/{$keyedPublic->id}?from_api_key={$key->id}")
             ->assertOk()
             ->assertSee('Back to API key links', escape: false);
 
         // A foreign key id falls back to the plain links list.
         $this->actingAs($this->user)
-            ->get("http://my.href.nz/links/{$keyedPublic->id}?from_api_key=01K9999999999999999999999")
+            ->get("http://my.ternis.link/links/{$keyedPublic->id}?from_api_key=01K9999999999999999999999")
             ->assertOk()
             ->assertSee('Back to Links', escape: false);
 
@@ -416,7 +418,7 @@ class PublicDashboardTest extends TestCase
         ]);
 
         $this->actingAs($this->user)
-            ->get("http://my.href.nz/api-keys/{$foreign->id}")
+            ->get("http://my.ternis.link/api-keys/{$foreign->id}")
             ->assertNotFound();
     }
 
@@ -426,12 +428,12 @@ class PublicDashboardTest extends TestCase
         $personal = $this->makeLink('clicked.at', 'pers-qr-1');
 
         $this->actingAs($this->user)
-            ->get("http://my.href.nz/links/{$public->id}/qr")
+            ->get("http://my.ternis.link/links/{$public->id}/qr")
             ->assertOk()
             ->assertHeader('Content-Type', 'image/png');
 
         $this->actingAs($this->user)
-            ->get("http://my.href.nz/links/{$personal->id}/qr")
+            ->get("http://my.ternis.link/links/{$personal->id}/qr")
             ->assertNotFound();
     }
 }

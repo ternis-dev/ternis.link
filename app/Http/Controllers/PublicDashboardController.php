@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Public links dashboard (my.href.nz ONLY) — the authenticated home for
+ * Public links dashboard (my.ternis.link ONLY) — the authenticated home for
  * href.nz + meinlink.at + href.yt (+ qr.href.nz) links.
  *
  * Strict hostname partition with dash.ternis.link:

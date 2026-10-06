@@ -82,8 +82,9 @@ dash.ternis.link, admin.ternis.link {
     encode gzip
 }
 
-# Public dashboard (href.nz + meinlink.at + href.yt links only)
-my.href.nz, my.href.yt {
+# Public dashboard (my.ternis.link canonical; retired my.href.nz and
+# my.href.yt 302 there in ResolveDomain, so they must reach the app)
+my.ternis.link, my.href.nz, my.href.yt {
     root * /var/www/ternis-link/public
     php_fastcgi unix//run/php/php-fpm.sock
     file_server

@@ -1,4 +1,4 @@
-<x-layouts.public-dashboard title="API Key Links — my.href.nz">
+<x-layouts.public-dashboard title="API Key Links — my.ternis.link">
     <div class="mb-6">
         <a href="{{ route('public-dashboard.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
         <div class="mt-2 flex flex-wrap items-center gap-3">

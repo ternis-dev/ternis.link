@@ -88,18 +88,9 @@ $redirectToDashboard = function () {
 $serveOrRedirect = function (string $method) use ($redirectToDashboard) {
     $type = request()->attributes->get('domain_type');
 
-    // Admin and public-dashboard hosts don't complete SSO locally: the
-    // provider only knows the dash callback URI, so their flows start
-    // on dash (SSO ticket hands the login back afterwards — see
-    // TernisAuthController::consume). The session + PKCE live on dash
-    // for the whole round trip, so state always verifies.
-    if (in_array($type, ['admin', 'public-dashboard'], true) && in_array($method, ['redirect', 'silent'], true)) {
-        $dash = (string) config('domains.dashboard_host', 'dash.ternis.link');
-        $target = request()->getScheme().'://'.$dash.'/auth/'.$method.'?origin='.urlencode(request()->getSchemeAndHttpHost());
-
-        return redirect()->away($target, 302);
-    }
-
+    // Dash, admin, and public dashboards share one ternis.link session
+    // (SESSION_DOMAIN), so every host runs its own SSO flow straight
+    // against the single registered dash callback — no handoff needed.
     if (in_array($type, ['dashboard', 'admin', 'public-dashboard'], true)) {
         return app(TernisAuthController::class)->{$method}(request());
     }
@@ -123,11 +114,6 @@ Route::middleware('throttle:10,1')->group(function () use ($serveOrRedirect) {
     Route::get('/auth/redirect', fn () => $serveOrRedirect('redirect'))->name('auth.redirect');
     Route::get('/auth/silent', fn () => $serveOrRedirect('silent'))->name('auth.silent');
     Route::get('/auth/callback', fn () => $serveOrRedirect('callback'))->name('auth.callback');
-    // SSO ticket consumer (admin + public-dashboard hosts only): the
-    // flow runs on dash and hands the finished login back here.
-    Route::middleware(['ensure.domain:admin,public-dashboard'])->get('/auth/consume', function () {
-        return app(TernisAuthController::class)->consume(request());
-    })->name('auth.consume');
 });
 Route::post('/logout', function () use ($redirectToDashboard) {
     $type = request()->attributes->get('domain_type');
@@ -161,21 +147,21 @@ if (app()->environment('local', 'testing')) {
 
 /*
 |----------------------------------------------------------------------
-| Public dashboard (my.href.nz ONLY) — authenticated home for href.nz,
+| Public dashboard (my.ternis.link ONLY) — authenticated home for href.nz,
 | meinlink.at and href.yt links. Strict hostname partition with
 | dash.ternis.link (clicked.at, ternis.link, href.re, partner and
 | custom domains stay there). Account-level sections (API keys,
 | domains, bio, notifications, activity, settings) stay single-homed
-| on dash; this group serves overview + links only. my.href.yt 301s
-| to my.href.nz in ResolveDomain so a single pinned host suffices.
+| on dash; this group serves overview + links only. Retired my.href.nz
+| and my.href.yt 302 to the canonical host in ResolveDomain.
 |
 | Registered BEFORE the dash group: every route is pinned to the
-| my.href.nz host, so dash/localhost requests skip them and fall
+| canonical host, so dash/localhost requests skip them and fall
 | through to the dash versions below. (Host-blind routes below would
 | otherwise shadow these — Laravel matches the FIRST route per URI.)
 |----------------------------------------------------------------------
 */
-Route::domain((string) config('domains.public_dashboard_host', 'my.href.nz'))
+Route::domain((string) config('domains.public_dashboard_host', 'my.ternis.link'))
     ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
     ->group(function () {
         Route::get('/', [PublicDashboardController::class, 'index'])->name('public-dashboard');

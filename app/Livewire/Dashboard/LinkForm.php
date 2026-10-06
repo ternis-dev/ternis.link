@@ -90,12 +90,12 @@ class LinkForm extends Component
 
     /**
      * Dashboard scope, mirrors LinkTable: 'public' limits the domain
-     * picker to my.href.nz hostnames, 'personal' excludes them.
+     * picker to my.ternis.link hostnames, 'personal' excludes them.
      */
     public ?string $scope = null;
 
     /**
-     * Presentation theme: 'dashboard' (neutral) or 'public' (my.href.nz
+     * Presentation theme: 'dashboard' (neutral) or 'public' (my.ternis.link
      * fresh-minimal theme + public-dashboard route names). Logic is
      * identical; only route prefixing and styling hooks change.
      */
@@ -219,7 +219,7 @@ class LinkForm extends Component
 
         $domain = Domain::findOrFail($this->domain_id);
 
-        // Enforce the dashboard split server-side: my.href.nz may only
+        // Enforce the dashboard split server-side: my.ternis.link may only
         // create public-shortener links, dash.ternis.link everything else.
         $publicHosts = DomainUrls::publicDashboardHostnames();
         if ($this->scope === 'public' && ! in_array($domain->hostname, $publicHosts, true)) {
@@ -228,7 +228,7 @@ class LinkForm extends Component
             return;
         }
         if ($this->scope === 'personal' && in_array($domain->hostname, $publicHosts, true)) {
-            $this->addError('domain_id', 'Public shortener links are created on my.href.nz.');
+            $this->addError('domain_id', 'Public shortener links are created on my.ternis.link.');
 
             return;
         }

@@ -23,7 +23,7 @@ $nav = [
                 <div>
                     <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide">
                         <span class="inline-block h-2 w-2 rounded-full bg-emerald-300"></span>
-                        my.href.nz · public links
+                        my.ternis.link · public links
                     </p>
                     <h1 class="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">Your short links, minus the clutter.</h1>
                     <p class="mt-2 max-w-xl text-sm text-white/80">href.nz, meinlink.at &amp; href.yt in one focused workspace. Everything else lives on dash.ternis.link.</p>

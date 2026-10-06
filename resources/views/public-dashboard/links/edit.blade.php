@@ -1,4 +1,4 @@
-<x-layouts.public-dashboard title="Edit Link — my.href.nz">
+<x-layouts.public-dashboard title="Edit Link — my.ternis.link">
     <div class="mb-6">
         <a href="{{ $backHref ?? route('public-dashboard.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← {{ $backLabel ?? 'Back to Links' }}</a>
         <h2 class="mt-2 font-display text-2xl font-bold tracking-tight">Edit Short Link</h2>

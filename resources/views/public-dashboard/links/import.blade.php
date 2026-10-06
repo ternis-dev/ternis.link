@@ -1,4 +1,4 @@
-<x-layouts.public-dashboard title="Import Links — my.href.nz">
+<x-layouts.public-dashboard title="Import Links — my.ternis.link">
     <div class="mb-6">
         <a href="{{ route('public-dashboard.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
         <h2 class="mt-2 font-display text-2xl font-bold tracking-tight">Import Links</h2>

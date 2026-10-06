@@ -1,4 +1,4 @@
-<x-layouts.public-dashboard title="Dashboard — my.href.nz">
+<x-layouts.public-dashboard title="Dashboard — my.ternis.link">
     <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
             <h2 class="font-display text-2xl font-bold tracking-tight">Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 18 ? 'afternoon' : 'evening') }}, {{ auth()->user()->name }}.</h2>

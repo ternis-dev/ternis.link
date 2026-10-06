@@ -29,7 +29,7 @@ class LinkTargeting extends Component
     public ?string $editingTargetId = null;
 
     /**
-     * Presentation theme: 'dashboard' (neutral) or 'public' (my.href.nz
+     * Presentation theme: 'dashboard' (neutral) or 'public' (my.ternis.link
      * fresh-minimal theme + public-dashboard route names). Logic is
      * identical; only route prefixing and styling hooks change.
      */

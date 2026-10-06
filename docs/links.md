@@ -24,9 +24,9 @@ Sign in and the training wheels come off:
 - **QR codes** — every short link has one: via the dashboard, or directly as `href.nz/qr/<url>` (PNG), `href.nz/qr/<url>/svg`, or `href.nz/<slug>.png` for an existing short link.
 - **Click stats** — opens over time, referrers, browsers, regions, CSV export.
 
-Manage everything from [dash.ternis.link/links](https://dash.ternis.link/links) — or, for `href.nz`, `meinlink.at` and `href.yt` links, from the focused [my.href.nz](https://my.href.nz/) dashboard — where you can also deactivate a link (stops resolving, keeps stats) or let it expire on its own. Each importer and link list only accepts its own side's domains.
+Manage everything from [dash.ternis.link/links](https://dash.ternis.link/links) — or, for `href.nz`, `meinlink.at` and `href.yt` links, from the focused [my.ternis.link](https://my.ternis.link/) dashboard — where you can also deactivate a link (stops resolving, keeps stats) or let it expire on its own. Each importer and link list only accepts its own side's domains.
 
-Need many at once? [Import CSV](https://dash.ternis.link/links/import) (or [my.href.nz/links/import](https://my.href.nz/links/import) for public links) pastes `destination_url,domain_hostname,slug,expires_at,description,tags` rows (200 max) with per-row validation results. On the list itself, tick rows to activate or deactivate them in bulk.
+Need many at once? [Import CSV](https://dash.ternis.link/links/import) (or [my.ternis.link/links/import](https://my.ternis.link/links/import) for public links) pastes `destination_url,domain_hostname,slug,expires_at,description,tags` rows (200 max) with per-row validation results. On the list itself, tick rows to activate or deactivate them in bulk.
 
 ## How a URL is handled
 

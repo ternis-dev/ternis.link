@@ -71,12 +71,13 @@ class ResolveDomain
             }
         }
 
-        // Public dashboard alias: my.href.yt is not canonical — 301 to
-        // my.href.nz so sessions/cookies stay on a single host.
-        $publicDash = (string) config('domains.public_dashboard_host', 'my.href.nz');
-        $publicDashAlias = (string) config('domains.public_dashboard_alias', 'my.href.yt');
-        if ($publicDashAlias !== '' && $hostname === $publicDashAlias) {
-            return redirect()->away($request->getScheme().'://'.$publicDash.$request->getRequestUri(), 301);
+        // Public dashboard legacy hosts: my.href.nz / my.href.yt now 302
+        // to the canonical my.ternis.link (shared ternis.link session).
+        // Temporary (302, not 301) while the move settles.
+        $publicDash = (string) config('domains.public_dashboard_host', 'my.ternis.link');
+        $legacyDashHosts = (array) config('domains.public_dashboard_legacy_hosts', ['my.href.nz', 'my.href.yt']);
+        if (in_array($hostname, $legacyDashHosts, true)) {
+            return redirect()->away($request->getScheme().'://'.$publicDash.$request->getRequestUri(), 302);
         }
 
         // 1. Direct match in config

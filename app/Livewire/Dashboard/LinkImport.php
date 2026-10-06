@@ -30,7 +30,7 @@ class LinkImport extends Component
 
     /**
      * Dashboard scope, mirrors LinkTable: 'public' only accepts
-     * my.href.nz hostnames, 'personal' rejects them (use the other
+     * public-dashboard hostnames, 'personal' rejects them (use the other
      * dashboard's importer instead).
      */
     public ?string $scope = null;
@@ -104,7 +104,7 @@ class LinkImport extends Component
             }
 
             if ($this->scope === 'personal' && $isPublicHost) {
-                $results[] = ['row' => $rowNumber, 'ok' => false, 'message' => "Domain {$domain->hostname} is imported on my.href.nz."];
+                $results[] = ['row' => $rowNumber, 'ok' => false, 'message' => "Domain {$domain->hostname} is imported on my.ternis.link."];
 
                 continue;
             }
@@ -169,7 +169,7 @@ class LinkImport extends Component
     private function defaultDomain(): ?Domain
     {
         // The default must be importable under the active scope:
-        // href.nz belongs to my.href.nz, clicked.at to dash.
+        // href.nz belongs to the public dashboard, clicked.at to dash.
         $hostname = $this->scope === 'public'
             ? config('domains.public_host', 'href.nz')
             : ($this->scope === 'personal' ? 'clicked.at' : config('domains.public_host', 'href.nz'));

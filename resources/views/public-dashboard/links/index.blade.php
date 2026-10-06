@@ -1,4 +1,4 @@
-<x-layouts.public-dashboard title="Links — my.href.nz">
+<x-layouts.public-dashboard title="Links — my.ternis.link">
     <div class="mb-6">
         <h2 class="font-display text-2xl font-bold tracking-tight">Your Links</h2>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">href.nz, meinlink.at &amp; href.yt — everything else lives on dash.ternis.link.</p>

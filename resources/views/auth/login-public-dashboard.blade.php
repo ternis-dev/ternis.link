@@ -3,10 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>log in — my.href.nz</title>
-    <meta name="description" content="Log in to my.href.nz with Ternis Auth SSO to manage your href.nz, meinlink.at and href.yt links.">
+    <title>log in — my.ternis.link</title>
+    <meta name="description" content="Log in to my.ternis.link with Ternis Auth SSO to manage your href.nz, meinlink.at and href.yt links.">
     <meta name="robots" content="noindex, nofollow">
-    <link rel="canonical" href="https://my.href.nz/login">
+    <link rel="canonical" href="https://my.ternis.link/login">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     @vite(['resources/css/app.css', 'resources/css/public-dashboard.css'])
 </head>
@@ -14,7 +14,7 @@
     <div class="pd-root mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center px-4 py-16 text-center sm:px-6">
         <p class="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-300">
             <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
-            my.href.nz · public links
+            my.ternis.link · public links
         </p>
         <h1 class="mt-4 font-display text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">Log in to your links</h1>
         <p class="mt-3 max-w-md text-sm text-neutral-500 dark:text-neutral-400">

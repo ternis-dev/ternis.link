@@ -6,7 +6,7 @@
             @if (($scope ?? null) === 'public')
                 This importer accepts href.nz, meinlink.at, href.yt and qr.href.nz — other domains belong on dash.ternis.link.
             @elseif (($scope ?? null) === 'personal')
-                This importer rejects href.nz, meinlink.at, href.yt and qr.href.nz — those belong on my.href.nz.
+                This importer rejects href.nz, meinlink.at, href.yt and qr.href.nz — those belong on my.ternis.link.
             @endif
             Tags are semicolon-separated. Max {{ \App\Livewire\Dashboard\LinkImport::MAX_ROWS }} rows.
             Quote fields that contain commas.

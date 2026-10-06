@@ -12,7 +12,6 @@ use App\Support\Activity;
 use App\Support\PublicHost;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -60,10 +59,9 @@ class TernisAuthController extends Controller
     /**
      * Redirect the user to Ternis Auth for authorization.
      *
-     * SSO always runs with the single registered dash callback URI.
-     * An allowlisted `origin` (admin / public-dashboard base URL) is
-     * remembered so the finished login can be handed back via a
-     * one-time ticket (see callback() + consume()).
+     * SSO always runs with the single registered dash callback URI;
+     * every dashboard host shares the ternis.link session, and the
+     * `intended` URL carries the user back to the right dashboard.
      */
     public function redirect(Request $request)
     {
@@ -108,9 +106,9 @@ class TernisAuthController extends Controller
 
         // Resolve the flow: self-contained encrypted state first (no
         // session needed), legacy session comparison as fallback.
-        $flow = $this->resolveFlow($request);
+        $codeVerifier = $this->resolveFlow($request);
 
-        if ($flow === null) {
+        if ($codeVerifier === null) {
             Log::warning('SSO callback without verifiable state', [
                 'host' => $request->getHost(),
                 'has_code' => $request->query->has('code'),
@@ -120,8 +118,6 @@ class TernisAuthController extends Controller
             return redirect()->away($request->getSchemeAndHttpHost().'/login')
                 ->with('error', 'Your sign-in session expired before Ternis Auth sent you back (cookies blocked, private window, or a retried page). Please sign in again.');
         }
-
-        $codeVerifier = $flow['verifier'];
 
         // A stale, reused, or hand-pasted code (e.g. reloading a callback
         // URL) makes the provider reject the exchange — send the user back
@@ -169,48 +165,9 @@ class TernisAuthController extends Controller
 
         Activity::record(ActivityLog::AUTH_LOGIN, $user, $user);
 
-        // Flows that started on another dashboard host (admin,
-        // public-dashboard) finish here and hand the login back with a
-        // one-time ticket — the provider only knows this callback.
-        $origin = $flow['origin'];
-
-        if (is_string($origin) && $origin !== '' && $this->originHost($origin) !== $request->getHost()) {
-            $ticket = Str::random(64);
-            Cache::put('sso-ticket:'.$ticket, $user->id, 120);
-
-            return redirect()->away(rtrim($origin, '/').'/auth/consume?ticket='.$ticket);
-        }
-
-        return redirect()->intended($this->homeUrl($request));
-    }
-
-    /**
-     * Consume a one-time SSO ticket issued by the dash callback and
-     * sign the user in on this host (admin / public-dashboard only).
-     * Tickets are single-use and expire after 120 seconds.
-     */
-    public function consume(Request $request)
-    {
-        $ticket = $request->query('ticket');
-        $userId = is_string($ticket) && $ticket !== '' ? Cache::pull('sso-ticket:'.$ticket) : null;
-        $user = $userId ? User::find($userId) : null;
-
-        if (! $user) {
-            return redirect()->away($request->getSchemeAndHttpHost().'/login')
-                ->with('error', 'That sign-in link expired or was already used. Please sign in again.');
-        }
-
-        auth()->login($user);
-
-        $request->session()->put('sso_login_at', now()->toIso8601String());
-
-        if ($user->deletion_requested_at !== null) {
-            $user->update(['deletion_requested_at' => null]);
-            $request->session()->flash('info', 'Welcome back — your scheduled account deletion was cancelled.');
-        }
-
-        Activity::record(ActivityLog::AUTH_LOGIN, $user, $user, ['via' => 'sso-ticket']);
-
+        // The shared ternis.link session means this login is valid on
+        // every dashboard host; `intended` (set where the guest was
+        // intercepted) carries the user back to the right one.
         return redirect()->intended($this->homeUrl($request));
     }
 
@@ -235,7 +192,7 @@ class TernisAuthController extends Controller
     }
 
     /**
-     * Home URL for the current host: my.href.nz guests land back on the
+     * Home URL for the current host: my.ternis.link guests land back on the
      * public dashboard, admin guests on the admin console, everyone
      * else on dash.ternis.link.
      */
@@ -256,10 +213,14 @@ class TernisAuthController extends Controller
      * Start an SSO flow. Returns the opaque `state` parameter for the
      * provider and the PKCE challenge for it.
      *
-     * The state is self-contained: state, verifier, origin, and expiry
-     * travel inside the APP_KEY-encrypted parameter, so the callback
-     * verifies without any server session. A plain copy stays in the
-     * session as fallback for flows started before this deploy.
+     * The state is self-contained: state, verifier, and expiry travel
+     * inside the APP_KEY-encrypted parameter, so the callback verifies
+     * without any server session. A plain copy stays in the session as
+     * fallback for flows started before this deploy.
+     *
+     * SSO always completes on the single registered dash callback;
+     * every dashboard host shares the ternis.link session, so the
+     * `intended` URL carries the user back to the right dashboard.
      *
      * @return array{state_param: string, challenge: string}
      */
@@ -271,16 +232,9 @@ class TernisAuthController extends Controller
         $request->session()->put('oauth_state', $state);
         $request->session()->put('oauth_code_verifier', $verifier);
 
-        $origin = $this->validatedOrigin($request->query('origin'));
-
-        if ($origin !== null) {
-            $request->session()->put('sso_origin', $origin);
-        }
-
         $payload = json_encode([
             's' => $state,
             'v' => $verifier,
-            'o' => $origin,
             'exp' => time() + 600,
         ]);
 
@@ -291,16 +245,14 @@ class TernisAuthController extends Controller
     }
 
     /**
-     * Resolve the callback to its flow: verifier plus origin, if any.
+     * Resolve the callback to its flow verifier.
      *
      * Preferred path decrypts the self-contained state (session-free).
      * Fallback compares a plain state against the session copy left by
      * older flows. Anything else (tampered, expired, absent) is null —
      * the caller restarts login instead of 403ing.
-     *
-     * @return array{verifier: string, origin: ?string}|null
      */
-    private function resolveFlow(Request $request): ?array
+    private function resolveFlow(Request $request): ?string
     {
         $param = $request->query('state');
 
@@ -314,9 +266,7 @@ class TernisAuthController extends Controller
             if (is_array($flow)
                 && isset($flow['s'], $flow['v']) && is_string($flow['s']) && is_string($flow['v'])
                 && isset($flow['exp']) && is_int($flow['exp']) && $flow['exp'] > time()) {
-                $origin = isset($flow['o']) && is_string($flow['o']) ? $this->validatedOrigin($flow['o']) : null;
-
-                return ['verifier' => $flow['v'], 'origin' => $origin];
+                return $flow['v'];
             }
         }
 
@@ -326,63 +276,11 @@ class TernisAuthController extends Controller
             $verifier = $request->session()->pull('oauth_code_verifier');
 
             if (is_string($verifier) && $verifier !== '') {
-                $origin = $this->validatedOrigin($request->session()->pull('sso_origin'));
-
-                return ['verifier' => $verifier, 'origin' => $origin];
+                return $verifier;
             }
         }
 
         return null;
-    }
-
-    /**
-     * Hosts allowed to receive a handed-back SSO login. Only dashboard
-     * hosts that serve their own login — never arbitrary URLs.
-     *
-     * @return list<string>
-     */
-    private function ssoHosts(): array
-    {
-        return [
-            (string) config('domains.dashboard_host', 'dash.ternis.link'),
-            (string) config('domains.admin_host', 'admin.ternis.link'),
-            (string) config('domains.public_dashboard_host', 'my.href.nz'),
-        ];
-    }
-
-    /**
-     * Validate an `origin` base URL (scheme + host of a known SSO host).
-     * Returns the normalized base or null.
-     */
-    private function validatedOrigin(mixed $value): ?string
-    {
-        if (! is_string($value) || $value === '') {
-            return null;
-        }
-
-        $parts = parse_url($value);
-
-        if (! is_array($parts) || ! in_array($parts['scheme'] ?? null, ['http', 'https'], true)) {
-            return null;
-        }
-
-        $host = strtolower((string) ($parts['host'] ?? ''));
-
-        if (! in_array($host, $this->ssoHosts(), true)) {
-            return null;
-        }
-
-        return ($parts['scheme'] ?? 'https').'://'.$host;
-    }
-
-    /**
-     * Host part of a validated origin base URL, or null.
-     */
-    private function originHost(string $origin): ?string
-    {
-        $host = parse_url($origin, PHP_URL_HOST);
-
-        return is_string($host) && $host !== '' ? $host : null;
     }
 
     private function homeRedirect(Request $request)

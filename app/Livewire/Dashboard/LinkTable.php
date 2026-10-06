@@ -44,14 +44,14 @@ class LinkTable extends Component
 
     /**
      * Dashboard scope: null = legacy global (all own links),
-     * 'public' = only my.href.nz hostnames (href.nz, meinlink.at,
+     * 'public' = only my.ternis.link hostnames (href.nz, meinlink.at,
      * href.yt, qr.href.nz), 'personal' = everything else (dash side of
      * the split: clicked.at, ternis.link, href.re, partner, custom).
      */
     public ?string $scope = null;
 
     /**
-     * Presentation theme: 'dashboard' (neutral) or 'public' (my.href.nz
+     * Presentation theme: 'dashboard' (neutral) or 'public' (my.ternis.link
      * fresh-minimal theme + public-dashboard route names). Logic is
      * identical; only route prefixing and styling hooks change.
      */

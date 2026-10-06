@@ -21,7 +21,7 @@ class DashboardController extends Controller
      * System-wide stats live on the admin host (AdminController); this
      * endpoint is strictly per-user, including for admins.
      *
-     * Since the my.href.nz split, href.nz / meinlink.at / href.yt /
+     * Since the my.ternis.link split, href.nz / meinlink.at / href.yt /
      * qr.href.nz links live on the public dashboard — every query here
      * excludes those hostnames (see personalQuery()).
      */
@@ -423,7 +423,7 @@ class DashboardController extends Controller
     /**
      * Personal link scope: own non-removed links EXCLUDING the public
      * dashboard hostnames (href.nz, meinlink.at, href.yt, qr.href.nz —
-     * those live on my.href.nz). Links without a domain row stay here.
+     * those live on my.ternis.link). Links without a domain row stay here.
      *
      * @return HasMany|Builder
      */
