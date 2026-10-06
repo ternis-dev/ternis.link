@@ -9,6 +9,7 @@ use App\Services\TernisAuthService;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -54,19 +55,63 @@ class TernisAuthTest extends TestCase
         $this->assertNotNull(session('oauth_code_verifier'));
     }
 
-    public function test_auth_redirect_uses_same_host_callback(): void
+    public function test_auth_redirect_always_uses_registered_callback(): void
     {
-        foreach ([
-            'http://dash.ternis.link' => 'http%3A%2F%2Fdash.ternis.link%2Fauth%2Fcallback',
-            'http://admin.ternis.link' => 'http%3A%2F%2Fadmin.ternis.link%2Fauth%2Fcallback',
-            'http://my.href.nz' => 'http%3A%2F%2Fmy.href.nz%2Fauth%2Fcallback',
-        ] as $origin => $encoded) {
+        // The provider only knows the dash callback: every host sends it.
+        foreach (['http://dash.ternis.link', 'http://admin.ternis.link', 'http://my.href.nz'] as $origin) {
             $response = $this->get("{$origin}/auth/redirect");
 
+            // Admin + public hosts bounce to dash, carrying their origin.
+            if ($origin !== 'http://dash.ternis.link') {
+                $response->assertRedirect('http://dash.ternis.link/auth/redirect?origin='.urlencode($origin));
+
+                continue;
+            }
+
             $response->assertStatus(302);
-            $this->assertStringContainsString("redirect_uri={$encoded}", $response->headers->get('Location'));
-            $this->assertSame("{$origin}/auth/callback", session('oauth_redirect_uri'));
+            $targetUrl = $response->headers->get('Location');
+            $this->assertStringStartsWith('https://auth.ternis.net/oauth/authorize', $targetUrl);
+            // The single provider-registered callback (config), regardless of test scheme.
+            $this->assertStringContainsString('redirect_uri='.urlencode('https://dash.ternis.link/auth/callback'), $targetUrl);
         }
+    }
+
+    public function test_auth_redirect_rejects_foreign_origin(): void
+    {
+        $response = $this->get('http://dash.ternis.link/auth/redirect?origin='.urlencode('https://evil.test'));
+
+        $response->assertStatus(302);
+        $this->assertNull(session('sso_origin'));
+    }
+
+    public function test_auth_consume_signs_in_with_valid_ticket(): void
+    {
+        $user = User::factory()->create();
+        Cache::put('sso-ticket:valid-ticket-123', $user->id, 120);
+
+        $response = $this->get('http://my.href.nz/auth/consume?ticket=valid-ticket-123');
+
+        $response->assertRedirect(route('public-dashboard'));
+        $this->assertAuthenticatedAs($user);
+
+        // Single use: replaying the ticket bounces to login.
+        $this->get('http://my.href.nz/auth/consume?ticket=valid-ticket-123')
+            ->assertRedirect('http://my.href.nz/login');
+    }
+
+    public function test_auth_consume_rejects_missing_ticket(): void
+    {
+        $response = $this->get('http://admin.ternis.link/auth/consume');
+
+        $response->assertRedirect('http://admin.ternis.link/login');
+        $response->assertSessionHas('error', 'That sign-in link expired or was already used. Please sign in again.');
+        $this->assertGuest();
+    }
+
+    public function test_auth_consume_404s_on_other_hosts(): void
+    {
+        $this->get('http://href.nz/auth/consume?ticket=x')->assertNotFound();
+        $this->get('http://dash.ternis.link/auth/consume?ticket=x')->assertNotFound();
     }
 
     public function test_auth_callback_provisions_user_and_logs_in(): void

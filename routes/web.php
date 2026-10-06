@@ -88,6 +88,18 @@ $redirectToDashboard = function () {
 $serveOrRedirect = function (string $method) use ($redirectToDashboard) {
     $type = request()->attributes->get('domain_type');
 
+    // Admin and public-dashboard hosts don't complete SSO locally: the
+    // provider only knows the dash callback URI, so their flows start
+    // on dash (SSO ticket hands the login back afterwards — see
+    // TernisAuthController::consume). The session + PKCE live on dash
+    // for the whole round trip, so state always verifies.
+    if (in_array($type, ['admin', 'public-dashboard'], true) && in_array($method, ['redirect', 'silent'], true)) {
+        $dash = (string) config('domains.dashboard_host', 'dash.ternis.link');
+        $target = request()->getScheme().'://'.$dash.'/auth/'.$method.'?origin='.urlencode(request()->getSchemeAndHttpHost());
+
+        return redirect()->away($target, 302);
+    }
+
     if (in_array($type, ['dashboard', 'admin', 'public-dashboard'], true)) {
         return app(TernisAuthController::class)->{$method}(request());
     }
@@ -111,6 +123,11 @@ Route::middleware('throttle:10,1')->group(function () use ($serveOrRedirect) {
     Route::get('/auth/redirect', fn () => $serveOrRedirect('redirect'))->name('auth.redirect');
     Route::get('/auth/silent', fn () => $serveOrRedirect('silent'))->name('auth.silent');
     Route::get('/auth/callback', fn () => $serveOrRedirect('callback'))->name('auth.callback');
+    // SSO ticket consumer (admin + public-dashboard hosts only): the
+    // flow runs on dash and hands the finished login back here.
+    Route::middleware(['ensure.domain:admin,public-dashboard'])->get('/auth/consume', function () {
+        return app(TernisAuthController::class)->consume(request());
+    })->name('auth.consume');
 });
 Route::post('/logout', function () use ($redirectToDashboard) {
     $type = request()->attributes->get('domain_type');
