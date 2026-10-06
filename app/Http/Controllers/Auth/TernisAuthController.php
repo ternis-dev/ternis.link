@@ -111,9 +111,26 @@ class TernisAuthController extends Controller
                 ->with('error', 'Authentication failed: '.$request->query('error_description', 'Unknown error'));
         }
 
-        // Verify state
+        // Verify state. Two distinct failures:
+        // - No stored state: the session holding the login flow is gone
+        //   (cookies blocked, private mode, session expired, a second
+        //   login tab overwrote it, or the callback URL was reloaded
+        //   after the state was consumed). Recoverable — restart login.
+        // - Mismatched state: possible CSRF — hard fail.
         $storedState = $request->session()->pull('oauth_state');
-        if (! $storedState || $storedState !== $request->query('state')) {
+
+        if (! $storedState) {
+            Log::warning('SSO callback without session state', [
+                'host' => $request->getHost(),
+                'has_code' => $request->query->has('code'),
+                'has_state_param' => $request->query->has('state'),
+            ]);
+
+            return redirect()->away($request->getSchemeAndHttpHost().'/login')
+                ->with('error', 'Your sign-in session expired before Ternis Auth sent you back (cookies blocked, private window, or a retried page). Please sign in again.');
+        }
+
+        if ($storedState !== $request->query('state')) {
             abort(403, 'Invalid OAuth state. Possible CSRF attack.');
         }
 

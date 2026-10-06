@@ -100,6 +100,28 @@ class TernisAuthTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_auth_callback_without_session_state_restarts_login(): void
+    {
+        // No oauth_state in session (cookies blocked, expired session,
+        // retried callback): recoverable redirect, not a 403.
+        $response = $this->get('http://dash.ternis.link/auth/callback?code=some_code&state=some_state');
+
+        $response->assertRedirect('http://dash.ternis.link/login');
+        $response->assertSessionHas('error', 'Your sign-in session expired before Ternis Auth sent you back (cookies blocked, private window, or a retried page). Please sign in again.');
+        $this->assertGuest();
+    }
+
+    public function test_auth_callback_with_mismatched_state_aborts(): void
+    {
+        $response = $this->withSession([
+            'oauth_state' => 'stored_state',
+            'oauth_code_verifier' => 'test_code_verifier_1234567890123456789012345678901234567890',
+        ])->get('http://dash.ternis.link/auth/callback?code=some_code&state=other_state');
+
+        $response->assertForbidden();
+        $this->assertGuest();
+    }
+
     public function test_auth_callback_with_rejected_code_redirects_to_login(): void
     {
         Http::fake([
