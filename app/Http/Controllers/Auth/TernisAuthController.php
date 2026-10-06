@@ -67,19 +67,9 @@ class TernisAuthController extends Controller
      */
     public function redirect(Request $request)
     {
-        $state = Str::random(40);
-        $codeVerifier = $this->authService->generateCodeVerifier();
-        $codeChallenge = $this->authService->generateCodeChallenge($codeVerifier);
+        $flow = $this->beginFlow($request);
 
-        // Store in session for callback verification
-        $request->session()->put('oauth_state', $state);
-        $request->session()->put('oauth_code_verifier', $codeVerifier);
-
-        if (($origin = $this->validatedOrigin($request->query('origin'))) !== null) {
-            $request->session()->put('sso_origin', $origin);
-        }
-
-        $url = $this->authService->getAuthorizationUrl($state, $codeChallenge);
+        $url = $this->authService->getAuthorizationUrl($flow['state_param'], $flow['challenge']);
 
         return redirect()->away($url);
     }
@@ -95,18 +85,9 @@ class TernisAuthController extends Controller
             return $this->homeRedirect($request);
         }
 
-        $state = Str::random(40);
-        $codeVerifier = $this->authService->generateCodeVerifier();
-        $codeChallenge = $this->authService->generateCodeChallenge($codeVerifier);
+        $flow = $this->beginFlow($request);
 
-        $request->session()->put('oauth_state', $state);
-        $request->session()->put('oauth_code_verifier', $codeVerifier);
-
-        if (($origin = $this->validatedOrigin($request->query('origin'))) !== null) {
-            $request->session()->put('sso_origin', $origin);
-        }
-
-        return redirect()->away($this->authService->getSilentAuthUrl($state, $codeChallenge));
+        return redirect()->away($this->authService->getSilentAuthUrl($flow['state_param'], $flow['challenge']));
     }
 
     /**
@@ -125,16 +106,12 @@ class TernisAuthController extends Controller
                 ->with('error', 'Authentication failed: '.$request->query('error_description', 'Unknown error'));
         }
 
-        // Verify state. Two distinct failures:
-        // - No stored state: the session holding the login flow is gone
-        //   (cookies blocked, private mode, session expired, a second
-        //   login tab overwrote it, or the callback URL was reloaded
-        //   after the state was consumed). Recoverable — restart login.
-        // - Mismatched state: possible CSRF — hard fail.
-        $storedState = $request->session()->pull('oauth_state');
+        // Resolve the flow: self-contained encrypted state first (no
+        // session needed), legacy session comparison as fallback.
+        $flow = $this->resolveFlow($request);
 
-        if (! $storedState) {
-            Log::warning('SSO callback without session state', [
+        if ($flow === null) {
+            Log::warning('SSO callback without verifiable state', [
                 'host' => $request->getHost(),
                 'has_code' => $request->query->has('code'),
                 'has_state_param' => $request->query->has('state'),
@@ -144,14 +121,7 @@ class TernisAuthController extends Controller
                 ->with('error', 'Your sign-in session expired before Ternis Auth sent you back (cookies blocked, private window, or a retried page). Please sign in again.');
         }
 
-        if ($storedState !== $request->query('state')) {
-            abort(403, 'Invalid OAuth state. Possible CSRF attack.');
-        }
-
-        $codeVerifier = $request->session()->pull('oauth_code_verifier');
-        if (! $codeVerifier) {
-            abort(403, 'Missing OAuth code verifier in session.');
-        }
+        $codeVerifier = $flow['verifier'];
 
         // A stale, reused, or hand-pasted code (e.g. reloading a callback
         // URL) makes the provider reject the exchange — send the user back
@@ -202,7 +172,7 @@ class TernisAuthController extends Controller
         // Flows that started on another dashboard host (admin,
         // public-dashboard) finish here and hand the login back with a
         // one-time ticket — the provider only knows this callback.
-        $origin = $request->session()->pull('sso_origin');
+        $origin = $flow['origin'];
 
         if (is_string($origin) && $origin !== '' && $this->originHost($origin) !== $request->getHost()) {
             $ticket = Str::random(64);
@@ -280,6 +250,89 @@ class TernisAuthController extends Controller
         }
 
         return route('dashboard');
+    }
+
+    /**
+     * Start an SSO flow. Returns the opaque `state` parameter for the
+     * provider and the PKCE challenge for it.
+     *
+     * The state is self-contained: state, verifier, origin, and expiry
+     * travel inside the APP_KEY-encrypted parameter, so the callback
+     * verifies without any server session. A plain copy stays in the
+     * session as fallback for flows started before this deploy.
+     *
+     * @return array{state_param: string, challenge: string}
+     */
+    private function beginFlow(Request $request): array
+    {
+        $state = Str::random(40);
+        $verifier = $this->authService->generateCodeVerifier();
+
+        $request->session()->put('oauth_state', $state);
+        $request->session()->put('oauth_code_verifier', $verifier);
+
+        $origin = $this->validatedOrigin($request->query('origin'));
+
+        if ($origin !== null) {
+            $request->session()->put('sso_origin', $origin);
+        }
+
+        $payload = json_encode([
+            's' => $state,
+            'v' => $verifier,
+            'o' => $origin,
+            'exp' => time() + 600,
+        ]);
+
+        return [
+            'state_param' => encrypt($payload),
+            'challenge' => $this->authService->generateCodeChallenge($verifier),
+        ];
+    }
+
+    /**
+     * Resolve the callback to its flow: verifier plus origin, if any.
+     *
+     * Preferred path decrypts the self-contained state (session-free).
+     * Fallback compares a plain state against the session copy left by
+     * older flows. Anything else (tampered, expired, absent) is null —
+     * the caller restarts login instead of 403ing.
+     *
+     * @return array{verifier: string, origin: ?string}|null
+     */
+    private function resolveFlow(Request $request): ?array
+    {
+        $param = $request->query('state');
+
+        if (is_string($param) && $param !== '') {
+            try {
+                $flow = json_decode(decrypt($param), true);
+            } catch (\Throwable) {
+                $flow = null;
+            }
+
+            if (is_array($flow)
+                && isset($flow['s'], $flow['v']) && is_string($flow['s']) && is_string($flow['v'])
+                && isset($flow['exp']) && is_int($flow['exp']) && $flow['exp'] > time()) {
+                $origin = isset($flow['o']) && is_string($flow['o']) ? $this->validatedOrigin($flow['o']) : null;
+
+                return ['verifier' => $flow['v'], 'origin' => $origin];
+            }
+        }
+
+        $stored = $request->session()->pull('oauth_state');
+
+        if (is_string($stored) && $stored !== '' && is_string($param) && hash_equals($stored, $param)) {
+            $verifier = $request->session()->pull('oauth_code_verifier');
+
+            if (is_string($verifier) && $verifier !== '') {
+                $origin = $this->validatedOrigin($request->session()->pull('sso_origin'));
+
+                return ['verifier' => $verifier, 'origin' => $origin];
+            }
+        }
+
+        return null;
     }
 
     /**

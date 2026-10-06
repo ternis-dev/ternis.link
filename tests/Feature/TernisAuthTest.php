@@ -269,14 +269,61 @@ class TernisAuthTest extends TestCase
         $this->assertAuthenticated();
     }
 
-    public function test_auth_callback_with_mismatched_state_aborts(): void
+    public function test_auth_callback_with_mismatched_state_restarts_login(): void
     {
         $response = $this->withSession([
             'oauth_state' => 'stored_state',
             'oauth_code_verifier' => 'test_code_verifier_1234567890123456789012345678901234567890',
         ])->get('http://dash.ternis.link/auth/callback?code=some_code&state=other_state');
 
-        $response->assertForbidden();
+        $response->assertRedirect('http://dash.ternis.link/login');
+        $this->assertGuest();
+    }
+
+    public function test_auth_callback_accepts_self_contained_state_without_session(): void
+    {
+        Http::fake([
+            'https://auth.ternis.net/oauth/token' => Http::response([
+                'access_token' => 'mock-access-token',
+                'refresh_token' => 'mock-refresh-token',
+                'expires_in' => 3600,
+            ]),
+            'https://auth.ternis.net/oauth/userinfo' => Http::response([
+                'sub' => '55555555-6666-7777-8888-999999999999',
+                'name' => 'Stateless',
+                'email' => 'stateless@ternis.dev',
+                'user_type' => 'general',
+            ]),
+        ]);
+
+        // Start a real flow, then wipe the session: the callback must
+        // still verify from the encrypted state alone.
+        $start = $this->get('http://dash.ternis.link/auth/redirect');
+        parse_str((string) parse_url((string) $start->headers->get('Location'), PHP_URL_QUERY), $params);
+        $this->assertArrayHasKey('state', $params);
+
+        $this->flushSession();
+
+        $response = $this->get("http://dash.ternis.link/auth/callback?code=mock_code&state=".urlencode($params['state']));
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+    }
+
+    public function test_auth_callback_rejects_tampered_and_expired_state(): void
+    {
+        $start = $this->get('http://dash.ternis.link/auth/redirect');
+        parse_str((string) parse_url((string) $start->headers->get('Location'), PHP_URL_QUERY), $params);
+
+        // Tampered payload.
+        $this->get('http://dash.ternis.link/auth/callback?code=x&state='.urlencode(substr((string) $params['state'], 0, -4).'AAAA'))
+            ->assertRedirect('http://dash.ternis.link/login');
+        $this->assertGuest();
+
+        // Expired payload (valid encryption, past exp).
+        $stale = encrypt(json_encode(['s' => 'x', 'v' => 'y', 'o' => null, 'exp' => time() - 60]));
+        $this->get('http://dash.ternis.link/auth/callback?code=x&state='.urlencode($stale))
+            ->assertRedirect('http://dash.ternis.link/login');
         $this->assertGuest();
     }
 
