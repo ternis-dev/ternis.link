@@ -13,7 +13,7 @@ $nav = [
 
 <x-layouts.app :title="$title" maxWidth="max-w-6xl">
     <x-slot:head>
-        @vite(['resources/css/public-dashboard-legacy.css'])
+        @vite(['resources/css/public-dashboard.css'])
     </x-slot:head>
 
     <div class="pd pd-root">

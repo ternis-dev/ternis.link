@@ -1,5 +1,330 @@
 @import 'tailwindcss';
 
+
+/* ==========================================================
+ * my.ternis.link — flat & simple public dashboard theme.
+ *
+ * Everything below is scoped under `.pd` (rendered by
+ * x-layouts.public-dashboard), so dash.ternis.link and
+ * admin.ternis.link are untouched. Shared Livewire components
+ * (link table, forms, analytics) emit the same neutral markup
+ * on both dashboards — this file re-skins it here.
+ *
+ * Flat rules: solid fills only, no gradients, no shadows,
+ * 1px borders, small radii.
+ * ========================================================== */
+
+/* ---------- Page canvas ---------- */
+
+body:has(.pd-root) {
+    background-color: #faf9f7;
+}
+
+.dark body:has(.pd-root) {
+    background-color: #131318;
+}
+
+/* ---------- Hero band ---------- */
+
+.pd-hero {
+    background-color: #312e81;
+}
+
+.dark .pd-hero {
+    background-color: #1e1b33;
+}
+
+/* ---------- Pills & nav ---------- */
+
+.pd-pill {
+    border-radius: 9999px;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.pd-pill[aria-current='page'] {
+    background-color: #4f46e5;
+    color: #fff;
+}
+
+.dark .pd-pill[aria-current='page'] {
+    background-color: #818cf8;
+    color: #131318;
+}
+
+/* ---------- Stat bands ---------- */
+
+.pd-stat {
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    background: #fff;
+    border: 1px solid #e7e2d9;
+}
+
+.dark .pd-stat {
+    background: #1b1b22;
+    border-color: rgba(255, 255, 255, 0.09);
+}
+
+.pd-stat .pd-stat-value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.pd-stat .pd-stat-label {
+    margin-top: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #78716c;
+}
+
+.dark .pd-stat .pd-stat-label {
+    color: #a8a29e;
+}
+
+.pd-stat-accent {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+}
+
+.dark .pd-stat-accent {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+}
+
+.pd-stat-accent .pd-stat-label {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+/* ---------- Cards ---------- */
+
+.pd .pd-card,
+.pd section[class*='rounded-2xl'][class*='bg-white'],
+.pd section[class*='rounded-xl'][class*='bg-white'],
+.pd div[class*='overflow-x-auto'][class*='rounded-xl'] {
+    border-radius: 0.75rem;
+    border-color: #e7e2d9;
+    box-shadow: none;
+}
+
+.dark .pd .pd-card,
+.dark .pd section[class*='rounded-2xl'][class*='bg-white'],
+.dark .pd section[class*='rounded-xl'][class*='bg-white'],
+.dark .pd div[class*='overflow-x-auto'][class*='rounded-xl'] {
+    border-color: rgba(255, 255, 255, 0.09);
+    background-color: #1b1b22;
+    box-shadow: none;
+}
+
+/* ---------- Buttons ---------- */
+
+.pd a[class*='bg-neutral-900'],
+.pd button[class*='bg-neutral-900'] {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+    border-radius: 9999px;
+}
+
+.pd a[class*='bg-neutral-900']:hover,
+.pd button[class*='bg-neutral-900']:hover {
+    background-color: #4338ca;
+    border-color: #4338ca;
+}
+
+.pd a[class*='border-neutral-300'],
+.pd button[class*='border-neutral-300'] {
+    border-color: #d9d2c4;
+    border-radius: 9999px;
+}
+
+.pd a[class*='border-neutral-300']:hover,
+.pd button[class*='border-neutral-300']:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+}
+
+.dark .pd a[class*='border-neutral-300']:hover,
+.dark .pd button[class*='border-neutral-300']:hover {
+    color: #a5b4fc;
+}
+
+.pd a[class*='border-transparent'],
+.pd button[class*='border-transparent'] {
+    border-radius: 9999px;
+}
+
+/* ---------- Forms ---------- */
+
+.pd input:not([type='checkbox']):not([type='submit']),
+.pd select,
+.pd textarea {
+    border-radius: 0.5rem;
+    border-color: #d9d2c4;
+}
+
+.pd input:not([type='checkbox']):not([type='submit']):focus,
+.pd select:focus,
+.pd textarea:focus {
+    border-color: #4f46e5;
+}
+
+.dark .pd input:not([type='checkbox']):not([type='submit']),
+.dark .pd select,
+.dark .pd textarea {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pd input[type='checkbox'] {
+    accent-color: #4f46e5;
+}
+
+.pd details {
+    border-radius: 0.75rem;
+    border-color: #e7e2d9;
+}
+
+.dark .pd details {
+    border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* ---------- Tables ---------- */
+
+.pd .ui-table thead th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #78716c;
+    background-color: #f3efe7;
+    border-bottom: 1px solid #e7e2d9;
+}
+
+.dark .pd .ui-table thead th {
+    color: #a8a29e;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.pd .ui-table tbody td {
+    border-top: 1px solid #efe9dd;
+}
+
+.dark .pd .ui-table tbody td {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.pd .ui-table tbody tr:hover td {
+    background-color: #f5f1e9;
+}
+
+.dark .pd .ui-table tbody tr:hover td {
+    background-color: rgba(129, 140, 248, 0.06);
+}
+
+.pd .ui-table tbody a {
+    color: #4f46e5;
+}
+
+.dark .pd .ui-table tbody a {
+    color: #a5b4fc;
+}
+
+.pd .ui-table code {
+    background-color: #eef2ff;
+    color: #4338ca;
+    border-radius: 0.375rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.dark .pd .ui-table code {
+    background-color: rgba(129, 140, 248, 0.15);
+    color: #c7d2fe;
+}
+
+/* Status dots: neutral ring becomes emerald signal. */
+.pd span[class*='rounded-full'][class*='bg-neutral-900'] {
+    background-color: #10b981;
+}
+
+/* ---------- Analytics bars ---------- */
+
+.pd div[role='progressbar'] > div {
+    background-color: #4f46e5;
+}
+
+/* ---------- Pagination ---------- */
+
+.pd nav[aria-label='Pagination'] [aria-current='page'] {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+}
+
+.pd nav[aria-label='Pagination'] button:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+}
+
+/* ---------- Bulk action bar ---------- */
+
+.pd div[class*='sticky'][class*='rounded-xl'] {
+    border-radius: 9999px;
+    border-color: #d9d2c4;
+    box-shadow: none;
+}
+
+.dark .pd div[class*='sticky'][class*='rounded-xl'] {
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: #1b1b22;
+}
+
+/* ---------- Modal ---------- */
+
+.pd div[role='dialog'] {
+    border-radius: 0.75rem;
+    border-color: #e7e2d9;
+    box-shadow: none;
+}
+
+.dark .pd div[role='dialog'] {
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: #1b1b22;
+}
+
+/* Small phones: keep big tabular numbers inside narrow stat cards. */
+@media (max-width: 400px) {
+    .pd-stat .pd-stat-value {
+        font-size: 1.6rem;
+    }
+}
+
+/* ---------- Domain chips ---------- */
+.pd-domain-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background-color: #eef2ff;
+    color: #4338ca;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
+}
+
+.dark .pd-domain-chip {
+    background-color: rgba(129, 140, 248, 0.15);
+    color: #c7d2fe;
+}
+
+/* ================= NEW (emerald, .nd scope) ================= */
 /* ==========================================================
  * my.ternis.link — new public dashboard theme (v2).
  *
