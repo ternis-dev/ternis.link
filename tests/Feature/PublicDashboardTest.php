@@ -239,6 +239,22 @@ class PublicDashboardTest extends TestCase
             ->assertSee('pub-df-2');
     }
 
+    public function test_table_and_detail_offer_copy_with_loading_states(): void
+    {
+        $link = $this->makeLink('href.nz', 'pub-copy-1');
+
+        $this->actingAs($this->user)
+            ->get('http://my.ternis.link/links')
+            ->assertOk()
+            ->assertSee('data-copy="https://href.nz/pub-copy-1"', escape: false)
+            ->assertSee('wire:loading', escape: false);
+
+        $this->actingAs($this->user)
+            ->get("http://my.ternis.link/links/{$link->id}")
+            ->assertOk()
+            ->assertSee('data-copy="https://href.nz/pub-copy-1"', escape: false);
+    }
+
     public function test_overview_flags_links_expiring_within_seven_days(): void
     {
         $soon = $this->makeLink('href.nz', 'pub-exp-soon');

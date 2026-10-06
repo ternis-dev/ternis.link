@@ -97,6 +97,7 @@
                                 <a href="{{ route($rp.'links.show', array_merge([$link->id], $rowQuery)) }}" class="font-semibold underline-offset-2 hover:underline">
                                     {{ $link->slug }}
                                 </a>
+                                <button type="button" data-copy="{{ $link->short_url }}" title="Copy short link" aria-label="Copy short link {{ $link->slug }} to clipboard" class="ml-1 inline-flex cursor-pointer items-center rounded-full border border-neutral-300 px-1.5 py-px text-[11px] font-medium text-neutral-600 transition-colors hover:border-neutral-900 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white">Copy</button>
                                 @if ($link->apiKey)
                                     <p class="mt-0.5 text-[11px] text-neutral-400 dark:text-neutral-600" title="Created with API key {{ $link->apiKey->name }}">via {{ $link->apiKey->name }}</p>
                                 @endif
@@ -147,7 +148,7 @@
                             <x-ui.button href="{{ route($rp.'links.show', array_merge([$link->id], $rowQuery)) }}" size="sm">Analytics</x-ui.button>
                             <x-ui.button href="{{ route($rp.'links.edit', array_merge([$link->id], $rowQuery)) }}" size="sm">Edit</x-ui.button>
                             @if ($link->is_active)
-                                <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
+                                <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" wire:loading.attr="disabled" wire:target="deactivate" size="sm" variant="danger">Deactivate</x-ui.button>
                             @endif
                         </div>
                     </td>
@@ -178,8 +179,8 @@
     @if (count($selected) > 0)
         <div class="sticky bottom-4 mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-neutral-200 bg-white p-3 shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
             <span class="text-sm font-medium">{{ count($selected) }} selected</span>
-            <x-ui.button wire:click="bulkSetActive(true)" size="sm" variant="secondary">Activate</x-ui.button>
-            <x-ui.button wire:click="bulkSetActive(false)" size="sm" variant="danger" wire:confirm="Deactivate the selected links?">Deactivate</x-ui.button>
+            <x-ui.button wire:click="bulkSetActive(true)" wire:loading.attr="disabled" wire:target="bulkSetActive" size="sm" variant="secondary">Activate</x-ui.button>
+            <x-ui.button wire:click="bulkSetActive(false)" wire:loading.attr="disabled" wire:target="bulkSetActive" size="sm" variant="danger" wire:confirm="Deactivate the selected links?">Deactivate</x-ui.button>
             <button type="button" wire:click="$set('selected', [])" class="cursor-pointer text-xs text-neutral-500 hover:underline">Clear</button>
             @if ($bulkNotice)<span class="text-xs text-neutral-500">{{ $bulkNotice }}</span>@endif
         </div>

@@ -22,6 +22,7 @@
         </x-slot:subtitle>
         <x-slot:actions>
             <x-ui.button href="{{ route('dashboard.links.edit', array_merge([$link->id], $query)) }}" size="sm">Edit Link</x-ui.button>
+            <x-ui.button size="sm" data-copy="{{ $link->short_url }}" title="Copy short link">Copy</x-ui.button>
             <form method="POST" action="{{ route('dashboard.links.duplicate', $link->id) }}" class="inline">
                 @csrf
                 <x-ui.button type="submit" size="sm">Duplicate</x-ui.button>

@@ -20,6 +20,7 @@
         @endif
         <div class="mt-4 flex flex-wrap gap-2">
             <a href="{{ route('public-dashboard.links.edit', $link->id) }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Edit link</a>
+            <button type="button" data-copy="{{ $link->short_url }}" title="Copy short link" aria-label="Copy short link {{ $link->slug }} to clipboard" class="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Copy</button>
             <form method="POST" action="{{ route('public-dashboard.links.duplicate', $link->id) }}" class="inline">
                 @csrf
                 <button type="submit" class="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Duplicate</button>

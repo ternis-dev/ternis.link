@@ -15,8 +15,8 @@
         <textarea wire:model="csv" rows="8" placeholder="https://example.com/long-page,href.nz,my-slug,,Launch page,launch;marketing" class="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 font-mono text-xs dark:border-neutral-700 dark:bg-neutral-950"></textarea>
 
         <div class="mt-3 flex gap-3">
-            <x-ui.button wire:click="dryRunImport" variant="secondary">Validate only</x-ui.button>
-            <x-ui.button wire:click="import" variant="primary" wire:confirm="Import these links?">Import links</x-ui.button>
+            <x-ui.button wire:click="dryRunImport" wire:loading.attr="disabled" wire:target="dryRunImport,import" variant="secondary">Validate only</x-ui.button>
+            <x-ui.button wire:click="import" wire:loading.attr="disabled" wire:target="dryRunImport,import" variant="primary" wire:confirm="Import these links?">Import links</x-ui.button>
         </div>
     </x-ui.card>
 

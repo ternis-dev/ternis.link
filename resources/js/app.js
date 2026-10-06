@@ -43,3 +43,36 @@ window.addEventListener('tl:theme-preference', (event) => {
         /* private mode */
     }
 });
+
+/* Copy-to-clipboard: any `[data-copy]` button copies its value and
+ * confirms inline ("Copied ✓" for 1.2s). Clipboard API with a
+ * textarea fallback for non-secure contexts. */
+document.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-copy]');
+    if (!button || button.disabled) return;
+
+    const text = button.getAttribute('data-copy') ?? '';
+
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch {
+        const area = document.createElement('textarea');
+        area.value = text;
+        document.body.append(area);
+        area.select();
+        try {
+            document.execCommand('copy');
+        } catch {
+            /* clipboard unavailable — leave the value selected */
+        }
+        area.remove();
+    }
+
+    if (!button.hasAttribute('data-copy-label')) {
+        button.setAttribute('data-copy-label', button.textContent ?? '');
+    }
+    button.textContent = 'Copied ✓';
+    setTimeout(() => {
+        button.textContent = button.getAttribute('data-copy-label') ?? '';
+    }, 1200);
+});
