@@ -33,12 +33,13 @@ $nav = [
                     x-data
                     @click="$dispatch('open-link-creator')"
                     title="Keyboard shortcut: C"
+                    data-tour="create"
                     class="cursor-pointer rounded-full bg-white px-5 py-2.5 text-sm font-bold text-indigo-700 transition hover:bg-indigo-50"
                 >
                     + New short link
                 </button>
             </div>
-            <nav aria-label="Public dashboard" class="mt-6 flex flex-wrap gap-2">
+            <nav aria-label="Public dashboard" data-tour="nav" class="mt-6 flex flex-wrap gap-2">
                 @foreach ($nav as $item)
                     <a
                         href="{{ $item['href'] }}"

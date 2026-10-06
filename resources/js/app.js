@@ -4,6 +4,7 @@
 
 import './charts.js';
 import { initCharts } from './charts.js';
+import './tour.js';
 
 function applyTheme(dark, persist = true) {
     document.documentElement.classList.toggle('dark', dark);

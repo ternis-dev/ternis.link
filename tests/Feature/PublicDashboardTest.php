@@ -348,6 +348,15 @@ class PublicDashboardTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_overview_embeds_first_run_tour(): void
+    {
+        $this->actingAs($this->user)
+            ->get('http://my.ternis.link/')
+            ->assertOk()
+            ->assertSee('id="tl-tour-steps"', escape: false)
+            ->assertSee('Welcome to my.ternis.link', escape: false);
+    }
+
     public function test_duplicate_clones_link_with_fresh_slug(): void
     {
         $original = $this->makeLink('href.nz', 'pub-dupe-1');

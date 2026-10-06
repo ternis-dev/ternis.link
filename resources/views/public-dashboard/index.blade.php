@@ -11,7 +11,7 @@
         </div>
     </div>
 
-    <div class="mb-8 grid grid-cols-2 gap-4 xl:grid-cols-4">
+    <div class="mb-8 grid grid-cols-2 gap-4 xl:grid-cols-4" data-tour="stats">
         <div class="pd-stat pd-stat-accent">
             <div class="pd-stat-value">{{ number_format($stats['total_links']) }}</div>
             <div class="pd-stat-label">Total links</div>
@@ -30,7 +30,7 @@
         </div>
     </div>
 
-    <div class="pd-card rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+    <div class="pd-card rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900" data-tour="table">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h3 class="font-display text-lg font-bold tracking-tight">Recent links</h3>
             <a href="{{ route('public-dashboard.links') }}" class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">View all →</a>
@@ -107,4 +107,19 @@
             </ul>
         </div>
     @endif
+
+    <script type="application/json" id="tl-tour-steps">
+        {!! json_encode([
+            'id' => 'public',
+            'autostart' => ($stats['total_links'] ?? 0) === 0,
+            'theme' => 'public',
+            'steps' => [
+                ['target' => null, 'title' => 'Welcome to my.ternis.link', 'body' => 'Your href.nz, meinlink.at and href.yt links live here. Short tour — skip anytime.'],
+                ['target' => 'create', 'title' => 'New short link', 'body' => 'This button (or the C key) shortens a link without leaving the page.'],
+                ['target' => 'stats', 'title' => 'Your numbers', 'body' => 'Links, clicks, and fresh traffic at a glance.'],
+                ['target' => 'table', 'title' => 'Every link, filterable', 'body' => 'Search, filter by tag or domain, export CSV or grab a QR ZIP.'],
+                ['target' => 'nav', 'title' => 'Need more?', 'body' => 'API keys, domains, and settings live over on dash.ternis.link. Enjoy!'],
+            ],
+        ]) !!}
+    </script>
 </x-layouts.public-dashboard>

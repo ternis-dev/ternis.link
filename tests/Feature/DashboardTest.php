@@ -184,4 +184,17 @@ class DashboardTest extends TestCase
             ->assertOk()
             ->assertDontSee('Get started in three steps', escape: false);
     }
+
+    public function test_overview_embeds_first_run_tour_with_hooks(): void
+    {
+        $this->actingAs($this->user)
+            ->get('http://dash.ternis.link')
+            ->assertOk()
+            ->assertSee('id="tl-tour-steps"', escape: false)
+            ->assertSee('Welcome to your dashboard', escape: false)
+            ->assertSee('data-tour="create"', escape: false)
+            ->assertSee('data-tour="stats"', escape: false)
+            ->assertSee('data-tour="table"', escape: false)
+            ->assertSee('Take the tour', escape: false);
+    }
 }
