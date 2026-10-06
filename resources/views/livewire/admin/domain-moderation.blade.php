@@ -26,9 +26,11 @@
             <tr>
                 @foreach ($visibleColumns as $column)
                     @if ($column === 'hostname')
-                        <th wire:click="sort('hostname')" class="sortable">
-                            Hostname
-                            @if ($sortBy === 'hostname') {{ $sortDir === 'asc' ? '↑' : '↓' }} @endif
+                        <th aria-sort="{{ $sortBy === 'hostname' ? ($sortDir === 'asc' ? 'ascending' : 'descending') : 'none' }}">
+                            <button type="button" wire:click="sort('hostname')" class="inline-flex cursor-pointer items-center gap-1 uppercase hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+                                Hostname
+                                @if ($sortBy === 'hostname') <span aria-hidden="true">{{ $sortDir === 'asc' ? '↑' : '↓' }}</span> @endif
+                            </button>
                         </th>
                     @elseif ($column === 'owner')
                         <th>Owner</th>

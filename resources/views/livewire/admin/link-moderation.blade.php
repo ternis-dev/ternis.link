@@ -24,9 +24,11 @@
             <tr>
                 @foreach ($visibleColumns as $column)
                     @if ($column === 'slug')
-                        <th wire:click="sort('slug')" class="sortable">
-                            Slug
-                            @if ($sortBy === 'slug') {{ $sortDir === 'asc' ? '↑' : '↓' }} @endif
+                        <th aria-sort="{{ $sortBy === 'slug' ? ($sortDir === 'asc' ? 'ascending' : 'descending') : 'none' }}">
+                            <button type="button" wire:click="sort('slug')" class="inline-flex cursor-pointer items-center gap-1 uppercase hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+                                Slug
+                                @if ($sortBy === 'slug') <span aria-hidden="true">{{ $sortDir === 'asc' ? '↑' : '↓' }}</span> @endif
+                            </button>
                         </th>
                     @elseif ($column === 'destination')
                         <th>Destination</th>
@@ -35,9 +37,11 @@
                     @elseif ($column === 'owner')
                         <th>Owner</th>
                     @elseif ($column === 'clicks')
-                        <th wire:click="sort('click_count')" class="sortable">
-                            Clicks
-                            @if ($sortBy === 'click_count') {{ $sortDir === 'asc' ? '↑' : '↓' }} @endif
+                        <th aria-sort="{{ $sortBy === 'click_count' ? ($sortDir === 'asc' ? 'ascending' : 'descending') : 'none' }}">
+                            <button type="button" wire:click="sort('click_count')" class="inline-flex cursor-pointer items-center gap-1 uppercase hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+                                Clicks
+                                @if ($sortBy === 'click_count') <span aria-hidden="true">{{ $sortDir === 'asc' ? '↑' : '↓' }}</span> @endif
+                            </button>
                         </th>
                     @elseif ($column === 'status')
                         <th>Status</th>

@@ -152,4 +152,14 @@ class DashboardTest extends TestCase
             ->assertSet('search', '')
             ->assertSee('sample-findable');
     }
+
+    public function test_sortable_columns_are_buttons_with_aria_sort(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(LinkTable::class)
+            ->assertSee('aria-sort="descending"', escape: false)
+            ->assertSee('<button type="button" wire:click="sort(', escape: false)
+            ->call('sort', 'slug')
+            ->assertSee('aria-sort="descending"', escape: false);
+    }
 }
