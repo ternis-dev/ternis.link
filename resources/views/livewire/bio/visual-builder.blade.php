@@ -865,7 +865,7 @@
             </div>
 
             {{-- Realistic iPhone Device Frame --}}
-            <div class="relative mx-auto w-[320px] rounded-[48px] border-[10px] border-neutral-900 bg-neutral-950 p-2 shadow-2xl ring-1 ring-black/10 dark:border-neutral-800 dark:bg-black">
+            <div class="relative mx-auto w-[320px] max-w-full rounded-[48px] border-[10px] border-neutral-900 bg-neutral-950 p-2 shadow-2xl ring-1 ring-black/10 dark:border-neutral-800 dark:bg-black">
                 {{-- Dynamic Island / Camera Pill --}}
                 <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex h-5 w-24 items-center justify-center rounded-full bg-black">
                     <div class="h-2.5 w-2.5 rounded-full bg-neutral-900/90 ml-auto mr-2"></div>

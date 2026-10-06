@@ -1318,6 +1318,8 @@ kbd {
 .yt-sim-tab {
     display: inline-flex;
     align-items: center;
+    flex-shrink: 0;
+    white-space: nowrap;
     gap: 0.45rem;
     font-size: 0.85rem;
     font-weight: 600;
@@ -1650,7 +1652,18 @@ kbd {
     .yt-notes { grid-template-columns: 1fr; }
     .yt-hero { padding: 3rem 0 2rem; }
     .yt-ghost { margin-left: 0; }
-    .yt-head-center { display: none; }
+    .yt-head { flex-wrap: wrap; height: auto; padding: 0.6rem 1rem; row-gap: 0.5rem; }
+    .yt-head-center {
+        display: flex;
+        order: 3;
+        flex: 1 1 100%;
+        gap: 1rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 0.25rem;
+    }
+    .yt-head-center::-webkit-scrollbar { display: none; }
+    .yt-head-link { white-space: nowrap; }
     .yt-root .sk-qr-card { flex-direction: column; align-items: flex-start; }
 }
 

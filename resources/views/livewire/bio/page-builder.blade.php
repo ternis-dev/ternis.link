@@ -326,7 +326,7 @@
             </div>
             <div class="hidden lg:block">
                 <p class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Live preview</p>
-                <div class="mx-auto w-[280px] overflow-hidden rounded-[2rem] border-[10px] border-neutral-900 bg-white shadow-xl dark:border-black dark:bg-neutral-950">
+                <div class="mx-auto w-[280px] max-w-full overflow-hidden rounded-[2rem] border-[10px] border-neutral-900 bg-white shadow-xl dark:border-black dark:bg-neutral-950">
                     <div class="mx-auto mt-2 h-5 w-24 rounded-full bg-neutral-900 dark:bg-black"></div>
                     @if ($previewPage)
                         <div inert style="font-family:system-ui,sans-serif;background:{{ $previewPage->theme === 'dark' ? '#111' : ($previewPage->theme === 'paper' ? '#f7f3ea' : '#fff') }};color:{{ $previewPage->theme === 'dark' ? '#f5f5f5' : '#171717' }}">
