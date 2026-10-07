@@ -436,21 +436,14 @@ class DashboardController extends Controller
     }
 
     /**
-     * Personal link scope: own non-removed links EXCLUDING the public
-     * dashboard hostnames (href.nz, meinlink.at, href.yt, qr.href.nz —
-     * those live on my.ternis.link). Links without a domain row stay here.
+     * Dashboard link query: own non-removed links (including public
+     * shortener domains available on dash.ternis.link).
      *
      * @return HasMany|Builder
      */
     private function personalQuery($user): object
     {
-        return $user->links()->notRemoved()->where(function (Builder $q) {
-            $q->whereDoesntHave('domain')
-                ->orWhereHas(
-                    'domain',
-                    fn (Builder $qq) => $qq->whereNotIn('hostname', DomainUrls::publicDashboardHostnames())
-                );
-        });
+        return $user->links()->notRemoved();
     }
 
     /**

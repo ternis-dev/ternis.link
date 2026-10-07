@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Dashboard\LinkForm;
+use App\Livewire\Dashboard\LinkImport;
+use App\Livewire\Dashboard\LinkTable;
 use App\Livewire\Dashboard\SettingsForm;
 use App\Models\Click;
 use App\Models\Domain;
@@ -162,5 +165,130 @@ class DashboardSettingsTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('data-chart="browsers"', escape: false);
         $response->assertSee('Chrome');
+    }
+
+    public function test_settings_page_renders_domain_preferences(): void
+    {
+        $this->actingAs($this->user)
+            ->get('http://dash.ternis.link/settings')
+            ->assertStatus(200)
+            ->assertSee('Domain Preferences', escape: false)
+            ->assertSee('Default Domain', escape: false)
+            ->assertSee('Domain Order', escape: false);
+    }
+
+    public function test_user_can_set_default_domain_and_reorder_domains(): void
+    {
+        $hrefDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $ytDomain = Domain::where('hostname', 'href.yt')->firstOrFail();
+
+        $component = Livewire::actingAs($this->user)
+            ->test(SettingsForm::class);
+
+        $initialOrder = $component->get('domain_order');
+        $this->assertContains($hrefDomain->id, $initialOrder);
+
+        // Move a domain and set default
+        $component->call('moveDomain', $ytDomain->id, 'up')
+            ->set('default_domain_id', $hrefDomain->id)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('saved', true);
+
+        $fresh = $this->user->fresh();
+        $this->assertSame($hrefDomain->id, $fresh->default_domain_id);
+        $this->assertSame($component->get('domain_order'), $fresh->domain_order);
+    }
+
+    public function test_user_can_reset_domain_order(): void
+    {
+        $hrefDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $clickedDomain = Domain::where('hostname', 'clicked.at')->firstOrFail();
+
+        $this->user->update([
+            'domain_order' => [$hrefDomain->id, $clickedDomain->id],
+        ]);
+
+        $component = Livewire::actingAs($this->user)
+            ->test(SettingsForm::class)
+            ->call('resetDomainOrder')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $fresh = $this->user->fresh();
+        $expectedOrder = $this->user->availableDomains()->sortBy('hostname', SORT_NATURAL | SORT_FLAG_CASE)->pluck('id')->values()->all();
+        $this->assertSame($expectedOrder, $fresh->domain_order);
+    }
+
+    public function test_link_form_preselects_user_default_domain(): void
+    {
+        $hrefDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $this->user->update(['default_domain_id' => $hrefDomain->id]);
+
+        Livewire::actingAs($this->user)
+            ->test(LinkForm::class)
+            ->assertSet('domain_id', $hrefDomain->id);
+    }
+
+    public function test_link_form_orders_domains_according_to_user_preference(): void
+    {
+        $ytDomain = Domain::where('hostname', 'href.yt')->firstOrFail();
+        $hrefDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
+
+        $this->user->update([
+            'domain_order' => [$ytDomain->id, $hrefDomain->id],
+        ]);
+
+        $domains = $this->user->availableDomains();
+        $this->assertSame($ytDomain->id, $domains->first()->id);
+        $this->assertSame($hrefDomain->id, $domains->values()->get(1)->id);
+
+        Livewire::actingAs($this->user)
+            ->test(LinkForm::class)
+            ->assertSeeHtml($ytDomain->hostname)
+            ->assertSeeHtml($hrefDomain->hostname);
+    }
+
+    public function test_public_dashboard_domains_are_available_on_dash(): void
+    {
+        $hrefDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
+
+        // 1. Link form creates link on href.nz from dash
+        Livewire::actingAs($this->user)
+            ->test(LinkForm::class)
+            ->set('destination_url', 'https://example.com/pub-on-dash')
+            ->set('domain_id', $hrefDomain->id)
+            ->set('slug', 'pubondash1')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $link = Link::where('slug', 'pubondash1')->firstOrFail();
+        $this->assertSame($hrefDomain->id, $link->domain_id);
+
+        // 2. Link is accessible on dash.ternis.link
+        $this->actingAs($this->user)
+            ->get("http://dash.ternis.link/links/{$link->id}")
+            ->assertOk()
+            ->assertSee('pubondash1');
+
+        // 3. Link appears in dash links table
+        Livewire::actingAs($this->user)
+            ->test(LinkTable::class)
+            ->assertSee('pubondash1');
+    }
+
+    public function test_link_import_uses_user_default_domain_when_unspecified(): void
+    {
+        $hrefDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
+        $this->user->update(['default_domain_id' => $hrefDomain->id]);
+
+        Livewire::actingAs($this->user)
+            ->test(LinkImport::class)
+            ->set('csv', "https://example.com/def-test,,,,\n")
+            ->call('import')
+            ->assertHasNoErrors();
+
+        $imported = Link::where('destination_url', 'https://example.com/def-test')->firstOrFail();
+        $this->assertSame($hrefDomain->id, $imported->domain_id);
     }
 }

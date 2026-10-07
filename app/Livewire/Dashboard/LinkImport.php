@@ -103,19 +103,13 @@ class LinkImport extends Component
                 continue;
             }
 
-            // Enforce the dashboard split: each importer only accepts
-            // its own side's hostnames.
+            // Enforce the public dashboard split: my.ternis.link only accepts
+            // public hostnames; dash.ternis.link accepts all usable domains.
             $publicHosts = DomainUrls::publicDashboardHostnames();
             $isPublicHost = in_array($domain->hostname, $publicHosts, true);
 
             if ($this->scope === 'public' && ! $isPublicHost) {
                 $results[] = ['row' => $rowNumber, 'ok' => false, 'message' => "Domain {$domain->hostname} is managed on dash.ternis.link."];
-
-                continue;
-            }
-
-            if ($this->scope === 'personal' && $isPublicHost) {
-                $results[] = ['row' => $rowNumber, 'ok' => false, 'message' => "Domain {$domain->hostname} is imported on my.ternis.link."];
 
                 continue;
             }
@@ -179,7 +173,15 @@ class LinkImport extends Component
 
     private function defaultDomain(): ?Domain
     {
-        // The default must be importable under the active scope:
+        $user = auth()->user();
+        if ($user) {
+            $default = $user->resolvedDefaultDomain($this->scope);
+            if ($default && $this->canUseDomain($default)) {
+                return $default;
+            }
+        }
+
+        // The fallback must be importable under the active scope:
         // href.nz belongs to the public dashboard, clicked.at to dash.
         $hostname = $this->scope === 'public'
             ? config('domains.public_host', 'href.nz')

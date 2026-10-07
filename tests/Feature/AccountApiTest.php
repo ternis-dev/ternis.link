@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\ActivityLog;
 use App\Models\ApiKey;
+use App\Models\Domain;
 use App\Models\Plan;
 use App\Models\User;
 use App\Notifications\SecurityAlert;
@@ -206,10 +207,11 @@ class AccountApiTest extends TestCase
     {
         $user = $this->user();
         $headers = $this->headersFor($user);
+        $hrefDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
 
         $this->getJson('http://links.t-api.de/v1/settings', $headers)
             ->assertStatus(200)
-            ->assertJsonStructure(['nav_layout', 'theme', 'notify_security_email']);
+            ->assertJsonStructure(['nav_layout', 'theme', 'notify_security_email', 'default_domain_id', 'domain_order']);
 
         $this->patchJson('http://links.t-api.de/v1/settings', ['theme' => 'neon'], $headers)
             ->assertStatus(422);
@@ -218,11 +220,17 @@ class AccountApiTest extends TestCase
             'theme' => 'dark',
             'nav_layout' => 'top',
             'notify_security_email' => false,
+            'default_domain_id' => $hrefDomain->id,
+            'domain_order' => [$hrefDomain->id],
         ], $headers)->assertStatus(200)
             ->assertJsonPath('theme', 'dark')
             ->assertJsonPath('nav_layout', 'top')
-            ->assertJsonPath('notify_security_email', false);
+            ->assertJsonPath('notify_security_email', false)
+            ->assertJsonPath('default_domain_id', $hrefDomain->id)
+            ->assertJsonPath('domain_order', [$hrefDomain->id]);
 
         $this->assertSame('dark', $user->fresh()->theme);
+        $this->assertSame($hrefDomain->id, $user->fresh()->default_domain_id);
+        $this->assertSame([$hrefDomain->id], $user->fresh()->domain_order);
     }
 }

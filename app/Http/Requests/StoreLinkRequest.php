@@ -14,6 +14,16 @@ class StoreLinkRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ((! $this->has('domain_id') || $this->input('domain_id') === null || $this->input('domain_id') === '') && $this->user()) {
+            $default = $this->user()->resolvedDefaultDomain();
+            if ($default) {
+                $this->merge(['domain_id' => $default->id]);
+            }
+        }
+    }
+
     public function rules(): array
     {
         $minLength = $this->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;

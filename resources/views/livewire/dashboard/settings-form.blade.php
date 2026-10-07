@@ -45,6 +45,67 @@
             @error('theme') <p class="mt-2 text-xs font-medium" role="alert">{{ $message }}</p> @enderror
         </x-ui.card>
 
+        <x-ui.card title="Domain Preferences">
+            <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Choose your default domain and customize the order domains appear when creating links.</p>
+
+            <div class="mb-6 max-w-xs">
+                <x-ui.select label="Default Domain" name="default_domain_id" wire:model.live="default_domain_id">
+                    <option value="">First domain in list</option>
+                    @foreach ($availableDomains as $domain)
+                        <option value="{{ $domain->id }}">{{ $domain->hostname }}</option>
+                    @endforeach
+                </x-ui.select>
+                <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Pre-selected when creating new links or importing CSVs.</p>
+                @error('default_domain_id') <p class="mt-2 text-xs font-medium text-red-600 dark:text-red-400" role="alert">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <div class="mb-2 flex items-center justify-between">
+                    <span class="text-sm font-medium text-neutral-900 dark:text-white">Domain Order</span>
+                    <button type="button" wire:click="resetDomainOrder" class="cursor-pointer text-xs font-semibold text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">Reset to alphabetical</button>
+                </div>
+                <p class="mb-3 text-xs text-neutral-500 dark:text-neutral-400">Use arrows to adjust the order domains appear in dropdowns.</p>
+
+                <div class="space-y-1.5 rounded-lg border border-neutral-200 p-2 dark:border-neutral-800">
+                    @foreach ($orderedDomains as $index => $domain)
+                        <div class="flex items-center justify-between rounded-md bg-neutral-50 px-3 py-2 text-sm dark:bg-neutral-800/50">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono text-xs text-neutral-400 dark:text-neutral-500">{{ $index + 1 }}.</span>
+                                <span class="font-medium text-neutral-900 dark:text-white">{{ $domain->hostname }}</span>
+                                @if ($domain->id === $default_domain_id)
+                                    <span class="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">Default</span>
+                                @endif
+                                @if ($domain->user_id)
+                                    <span class="rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">Custom</span>
+                                @endif
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    wire:click="moveDomain('{{ $domain->id }}', 'up')"
+                                    @disabled($loop->first)
+                                    class="cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-neutral-700 dark:hover:text-white"
+                                    aria-label="Move {{ $domain->hostname }} up"
+                                >
+                                    ↑
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="moveDomain('{{ $domain->id }}', 'down')"
+                                    @disabled($loop->last)
+                                    class="cursor-pointer rounded p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-30 dark:hover:bg-neutral-700 dark:hover:text-white"
+                                    aria-label="Move {{ $domain->hostname }} down"
+                                >
+                                    ↓
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @error('domain_order') <p class="mt-2 text-xs font-medium text-red-600 dark:text-red-400" role="alert">{{ $message }}</p> @enderror
+            </div>
+        </x-ui.card>
+
         <x-ui.card title="Email Notifications">
             <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Important events always appear in your in-app inbox. These toggles control whether you also get an email.</p>
             <div class="space-y-3">

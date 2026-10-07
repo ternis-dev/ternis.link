@@ -33,6 +33,12 @@ class LinkForm extends Component
         $this->createdSlug = null;
         $this->createdDomain = null;
         $this->resetErrorBag();
+
+        $user = auth()->user();
+        $defaultDomain = $user?->resolvedDefaultDomain($this->scope);
+        if ($defaultDomain) {
+            $this->domain_id = $defaultDomain->id;
+        }
     }
 
     public function createAnother(): void
@@ -189,9 +195,15 @@ class LinkForm extends Component
             $this->scope = $scope;
         }
 
-        $firstDomain = $this->getAvailableDomains()->first();
-        if ($firstDomain) {
-            $this->domain_id = $firstDomain->id;
+        $user = auth()->user();
+        $defaultDomain = $user?->resolvedDefaultDomain($this->scope);
+        if ($defaultDomain) {
+            $this->domain_id = $defaultDomain->id;
+        } else {
+            $firstDomain = $this->getAvailableDomains()->first();
+            if ($firstDomain) {
+                $this->domain_id = $firstDomain->id;
+            }
         }
 
         if ($this->canChooseSlugLength()) {
@@ -219,16 +231,11 @@ class LinkForm extends Component
 
         $domain = Domain::findOrFail($this->domain_id);
 
-        // Enforce the dashboard split server-side: my.ternis.link may only
-        // create public-shortener links, dash.ternis.link everything else.
+        // Enforce the public dashboard restriction server-side: my.ternis.link
+        // only creates public-shortener links; dash.ternis.link allows all available domains.
         $publicHosts = DomainUrls::publicDashboardHostnames();
         if ($this->scope === 'public' && ! in_array($domain->hostname, $publicHosts, true)) {
             $this->addError('domain_id', 'This dashboard only creates href.nz / meinlink.at / href.yt links.');
-
-            return;
-        }
-        if ($this->scope === 'personal' && in_array($domain->hostname, $publicHosts, true)) {
-            $this->addError('domain_id', 'Public shortener links are created on my.ternis.link.');
 
             return;
         }
@@ -326,43 +333,16 @@ class LinkForm extends Component
 
     /**
      * Get domains the current user is allowed to create links on:
-     * active system domains plus the user's own verified domains.
+     * active system domains plus the user's own verified domains,
+     * ordered by the user's domain_order setting.
      */
     private function getAvailableDomains()
     {
         $user = auth()->user();
-        $publicHosts = DomainUrls::publicDashboardHostnames();
+        if (! $user) {
+            return collect();
+        }
 
-        return Domain::where('is_active', true)
-            ->when($this->scope === 'public', fn ($q) => $q->whereIn('hostname', $publicHosts))
-            ->when($this->scope === 'personal', fn ($q) => $q->whereNotIn('hostname', $publicHosts))
-            ->where(function ($query) use ($user) {
-                $query->whereNull('domains.user_id');
-
-                if ($user->isAdmin()) {
-                    $query->orWhereNotNull('domains.verified_at');
-                } else {
-                    $query->orWhere(function ($q) use ($user) {
-                        $q->where('domains.user_id', $user->id)
-                            ->whereNotNull('domains.verified_at');
-                    });
-                }
-            })
-            ->when(! $user->isAdmin(), function ($query) use ($user) {
-                $query->where(function ($q) use ($user) {
-                    $q->where('type', 'public');
-                    $q->orWhere('user_id', $user->id);
-
-                    if ($user->isFamily() || $user->isAdmin()) {
-                        $q->orWhere('type', 'ternis');
-                    }
-
-                    if ($user->isAdmin()) {
-                        $q->orWhere('type', 'business');
-                    }
-                });
-            })
-            ->orderBy('hostname')
-            ->get();
+        return $user->availableDomains($this->scope);
     }
 }

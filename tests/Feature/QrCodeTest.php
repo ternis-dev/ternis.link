@@ -83,7 +83,7 @@ class QrCodeTest extends TestCase
             ->assertRedirect('http://dash.ternis.link/login');
     }
 
-    public function test_qr_zip_contains_only_personal_links(): void
+    public function test_qr_zip_contains_all_own_links_on_dash(): void
     {
         Link::create([
             'slug' => 'dash-qr-zip',
@@ -119,7 +119,7 @@ class QrCodeTest extends TestCase
         unlink($tmp);
 
         $this->assertContains('qr-clicked.at-dash-qr-zip.png', $names);
-        $this->assertNotContains('qr-href.nz-public-qr-zip.png', $names);
+        $this->assertContains('qr-href.nz-public-qr-zip.png', $names);
     }
 
     public function test_public_host_cannot_call_v1_qr_directly_and_uses_pretty_qr(): void

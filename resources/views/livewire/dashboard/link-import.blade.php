@@ -2,11 +2,9 @@
     <x-ui.card title="Paste CSV rows">
         <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">
             One link per line: <code>destination_url,domain_hostname,slug,expires_at,description,tags</code>.
-            Only the destination is required — empty domain defaults to {{ ($scope ?? null) === 'public' ? 'href.nz' : 'clicked.at' }}, empty slug auto-generates.
+            Only the destination is required — empty domain defaults to {{ auth()->user()?->resolvedDefaultDomain($scope)?->hostname ?? (($scope ?? null) === 'public' ? 'href.nz' : 'clicked.at') }}, empty slug auto-generates.
             @if (($scope ?? null) === 'public')
                 This importer accepts href.nz, meinlink.at, href.yt and qr.href.nz — other domains belong on dash.ternis.link.
-            @elseif (($scope ?? null) === 'personal')
-                This importer rejects href.nz, meinlink.at, href.yt and qr.href.nz — those belong on my.ternis.link.
             @endif
             Tags are semicolon-separated. Max {{ \App\Livewire\Dashboard\LinkImport::MAX_ROWS }} rows.
             Quote fields that contain commas.

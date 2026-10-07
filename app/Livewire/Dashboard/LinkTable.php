@@ -243,13 +243,7 @@ class LinkTable extends Component
             ->when($this->scope === 'public', function ($query) {
                 $query->whereHas('domain', fn ($q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames()));
             })
-            ->when($this->scope === 'personal', function ($query) {
-                $query->where(function ($q) {
-                    $q->whereDoesntHave('domain')
-                        ->orWhereHas('domain', fn ($qq) => $qq->whereNotIn('hostname', DomainUrls::publicDashboardHostnames()));
-                });
-            })
-            ->when($this->domainFilter !== '' && in_array($this->domainFilter, DomainUrls::publicDashboardHostnames(), true), function ($query) {
+            ->when($this->domainFilter !== '' && ($this->scope !== 'public' || in_array($this->domainFilter, DomainUrls::publicDashboardHostnames(), true)), function ($query) {
                 $query->whereHas('domain', fn ($q) => $q->where('hostname', $this->domainFilter));
             })
             ->when($this->search, function ($query) {

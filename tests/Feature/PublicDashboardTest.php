@@ -107,13 +107,13 @@ class PublicDashboardTest extends TestCase
         $public = $this->makeLink('href.nz', 'pub-part-1');
         $personal = $this->makeLink('clicked.at', 'pers-part-1');
 
-        // Public link: visible on my.ternis.link, 404 on dash.
+        // Public link: visible on my.ternis.link and on dash.
         $this->actingAs($this->user)
             ->get("http://my.ternis.link/links/{$public->id}")
             ->assertOk();
         $this->actingAs($this->user)
             ->get("http://dash.ternis.link/links/{$public->id}")
-            ->assertNotFound();
+            ->assertOk();
 
         // Dash-side link: visible on dash, 404 on my.ternis.link.
         $this->actingAs($this->user)
@@ -217,7 +217,7 @@ class PublicDashboardTest extends TestCase
         $this->assertDatabaseMissing('links', ['slug' => 'dash-imp-b']);
     }
 
-    public function test_personal_import_rejects_public_hostnames(): void
+    public function test_personal_import_accepts_public_hostnames(): void
     {
         $component = Livewire::actingAs($this->user)
             ->test(LinkImport::class, ['scope' => 'personal'])
@@ -225,8 +225,7 @@ class PublicDashboardTest extends TestCase
             ->call('dryRunImport');
 
         $results = $component->get('results');
-        $this->assertFalse($results[0]['ok']);
-        $this->assertStringContainsString('my.ternis.link', $results[0]['message']);
+        $this->assertTrue($results[0]['ok']);
     }
 
     public function test_overview_shows_domain_breakdown_and_first_run_state(): void
