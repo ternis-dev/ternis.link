@@ -84,6 +84,11 @@ class User extends Authenticatable
         return $this->hasMany(Link::class);
     }
 
+    public function groups(): HasMany
+    {
+        return $this->hasMany(LinkGroup::class)->orderBy('sort_order');
+    }
+
     public function domains(): HasMany
     {
         return $this->hasMany(Domain::class);

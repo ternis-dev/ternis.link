@@ -4,6 +4,7 @@
 $nav = [
     ['route' => 'dashboard', 'match' => 'dashboard', 'label' => 'Overview', 'icon' => '<path d="M3 3h7v7H3zM14 3h3v4h-3zM14 10h3v7h-3zM3 13h7v4H3z"/>'],
     ['route' => 'dashboard.links', 'match' => 'dashboard.links*', 'label' => 'Links', 'icon' => '<path d="M10 13a5 5 0 0 0 7.54.54l2.1-2.1a5 5 0 0 0-7.07-7.07l-1.06 1.06M14 11a5 5 0 0 0-7.54-.54l-2.1 2.1a5 5 0 0 0 7.07 7.07l1.06-1.06"/>'],
+    ['route' => 'dashboard.groups', 'match' => 'dashboard.groups*', 'label' => 'Groups', 'icon' => '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>'],
     ['route' => 'dashboard.api-keys', 'match' => 'dashboard.api-keys*', 'label' => 'API Keys', 'icon' => '<circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/>'],
     ['route' => 'dashboard.domains', 'match' => 'dashboard.domains*', 'label' => 'Domains', 'icon' => '<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-9-9h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/>'],
     ['route' => 'dashboard.bio', 'match' => 'dashboard.bio*', 'label' => 'Bio Pages', 'icon' => '<path d="M4 5h16v14H4zM4 10h16M9 10v9"/>'],

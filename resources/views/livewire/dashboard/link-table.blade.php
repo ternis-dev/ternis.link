@@ -38,6 +38,10 @@
                         @endforeach
                     </x-ui.select>
                 @endif
+                <label class="flex shrink-0 cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-neutral-500 dark:text-neutral-400" title="Also show links made with API keys hidden from the dashboard">
+                    <input type="checkbox" wire:model.live="includeHidden" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                    Include hidden
+                </label>
             @endif
         </div>
         <div class="flex items-center gap-2">

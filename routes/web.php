@@ -325,6 +325,19 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::get('/links/{link}/export', [DashboardController::class, 'exportClicks'])->name('dashboard.links.export');
     Route::get('/links/{link}/qr', [DashboardController::class, 'qrCode'])->name('dashboard.links.qr');
     Route::post('/links/{link}/duplicate', [DashboardController::class, 'duplicate'])->name('dashboard.links.duplicate');
+
+    // Link Groups
+    Route::get('/groups', [DashboardController::class, 'groups'])->name('dashboard.groups');
+    Route::get('/groups/create', [DashboardController::class, 'createGroup'])->name('dashboard.groups.create');
+    Route::post('/groups', [DashboardController::class, 'storeGroup'])->name('dashboard.groups.store');
+    Route::get('/groups/{group}', [DashboardController::class, 'showGroup'])->name('dashboard.groups.show');
+    Route::get('/groups/{group}/edit', [DashboardController::class, 'editGroup'])->name('dashboard.groups.edit');
+    Route::put('/groups/{group}', [DashboardController::class, 'updateGroup'])->name('dashboard.groups.update');
+    Route::delete('/groups/{group}', [DashboardController::class, 'deleteGroup'])->name('dashboard.groups.delete');
+    Route::post('/groups/{group}/links', [DashboardController::class, 'addGroupLink'])->name('dashboard.groups.links.add');
+    Route::delete('/groups/{group}/links/{link}', [DashboardController::class, 'removeGroupLink'])->name('dashboard.groups.links.remove');
+    Route::post('/groups/{group}/subgroups', [DashboardController::class, 'storeSubgroup'])->name('dashboard.groups.subgroups.store');
+
     Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
     Route::get('/api-keys/{key}', [DashboardController::class, 'showApiKey'])->name('dashboard.api-keys.show');
     Route::get('/bio', [DashboardController::class, 'bio'])->name('dashboard.bio');

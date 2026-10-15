@@ -38,6 +38,13 @@ class LinkTable extends Component
      */
     public ?string $lockedApiKeyId = null;
 
+    /**
+     * Include links made with keys that opted out of the dashboard
+     * (`show_on_dashboard = false`). Off by default; opt-in via the
+     * "Include hidden" checkbox next to the search.
+     */
+    public bool $includeHidden = false;
+
     public string $sortBy = 'created_at';
 
     public string $sortDir = 'desc';
@@ -119,11 +126,17 @@ class LinkTable extends Component
         $this->resetPage();
     }
 
+    public function updatingIncludeHidden(): void
+    {
+        $this->resetPage();
+    }
+
     public function resetFilters(): void
     {
         $this->search = '';
         $this->tag = '';
         $this->domainFilter = '';
+        $this->includeHidden = false;
         if ($this->lockedApiKeyId === null) {
             $this->apiKeyFilter = '';
         }
@@ -260,9 +273,10 @@ class LinkTable extends Component
                     $query->whereNull('api_key_id');
                 } elseif ($effectiveFilter !== '') {
                     $query->where('api_key_id', $effectiveFilter);
-                } else {
+                } elseif (! $this->includeHidden) {
                     // Default view: hide links whose key opted out of
-                    // the dashboard (they live on their per-key page).
+                    // the dashboard (they live on their per-key page) —
+                    // unless the "Include hidden" checkbox is set.
                     $query->visibleOnDashboard();
                 }
             })

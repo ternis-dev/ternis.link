@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 
@@ -73,6 +74,13 @@ class Link extends Model
     public function targets(): HasMany
     {
         return $this->hasMany(LinkTarget::class)->orderBy('sort_order');
+    }
+
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(LinkGroup::class, 'link_group_items')
+            ->withPivot('sort_order')
+            ->withTimestamps();
     }
 
     public function hasTargeting(): bool
