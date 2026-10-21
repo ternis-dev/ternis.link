@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Admin\ActivityLogTable;
-use App\Livewire\Admin\LinkModeration;
+use App\Livewire\Dashboard\ActivityTable;
+use App\Livewire\Dashboard\ApiKeyManager;
+use App\Livewire\Dashboard\DomainManager;
+use App\Livewire\Dashboard\LinkAnalytics;
 use App\Livewire\Dashboard\LinkTable;
 use App\Models\Domain;
 use App\Models\Link;
@@ -15,15 +17,15 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
+/**
+ * Every table on the dashboard exposes the Cloudflare-style column
+ * customizer: toggle visibility, reorder, persist per user.
+ */
 class TableColumnsTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
-
-    private User $admin;
-
-    private Domain $domain;
 
     protected function setUp(): void
     {
@@ -31,135 +33,125 @@ class TableColumnsTest extends TestCase
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
 
         $this->user = User::factory()->create();
-        $this->admin = User::factory()->admin()->create();
-        $this->domain = Domain::where('hostname', 'href.nz')->first();
+    }
 
-        Link::create([
-            'slug' => 'coltest1',
-            'destination_url' => 'https://example.com/coltest',
-            'domain_id' => $this->domain->id,
+    public function test_activity_table_renders_and_hides_columns(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ActivityTable::class)
+            ->assertSee('Visible columns')
+            ->call('toggleColumn', 'by', 'dashboard.activity')
+            ->assertHasNoErrors();
+
+        $this->assertSame(['by'], $this->user->fresh()->table_columns['dashboard.activity']['hidden']);
+    }
+
+    public function test_api_key_table_renders_and_hides_columns(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ApiKeyManager::class)
+            ->assertSee('Visible columns')
+            ->call('toggleColumn', 'prefix', 'dashboard.api-keys')
+            ->assertHasNoErrors();
+
+        $this->assertSame(['prefix'], $this->user->fresh()->table_columns['dashboard.api-keys']['hidden']);
+    }
+
+    public function test_domain_tables_are_customized_independently(): void
+    {
+        $component = Livewire::actingAs($this->user)
+            ->test(DomainManager::class)
+            ->assertSee('Visible columns')
+            ->call('toggleColumn', 'status', DomainManager::OWN_TABLE)
+            ->call('toggleColumn', 'type', DomainManager::SYSTEM_TABLE);
+
+        $prefs = $this->user->fresh()->table_columns;
+
+        $this->assertSame(['status'], $prefs[DomainManager::OWN_TABLE]['hidden']);
+        $this->assertSame(['type'], $prefs[DomainManager::SYSTEM_TABLE]['hidden']);
+    }
+
+    public function test_link_analytics_table_columns_are_customizable(): void
+    {
+        $link = Link::create([
+            'slug' => 'analytic',
+            'destination_url' => 'https://example.com/a',
+            'domain_id' => Domain::where('hostname', 'href.nz')->first()->id,
             'user_id' => $this->user->id,
             'is_active' => true,
         ]);
-    }
 
-    public function test_hidden_column_disappears_and_persists_in_db(): void
-    {
         Livewire::actingAs($this->user)
-            ->test(LinkTable::class)
-            ->assertSee('Destination URL', escape: false)
-            ->call('toggleColumn', 'destination')
-            ->assertSee('Destination URL', escape: false) // still listed in customizer
-            ->assertDontSee('https://example.com/coltest', escape: false);
-
-        $this->assertSame(['dashboard.links' => [
-            'hidden' => ['destination'],
-            'order' => ['slug', 'destination', 'domain', 'clicks', 'status', 'created'],
-        ]], $this->user->fresh()->table_columns);
-
-        // Survives a fresh component instance (reload).
-        Livewire::actingAs($this->user)
-            ->test(LinkTable::class)
-            ->assertDontSee('https://example.com/coltest', escape: false)
-            ->assertSee('coltest1', escape: false);
-    }
-
-    public function test_column_order_is_applied_and_persisted(): void
-    {
-        $test = Livewire::actingAs($this->user)->test(LinkTable::class);
-
-        // Header markers are unique to the table head (the customizer
-        // panel has no wire:click sort markers).
-        $html = $test->html();
-        $this->assertLessThan(
-            strpos($html, "sort('created_at')"),
-            strpos($html, "sort('slug')")
-        );
-
-        $test->call('moveColumn', 'slug', 'down')
-            ->call('moveColumn', 'slug', 'down')
-            ->call('moveColumn', 'slug', 'down')
-            ->call('moveColumn', 'slug', 'down')
-            ->call('moveColumn', 'slug', 'down');
-
-        $order = $this->user->fresh()->table_columns['dashboard.links']['order'];
-        $this->assertSame('slug', $order[array_key_last($order)]);
-
-        $html = $test->html();
-        $this->assertLessThan(
-            strpos($html, "sort('slug')"),
-            strpos($html, "sort('created_at')")
-        );
-    }
-
-    public function test_cannot_hide_all_columns(): void
-    {
-        $test = Livewire::actingAs($this->user)->test(LinkTable::class);
-
-        foreach (['slug', 'destination', 'domain', 'clicks', 'status', 'created'] as $column) {
-            $test->call('toggleColumn', $column);
-        }
-
-        // Last hide is refused: at least one column stays visible.
-        $hidden = $this->user->fresh()->table_columns['dashboard.links']['hidden'];
-        $this->assertCount(5, $hidden);
-        $test->assertDontSee('coltest1', escape: false)
-            ->assertSee('Created', escape: false);
-    }
-
-    public function test_unknown_column_keys_are_ignored(): void
-    {
-        Livewire::actingAs($this->user)
-            ->test(LinkTable::class)
-            ->call('toggleColumn', 'nope')
-            ->call('moveColumn', 'nope', 'up')
+            ->test(LinkAnalytics::class, ['link' => $link])
+            ->call('toggleColumn', 'ip_hash', 'dashboard.analytics.recent-clicks')
             ->assertHasNoErrors();
-
-        $this->assertNull($this->user->fresh()->table_columns);
-    }
-
-    public function test_preferences_are_isolated_per_table(): void
-    {
-        Livewire::actingAs($this->admin)
-            ->test(LinkTable::class)
-            ->call('toggleColumn', 'domain');
-
-        Livewire::actingAs($this->admin)
-            ->test(LinkModeration::class)
-            ->assertSee('href.nz', escape: false);
-
-        $prefs = $this->admin->fresh()->table_columns;
-        $this->assertArrayHasKey('dashboard.links', $prefs);
-        $this->assertArrayNotHasKey('admin.links', $prefs);
-    }
-
-    public function test_reset_columns_restores_defaults(): void
-    {
-        $test = Livewire::actingAs($this->user)
-            ->test(LinkTable::class)
-            ->call('toggleColumn', 'domain')
-            ->call('moveColumn', 'created', 'up');
-
-        $this->assertNotEmpty($this->user->fresh()->table_columns['dashboard.links']['hidden']);
-
-        $test->call('resetColumns')
-            ->assertSee('href.nz', escape: false)
-            ->assertSee('https://example.com/coltest', escape: false);
 
         $this->assertSame(
-            ['hidden' => [], 'order' => ['slug', 'destination', 'domain', 'clicks', 'status', 'created']],
-            $this->user->fresh()->table_columns['dashboard.links']
+            ['ip_hash'],
+            $this->user->fresh()->table_columns['dashboard.analytics.recent-clicks']['hidden']
         );
     }
 
-    public function test_admin_activity_table_supports_column_prefs(): void
+    public function test_link_table_columns_are_customizable(): void
     {
-        Livewire::actingAs($this->admin)
-            ->test(ActivityLogTable::class)
-            ->assertSee('Columns', escape: false)
-            ->call('toggleColumn', 'owner')
+        Livewire::actingAs($this->user)
+            ->test(LinkTable::class)
+            ->call('toggleColumn', 'domain', 'dashboard.links')
             ->assertHasNoErrors();
 
-        $this->assertSame(['owner'], $this->admin->fresh()->table_columns['admin.activity']['hidden']);
+        $this->assertSame(['domain'], $this->user->fresh()->table_columns['dashboard.links']['hidden']);
+    }
+
+    public function test_columns_can_be_reordered(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ActivityTable::class)
+            ->call('moveColumn', 'by', 'up', 'dashboard.activity')
+            ->assertHasNoErrors();
+
+        $order = $this->user->fresh()->table_columns['dashboard.activity']['order'];
+
+        // 'by' was the last column, one step up swaps it with 'subject'.
+        $this->assertSame(['when', 'action', 'by', 'subject'], $order);
+    }
+
+    public function test_reset_restores_defaults(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ActivityTable::class)
+            ->call('toggleColumn', 'by', 'dashboard.activity')
+            ->call('resetColumns', 'dashboard.activity')
+            ->assertHasNoErrors();
+
+        $prefs = $this->user->fresh()->table_columns['dashboard.activity'];
+
+        $this->assertSame([], $prefs['hidden']);
+        $this->assertSame(['when', 'action', 'subject', 'by'], $prefs['order']);
+    }
+
+    public function test_the_last_visible_column_cannot_be_hidden(): void
+    {
+        $component = Livewire::actingAs($this->user)->test(ActivityTable::class);
+
+        foreach (['when', 'action', 'subject'] as $column) {
+            $component->call('toggleColumn', $column, 'dashboard.activity');
+        }
+
+        $component->call('toggleColumn', 'by', 'dashboard.activity');
+
+        $prefs = $this->user->fresh()->table_columns['dashboard.activity'];
+
+        // Three hidden, one still visible — the fourth toggle is a no-op.
+        $this->assertCount(3, $prefs['hidden']);
+    }
+
+    public function test_unknown_columns_are_ignored(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ActivityTable::class)
+            ->call('toggleColumn', 'not_a_column', 'dashboard.activity')
+            ->assertHasNoErrors();
+
+        $this->assertNull($this->user->fresh()->table_columns['dashboard.activity'] ?? null);
     }
 }

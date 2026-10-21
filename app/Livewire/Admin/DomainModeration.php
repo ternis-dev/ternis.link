@@ -129,7 +129,6 @@ class DomainModeration extends Component
 
         return view('livewire.admin.domain-moderation', [
             'domains' => $domains,
-            'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visible = $this->visibleColumns(),
             'columnCount' => count($visible) + 1, // + fixed Actions column
         ]);

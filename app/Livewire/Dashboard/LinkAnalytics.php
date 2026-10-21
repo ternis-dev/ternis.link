@@ -2,12 +2,15 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Livewire\Concerns\WithTableColumns;
 use App\Models\Link;
 use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class LinkAnalytics extends Component
 {
+    use WithTableColumns;
+
     public Link $link;
 
     public int $period = 30;
@@ -31,6 +34,23 @@ class LinkAnalytics extends Component
      * identical; only route prefixing and styling hooks change.
      */
     public string $theme = 'dashboard';
+
+    protected function tableKey(): string
+    {
+        return 'dashboard.analytics.recent-clicks';
+    }
+
+    protected function availableColumns(): array
+    {
+        return [
+            'timestamp' => 'Timestamp',
+            'user_tags' => 'User / Tags',
+            'params' => 'Parameters',
+            'referrer' => 'Referrer',
+            'user_agent' => 'User Agent',
+            'ip_hash' => 'IP Hash',
+        ];
+    }
 
     public function mount(): void
     {
@@ -108,6 +128,8 @@ class LinkAnalytics extends Component
             ->limit(20)
             ->get();
 
+        $visibleColumns = $this->visibleColumns();
+
         return view('livewire.dashboard.link-analytics', [
             'totalClicks' => $totalClicks,
             'uniqueVisitors' => $uniqueVisitors,
@@ -120,6 +142,9 @@ class LinkAnalytics extends Component
             'topBrowsers' => $this->topBrowsers($baseQuery),
             'clicksByDay' => $clicksByDay,
             'recentClicks' => $recentClicks,
+            'availableColumns' => $this->availableColumns(),
+            'visibleColumns' => $visibleColumns,
+            'columnCount' => count($visibleColumns),
         ]);
     }
 

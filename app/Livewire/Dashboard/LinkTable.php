@@ -295,7 +295,6 @@ class LinkTable extends Component
             'availableTags' => $this->availableTags($base),
             'apiKeys' => $apiKeys,
             'fromApiKey' => $fromApiKey,
-            'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visibleColumns,
             'columnCount' => count($visibleColumns) + 2, // + checkbox + fixed Actions column
         ]);

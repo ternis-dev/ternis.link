@@ -53,7 +53,6 @@ class ErrorEncounterTable extends Component
 
         return view('livewire.admin.error-encounter-table', [
             'entries' => $entries,
-            'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visible = $this->visibleColumns(),
             'columnCount' => count($visible) + 1, // + fixed Actions column
         ]);

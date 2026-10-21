@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Services\DomainService;
@@ -14,6 +15,24 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DomainManager extends Component
 {
+    use WithTableColumns;
+
+    /**
+     * Table key of the user's own domains (the component's default).
+     */
+    public const OWN_TABLE = 'dashboard.domains.own';
+
+    /**
+     * Table key of the read-only system domain list.
+     */
+    public const SYSTEM_TABLE = 'dashboard.domains.system';
+
+    /**
+     * Presentation theme: 'dashboard' (dash.ternis.link) or 'public'
+     * (public dashboard). Only the notification target differs.
+     */
+    public string $theme = 'dashboard';
+
     public string $hostname = '';
 
     public ?string $justCreatedId = null;
@@ -21,6 +40,39 @@ class DomainManager extends Component
     public string $subdomain = '';
 
     public ?string $claimedHostname = null;
+
+    protected function tableKey(): string
+    {
+        return self::OWN_TABLE;
+    }
+
+    protected function availableColumns(): array
+    {
+        return [
+            'hostname' => 'Hostname',
+            'status' => 'Status',
+            'links' => 'Links',
+        ];
+    }
+
+    /**
+     * The component renders two tables, so the column set depends on
+     * which one is being customised.
+     *
+     * @return array<string, string>
+     */
+    public function availableColumnsFor(?string $table = null): array
+    {
+        if ($this->tableKeyFor($table) === self::SYSTEM_TABLE) {
+            return [
+                'hostname' => 'Hostname',
+                'type' => 'Type',
+                'links' => 'Links',
+            ];
+        }
+
+        return $this->availableColumns();
+    }
 
     protected function rules(): array
     {
@@ -141,7 +193,7 @@ class DomainManager extends Component
             $domain->user ?? auth()->user(),
             'Domain verified: '.$domain->hostname,
             ["Your domain {$domain->hostname} passed DNS verification and can now serve short links."],
-            DomainUrls::dashboard('/domains'),
+            $this->domainsUrl(),
             'View your domains',
         );
 
@@ -173,11 +225,21 @@ class DomainManager extends Component
             $owner,
             'Domain deactivated: '.$domain->hostname,
             ["Your domain {$domain->hostname} was deactivated. Existing links and analytics are preserved."],
-            DomainUrls::dashboard('/domains'),
+            $this->domainsUrl(),
             'View your domains',
         );
 
         $this->dispatch('notify', message: "{$domain->hostname} deactivated — links and stats preserved.", type: 'info');
+    }
+
+    /**
+     * Absolute URL of the domains page for the current theme.
+     */
+    private function domainsUrl(): string
+    {
+        return $this->theme === 'public'
+            ? DomainUrls::publicDashboard('/domains')
+            : DomainUrls::dashboard('/domains');
     }
 
     /**
@@ -226,9 +288,18 @@ class DomainManager extends Component
             ->orderBy('hostname')
             ->first();
 
-        return view('livewire.dashboard.domain-manager', compact(
-            'systemDomains', 'ownDomains', 'instructions', 'canAdd', 'planName',
-            'canClaimSubdomain', 'personalSubdomain'
-        ));
+        return view('livewire.dashboard.domain-manager', [
+            'systemDomains' => $systemDomains,
+            'ownDomains' => $ownDomains,
+            'instructions' => $instructions,
+            'canAdd' => $canAdd,
+            'planName' => $planName,
+            'canClaimSubdomain' => $canClaimSubdomain,
+            'personalSubdomain' => $personalSubdomain,
+            'ownColumns' => $this->availableColumnsFor(self::OWN_TABLE),
+            'visibleOwnColumns' => $this->visibleColumns(self::OWN_TABLE),
+            'systemColumns' => $this->availableColumnsFor(self::SYSTEM_TABLE),
+            'visibleSystemColumns' => $this->visibleColumns(self::SYSTEM_TABLE),
+        ]);
     }
 }

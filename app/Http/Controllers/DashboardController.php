@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivityLog;
 use App\Models\Click;
 use App\Models\Link;
 use App\Models\LinkGroup;
@@ -427,14 +426,11 @@ class DashboardController extends Controller
      * Personal activity history: actions the user performed plus
      * actions others (admins, system) performed on their stuff.
      */
-    public function activity(Request $request)
+    public function activity()
     {
-        $entries = ActivityLog::visibleTo($request->user()->id)
-            ->with(['actor', 'subjectOwner'])
-            ->orderByDesc('created_at')
-            ->paginate(25);
-
-        return view('dashboard.activity.index', compact('entries'));
+        // The table itself is a Livewire component so its columns can
+        // be toggled per user (livewire.dashboard.activity-table).
+        return view('dashboard.activity.index');
     }
 
     /**

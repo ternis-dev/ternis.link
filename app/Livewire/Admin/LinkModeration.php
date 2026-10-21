@@ -206,7 +206,6 @@ class LinkModeration extends Component
 
         return view('livewire.admin.link-moderation', [
             'links' => $links,
-            'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visible = $this->visibleColumns(),
             'columnCount' => count($visible) + 1, // + fixed Actions column
         ]);

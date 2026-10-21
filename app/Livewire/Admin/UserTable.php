@@ -128,7 +128,6 @@ class UserTable extends Component
             'users' => $users,
             'roles' => UserRole::cases(),
             'plans' => Plan::orderBy('name')->get(),
-            'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visible = $this->visibleColumns(),
             'columnCount' => count($visible),
         ]);

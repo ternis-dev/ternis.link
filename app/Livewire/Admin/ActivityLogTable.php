@@ -51,7 +51,6 @@ class ActivityLogTable extends Component
                 ->distinct()
                 ->orderBy('action')
                 ->pluck('action'),
-            'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visible = $this->visibleColumns(),
             'columnCount' => count($visible),
         ]);

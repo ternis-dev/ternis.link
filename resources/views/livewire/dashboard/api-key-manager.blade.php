@@ -88,101 +88,126 @@
     </x-ui.card>
 
     <x-ui.card title="Active API Keys">
+        <div class="mb-4 flex flex-wrap items-center justify-end gap-3">
+            @include('livewire.partials.column-customizer')
+        </div>
         <x-ui.table>
             <thead>
                 <tr>
-                    <th>Label</th>
-                    <th>Prefix</th>
-                    <th>API Version</th>
-                    <th>Created</th>
-                    <th>Expires</th>
-                    <th>Last Used</th>
-                    <th>Dashboard</th>
-                    <th>Status</th>
+                    @foreach ($visibleColumns as $column)
+                        <th>{{ $availableColumns[$column] ?? $column }}</th>
+                    @endforeach
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($apiKeys as $key)
                     <tr>
-                        <td class="font-semibold">
-                            <div class="flex items-center gap-1.5">
-                                <a href="{{ route('dashboard.api-keys.show', $key->id) }}" class="underline-offset-2 hover:underline">{{ $key->name }}</a>
-                                @if ($key->isValid())
-                                    <button
-                                        type="button"
-                                        wire:click="openSettings('{{ $key->id }}')"
-                                        class="cursor-pointer text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
-                                        title="Edit key settings"
-                                    >
-                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
-                                @endif
-                            </div>
-                        </td>
-                        <td><code>{{ $key->masked_key }}</code></td>
-                        <td>
-                            <div class="flex items-center gap-1.5">
-                                <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold {{ $key->api_version === $latestVersion ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400' }}">
-                                    v{{ $key->api_version }}
-                                </span>
-                                @if ($key->isValid() && $key->api_version < $latestVersion)
-                                    <button
-                                        type="button"
-                                        wire:click="updateVersion('{{ $key->id }}', {{ $latestVersion }})"
-                                        class="cursor-pointer text-xs font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2 dark:text-primary-400"
-                                        title="Upgrade this key to v{{ $latestVersion }}"
-                                    >
-                                        Upgrade
-                                    </button>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="text-xs text-neutral-500 whitespace-nowrap">{{ $key->created_at->format('M d, Y') }}</td>
-                        <td class="text-xs whitespace-nowrap">
-                            @if (! $key->expires_at)
-                                <span class="text-neutral-400 dark:text-neutral-500">Never</span>
-                            @elseif ($key->isExpired())
-                                <span class="font-medium text-amber-600 dark:text-amber-400" title="{{ $key->expires_at->toRfc7231String() }}">
-                                    Expired {{ $key->expires_at->diffForHumans() }}
-                                </span>
-                            @else
-                                <span class="text-neutral-600 dark:text-neutral-400" title="{{ $key->expires_at->toRfc7231String() }}">
-                                    {{ $key->expires_at->format('M d, Y') }}
-                                    <span class="text-neutral-400 text-[11px]">({{ $key->expires_at->diffForHumans() }})</span>
-                                </span>
-                            @endif
-                        </td>
-                        <td class="text-xs text-neutral-500 whitespace-nowrap">
-                            {{ $key->last_used_at ? $key->last_used_at->diffForHumans() : 'Never' }}
-                        </td>
-                        <td>
-                            <button
-                                type="button"
-                                wire:click="toggleVisibility('{{ $key->id }}')"
-                                title="Click to toggle whether links appear on main dashboard"
-                                class="cursor-pointer inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium {{ $key->show_on_dashboard ? 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700' : 'bg-neutral-50 text-neutral-500 border border-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800' }}"
-                            >
-                                <span class="h-1.5 w-1.5 rounded-full {{ $key->show_on_dashboard ? 'bg-emerald-500' : 'bg-neutral-400' }}"></span>
-                                {{ $key->show_on_dashboard ? 'Shown' : 'Hidden' }}
-                            </button>
-                        </td>
-                        <td>
-                            @if ($key->isRevoked())
-                                <x-ui.status state="disabled" />
-                            @elseif ($key->isExpired())
-                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-                                    <span class="h-2 w-2 rounded-full bg-amber-500"></span> Expired
-                                </span>
-                            @else
-                                <x-ui.status state="active" />
-                            @endif
-                        </td>
+                        @foreach ($visibleColumns as $column)
+                            @switch($column)
+                                @case('name')
+                                    <td class="font-semibold">
+                                        <div class="flex items-center gap-1.5">
+                                            <a href="{{ route($routePrefix.'api-keys.show', $key->id) }}" class="underline-offset-2 hover:underline">{{ $key->name }}</a>
+                                            @if ($key->isValid())
+                                                <button
+                                                    type="button"
+                                                    wire:click="openSettings('{{ $key->id }}')"
+                                                    class="cursor-pointer text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                                                    title="Edit key settings"
+                                                >
+                                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    @break
+
+                                @case('prefix')
+                                    <td><code>{{ $key->masked_key }}</code></td>
+                                    @break
+
+                                @case('version')
+                                    <td>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold {{ $key->api_version === $latestVersion ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400' }}">
+                                                v{{ $key->api_version }}
+                                            </span>
+                                            @if ($key->isValid() && $key->api_version < $latestVersion)
+                                                <button
+                                                    type="button"
+                                                    wire:click="updateVersion('{{ $key->id }}', {{ $latestVersion }})"
+                                                    class="cursor-pointer text-xs font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2 dark:text-primary-400"
+                                                    title="Upgrade this key to v{{ $latestVersion }}"
+                                                >
+                                                    Upgrade
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    @break
+
+                                @case('created')
+                                    <td class="text-xs text-neutral-500 whitespace-nowrap">{{ $key->created_at->format('M d, Y') }}</td>
+                                    @break
+
+                                @case('expires')
+                                    <td class="text-xs whitespace-nowrap">
+                                        @if (! $key->expires_at)
+                                            <span class="text-neutral-400 dark:text-neutral-500">Never</span>
+                                        @elseif ($key->isExpired())
+                                            <span class="font-medium text-amber-600 dark:text-amber-400" title="{{ $key->expires_at->toRfc7231String() }}">
+                                                Expired {{ $key->expires_at->diffForHumans() }}
+                                            </span>
+                                        @else
+                                            <span class="text-neutral-600 dark:text-neutral-400" title="{{ $key->expires_at->toRfc7231String() }}">
+                                                {{ $key->expires_at->format('M d, Y') }}
+                                                <span class="text-neutral-400 text-[11px]">({{ $key->expires_at->diffForHumans() }})</span>
+                                            </span>
+                                        @endif
+                                    </td>
+                                    @break
+
+                                @case('last_used')
+                                    <td class="text-xs text-neutral-500 whitespace-nowrap">
+                                        {{ $key->last_used_at ? $key->last_used_at->diffForHumans() : 'Never' }}
+                                    </td>
+                                    @break
+
+                                @case('dashboard')
+                                    <td>
+                                        <button
+                                            type="button"
+                                            wire:click="toggleVisibility('{{ $key->id }}')"
+                                            title="Click to toggle whether links appear on main dashboard"
+                                            class="cursor-pointer inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium {{ $key->show_on_dashboard ? 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700' : 'bg-neutral-50 text-neutral-500 border border-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800' }}"
+                                        >
+                                            <span class="h-1.5 w-1.5 rounded-full {{ $key->show_on_dashboard ? 'bg-emerald-500' : 'bg-neutral-400' }}"></span>
+                                            {{ $key->show_on_dashboard ? 'Shown' : 'Hidden' }}
+                                        </button>
+                                    </td>
+                                    @break
+
+                                @case('status')
+                                    <td>
+                                        @if ($key->isRevoked())
+                                            <x-ui.status state="disabled" />
+                                        @elseif ($key->isExpired())
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                                                <span class="h-2 w-2 rounded-full bg-amber-500"></span> Expired
+                                            </span>
+                                        @else
+                                            <x-ui.status state="active" />
+                                        @endif
+                                    </td>
+                                    @break
+                            @endswitch
+                        @endforeach
                         <td>
                             <div class="flex items-center gap-2">
-                                <x-ui.button href="{{ route('dashboard.api-keys.show', $key->id) }}" size="sm">Links</x-ui.button>
+                                <x-ui.button href="{{ route($routePrefix.'api-keys.show', $key->id) }}" size="sm">Links</x-ui.button>
                                 <x-ui.button wire:click="openSettings('{{ $key->id }}')" size="sm" variant="ghost">Settings</x-ui.button>
                                 @if ($key->isValid())
                                     <x-ui.button wire:click="revokeKey('{{ $key->id }}')" wire:confirm="Revoke this API key immediately? Requests using this key will immediately fail." size="sm" variant="danger">Revoke</x-ui.button>
@@ -194,7 +219,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center text-neutral-500 py-6">No API keys found. Generate one above to get started.</td>
+                        <td colspan="{{ $columnCount }}" class="text-center text-neutral-500 py-6">No API keys found. Generate one above to get started.</td>
                     </tr>
                 @endforelse
             </tbody>

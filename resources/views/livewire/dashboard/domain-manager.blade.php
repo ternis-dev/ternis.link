@@ -73,27 +73,43 @@
     @endif
 
     <x-ui.card title="Your Domains" class="mb-8">
+        <div class="mb-4 flex flex-wrap items-center justify-end gap-3">
+            @php($customizerTable = \App\Livewire\Dashboard\DomainManager::OWN_TABLE)
+            @include('livewire.partials.column-customizer')
+        </div>
         <x-ui.table>
             <thead>
                 <tr>
-                    <th>Hostname</th>
-                    <th>Status</th>
-                    <th>Links</th>
+                    @foreach ($visibleOwnColumns as $column)
+                        <th>{{ $ownColumns[$column] ?? $column }}</th>
+                    @endforeach
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($ownDomains as $domain)
                     <tr>
-                        <td><code>{{ $domain->hostname }}</code></td>
-                        <td>
-                            @if ($domain->isVerified())
-                                <x-ui.status state="verified" />
-                            @else
-                                <x-ui.status state="pending" />
-                            @endif
-                        </td>
-                        <td class="text-xs text-neutral-500">{{ $domain->links_count }}</td>
+                        @foreach ($visibleOwnColumns as $column)
+                            @switch($column)
+                                @case('hostname')
+                                    <td><code>{{ $domain->hostname }}</code></td>
+                                    @break
+
+                                @case('status')
+                                    <td>
+                                        @if ($domain->isVerified())
+                                            <x-ui.status state="verified" />
+                                        @else
+                                            <x-ui.status state="pending" />
+                                        @endif
+                                    </td>
+                                    @break
+
+                                @case('links')
+                                    <td class="text-xs text-neutral-500">{{ $domain->links_count }}</td>
+                                    @break
+                            @endswitch
+                        @endforeach
                         <td>
                             <div class="flex gap-2">
                                 @if (! $domain->isVerified())
@@ -105,7 +121,7 @@
                     </tr>
                     @if (! $domain->isVerified() && isset($instructions[$domain->id]))
                         <tr>
-                            <td colspan="4" class="bg-neutral-50 dark:bg-neutral-950">
+                            <td colspan="{{ count($visibleOwnColumns) + 1 }}" class="bg-neutral-50 dark:bg-neutral-950">
                                 <div class="text-sm">
                                     <strong>Verify ownership</strong> — publish this DNS record, wait for propagation, then press Verify:
                                     <div class="my-2 rounded-lg border border-neutral-300 bg-white p-3 font-mono text-xs break-all dark:border-neutral-700 dark:bg-neutral-900">
@@ -123,7 +139,7 @@
                     @endif
                 @empty
                     <tr>
-                        <td colspan="4">
+                        <td colspan="{{ count($visibleOwnColumns) + 1 }}">
                             <x-ui.empty-state>No custom domains yet. Add one above to use your own hostname for short links.</x-ui.empty-state>
                         </td>
                     </tr>
@@ -136,20 +152,36 @@
         <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">
             Always available for link creation — no verification needed.
         </p>
+        <div class="mb-4 flex flex-wrap items-center justify-end gap-3">
+            @php($customizerTable = \App\Livewire\Dashboard\DomainManager::SYSTEM_TABLE)
+            @include('livewire.partials.column-customizer')
+        </div>
         <x-ui.table>
             <thead>
                 <tr>
-                    <th>Hostname</th>
-                    <th>Type</th>
-                    <th>Links</th>
+                    @foreach ($visibleSystemColumns as $column)
+                        <th>{{ $systemColumns[$column] ?? $column }}</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
                 @foreach ($systemDomains as $domain)
                     <tr>
-                        <td><code>{{ $domain->hostname }}</code></td>
-                        <td class="text-xs text-neutral-500">{{ $domain->type->value ?? $domain->type }}</td>
-                        <td class="text-xs text-neutral-500">{{ $domain->links_count }}</td>
+                        @foreach ($visibleSystemColumns as $column)
+                            @switch($column)
+                                @case('hostname')
+                                    <td><code>{{ $domain->hostname }}</code></td>
+                                    @break
+
+                                @case('type')
+                                    <td class="text-xs text-neutral-500">{{ $domain->type->value ?? $domain->type }}</td>
+                                    @break
+
+                                @case('links')
+                                    <td class="text-xs text-neutral-500">{{ $domain->links_count }}</td>
+                                    @break
+                            @endswitch
+                        @endforeach
                     </tr>
                 @endforeach
             </tbody>

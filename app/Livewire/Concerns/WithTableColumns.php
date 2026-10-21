@@ -7,6 +7,11 @@ namespace App\Livewire\Concerns;
  * visibility and reorder columns. Preferences persist per table key
  * in `users.table_columns` (JSON), so they survive reloads.
  *
+ * A component may host more than one table. Every accessor takes an
+ * optional table key and falls back to `tableKey()`; components with
+ * extra tables pass the key explicitly and override
+ * `availableColumnsFor()` to describe them.
+ *
  * Usage: `use WithTableColumns;` + implement `tableKey()` and
  * `availableColumns()` (ordered key => label map). Call
  * `$this->visibleColumns()` in `render()` and pass the result to the
@@ -15,12 +20,6 @@ namespace App\Livewire\Concerns;
  */
 trait WithTableColumns
 {
-    /** @var list<string> */
-    public array $hiddenColumns = [];
-
-    /** @var list<string> */
-    public array $columnOrder = [];
-
     /**
      * Stable per-table key, e.g. 'dashboard.links'.
      */
@@ -34,93 +33,167 @@ trait WithTableColumns
      */
     abstract protected function availableColumns(): array;
 
-    public function toggleColumn(string $column): void
+    /**
+     * Columns of one specific table. Components that host more than a
+     * single table override this and switch on the key.
+     *
+     * @return array<string, string>
+     */
+    public function availableColumnsFor(?string $table = null): array
     {
-        if (! array_key_exists($column, $this->availableColumns())) {
-            return;
-        }
-
-        $this->visibleColumns();
-
-        if (in_array($column, $this->hiddenColumns, true)) {
-            $this->hiddenColumns = array_values(array_diff($this->hiddenColumns, [$column]));
-        } else {
-            // Never hide the last visible column.
-            $visible = array_values(array_diff($this->columnOrder, $this->hiddenColumns));
-            if (count($visible) <= 1) {
-                return;
-            }
-            $this->hiddenColumns[] = $column;
-        }
-
-        $this->saveColumnPreferences();
-    }
-
-    public function moveColumn(string $column, string $direction): void
-    {
-        $this->visibleColumns();
-
-        $index = array_search($column, $this->columnOrder, true);
-        if ($index === false) {
-            return;
-        }
-
-        $swap = $direction === 'up' ? $index - 1 : $index + 1;
-        if ($swap < 0 || $swap >= count($this->columnOrder)) {
-            return;
-        }
-
-        $order = $this->columnOrder;
-        [$order[$index], $order[$swap]] = [$order[$swap], $order[$index]];
-        $this->columnOrder = array_values($order);
-
-        $this->saveColumnPreferences();
-    }
-
-    public function resetColumns(): void
-    {
-        $this->hiddenColumns = [];
-        $this->columnOrder = array_keys($this->availableColumns());
-
-        $this->saveColumnPreferences();
+        return $this->availableColumns();
     }
 
     /**
-     * Ordered visible column keys. Hydrates (and repairs) state from
-     * the stored preferences: unknown keys dropped, new columns
-     * appended, "hide everything" repaired to show all.
-     *
-     * @return list<string>
+     * Resolve a table key argument to the key that is actually used.
      */
-    protected function visibleColumns(): array
+    public function tableKeyFor(?string $table = null): string
     {
-        $available = array_keys($this->availableColumns());
-        $stored = auth()->user()?->table_columns[$this->tableKey()] ?? [];
+        return ($table === null || $table === '') ? $this->tableKey() : $table;
+    }
+
+    /**
+     * Effective column state of a table: order (including hidden
+     * columns), hidden keys and visible keys. Hydrates and repairs the
+     * stored preferences — unknown keys are dropped, newly added
+     * columns are appended, and "hide everything" falls back to
+     * showing all.
+     *
+     * @return array{order: list<string>, hidden: list<string>, visible: list<string>}
+     */
+    public function columnStateFor(?string $table = null): array
+    {
+        $key = $this->tableKeyFor($table);
+        $available = array_keys($this->availableColumnsFor($key));
+
+        $stored = $this->storedState($key);
         $storedOrder = is_array($stored['order'] ?? null) ? $stored['order'] : [];
         $storedHidden = is_array($stored['hidden'] ?? null) ? $stored['hidden'] : [];
 
         $order = array_values(array_intersect($storedOrder, $available));
-        foreach ($available as $key) {
-            if (! in_array($key, $order, true)) {
-                $order[] = $key;
+        foreach ($available as $column) {
+            if (! in_array($column, $order, true)) {
+                $order[] = $column;
             }
         }
 
         $hidden = array_values(array_intersect($storedHidden, $available));
         $visible = array_values(array_diff($order, $hidden));
 
+        // Hiding every column is not a valid state — show all again.
         if ($visible === []) {
-            $visible = $order;
             $hidden = [];
+            $visible = $order;
         }
 
-        $this->columnOrder = $order;
-        $this->hiddenColumns = $hidden;
-
-        return $visible;
+        return [
+            'order' => $order,
+            'hidden' => $hidden,
+            'visible' => $visible,
+        ];
     }
 
-    protected function saveColumnPreferences(): void
+    /**
+     * Ordered visible column keys of a table.
+     *
+     * @return list<string>
+     */
+    public function visibleColumns(?string $table = null): array
+    {
+        return $this->columnStateFor($table)['visible'];
+    }
+
+    /**
+     * Hidden column keys of a table.
+     *
+     * @return list<string>
+     */
+    public function hiddenColumns(?string $table = null): array
+    {
+        return $this->columnStateFor($table)['hidden'];
+    }
+
+    /**
+     * Ordered column keys of a table, hidden ones included.
+     *
+     * @return list<string>
+     */
+    public function columnOrder(?string $table = null): array
+    {
+        return $this->columnStateFor($table)['order'];
+    }
+
+    public function toggleColumn(string $column, ?string $table = null): void
+    {
+        $key = $this->tableKeyFor($table);
+        $available = $this->availableColumnsFor($key);
+
+        if (! array_key_exists($column, $available)) {
+            return;
+        }
+
+        $state = $this->columnStateFor($key);
+        $hidden = $state['hidden'];
+
+        if (in_array($column, $hidden, true)) {
+            $hidden = array_values(array_diff($hidden, [$column]));
+        } else {
+            // Never hide the last visible column.
+            if (count($state['visible']) <= 1) {
+                return;
+            }
+            $hidden[] = $column;
+        }
+
+        $this->saveColumnPreferences($key, $hidden, $state['order']);
+    }
+
+    public function moveColumn(string $column, string $direction, ?string $table = null): void
+    {
+        $key = $this->tableKeyFor($table);
+        $state = $this->columnStateFor($key);
+        $order = $state['order'];
+
+        $index = array_search($column, $order, true);
+        if ($index === false) {
+            return;
+        }
+
+        $swap = $direction === 'up' ? $index - 1 : $index + 1;
+        if ($swap < 0 || $swap >= count($order)) {
+            return;
+        }
+
+        [$order[$index], $order[$swap]] = [$order[$swap], $order[$index]];
+
+        $this->saveColumnPreferences($key, $state['hidden'], array_values($order));
+    }
+
+    public function resetColumns(?string $table = null): void
+    {
+        $key = $this->tableKeyFor($table);
+        $available = array_keys($this->availableColumnsFor($key));
+
+        $this->saveColumnPreferences($key, [], $available);
+    }
+
+    /**
+     * Stored preferences of one table as saved in `users.table_columns`.
+     *
+     * @return array<string, mixed>
+     */
+    private function storedState(string $table): array
+    {
+        $stored = auth()->user()?->table_columns[$table] ?? [];
+
+        return is_array($stored) ? $stored : [];
+    }
+
+    /**
+     * @param  list<string>  $hidden
+     * @param  list<string>  $order
+     */
+    protected function saveColumnPreferences(string $table, array $hidden, array $order): void
     {
         $user = auth()->user();
         if (! $user) {
@@ -128,9 +201,9 @@ trait WithTableColumns
         }
 
         $prefs = $user->table_columns ?? [];
-        $prefs[$this->tableKey()] = [
-            'hidden' => array_values($this->hiddenColumns),
-            'order' => array_values($this->columnOrder),
+        $prefs[$table] = [
+            'hidden' => array_values($hidden),
+            'order' => array_values($order),
         ];
 
         $user->update(['table_columns' => $prefs]);

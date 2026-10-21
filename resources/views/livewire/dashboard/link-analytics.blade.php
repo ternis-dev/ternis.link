@@ -6,7 +6,7 @@
                 <span class="text-xs text-neutral-500 dark:text-neutral-400">Longer ranges unlock as the link ages.</span>
             @endif
         </div>
-        <x-ui.button href="{{ route(($theme ?? 'dashboard') === 'public' ? 'public-dashboard.links.export' : 'dashboard.links.export', $link->id) }}" size="sm">Export CSV</x-ui.button>
+        <x-ui.button href="{{ route(($theme ?? 'dashboard') === 'public' ? \App\Support\PublicDashboard::routePrefix().'links.export' : 'dashboard.links.export', $link->id) }}" size="sm">Export CSV</x-ui.button>
     </div>
 
     <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 {{ ($link->user_tracking_enabled || $uniqueUsers > 0) ? 'xl:grid-cols-5' : 'xl:grid-cols-4' }}">
@@ -101,62 +101,83 @@
         @if ($recentClicks->isEmpty())
             <p class="text-sm text-neutral-500 dark:text-neutral-400">No clicks recorded yet.</p>
         @else
+            <div class="mb-4 flex flex-wrap items-center justify-end gap-3">
+                @include('livewire.partials.column-customizer')
+            </div>
             <x-ui.table>
                 <thead>
                     <tr>
-                        <th>Timestamp</th>
-                        <th>User / Tags</th>
-                        <th>Parameters</th>
-                        <th>Referrer</th>
-                        <th>User Agent</th>
-                        <th>IP Hash</th>
+                        @foreach ($visibleColumns as $column)
+                            <th>{{ $availableColumns[$column] ?? $column }}</th>
+                        @endforeach
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($recentClicks as $click)
                         <tr>
-                            <td class="text-xs whitespace-nowrap text-neutral-500">
-                                {{ $click->created_at->format('Y-m-d H:i:s') }}
-                            </td>
-                            <td class="max-w-[200px]">
-                                <div class="flex flex-col gap-1">
-                                    @if ($click->user_identifier)
-                                        <span class="inline-flex items-center font-mono text-xs font-semibold text-neutral-800 dark:text-neutral-200">
-                                            {{ $click->user_identifier }}
-                                        </span>
-                                    @endif
-                                    @if ($click->tags && count($click->tags) > 0)
-                                        <div class="flex flex-wrap gap-1">
-                                            @foreach ($click->tags as $tag)
-                                                <span class="inline-flex items-center rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-                                                    {{ $tag }}
+                            @foreach ($visibleColumns as $column)
+                                @switch($column)
+                                    @case('timestamp')
+                                        <td class="text-xs whitespace-nowrap text-neutral-500">
+                                            {{ $click->created_at->format('Y-m-d H:i:s') }}
+                                        </td>
+                                        @break
+
+                                    @case('user_tags')
+                                        <td class="max-w-[200px]">
+                                            <div class="flex flex-col gap-1">
+                                                @if ($click->user_identifier)
+                                                    <span class="inline-flex items-center font-mono text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+                                                        {{ $click->user_identifier }}
+                                                    </span>
+                                                @endif
+                                                @if ($click->tags && count($click->tags) > 0)
+                                                    <div class="flex flex-wrap gap-1">
+                                                        @foreach ($click->tags as $tag)
+                                                            <span class="inline-flex items-center rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                                                                {{ $tag }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                @if (! $click->user_identifier && (! $click->tags || count($click->tags) === 0))
+                                                    <span class="text-xs text-neutral-400">—</span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        @break
+
+                                    @case('params')
+                                        <td class="max-w-[220px] truncate text-xs font-mono text-neutral-600 dark:text-neutral-400">
+                                            @if ($click->query_params && count($click->query_params) > 0)
+                                                <span title="{{ json_encode($click->query_params, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}">
+                                                    ?{{ http_build_query($click->query_params) }}
                                                 </span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    @if (! $click->user_identifier && (! $click->tags || count($click->tags) === 0))
-                                        <span class="text-xs text-neutral-400">—</span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="max-w-[220px] truncate text-xs font-mono text-neutral-600 dark:text-neutral-400">
-                                @if ($click->query_params && count($click->query_params) > 0)
-                                    <span title="{{ json_encode($click->query_params, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}">
-                                        ?{{ http_build_query($click->query_params) }}
-                                    </span>
-                                @else
-                                    <span class="text-neutral-400">—</span>
-                                @endif
-                            </td>
-                            <td class="max-w-[200px] truncate">
-                                {{ $click->referrer ?? 'Direct / None' }}
-                            </td>
-                            <td class="max-w-[200px] truncate text-xs text-neutral-500">
-                                {{ $click->user_agent ?? 'Unknown' }}
-                            </td>
-                            <td>
-                                <code>{{ substr($click->ip_hash, 0, 10) }}…</code>
-                            </td>
+                                            @else
+                                                <span class="text-neutral-400">—</span>
+                                            @endif
+                                        </td>
+                                        @break
+
+                                    @case('referrer')
+                                        <td class="max-w-[200px] truncate">
+                                            {{ $click->referrer ?? 'Direct / None' }}
+                                        </td>
+                                        @break
+
+                                    @case('user_agent')
+                                        <td class="max-w-[200px] truncate text-xs text-neutral-500">
+                                            {{ $click->user_agent ?? 'Unknown' }}
+                                        </td>
+                                        @break
+
+                                    @case('ip_hash')
+                                        <td>
+                                            <code>{{ substr($click->ip_hash, 0, 10) }}…</code>
+                                        </td>
+                                        @break
+                                @endswitch
+                            @endforeach
                         </tr>
                     @endforeach
                 </tbody>

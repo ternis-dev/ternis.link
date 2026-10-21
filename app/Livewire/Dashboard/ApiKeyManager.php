@@ -2,18 +2,48 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\ApiKey;
 use App\Models\ApiVersion;
 use App\Support\Activity;
 use App\Support\DomainUrls;
 use App\Support\Notifier;
+use App\Support\PublicDashboard;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
 class ApiKeyManager extends Component
 {
+    use WithTableColumns;
+
+    /**
+     * Presentation theme: 'dashboard' (dash.ternis.link) or 'public'
+     * (public dashboard). Only the per-key link and the notification
+     * target differ.
+     */
+    public string $theme = 'dashboard';
+
+    protected function tableKey(): string
+    {
+        return 'dashboard.api-keys';
+    }
+
+    protected function availableColumns(): array
+    {
+        return [
+            'name' => 'Name',
+            'prefix' => 'Prefix',
+            'version' => 'API Version',
+            'created' => 'Created',
+            'expires' => 'Expires',
+            'last_used' => 'Last Used',
+            'dashboard' => 'Dashboard',
+            'status' => 'Status',
+        ];
+    }
+
     public string $keyName = '';
 
     public ?int $apiVersion = null;
@@ -96,7 +126,7 @@ class ApiKeyManager extends Component
             auth()->user(),
             'New API key created',
             ["A new API key “{$key->name}” ({$key->key_prefix}…) was created on your account."],
-            DomainUrls::dashboard('/api-keys'),
+            $this->apiKeysUrl(),
             'View API keys',
         );
 
@@ -256,7 +286,7 @@ class ApiKeyManager extends Component
             auth()->user(),
             'API key revoked',
             ["The API key “{$key->name}” ({$key->key_prefix}…) on your account was revoked."],
-            DomainUrls::dashboard('/api-keys'),
+            $this->apiKeysUrl(),
             'View API keys',
         );
 
@@ -266,6 +296,26 @@ class ApiKeyManager extends Component
     public function dismissNewKey(): void
     {
         $this->newlyCreatedKey = null;
+    }
+
+    /**
+     * Absolute URL of the API keys page for the current theme.
+     */
+    private function apiKeysUrl(): string
+    {
+        return $this->theme === 'public'
+            ? DomainUrls::publicDashboard('/api-keys')
+            : DomainUrls::dashboard('/api-keys');
+    }
+
+    /**
+     * Route name prefix of the per-key page for the current theme.
+     */
+    public function routePrefix(): string
+    {
+        return $this->theme === 'public'
+            ? PublicDashboard::routePrefix()
+            : 'dashboard.';
     }
 
     public function render()
@@ -278,6 +328,16 @@ class ApiKeyManager extends Component
         $availableVersions = ApiVersion::orderByDesc('version')->get();
         $latestVersion = ApiVersion::latestVersion();
 
-        return view('livewire.dashboard.api-key-manager', compact('apiKeys', 'availableVersions', 'latestVersion'));
+        $visibleColumns = $this->visibleColumns();
+
+        return view('livewire.dashboard.api-key-manager', [
+            'apiKeys' => $apiKeys,
+            'availableVersions' => $availableVersions,
+            'latestVersion' => $latestVersion,
+            'availableColumns' => $this->availableColumns(),
+            'visibleColumns' => $visibleColumns,
+            'routePrefix' => $this->routePrefix(),
+            'columnCount' => count($visibleColumns) + 1, // + fixed Actions column
+        ]);
     }
 }
