@@ -10,9 +10,11 @@ class ApiVersionSeeder extends Seeder
 {
     public function run(): void
     {
-        ApiVersion::updateOrCreate(
-            ['version' => 1],
-            ['status' => ApiVersionStatus::Active],
-        );
+        foreach ([1, 2] as $version) {
+            ApiVersion::updateOrCreate(
+                ['version' => $version],
+                ['status' => ApiVersionStatus::Active],
+            );
+        }
     }
 }

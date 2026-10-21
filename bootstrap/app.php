@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\DailyLinkLimitException;
+use App\Http\Middleware\ApiV2Response;
 use App\Http\Middleware\AuthenticateApi;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\EnsureApiVersion;
@@ -12,6 +14,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 
@@ -24,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('v1')
                 ->group(base_path('routes/api/v1.php'));
+            Route::middleware('api')->prefix('v2')->group(base_path('routes/api/v2.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -35,6 +39,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: $trusted === '*' ? '*' : array_map('trim', explode(',', (string) $trusted)));
 
         $middleware->prepend(ResolveDomain::class);
+        // Keep host/version checks and response formatting outside auth,
+        // throttling and route bindings, so errors use the same API contract.
+        $before = ThrottleRequests::class;
+        foreach ([AuthenticateApi::class, LogApiRequest::class, EnsureApiVersion::class, ApiV2Response::class, EnsureDomainType::class] as $class) {
+            $middleware->prependToPriorityList(before: $before, prepend: $class);
+            $before = $class;
+        }
 
         // Guests hitting an auth route bounce to the SAME host's /login:
         // route('login') resolves against APP_URL (href.nz) and would
@@ -54,8 +65,23 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->is('v1/*') || $request->expectsJson(),
+            fn (Request $request) => $request->is('api/*') || $request->is('v1/*') || $request->is('v2', 'v2/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (DailyLinkLimitException $e, Request $request) {
+            if (! $request->is('v2/*')) {
+                return null;
+            }
+
+            $retryAfter = max(1, (int) now()->diffInSeconds(now()->addDay()->startOfDay()));
+
+            return response()->json([
+                'code' => 'daily_link_limit_reached',
+                'message' => $e->getMessage(),
+                'errors' => $e->errors(),
+                'quota' => $e->quota,
+            ], 429, ['Retry-After' => (string) $retryAfter]);
+        });
 
         // Persist one error_encounters row per rendered error response so
         // production failures stay inspectable (http_code, message,

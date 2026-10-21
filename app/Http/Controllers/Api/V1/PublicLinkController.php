@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\DomainType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreLinkRequest;
 use App\Http\Requests\StorePublicLinkRequest;
 use App\Models\Domain;
 use App\Services\LinkService;
@@ -23,8 +24,14 @@ class PublicLinkController extends Controller
      * are always auto-generated (8 chars, no custom slug) and carry no
      * owner — attributed only via a hashed creator IP for daily quota.
      */
-    public function store(StorePublicLinkRequest $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
+        // Supplied credentials must never silently fall back to a guest.
+        if ($request->attributes->has('auth_via')) {
+            return app(LinkController::class)->store(app(StoreLinkRequest::class));
+        }
+
+        $request = app(StorePublicLinkRequest::class);
         $domain = $this->resolveDomain($request);
 
         if (! $domain->isSystemDomain() || $domain->type !== DomainType::Public || ! $domain->isUsableForLinks()) {

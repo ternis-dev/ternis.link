@@ -83,7 +83,7 @@ class DomainResolutionTest extends TestCase
     {
         $response = $this->get('http://links.t-api.de/');
         $response->assertStatus(302);
-        $response->assertRedirect('/v1/');
+        $response->assertRedirect('/v2/');
     }
 
     public function test_it_redirects_api_ternis_link_to_links_t_api_de(): void

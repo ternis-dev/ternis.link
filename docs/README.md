@@ -30,4 +30,4 @@ No account is needed to start: anyone can shorten links as a guest on [href.nz](
 
 ## For developers
 
-The public API lives at `https://links.t-api.de/v1`, authenticated with personal API keys. The machine-readable contract is [OpenAPI 3.1](/api-v1-openapi.yaml). The [Accounts & API keys](./authentication) guide shows how to create a key and make your first request.
+The public API lives at `https://links.t-api.de/v2`, authenticated with personal API keys. The machine-readable contract is [OpenAPI 3.1 for v2](/api-v2-openapi.yaml), with [v1 still supported](/api-v1.md). The [Accounts & API keys](./authentication) guide shows how to create a key and make your first request.

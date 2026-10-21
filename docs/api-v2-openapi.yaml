@@ -1,0 +1,1210 @@
+openapi: "3.1.0"
+info:
+  title: "ternis.link API v2"
+  version: "2.0.0"
+  description: "Focused link API for agents and integrations. Read https://docs.ternis.link/api.md. Start with GET /me to verify credentials and remaining daily quota. A key authenticates an account; it does not bypass its plan. Existing v1 keys work. All JSON uses {data,error,meta}; pagination lives in meta.pagination. No anonymous creation or idempotency-key support. V1 remains supported for QR, bio pages, custom domain management, keys and account operations."
+servers:
+  -
+    url: "https://links.t-api.de/v2"
+security:
+  -
+    bearerAuth: []
+paths:
+  "/":
+    get:
+      operationId: "getApiVersion"
+      summary: "Discover v2 endpoints and documentation"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/DiscoveryEnvelope"
+      security: []
+  "/me":
+    get:
+      operationId: "getAccountAndQuota"
+      summary: "Verify account, API key, plan, usage and reset time"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/MeEnvelope"
+  "/domains":
+    get:
+      operationId: "listUsableDomains"
+      summary: "List available active, verified domains (unpaginated)"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/DomainListEnvelope"
+  "/links":
+    get:
+      operationId: "listLinks"
+      summary: "List links, newest first"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/LinkListEnvelope"
+      parameters:
+        -
+          name: "page"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "integer"
+            minimum: 1
+            default: 1
+        -
+          name: "scope"
+          in: "query"
+          required: false
+          description: "Admins default to all; non-admins always see their own links."
+          schema:
+            type: "string"
+            enum:
+              - "mine"
+              - "all"
+        -
+          name: "tag"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+        -
+          name: "api_key_id"
+          in: "query"
+          required: false
+          description: "Key ULID, or none for links without a personal key."
+          schema:
+            type: "string"
+        -
+          name: "user_tracking_enabled"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+            enum:
+              - "0"
+              - "1"
+    post:
+      operationId: "createLink"
+      summary: "Create an account-owned short link"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "201":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/LinkEnvelope"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/LinkCreate"
+      description: "API keys share account daily and minute quotas. domain_id defaults to account preference. No idempotency-key support: inspect recent links after an ambiguous failure before retrying."
+  "/links/{link}":
+    parameters:
+      -
+        name: "link"
+        in: "path"
+        required: true
+        description: "Link ULID from data.id; never use the slug."
+        schema:
+          type: "string"
+          description: "Resource ULID; not the public slug."
+          pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+    get:
+      operationId: "getLink"
+      summary: "Get a link by ULID"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/LinkEnvelope"
+    patch:
+      operationId: "updateLink"
+      summary: "Update supplied link fields"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/LinkEnvelope"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/LinkUpdate"
+    put:
+      operationId: "updateLinkWithPut"
+      summary: "Update supplied fields (same partial semantics as PATCH)"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/LinkEnvelope"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/LinkUpdate"
+    delete:
+      operationId: "deactivateLink"
+      summary: "Deactivate redirects while preserving link and analytics"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/DeleteEnvelope"
+  "/links/{link}/clicks":
+    parameters:
+      -
+        name: "link"
+        in: "path"
+        required: true
+        description: "Link ULID from data.id; never use the slug."
+        schema:
+          type: "string"
+          description: "Resource ULID; not the public slug."
+          pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+    get:
+      operationId: "listLinkClicks"
+      summary: "List click records"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/ClickListEnvelope"
+      parameters:
+        -
+          name: "tag"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+        -
+          name: "user_identifier"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+        -
+          name: "has_user"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+            enum:
+              - "0"
+              - "1"
+        -
+          name: "has_params"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+            enum:
+              - "0"
+              - "1"
+        -
+          name: "from"
+          in: "query"
+          required: false
+          description: "Inclusive lower bound."
+          schema:
+            type: "string"
+            format: "date-time"
+        -
+          name: "to"
+          in: "query"
+          required: false
+          description: "Inclusive upper bound. A date-only value means midnight."
+          schema:
+            type: "string"
+            format: "date-time"
+        -
+          name: "page"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "integer"
+            minimum: 1
+            default: 1
+        -
+          name: "per_page"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "integer"
+            minimum: 1
+            maximum: 100
+            default: 50
+  "/links/{link}/clicks/summary":
+    parameters:
+      -
+        name: "link"
+        in: "path"
+        required: true
+        description: "Link ULID from data.id; never use the slug."
+        schema:
+          type: "string"
+          description: "Resource ULID; not the public slug."
+          pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+    get:
+      operationId: "getLinkClickSummary"
+      summary: "Get filtered click aggregates"
+      responses:
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "410":
+          $ref: "#/components/responses/Error410"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "500":
+          $ref: "#/components/responses/Error500"
+        "200":
+          description: "Success"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/SummaryEnvelope"
+      parameters:
+        -
+          name: "tag"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+        -
+          name: "user_identifier"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+        -
+          name: "has_user"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+            enum:
+              - "0"
+              - "1"
+        -
+          name: "has_params"
+          in: "query"
+          required: false
+          description: ""
+          schema:
+            type: "string"
+            enum:
+              - "0"
+              - "1"
+        -
+          name: "from"
+          in: "query"
+          required: false
+          description: "Inclusive lower bound."
+          schema:
+            type: "string"
+            format: "date-time"
+        -
+          name: "to"
+          in: "query"
+          required: false
+          description: "Inclusive upper bound. A date-only value means midnight."
+          schema:
+            type: "string"
+            format: "date-time"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: "http"
+      scheme: "bearer"
+      description: "Personal tl_ API key or Ternis Auth SSO access token. Use Authorization: Bearer <token>."
+  schemas:
+    DailyQuota:
+      type: "object"
+      properties:
+        scope:
+          type: "string"
+          const: "account"
+        plan:
+          type: "string"
+        limit:
+          type:
+            - "integer"
+            - "null"
+        used:
+          type: "integer"
+        remaining:
+          type:
+            - "integer"
+            - "null"
+        resets_at:
+          type: "string"
+          format: "date-time"
+      required:
+        - "scope"
+        - "plan"
+        - "limit"
+        - "used"
+        - "remaining"
+        - "resets_at"
+    Meta:
+      type: "object"
+      properties:
+        api_version:
+          type: "integer"
+          const: 2
+        request_id:
+          type: "string"
+          format: "uuid"
+        pagination:
+          type: "object"
+          properties:
+            current_page:
+              type: "integer"
+            last_page:
+              type: "integer"
+            per_page:
+              type: "integer"
+            total:
+              type: "integer"
+            next_page:
+              type:
+                - "integer"
+                - "null"
+          required:
+            - "current_page"
+            - "last_page"
+            - "per_page"
+            - "total"
+            - "next_page"
+      required:
+        - "api_version"
+        - "request_id"
+    ApiError:
+      type: "object"
+      properties:
+        code:
+          type: "string"
+          enum:
+            - "authentication_required"
+            - "forbidden"
+            - "not_found"
+            - "method_not_allowed"
+            - "api_version_retired"
+            - "validation_failed"
+            - "daily_link_limit_reached"
+            - "rate_limited"
+            - "internal_error"
+            - "request_failed"
+        message:
+          type: "string"
+        fields:
+          type: "object"
+          additionalProperties:
+            type: "array"
+            items:
+              type: "string"
+        retry_after_seconds:
+          type:
+            - "integer"
+            - "null"
+        quota:
+          anyOf:
+            -
+              $ref: "#/components/schemas/DailyQuota"
+            -
+              type: "null"
+      required:
+        - "code"
+        - "message"
+        - "fields"
+        - "retry_after_seconds"
+        - "quota"
+    ErrorEnvelope:
+      type: "object"
+      properties:
+        data:
+          type: "null"
+        error:
+          $ref: "#/components/schemas/ApiError"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+    LinkCreate:
+      type: "object"
+      properties:
+        destination_url:
+          type: "string"
+          format: "uri"
+          maxLength: 2048
+        domain_id:
+          type: "string"
+          description: "Resource ULID; not the public slug."
+          pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+        slug:
+          type:
+            - "string"
+            - "null"
+          pattern: "^[a-zA-Z0-9_-]+$"
+          maxLength: 255
+          description: "Optional custom slug; plan minimum length and domain uniqueness apply."
+        slug_length:
+          type:
+            - "integer"
+            - "null"
+          description: "Eligible plans/admins only. Ignored on free plans or with a custom slug. Plan minimum and maximum apply."
+        description:
+          type:
+            - "string"
+            - "null"
+          maxLength: 500
+        expires_at:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+          description: "Future timestamp."
+        tags:
+          type:
+            - "array"
+            - "null"
+          maxItems: 10
+          items:
+            type: "string"
+            pattern: "^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$"
+            maxLength: 30
+        og_title:
+          type:
+            - "string"
+            - "null"
+          maxLength: 120
+        og_description:
+          type:
+            - "string"
+            - "null"
+          maxLength: 300
+        og_image_url:
+          type:
+            - "string"
+            - "null"
+          format: "uri"
+          pattern: "^https"
+          maxLength: 2048
+        password:
+          type:
+            - "string"
+            - "null"
+          minLength: 8
+          maxLength: 72
+          writeOnly: true
+        user_tracking_enabled:
+          type:
+            - "boolean"
+            - "null"
+          default: false
+        utm_source:
+          type:
+            - "string"
+            - "null"
+          maxLength: 100
+          pattern: "^[A-Za-z0-9 _.\\-]+$"
+        utm_medium:
+          type:
+            - "string"
+            - "null"
+          maxLength: 100
+          pattern: "^[A-Za-z0-9 _.\\-]+$"
+        utm_campaign:
+          type:
+            - "string"
+            - "null"
+          maxLength: 100
+          pattern: "^[A-Za-z0-9 _.\\-]+$"
+      required:
+        - "destination_url"
+    LinkUpdate:
+      type: "object"
+      properties:
+        destination_url:
+          type: "string"
+          format: "uri"
+          maxLength: 2048
+        description:
+          type:
+            - "string"
+            - "null"
+          maxLength: 500
+        expires_at:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+          description: "Future timestamp."
+        tags:
+          type:
+            - "array"
+            - "null"
+          maxItems: 10
+          items:
+            type: "string"
+            pattern: "^[a-z0-9][a-z0-9-]{0,28}[a-z0-9]$"
+            maxLength: 30
+        og_title:
+          type:
+            - "string"
+            - "null"
+          maxLength: 120
+        og_description:
+          type:
+            - "string"
+            - "null"
+          maxLength: 300
+        og_image_url:
+          type:
+            - "string"
+            - "null"
+          format: "uri"
+          pattern: "^https"
+          maxLength: 2048
+        password:
+          type:
+            - "string"
+            - "null"
+          minLength: 8
+          maxLength: 72
+          writeOnly: true
+        user_tracking_enabled:
+          type:
+            - "boolean"
+            - "null"
+          default: false
+        utm_source:
+          type:
+            - "string"
+            - "null"
+          maxLength: 100
+          pattern: "^[A-Za-z0-9 _.\\-]+$"
+        utm_medium:
+          type:
+            - "string"
+            - "null"
+          maxLength: 100
+          pattern: "^[A-Za-z0-9 _.\\-]+$"
+        utm_campaign:
+          type:
+            - "string"
+            - "null"
+          maxLength: 100
+          pattern: "^[A-Za-z0-9 _.\\-]+$"
+        is_active:
+          type: "boolean"
+        remove_password:
+          type:
+            - "boolean"
+            - "null"
+        targets:
+          type:
+            - "array"
+            - "null"
+          maxItems: 20
+          items:
+            $ref: "#/components/schemas/TargetInput"
+    TargetInput:
+      type: "object"
+      properties:
+        id:
+          type:
+            - "string"
+            - "null"
+        label:
+          type:
+            - "string"
+            - "null"
+          maxLength: 60
+        destination_url:
+          type: "string"
+          format: "uri"
+          maxLength: 2048
+        country_codes:
+          type:
+            - "array"
+            - "null"
+          maxItems: 50
+          items:
+            type: "string"
+            minLength: 2
+            maxLength: 2
+        device:
+          type:
+            - "string"
+            - "null"
+          enum:
+            - "desktop"
+            - "mobile"
+            - "tablet"
+            - null
+        weight:
+          type:
+            - "integer"
+            - "null"
+          minimum: 0
+          maximum: 10000
+        sort_order:
+          type:
+            - "integer"
+            - "null"
+          minimum: 0
+          maximum: 255
+        is_active:
+          type:
+            - "boolean"
+            - "null"
+      required:
+        - "destination_url"
+    Link:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          description: "Resource ULID; not the public slug."
+          pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+        slug:
+          type: "string"
+        short_url:
+          type: "string"
+          format: "uri"
+        destination_url:
+          type: "string"
+          format: "uri"
+        domain_id:
+          type: "string"
+          description: "Resource ULID; not the public slug."
+          pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+        user_id:
+          type: "string"
+          description: "Resource ULID; not the public slug."
+          pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+        api_key_id:
+          type:
+            - "string"
+            - "null"
+        domain:
+          type: "object"
+          properties:
+            id:
+              type: "string"
+              description: "Resource ULID; not the public slug."
+              pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+            hostname:
+              type: "string"
+          required:
+            - "id"
+            - "hostname"
+        api_key:
+          anyOf:
+            -
+              type: "object"
+              properties:
+                id:
+                  type: "string"
+                  description: "Resource ULID; not the public slug."
+                  pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+                name:
+                  type: "string"
+                key_prefix:
+                  type: "string"
+            -
+              type: "null"
+        description:
+          type:
+            - "string"
+            - "null"
+        tags:
+          type:
+            - "array"
+            - "null"
+          items:
+            type: "string"
+        is_active:
+          type: "boolean"
+        is_removed:
+          type: "boolean"
+        created_at:
+          type: "string"
+          format: "date-time"
+        updated_at:
+          type: "string"
+          format: "date-time"
+        expires_at:
+          type:
+            - "string"
+            - "null"
+          format: "date-time"
+      required:
+        - "id"
+        - "slug"
+        - "short_url"
+        - "destination_url"
+        - "domain"
+        - "is_active"
+    LinkEnvelope:
+      type: "object"
+      properties:
+        data:
+          $ref: "#/components/schemas/Link"
+        error:
+          type: "null"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+    LinkListEnvelope:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Link"
+        error:
+          type: "null"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+    DeleteEnvelope:
+      type: "object"
+      properties:
+        data:
+          type: "null"
+        error:
+          type: "null"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+    DomainListEnvelope:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              id:
+                type: "string"
+                description: "Resource ULID; not the public slug."
+                pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+              hostname:
+                type: "string"
+            required:
+              - "id"
+              - "hostname"
+        error:
+          type: "null"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+    MeEnvelope:
+      type: "object"
+      properties:
+        data:
+          type: "object"
+          properties:
+            user_id:
+              type: "string"
+              description: "Resource ULID; not the public slug."
+              pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+            auth_via:
+              type: "string"
+              enum:
+                - "api-key"
+                - "sso"
+            api_key:
+              anyOf:
+                -
+                  type: "object"
+                  properties:
+                    id:
+                      type: "string"
+                      description: "Resource ULID; not the public slug."
+                      pattern: "^[0-9A-HJKMNP-TV-Z]{26}$"
+                    name:
+                      type: "string"
+                    prefix:
+                      type: "string"
+                -
+                  type: "null"
+            default_domain_id:
+              type:
+                - "string"
+                - "null"
+            daily_link_quota:
+              $ref: "#/components/schemas/DailyQuota"
+            creation_rate_limit_per_minute:
+              type: "integer"
+            request_rate_limit_per_minute:
+              type: "integer"
+              const: 60
+          required:
+            - "user_id"
+            - "auth_via"
+            - "daily_link_quota"
+        error:
+          type: "null"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+    DiscoveryEnvelope:
+      type: "object"
+      properties:
+        data:
+          type: "object"
+          properties:
+            version:
+              type: "integer"
+              const: 2
+            status:
+              type: "string"
+            latest_version:
+              type: "integer"
+            docs_url:
+              type: "string"
+              format: "uri"
+            openapi_url:
+              type: "string"
+              format: "uri"
+            endpoints:
+              type: "object"
+              additionalProperties:
+                type: "string"
+        error:
+          type: "null"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+    ClickListEnvelope:
+      type: "object"
+      properties:
+        data:
+          type: "array"
+          items:
+            type: "object"
+            description: "Click record; includes timestamp, referrer, tags, query_params and opt-in user_identifier."
+        error:
+          type: "null"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+    SummaryEnvelope:
+      type: "object"
+      properties:
+        data:
+          type: "object"
+          properties:
+            total_clicks:
+              type: "integer"
+            unique_visitors:
+              type: "integer"
+            unique_users:
+              type: "integer"
+            tracked_clicks:
+              type: "integer"
+            with_params_clicks:
+              type: "integer"
+          required:
+            - "total_clicks"
+            - "unique_visitors"
+            - "unique_users"
+            - "tracked_clicks"
+            - "with_params_clicks"
+        error:
+          type: "null"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - "data"
+        - "error"
+        - "meta"
+  responses:
+    Error401:
+      description: "Missing, malformed, expired or revoked credentials."
+      headers:
+        Retry-After:
+          description: "Seconds until retry, when supplied."
+          schema:
+            type: "string"
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Error403:
+      description: "Access denied."
+      headers:
+        Retry-After:
+          description: "Seconds until retry, when supplied."
+          schema:
+            type: "string"
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Error404:
+      description: "Endpoint/resource not found."
+      headers:
+        Retry-After:
+          description: "Seconds until retry, when supplied."
+          schema:
+            type: "string"
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Error410:
+      description: "API version retired."
+      headers:
+        Retry-After:
+          description: "Seconds until retry, when supplied."
+          schema:
+            type: "string"
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Error422:
+      description: "Correct error.fields before retrying."
+      headers:
+        Retry-After:
+          description: "Seconds until retry, when supplied."
+          schema:
+            type: "string"
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Error429:
+      description: "Inspect error.code: daily_link_limit_reached includes account quota and reset timestamp; rate_limited requires backoff."
+      headers:
+        Retry-After:
+          description: "Seconds until retry, when supplied."
+          schema:
+            type: "string"
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Error500:
+      description: "Server error. Inspect recent links before retrying a creation that may have succeeded."
+      headers:
+        Retry-After:
+          description: "Seconds until retry, when supplied."
+          schema:
+            type: "string"
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"

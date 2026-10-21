@@ -31,9 +31,17 @@
 - Every redirect is counted asynchronously (queued click tracking): referrer, browser, approximate country, unique visitors via SHA-256 IP hashes. Visitor IPs are stored encrypted for abuse investigation only and auto-deleted after 30 days. No tracking cookies.
 - Bot protection on public forms is self-hosted Altcha proof-of-work — no third parties, no data leaves the servers.
 
+## API v2 (recommended for link integrations)
+
+Canonical standalone guide: `{{ $hosts['docs'] }}/api.md`. Contract: `{{ $hosts['docs'] }}/api-v2-openapi.yaml`.
+Base: `{{ $hosts['api'] }}/v2`. Auth: `Authorization: Bearer <api-key>`. Existing keys work across both versions.
+Responses: `{data,error,meta}`. Start with `GET /v2/me` to verify account, key, default domain, daily quota, and reset time. Keys share the account's plan quota; a key does not grant unlimited links. Daily limits return 429 `daily_link_limit_reached` with quota metadata and Retry-After. Validation errors return 422 `validation_failed` with field errors.
+Endpoints: public `GET /v2/`; authenticated `GET /v2/me`, `GET /v2/domains`, `GET|POST /v2/links`, `GET|PUT|PATCH|DELETE /v2/links/{link}`, `GET /v2/links/{link}/clicks`, `GET /v2/links/{link}/clicks/summary`.
+Creation requires `destination_url`; `domain_id` defaults to the account preference. Use `data.short_url` for sharing, `data.id` for subsequent API calls. V2 has no anonymous creation. V1 remains available for guest creation and broader dashboard features.
+
 ## API v1
 
-Base: `{{ $hosts['api'] }}/v1/`. Auth: `Authorization: Bearer <api-key>` (keys start with `tl_`). Every response carries `API-Version` + `API-Latest-Version`; errors are `{ message }` (`{ message, errors }` for validation); plan overages are `429` with `Retry-After`.
+Base: `{{ $hosts['api'] }}/v1/`. Auth: `Authorization: Bearer <api-key>` (keys start with `tl_`). Every response carries `API-Version` + `API-Latest-Version`; errors are `{ message }` (`{ message, errors }` for validation); minute throttles are `429` with `Retry-After`; daily account quota violations remain `422` on v1.
 
 - `GET /v1/` — public version metadata.
 - `POST /v1/links/public` — public guest link creation (system domains only, no custom slugs).

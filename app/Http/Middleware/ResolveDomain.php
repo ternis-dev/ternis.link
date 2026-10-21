@@ -152,7 +152,7 @@ class ResolveDomain
                 return $next($request);
             }
 
-            if ($request->is('v1*')) {
+            if ($request->is('v1*') || $request->is('v2*')) {
                 $request->attributes->set('domain_type', 'api');
                 $request->attributes->set('domain_hostname', 'links.t-api.de');
 

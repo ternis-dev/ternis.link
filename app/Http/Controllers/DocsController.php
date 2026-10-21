@@ -26,6 +26,7 @@ class DocsController extends Controller
         'links' => 'links.md',
         'extension' => 'extension.md',
         'api' => 'api.md',
+        'api-v1' => 'api-v1.md',
     ];
 
     /**
@@ -95,9 +96,9 @@ class DocsController extends Controller
     /**
      * Raw OpenAPI 3.1 document (source: docs/api-v1-openapi.yaml).
      */
-    public function openapi()
+    public function openapi(string $version = '1')
     {
-        $path = base_path('docs/api-v1-openapi.yaml');
+        $path = base_path("docs/api-v{$version}-openapi.yaml");
 
         if (! is_file($path)) {
             abort(404);

@@ -1,0 +1,344 @@
+# API v1 reference
+
+For new link integrations, start with the [v2 API guide](https://docs.ternis.link/api.md). V1 remains supported for the broader dashboard API. API keys authenticate an account and do not bypass its daily plan quota.
+
+Everything the dashboard does is available over HTTPS at `https://links.t-api.de/v1` — the macOS app and the browser extension are thin clients on this same API. Authenticated endpoints live on that host only; requests on other hosts return `404` before auth runs.
+
+The machine-readable contract is [OpenAPI 3.1](/api-v1-openapi.yaml). This guide is the human version, with copy-paste examples.
+
+## Authentication
+
+Pass a personal API key (starts with `tl_`, created under [API keys](https://dash.ternis.link/api-keys) in the dashboard) or a Ternis Auth SSO access token as a Bearer token:
+
+```bash
+curl https://links.t-api.de/v1/links \
+  -H "Authorization: Bearer tl_your_key_here"
+```
+
+Keys are stored as hashes — the full key is shown **once** at creation. Revoke keys you no longer use, via the dashboard or `DELETE /v1/api-keys/{key}` below.
+
+Check compatibility first: `GET /v1/` is public (no auth) and reports the active version:
+
+```bash
+curl https://links.t-api.de/v1/
+# {"version":1,"status":"active","latest_version":2,...}
+```
+
+## Conventions
+
+- **Versioning:** every response carries `API-Version` and `API-Latest-Version` headers. Deprecated versions add `Deprecation: true` plus `Sunset`; retired versions answer `410` with `{ message, version, latest_version }`.
+- **Errors** are `{ "message": "…" }`, or `{ "message": "…", "errors": { … } }` for validation failures. Rate limits answer `429` with a `Retry-After` header — back off and retry.
+- **Pagination:** list endpoints return Laravel paginators (`data`, `current_page`, `last_page`, `total`).
+- **IDs** are ULID strings. Timestamps are ISO-8601.
+
+## Links
+
+```bash
+# List your links (admins see everything; ?scope=mine restricts to own; ?tag= filters)
+curl "https://links.t-api.de/v1/links?tag=launch" \
+  -H "Authorization: Bearer tl_your_key_here"
+
+# Only links made with one API key (?api_key_id=<ulid>; ?api_key_id=none = dashboard-created)
+curl "https://links.t-api.de/v1/links?api_key_id=<key-ulid>" \
+  -H "Authorization: Bearer tl_your_key_here"
+
+# Filter by user tracking status (?user_tracking_enabled=1 or 0)
+curl "https://links.t-api.de/v1/links?user_tracking_enabled=1" \
+  -H "Authorization: Bearer tl_your_key_here"
+
+# Create (custom slug optional; plan minimum length applies; domains must be verified)
+curl -X POST https://links.t-api.de/v1/links \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"destination_url": "https://example.com/very-long-page", "domain_id": "<ulid>", "slug": "my-launch", "tags": ["launch"], "user_tracking_enabled": true, "og_title": "Launch day", "og_description": "Our new thing", "og_image_url": "https://example.com/og.png"}'
+```
+
+Every link created with a personal key stores that key (`api_key_id`, exposed as `api_key` with name/prefix on responses) and logs it in the activity history (`link.created` with `api_key_id`, `api_key_name`, `api_key_prefix`, `auth_via`). SSO-token calls leave `api_key_id` empty. Filter the dashboard list by origin (All origins / Dashboard only / one key) or open a key's dedicated page under API keys.
+
+```bash
+# Show / update / deactivate (deleting stops resolution; stats stay)
+curl https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
+curl -X PUT https://links.t-api.de/v1/links/<ulid> \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"description": "Launch page", "og_title": "Launch day", "user_tracking_enabled": true}'
+curl -X DELETE https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer tl_your_key_here"
+```
+
+Social previews (members only): `og_title` (≤120), `og_description` (≤300), `og_image_url` (https image). Crawlers get a 200 HTML stub with OG tags (`?debug=og` forces it for testing); humans keep the 302 and crawler hits are not counted. Password protection (members only): `password` (min 8 chars, bcrypt-hashed; `remove_password` clears) — locked links show an interstitial, count nothing until unlock, and unlock attempts are throttled. Guests get 422 `prohibited` for any `og_*` or `password` field.
+
+No account and just scripting something quick? `POST /v1/links/public` creates guest links when no Authorization header is supplied. A supplied Bearer token is validated and creates an owned link using the authenticated creation rules; invalid credentials return 401. Without credentials, this endpoint creates guest links — auto-generated slugs, fair-use limits, public system domains only:
+
+```bash
+curl -X POST https://links.t-api.de/v1/links/public \
+  -H "Content-Type: application/json" \
+  -d '{"destination_url": "https://example.com/quick-share"}'
+```
+
+## Click analytics
+
+```bash
+# Raw click rows (paginated, max 100 per page; query_params, tags, and user_identifier included)
+curl https://links.t-api.de/v1/links/<ulid>/clicks -H "Authorization: Bearer tl_your_key_here"
+
+# Filter clicks by dynamic tag (?tag=newsletter)
+curl "https://links.t-api.de/v1/links/<ulid>/clicks?tag=newsletter" -H "Authorization: Bearer tl_your_key_here"
+
+# Filter clicks with tracked users only (?has_user=1 or 0) or specific user identifier
+curl "https://links.t-api.de/v1/links/<ulid>/clicks?has_user=1" -H "Authorization: Bearer tl_your_key_here"
+curl "https://links.t-api.de/v1/links/<ulid>/clicks?user_identifier=customer_987" -H "Authorization: Bearer tl_your_key_here"
+
+# Filter clicks with query parameters captured (?has_params=1) or by date range (?from=...&to=...)
+curl "https://links.t-api.de/v1/links/<ulid>/clicks?has_params=1&from=2026-10-01&to=2026-10-31" -H "Authorization: Bearer tl_your_key_here"
+
+# Aggregates: totals, unique visitors, unique users, tracked clicks, top tags, top referrers/countries, per-day counts
+curl https://links.t-api.de/v1/links/<ulid>/clicks/summary -H "Authorization: Bearer tl_your_key_here"
+
+# Aggregated stats filtered by dynamic tag or date range
+curl "https://links.t-api.de/v1/links/<ulid>/clicks/summary?tag=promo&from=2026-10-01" -H "Authorization: Bearer tl_your_key_here"
+```
+
+These are the same numbers the dashboard charts are drawn from.
+
+## Dynamic tracking & privacy
+
+Clicks on your short links can capture dynamic attribution and subscriber telemetry without needing to create separate links for each campaign or recipient.
+
+### 1. Dynamic click tags
+Customer applications (newsletters, marketing automation, CRM webhooks) can append tags dynamically at click time:
+- **Comma-separated query string:** `https://clicked.at/oct-launch?tags=newsletter,promo-fall,vip`
+- **Array query string:** `https://clicked.at/oct-launch?tag[]=editorial&tag[]=issue47`
+- **Single query string:** `https://clicked.at/oct-launch?tag=announcement`
+- **Alternative param:** `https://clicked.at/oct-launch?click_tags=partner,q4`
+- **HTTP request header:** `X-Click-Tags: sponsor,edition-9`
+
+Tags are automatically lowercased, sanitized (alphanumeric, dashes, underscores, max 50 chars), deduplicated, and capped at 10 tags per click. Clicks can then be filtered or grouped by tag in API endpoints and CSV exports.
+
+### 2. Privacy-preserving subscriber tracking
+User and subscriber tracking follows strict privacy best practices:
+- **Opt-in only:** Only active when `user_tracking_enabled = true` on the link, or when the request carries `?track_user=1` or `X-User-Tracking: 1`.
+- **Supported user keys:** `uid`, `user_id`, `subscriber_id`, `sub_id`, `sub`, `customer_id`, `contact_id`, `external_id`, or `email` (as well as `X-User-Id` / `X-Subscriber-Id` headers).
+- **Zero plaintext email persistence:** If the identifier contains an `@` symbol (email address), it is automatically hashed with SHA-256 (`em_<32-hex-hash>`). Plaintext emails are never stored in analytics databases or logs.
+- **DNT & Global Privacy Control:** Requests sending `DNT: 1` (Do Not Track) or `Sec-GPC: 1` (Global Privacy Control) headers suppress user tracking entirely.
+
+### 3. Structured URL parameter capture
+All incoming URL query parameters (excluding reserved routing parameters `debug` and `target`) are safely stored in structured JSON in the `query_params` column (max 50 parameters, values capped at 1,024 characters). Stored parameters are forwarded to the destination URL while preserving any existing destination parameters.
+
+## QR codes
+
+Generate production-ready QR codes for any payload with the dedicated QR studio on `https://qr.href.nz` or programmatically via `https://links.t-api.de/v1/qr`.
+
+### 1. Direct URLs on qr.href.nz
+Any URL pattern on `qr.href.nz` immediately renders a high-resolution SVG or PNG image with zero redirects or delay:
+
+```bash
+# URL QR code (SVG default; append .png or ?format=png for PNG)
+curl "https://qr.href.nz/url/https://example.com"
+curl "https://qr.href.nz/url/https://example.com.png"
+
+# Plain text QR code
+curl "https://qr.href.nz/text/Hello%20World"
+
+# Wi-Fi network QR code (auto-connect on iOS & Android)
+curl "https://qr.href.nz/wifi?ssid=MyOfficeWiFi&password=SecretPass&encryption=WPA"
+
+# vCard contact QR code
+curl "https://qr.href.nz/vcard?first_name=Jane&last_name=Doe&phone=+123456789&email=jane@example.com"
+
+# Email, phone, SMS, WhatsApp, location, calendar event, crypto
+curl "https://qr.href.nz/email/support@example.com?subject=Help"
+curl "https://qr.href.nz/phone/+123456789"
+curl "https://qr.href.nz/sms/+123456789?message=Hi"
+curl "https://qr.href.nz/whatsapp/436601234567?message=Hello"
+curl "https://qr.href.nz/geo/48.2082,16.3738?label=Vienna"
+curl "https://qr.href.nz/event?title=Keynote&location=HallA"
+curl "https://qr.href.nz/crypto/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa?currency=btc"
+```
+
+### 2. Custom styling parameters
+All QR endpoints accept the following query parameters:
+- `format`: `svg` (default vector), `png` (raster), or `json` (returns Base64 data URIs)
+- `size`: pixel width/height (64 to 2048, default 300)
+- `margin`: quiet zone padding modules (0 to 100, default 10)
+- `color`: foreground hex color without hash (e.g. `10b981` or `0f172a`)
+- `bg`: background hex color without hash (e.g. `ffffff` or `090d16`)
+- `error_correction`: Reed-Solomon level (`L` 7%, `M` 15%, `Q` 25%, `H` 30%)
+- `download`: `1` or `true` sends `Content-Disposition: attachment` for direct browser downloads
+
+```bash
+# Customized emerald QR on dark background with High error correction
+curl "https://qr.href.nz/url/https://example.com?color=10b981&bg=090d16&size=500&error_correction=H&download=1"
+```
+
+### 3. Programmatic API endpoints (`links.t-api.de/v1/qr`)
+
+```bash
+# GET /v1/qr — URL or general QR (public, no auth)
+curl "https://links.t-api.de/v1/qr?url=https%3A%2F%2Fexample.com&format=png"
+
+# GET /v1/qr/{type} — Type-specific endpoint
+curl "https://links.t-api.de/v1/qr/wifi?ssid=CoffeeShop&password=Latte123&format=png"
+
+# POST /v1/qr — JSON payload returning Base64 data URIs and raw payload
+curl -X POST https://links.t-api.de/v1/qr \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "vcard",
+    "first_name": "Alice",
+    "last_name": "Smith",
+    "phone": "+4312345678",
+    "email": "alice@example.com",
+    "format": "json",
+    "color": "059669",
+    "error_correction": "H"
+  }'
+
+# GET /v1/links/{link}/qr — QR code for your own short link (auth required)
+curl "https://links.t-api.de/v1/links/<ulid>/qr?format=png" \
+  -H "Authorization: Bearer tl_your_key_here"
+```
+
+## Domains
+
+```bash
+# Active system domains plus your own
+curl https://links.t-api.de/v1/domains -H "Authorization: Bearer tl_your_key_here"
+
+# Register a custom hostname (eligible plans only; starts unverified)
+curl -X POST https://links.t-api.de/v1/domains \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"hostname": "links.example.com"}'
+# → 201 with DNS TXT verification instructions until verified
+
+# Publish the TXT record, then verify (200 {verified:true} or 422 {verified:false})
+curl -X POST https://links.t-api.de/v1/domains/<ulid>/verify \
+  -H "Authorization: Bearer tl_your_key_here"
+
+# Deactivate your domain (links and analytics are preserved)
+curl -X DELETE https://links.t-api.de/v1/domains/<ulid> -H "Authorization: Bearer tl_your_key_here"
+```
+
+## API keys
+
+```bash
+# List your keys (newest first; digests are never exposed)
+curl https://links.t-api.de/v1/api-keys -H "Authorization: Bearer tl_your_key_here"
+
+# Create — the raw token comes back as api_key exactly once
+# show_on_dashboard=false hides the key's links from the main
+# dashboard list (they stay on the key's own page)
+curl -X POST https://links.t-api.de/v1/api-keys \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ci-runner", "show_on_dashboard": false}'
+
+# Show a key (prefix + metadata, digests never exposed)
+curl https://links.t-api.de/v1/api-keys/<ulid> -H "Authorization: Bearer tl_your_key_here"
+
+# Rename or toggle dashboard visibility (nothing is moved or deleted)
+curl -X PATCH https://links.t-api.de/v1/api-keys/<ulid> \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"show_on_dashboard": true}'
+
+# Revoke
+curl -X DELETE https://links.t-api.de/v1/api-keys/<ulid> -H "Authorization: Bearer tl_your_key_here"
+```
+
+## Request logging
+
+Every `/v1/*` request (public or authenticated, success or error) writes one row to the API request log: method, host, path (no query string), status, duration, IP hash, truncated user-agent, plus user and key IDs when authenticated. Bodies, tokens and raw IPs are never stored; rows are kept indefinitely and are not deleted on request (see Privacy Policy).
+
+## Notifications
+
+Your in-app inbox (security events, moderation decisions), newest first:
+
+```bash
+curl https://links.t-api.de/v1/notifications -H "Authorization: Bearer tl_your_key_here"
+
+# Mark one read, or everything at once
+curl -X POST https://links.t-api.de/v1/notifications/<id>/read \
+  -H "Authorization: Bearer tl_your_key_here"
+curl -X POST https://links.t-api.de/v1/notifications/read \
+  -H "Authorization: Bearer tl_your_key_here"
+```
+
+## Activity
+
+Your personal history — actions you performed plus actions others (admins, system) performed on your stuff:
+
+```bash
+curl https://links.t-api.de/v1/activity -H "Authorization: Bearer tl_your_key_here"
+```
+
+## Settings
+
+Theme/layout plus email notification preferences (same rules as the dashboard settings form):
+
+```bash
+curl https://links.t-api.de/v1/settings -H "Authorization: Bearer tl_your_key_here"
+
+curl -X PATCH https://links.t-api.de/v1/settings \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"theme": "dark", "nav_layout": "top", "notify_security_email": true}'
+```
+
+## Bio pages
+
+Link-in-bio pages on your own verified domain (eligible plans only; system domains never host bio in v1). One domain hosts one root page at `/`, plus sub-pages at `/{sub}` (first-write-wins against short-link slugs both ways).
+
+```bash
+# Create a root page on your domain
+curl -X POST https://links.t-api.de/v1/bio-pages \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"domain_id": "<ulid>", "title": "My links", "bio": "All my things", "theme": "minimal"}'
+
+# Add a sub-page, then set buttons (full replace, max 25)
+curl -X POST https://links.t-api.de/v1/bio-pages \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"domain_id": "<ulid>", "parent_id": "<page-ulid>", "slug": "socials", "title": "Socials"}'
+
+curl -X PUT https://links.t-api.de/v1/bio-pages/<ulid>/buttons \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"buttons": [{"label": "Shop", "kind": "link", "destination_url": "https://example.com/shop"}]}'
+
+# Add a contact card + duplicate the page
+curl -X PUT https://links.t-api.de/v1/bio-pages/<ulid>/buttons \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"buttons": [{"label": "Jane Doe", "kind": "contact", "contact_email": "jane@example.com"}]}'
+
+curl -X POST https://links.t-api.de/v1/bio-pages/<ulid>/duplicate \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"domain_id": "<other-ulid>"}'
+
+# Quote, coupon, video, image, countdown, RSVP, location, audio blocks
+curl -X PUT https://links.t-api.de/v1/bio-pages/<ulid>/buttons \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"buttons": [{"label": "Ship fast", "sublabel": "A founder", "kind": "quote"}, {"label": "Deal", "sublabel": "SHIP20", "kind": "coupon"}, {"label": "Talk", "kind": "video", "destination_url": "https://www.youtube.com/watch?v=…"}, {"label": "Party", "sublabel": "Aug 1", "kind": "rsvp"}, {"label": "Studio", "sublabel": "123 Main St", "kind": "location"}, {"label": "Ep 1", "kind": "audio", "destination_url": "https://example.com/ep1.mp3"}]}'
+
+# Starter templates (creator, business, event)
+curl -X POST https://links.t-api.de/v1/bio-pages/from-template \
+  -H "Authorization: Bearer tl_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"domain_id": "<ulid>", "template": "event"}'
+
+# Per-button analytics + CSV export
+curl "https://links.t-api.de/v1/bio-pages/<ulid>/stats?days=30" -H "Authorization: Bearer tl_your_key_here"
+curl "https://links.t-api.de/v1/bio-pages/<ulid>/events/export" -H "Authorization: Bearer tl_your_key_here"
+```
+
+Button taps redirect via `/t/{button}` and count separately from page views (`ctr = taps/views`, plus `unique_visitors`); crawler renders are not counted. Pages support cover banners, custom footers, announcement bars, thumbnails, social icon rows, button styles, list/grid layouts, countdowns, image blocks, vCard contacts, schedule windows, and future `published_at`; expiring pages stop resolving. Branding removal is an eligible-plans perk. Buttons support schedule windows (`starts_at`/`ends_at`), pause toggles, and pages support future `published_at` (hidden until then).
+
+Button actions: `url` opens `destination_url`, `subpage` links to another page in the same bio family (`target_page_id`, resolved through `/t/{button}` so taps still count), `modal` opens a pop-up (`modal_title`/`modal_body`/`modal_image_url`, opens tracked via `/t/{button}/open.gif`). Button edits preserve ids and tap counts.
+
+Unpublished work can be previewed in-action: mint a 30-minute signed link (dashboard “Preview draft link”, `GET /draft/{page}` on the page's own domain) — no login needed, never tracked or indexed.
+
+Pages carry `locale` (`en/de/fr/es/it`, rendered as `<html lang>`), `theme_color` (browser bar), `button_style` (`filled/outline/soft`), and full OG meta tags automatically. Pages can be password-protected (`password`, min 8 chars, bcrypt-hashed; `remove_password` clears) — locked pages show an interstitial, leak no destinations, count nothing, and unlock attempts are throttled. Image uploads via static.re — soon; paste image URLs for now (avatar, thumbnails, modal images).

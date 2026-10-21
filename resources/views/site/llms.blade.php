@@ -28,6 +28,9 @@ ternis.link shortens long URLs into memorable short links and counts every redir
 
 ## API
 
+- [API guide for agents]({{ $hosts['docs'] }}/api.md): start here. Recommended base `{{ $hosts['api'] }}/v2`; call `GET /v2/me` to verify authentication and account quota. API keys do not remove plan limits. All v2 JSON responses use `{data,error,meta}`.
+- [OpenAPI v2]({{ $hosts['docs'] }}/api-v2-openapi.yaml): focused authenticated link CRUD, domains, quota discovery, and analytics.
+
 - [API v1]({{ $hosts['api'] }}/v1/): link CRUD, domains, click analytics. Authenticated with `Authorization: Bearer <api-key>` (keys start with `tl_`); public guest creation via `POST /v1/links/public` on system domains. Machine-readable contract: `docs/api-v1-openapi.yaml` in the repo.
 
 ## Developer docs

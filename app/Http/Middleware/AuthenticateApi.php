@@ -16,8 +16,12 @@ class AuthenticateApi
         private TernisAuthService $authService,
     ) {}
 
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $mode = 'required'): Response
     {
+        if ($mode === 'optional' && ! $request->hasHeader('Authorization')) {
+            return $next($request);
+        }
+
         $token = $request->bearerToken();
 
         if (! $token) {

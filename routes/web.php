@@ -592,7 +592,7 @@ Route::name('docs.')->group(function () {
         ->domain((string) config('domains.docs_host', 'docs.ternis.link'))
         ->get('/', [DocsController::class, 'index'])->name('index');
     Route::middleware(['ensure.domain:docs'])
-        ->get('/api-v1-openapi.yaml', [DocsController::class, 'openapi'])->name('openapi');
+        ->get('/api-v{version}-openapi.yaml', [DocsController::class, 'openapi'])->where('version', '[12]')->name('openapi');
     // Slug allowlist (same pattern as /pages/{collection}): a greedy
     // {slug} here would shadow single-segment routes registered below
     // (/new, /{input}) on every other host before ensure.domain 404s.

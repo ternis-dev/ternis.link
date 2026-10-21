@@ -138,4 +138,17 @@ class DocsTest extends TestCase
             ->assertOk()
             ->assertSee('New Short Link', escape: false);
     }
+
+    public function test_v2_contract_and_agent_guide_are_served(): void
+    {
+        $this->get('http://docs.ternis.link/api-v2-openapi.yaml')->assertOk()
+            ->assertHeader('Content-Type', 'application/yaml');
+        $this->get('http://docs.ternis.link/api.md')->assertOk()
+            ->assertSee('GET /v2/me', escape: false)
+            ->assertSee('daily_link_limit_reached', escape: false)
+            ->assertSee('https://docs.ternis.link/api-v2-openapi.yaml', escape: false);
+        $this->get('http://docs.ternis.link/api-v1.md')->assertOk();
+        $this->get('http://href.nz/api-v2-openapi.yaml')->assertNotFound();
+        $this->get('http://docs.ternis.link/api-v3-openapi.yaml')->assertNotFound();
+    }
 }

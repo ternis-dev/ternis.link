@@ -65,6 +65,12 @@
                     <span class="mt-1 block text-sm text-neutral-500 dark:text-neutral-400">The v1 API as YAML, for code generators and agents.</span>
                 </a>
             </li>
+            <li>
+                <a href="{{ url('/api-v2-openapi.yaml') }}" class="block h-full rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    <span class="font-display text-lg font-bold tracking-tight">OpenAPI v2 contract</span>
+                    <span class="mt-1 block text-sm text-neutral-500">Link management, authentication checks, quotas, and actionable errors.</span>
+                </a>
+            </li>
         </ul>
     </main>
 

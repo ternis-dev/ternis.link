@@ -71,9 +71,9 @@ class ApiPolishTest extends TestCase
 
     public function test_landing_redirect_target_resolves(): void
     {
-        // links.t-api.de/ redirects to /v1/ — that target must not 404.
-        $this->get('http://links.t-api.de/')->assertRedirect('/v1/');
-        $this->getJson('http://links.t-api.de/v1/')->assertStatus(200);
+        // The API host redirects to the latest active version.
+        $this->get('http://links.t-api.de/')->assertRedirect('/v2/');
+        $this->getJson('http://links.t-api.de/v2/')->assertStatus(200);
     }
 
     public function test_unauthenticated_error_shape_uses_message(): void
@@ -133,8 +133,7 @@ class ApiPolishTest extends TestCase
 
     public function test_retired_version_returns_410_before_auth(): void
     {
-        ApiVersion::create([
-            'version' => 2,
+        ApiVersion::updateOrCreate(['version' => 2], [
             'status' => ApiVersionStatus::Active,
         ]);
         ApiVersion::where('version', 1)->update(['status' => ApiVersionStatus::Retired]);

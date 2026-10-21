@@ -150,7 +150,7 @@ class DomainHardeningTest extends TestCase
         $this->get('http://href.nz/')->assertStatus(200);
         $this->get('http://href.re/')->assertStatus(200);
         $this->get('http://ternis.link/')->assertStatus(200);
-        $this->get('http://links.t-api.de/')->assertStatus(302)->assertRedirect('/v1/');
+        $this->get('http://links.t-api.de/')->assertStatus(302)->assertRedirect('/v2/');
         $this->get('http://dash.ternis.link/')->assertRedirect('http://dash.ternis.link/login');
         $this->get('http://10.0.0.5/healthz')->assertStatus(200);
     }

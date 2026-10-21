@@ -113,24 +113,6 @@ class StoreLinkRequest extends FormRequest
                 return;
             }
 
-            $max = $user->plan?->max_links_per_day;
-
-            if ($max === null) {
-                return;
-            }
-
-            $todayCount = $user->links()
-                ->where('created_at', '>=', now()->startOfDay())
-                ->count();
-
-            if ($todayCount >= $max) {
-                $planName = $user->plan?->name ?? 'current';
-                $validator->errors()->add(
-                    'destination_url',
-                    "Daily link limit reached ({$max} per day on the {$planName} plan). Try again tomorrow."
-                );
-            }
-
             $domain = Domain::find($this->input('domain_id'));
 
             if ($domain && ! $domain->isUsableForLinks()) {

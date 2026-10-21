@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, 'throttle:api'])->get('/', [VersionController::class, 'show']);
 
 // Public: anonymous link creation (IP-throttled, no auth, API domains only).
-Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, 'throttle:10,1'])->post('links/public', [PublicLinkController::class, 'store']);
+Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, 'auth.api:optional', 'throttle:10,1'])->post('links/public', [PublicLinkController::class, 'store']);
 Route::middleware(['ensure.domain:api', 'ensure.api-version:1', LogApiRequest::class, 'throttle:30,1'])->group(function () {
     Route::match(['get', 'post'], 'qr', PublicQrCodeController::class);
     Route::match(['get', 'post'], 'qr/{type}', [PublicQrCodeController::class, 'forType'])

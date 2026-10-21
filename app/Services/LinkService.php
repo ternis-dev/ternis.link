@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\DailyLinkLimitException;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
 use App\Models\ApiKey;
@@ -10,6 +11,7 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Models\LinkTarget;
 use App\Models\User;
+use App\Support\DailyLinkQuota;
 use App\Support\IpCapture;
 use App\Support\IpHash;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -411,22 +413,14 @@ class LinkService
      */
     public function ensureWithinDailyQuota(User $user): void
     {
-        $max = $user->plan?->max_links_per_day;
-
-        if ($max === null) {
+        if ($user->plan?->max_links_per_day === null) {
             return;
         }
 
-        $todayCount = $user->links()
-            ->where('created_at', '>=', now()->startOfDay())
-            ->count();
+        $quota = DailyLinkQuota::forUser($user);
 
-        if ($todayCount >= $max) {
-            $planName = $user->plan?->name ?? 'current';
-
-            throw ValidationException::withMessages([
-                'destination_url' => "Daily link limit reached ({$max} per day on the {$planName} plan). Try again tomorrow.",
-            ]);
+        if ($quota['limit'] !== null && $quota['remaining'] === 0) {
+            throw new DailyLinkLimitException($quota);
         }
     }
 
