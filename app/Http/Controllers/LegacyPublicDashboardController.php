@@ -33,6 +33,27 @@ class LegacyPublicDashboardController extends PublicDashboardController
     }
 
     /**
+     * The account sections (API keys, domains, settings) only exist in
+     * the current UI — the legacy views were never written for them.
+     * Guard the inherited actions so a future route 404s instead of
+     * rendering a missing view.
+     */
+    public function apiKeys()
+    {
+        abort(404);
+    }
+
+    public function domains()
+    {
+        abort(404);
+    }
+
+    public function settings()
+    {
+        abort(404);
+    }
+
+    /**
      * Leave the legacy dashboard: clear the opt-in and land on the
      * new public dashboard home.
      */

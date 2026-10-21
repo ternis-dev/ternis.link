@@ -8,6 +8,13 @@ use Livewire\Component;
 
 class SettingsForm extends Component
 {
+    /**
+     * Presentation theme: 'dashboard' (dash.ternis.link) or 'public'
+     * (public dashboard). The navigation layout only applies to the
+     * dash — the public dashboard always uses a top bar.
+     */
+    public string $surface = 'dashboard';
+
     public string $nav_layout = 'side';
 
     public string $theme = 'system';

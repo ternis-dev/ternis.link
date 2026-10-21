@@ -80,6 +80,33 @@ class PublicDashboard
     }
 
     /**
+     * Route name prefix for a dashboard theme.
+     *
+     * The shared Livewire components (link table, link form, analytics)
+     * render on three surfaces: the dash, the public dashboard and the
+     * legacy public dashboard. Each needs its own route prefix —
+     * pointing the legacy UI at the new one would throw users out of
+     * the UI they opted into.
+     */
+    public static function routePrefixFor(?string $theme = null): string
+    {
+        return match ($theme) {
+            'legacy' => self::legacyRoutePrefix(),
+            'public' => self::routePrefix(),
+            default => 'dashboard.',
+        };
+    }
+
+    /**
+     * True when the theme renders the public-links surface (new UI or
+     * the legacy one) rather than the dash.
+     */
+    public static function isPublicTheme(?string $theme = null): bool
+    {
+        return in_array($theme, ['public', 'legacy'], true);
+    }
+
+    /**
      * Build a public-dashboard URL for the current host.
      *
      * @param  mixed  $parameters  Route parameters (array or single value).
@@ -118,13 +145,5 @@ class PublicDashboard
     public static function legacyHomeUrl(): string
     {
         return route(rtrim(self::legacyRoutePrefix(), '.'));
-    }
-
-    /**
-     * True when the current request is served by the alias host.
-     */
-    public static function onAliasHost(): bool
-    {
-        return self::currentHost() === self::aliasHost();
     }
 }

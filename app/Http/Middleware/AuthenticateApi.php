@@ -58,18 +58,20 @@ class AuthenticateApi
         if (str_starts_with($token, ApiSessionToken::PREFIX)) {
             $sessionToken = ApiSessionToken::where('token_hash', ApiSessionToken::hashToken($token))->first();
 
-            if (! $sessionToken || ! $sessionToken->verifyToken($token) || ! $sessionToken->isValid()) {
-                return response()->json(['message' => 'Invalid or expired session token.'], 401);
+            if ($sessionToken && $sessionToken->verifyToken($token) && $sessionToken->isValid()) {
+                $sessionToken->touchLastUsed();
+
+                $request->attributes->set('auth_via', 'session-token');
+                $request->setUserResolver(fn () => $sessionToken->user);
+                auth()->setUser($sessionToken->user);
+
+                return $next($request);
             }
 
-            $sessionToken->touchLastUsed();
-
-            $request->attributes->set('session_token', $sessionToken);
-            $request->attributes->set('auth_via', 'session-token');
-            $request->setUserResolver(fn () => $sessionToken->user);
-            auth()->setUser($sessionToken->user);
-
-            return $next($request);
+            // No live session token with that digest. The value could
+            // still be a provider access token that happens to start
+            // with "ts_", so fall through to the SSO strategy instead
+            // of failing a legitimate credential on a prefix.
         }
 
         // Strategy 3: SSO access token (validate against Ternis Auth userinfo, cached)

@@ -8,6 +8,7 @@ use App\Models\Link;
 use App\Services\LinkService;
 use App\Support\Activity;
 use App\Support\DomainUrls;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -285,6 +286,11 @@ class LinkTable extends Component
 
         $visibleColumns = $this->visibleColumns();
 
+        // How many links in this scope exist but are kept off the
+        // dashboard by their API key. Without this the table says
+        // "create your first link" while the overview counts them.
+        $hiddenByKeyCount = $this->hiddenByKeyCount($base, $effectiveFilter);
+
         // Preserve the back-link context (per-key page) on row links.
         $fromApiKey = $this->lockedApiKeyId ?? ($effectiveFilter !== '' && $effectiveFilter !== 'none' ? $effectiveFilter : null);
 
@@ -292,12 +298,82 @@ class LinkTable extends Component
 
         return view('livewire.dashboard.link-table', [
             'links' => $links,
-            'availableTags' => $this->availableTags($base),
+            'availableTags' => $this->availableTags($this->scopedBase($base, $effectiveFilter)),
             'apiKeys' => $apiKeys,
+            'apiKeyLinkCounts' => $this->apiKeyLinkCounts($base),
             'fromApiKey' => $fromApiKey,
             'visibleColumns' => $visibleColumns,
+            'hiddenByKeyCount' => $hiddenByKeyCount,
             'columnCount' => count($visibleColumns) + 2, // + checkbox + fixed Actions column
         ]);
+    }
+
+    /**
+     * How many links each owned API key has in the current scope.
+     *
+     * The origin dropdown lists every key, so a key whose links all
+     * live on the other dashboard would silently empty the table —
+     * this lets the dropdown say so.
+     *
+     * @return Collection<int, int>
+     */
+    private function apiKeyLinkCounts(mixed $base): Collection
+    {
+        return $this->scopedBase($base, '')
+            ->whereNotNull('api_key_id')
+            ->selectRaw('api_key_id, count(*) as link_count')
+            ->groupBy('api_key_id')
+            ->pluck('link_count', 'api_key_id')
+            ->map(fn ($count) => (int) $count);
+    }
+
+    /**
+     * The user's links narrowed to the current scope (host partition,
+     * domain filter, API-key filter) — without the search and without
+     * the dashboard-visibility filter.
+     *
+     * The tag dropdown and the hidden-link count are derived from it,
+     * so they only ever mention links that can actually show up here.
+     */
+    private function scopedBase(mixed $base, string $effectiveFilter): mixed
+    {
+        return (clone $base)
+            ->when($this->scope === 'public', function ($query) {
+                $query->whereHas('domain', fn ($q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames()));
+            })
+            ->when($this->domainFilter !== '' && ($this->scope !== 'public' || in_array($this->domainFilter, DomainUrls::publicDashboardHostnames(), true)), function ($query) {
+                $query->whereHas('domain', fn ($q) => $q->where('hostname', $this->domainFilter));
+            })
+            ->when($effectiveFilter === 'none', function ($query) {
+                $query->whereNull('api_key_id');
+            })
+            ->when($effectiveFilter !== '' && $effectiveFilter !== 'none', function ($query) use ($effectiveFilter) {
+                $query->where('api_key_id', $effectiveFilter);
+            });
+    }
+
+    /**
+     * Links in the current scope whose API key keeps them off the
+     * dashboard (show_on_dashboard = false).
+     */
+    private function hiddenByKeyCount(mixed $base, string $effectiveFilter): int
+    {
+        return (clone $base)
+            ->when($this->scope === 'public', function ($query) {
+                $query->whereHas('domain', fn ($q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames()));
+            })
+            ->when($this->domainFilter !== '' && ($this->scope !== 'public' || in_array($this->domainFilter, DomainUrls::publicDashboardHostnames(), true)), function ($query) {
+                $query->whereHas('domain', fn ($q) => $q->where('hostname', $this->domainFilter));
+            })
+            ->when($effectiveFilter === 'none', function ($query) {
+                $query->whereNull('api_key_id');
+            })
+            ->when($effectiveFilter !== '' && $effectiveFilter !== 'none', function ($query) use ($effectiveFilter) {
+                $query->where('api_key_id', $effectiveFilter);
+            })
+            ->whereNotNull('api_key_id')
+            ->whereHas('apiKey', fn ($q) => $q->where('show_on_dashboard', false))
+            ->count();
     }
 
     /**

@@ -1,11 +1,12 @@
 <div>
     @if ($saved)
         <x-ui.alert tone="success" class="mb-6 w-full">
-            Settings saved. Navigation layout applies immediately; theme applies on this device now and everywhere on next visit.
+            Settings saved.@if (($surface ?? 'dashboard') === 'dashboard') Navigation layout applies immediately;@endif theme applies on this device now and everywhere on next visit.
         </x-ui.alert>
     @endif
 
     <form wire:submit="save" class="w-full space-y-6">
+        @if (($surface ?? 'dashboard') === 'dashboard')
         <x-ui.card title="Navigation Layout">
             <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Choose how the dashboard navigation is arranged.</p>
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -32,6 +33,7 @@
             </div>
             @error('nav_layout') <p class="mt-2 text-xs font-medium" role="alert">{{ $message }}</p> @enderror
         </x-ui.card>
+        @endif
 
         <x-ui.card title="Color Theme">
             <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">System follows your device setting. The header toggle always overrides for this browser.</p>

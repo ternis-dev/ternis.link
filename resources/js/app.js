@@ -104,7 +104,9 @@ function toastContainer() {
     el = document.createElement('div');
     el.id = 'tl-toasts';
     el.className = 'tl-toasts';
-    if (document.querySelector('.pd')) el.classList.add('tl-toasts--public');
+    // Emerald on the public dashboard, indigo on the legacy one.
+    if (document.querySelector('.nd')) el.classList.add('tl-toasts--public');
+    else if (document.querySelector('.pd')) el.classList.add('tl-toasts--legacy');
     el.setAttribute('role', 'status');
     el.setAttribute('aria-live', 'polite');
     document.body.append(el);

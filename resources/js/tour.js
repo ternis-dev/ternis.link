@@ -32,7 +32,15 @@ function startTour(config) {
     let index = 0;
 
     const overlay = document.createElement('div');
-    overlay.className = 'tl-tour-overlay' + (config.theme === 'public' ? ' tl-tour--public' : '');
+    // 'public' = legacy dashboard (indigo), 'public-new' = the current
+    // public dashboard (emerald).
+    const themeClass =
+        config.theme === 'public'
+            ? ' tl-tour--public'
+            : config.theme === 'public-new'
+              ? ' tl-tour--new'
+              : '';
+    overlay.className = 'tl-tour-overlay' + themeClass;
     overlay.setAttribute('aria-hidden', 'false');
 
     const ring = document.createElement('div');

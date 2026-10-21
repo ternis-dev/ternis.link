@@ -15,6 +15,13 @@ use Livewire\Component;
  */
 class PrivacySettings extends Component
 {
+    /**
+     * Presentation theme: 'dashboard' (dash.ternis.link) or 'public'
+     * (public dashboard) — the export download link has to point at the
+     * host the visitor is actually on.
+     */
+    public string $theme = 'dashboard';
+
     public string $confirmText = '';
 
     public bool $acknowledged = false;
@@ -91,6 +98,10 @@ class PrivacySettings extends Component
                 'links' => $user->links()->count(),
                 'domains' => $user->domains()->count(),
                 'api_keys' => $user->apiKeys()->count(),
+                'session_tokens' => $user->apiSessionTokens()
+                    ->whereNull('revoked_at')
+                    ->where('expires_at', '>', now())
+                    ->count(),
             ],
             'retention' => config('privacy'),
             'exports' => $user->privacyExports()->orderByDesc('created_at')->limit(5)->get(),

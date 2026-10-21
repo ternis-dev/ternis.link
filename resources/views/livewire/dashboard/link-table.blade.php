@@ -1,5 +1,5 @@
 @php
-    $rp = ($theme ?? 'dashboard') === 'public' ? \App\Support\PublicDashboard::routePrefix() : 'dashboard.';
+    $rp = \App\Support\PublicDashboard::routePrefixFor($theme ?? 'dashboard');
 @endphp
 <div wire:poll.30s.visible>
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -20,7 +20,7 @@
                     @endforeach
                 </x-ui.select>
             @endif
-            @if (($theme ?? 'dashboard') === 'public')
+            @if (\App\Support\PublicDashboard::isPublicTheme($theme ?? 'dashboard'))
                 <x-ui.select name="table-domain" wire:model.live="domainFilter" class="w-auto" aria-label="Filter by domain">
                     <option value="">All domains</option>
                     @foreach (\App\Support\DomainUrls::publicDashboardHostnames() as $hostname)
@@ -34,7 +34,7 @@
                         <option value="">All origins</option>
                         <option value="none">Dashboard only</option>
                         @foreach ($apiKeys as $apiKey)
-                            <option value="{{ $apiKey->id }}">{{ $apiKey->name }} ({{ $apiKey->key_prefix }}…)</option>
+                            <option value="{{ $apiKey->id }}">{{ $apiKey->name }} ({{ $apiKey->key_prefix }}…){{ ($apiKeyLinkCounts[$apiKey->id] ?? 0) === 0 ? ' — no links here' : '' }}</option>
                         @endforeach
                     </x-ui.select>
                 @endif
@@ -172,6 +172,14 @@
                                 No short links match your current search or filter.
                                 <div class="mt-2">
                                     <button type="button" wire:click="resetFilters" class="cursor-pointer font-medium underline underline-offset-2 hover:text-neutral-900 dark:hover:text-neutral-100">Clear all filters</button>
+                                </div>
+                            </x-ui.empty-state>
+                        @elseif (($hiddenByKeyCount ?? 0) > 0)
+                            {{-- Links exist, but their API key keeps them off the dashboard. --}}
+                            <x-ui.empty-state>
+                                {{ number_format($hiddenByKeyCount) }} short link{{ $hiddenByKeyCount === 1 ? ' is' : 's are' }} hidden by your API-key settings.
+                                <div class="mt-2">
+                                    <button type="button" wire:click="$set('includeHidden', true)" class="cursor-pointer font-medium underline underline-offset-2 hover:text-neutral-900 dark:hover:text-neutral-100">Show them anyway</button>
                                 </div>
                             </x-ui.empty-state>
                         @else

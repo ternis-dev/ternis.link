@@ -36,6 +36,12 @@ class AuthApiController extends Controller
     public const DEFAULT_TTL = 900;
 
     /**
+     * Shortest lifetime a client may ask for. Below a minute the token
+     * would expire before a client could realistically use it.
+     */
+    public const MIN_TTL = 60;
+
+    /**
      * Hard upper bound for a client-requested lifetime.
      */
     public const MAX_TTL = 3600;
@@ -141,7 +147,7 @@ class AuthApiController extends Controller
             return self::DEFAULT_TTL;
         }
 
-        return min($requested, self::MAX_TTL);
+        return max(self::MIN_TTL, min($requested, self::MAX_TTL));
     }
 
     /**
@@ -175,7 +181,11 @@ class AuthApiController extends Controller
         $active = ApiSessionToken::where('user_id', $user->id)
             ->whereNull('revoked_at')
             ->where('expires_at', '>', now())
-            ->orderByDesc('created_at')
+            // ULIDs are lexicographically time-ordered, so this picks
+            // the genuinely oldest token. Sorting by created_at would
+            // tie for tokens minted in the same second and revoke an
+            // arbitrary one of them.
+            ->orderByDesc('id')
             ->pluck('id');
 
         if ($active->count() <= $max) {

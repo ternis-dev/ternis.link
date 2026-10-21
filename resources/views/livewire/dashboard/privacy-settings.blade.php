@@ -1,13 +1,16 @@
 <div class="mt-6 space-y-6">
     <x-ui.card title="Your data">
-        <dl class="grid gap-2 text-sm sm:grid-cols-3">
+        <dl class="grid gap-2 text-sm sm:grid-cols-4">
             <div><dt class="text-neutral-500">Short links</dt><dd class="font-mono text-lg">{{ number_format($summary['links']) }}</dd></div>
             <div><dt class="text-neutral-500">Domains</dt><dd class="font-mono text-lg">{{ number_format($summary['domains']) }}</dd></div>
             <div><dt class="text-neutral-500">API keys</dt><dd class="font-mono text-lg">{{ number_format($summary['api_keys']) }}</dd></div>
+            <div><dt class="text-neutral-500">Live session tokens</dt><dd class="font-mono text-lg">{{ number_format($summary['session_tokens'] ?? 0) }}</dd></div>
         </dl>
         <p class="mt-3 text-xs text-neutral-500">
             Exports expire after {{ $retention['export_ttl_days'] ?? 7 }} days.
             Encrypted IPs are pruned after {{ $retention['guest_ip_retention_days'] ?? 30 }} days.
+            Session tokens of the auth API expire on their own and are pruned after
+            {{ $retention['session_token_retention_days'] ?? 30 }} days.
         </p>
     </x-ui.card>
 
@@ -22,7 +25,9 @@
                     <li class="flex items-center justify-between gap-3">
                         <span>{{ $export->created_at?->format('M d, Y H:i') }} · {{ $export->status }}</span>
                         @if ($export->status === 'done')
-                            <a href="{{ route('dashboard.settings.export-download', $export->id) }}" class="font-medium underline underline-offset-2">Download</a>
+                            <a href="{{ \App\Support\PublicDashboard::isPublicTheme($theme ?? 'dashboard')
+                    ? \App\Support\PublicDashboard::route('settings.export-download', $export->id)
+                    : route('dashboard.settings.export-download', $export->id) }}" class="font-medium underline underline-offset-2">Download</a>
                         @else
                             <span class="text-xs text-neutral-500" wire:poll.5s>processing…</span>
                         @endif

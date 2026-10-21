@@ -1,4 +1,5 @@
-/* Grayscale Chart.js dashboards — indigo inside `.pd` (my.href.nz).
+/* Grayscale Chart.js dashboards — emerald inside `.nd` (the public
+ * dashboard), indigo inside `.pd` (the legacy public dashboard).
  *
  * Canvases opt in via data attributes (server-rendered, no inline JS):
  *
@@ -37,15 +38,32 @@ Chart.register(...registerables);
 const RAMP_LIGHT = ['#171717', '#404040', '#737373', '#a3a3a3', '#d4d4d4', '#e5e5e5'];
 const RAMP_DARK = ['#fafafa', '#e5e5e5', '#a3a3a3', '#737373', '#525252', '#404040'];
 
-/* Public dashboard (my.href.nz) palette: indigo family instead of grayscale. */
+/* Legacy public dashboard palette: indigo family instead of grayscale. */
 const RAMP_PD_LIGHT = ['#4f46e5', '#7c3aed', '#a855f7', '#c084fc', '#d8b4fe', '#e9d5ff'];
 const RAMP_PD_DARK = ['#a5b4fc', '#818cf8', '#c4b5fd', '#6366f1', '#4f46e5', '#3730a3'];
 
 const SOLID_PD_LIGHT = '#4f46e5';
 const SOLID_PD_DARK = '#a5b4fc';
 
-const pick = (dark, i, pd = false) =>
-    (pd ? (dark ? RAMP_PD_DARK : RAMP_PD_LIGHT) : dark ? RAMP_DARK : RAMP_LIGHT)[i % RAMP_LIGHT.length];
+/* Public dashboard palette: emerald family instead of grayscale. */
+const RAMP_ND_LIGHT = ['#047857', '#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0'];
+const RAMP_ND_DARK = ['#6ee7b7', '#34d399', '#10b981', '#059669', '#047857', '#065f46'];
+
+const SOLID_ND_LIGHT = '#059669';
+const SOLID_ND_DARK = '#34d399';
+
+/* Theme of the surface a canvas sits on: 'nd' | 'pd' | 'default'. */
+function themeOf(element) {
+    if (element.closest('.nd')) return 'nd';
+    if (element.closest('.pd')) return 'pd';
+    return 'default';
+}
+
+const pick = (dark, i, theme = 'default') => {
+    if (theme === 'nd') return (dark ? RAMP_ND_DARK : RAMP_ND_LIGHT)[i % RAMP_ND_LIGHT.length];
+    if (theme === 'pd') return (dark ? RAMP_PD_DARK : RAMP_PD_LIGHT)[i % RAMP_PD_LIGHT.length];
+    return (dark ? RAMP_DARK : RAMP_LIGHT)[i % RAMP_LIGHT.length];
+};
 
 function isDark() {
     return document.documentElement.classList.contains('dark');
@@ -97,15 +115,25 @@ function paintLegend(canvas, colors) {
     });
 }
 
-function buildClicksChart(canvas, dark, pd = false) {
-    const solid = pd ? (dark ? SOLID_PD_DARK : SOLID_PD_LIGHT) : dark ? '#fafafa' : '#171717';
-    const soft = pd
-        ? dark
-            ? 'rgba(165,180,252,0.25)'
-            : 'rgba(79,70,229,0.15)'
-        : dark
-          ? 'rgba(250,250,250,0.25)'
-          : 'rgba(23,23,23,0.15)';
+function buildClicksChart(canvas, dark, theme = 'default') {
+    const solid =
+        theme === 'nd'
+            ? dark ? SOLID_ND_DARK : SOLID_ND_LIGHT
+            : theme === 'pd'
+              ? dark ? SOLID_PD_DARK : SOLID_PD_LIGHT
+              : dark ? '#fafafa' : '#171717';
+    const soft =
+        theme === 'nd'
+            ? dark
+                ? 'rgba(52,211,153,0.25)'
+                : 'rgba(5,150,105,0.15)'
+            : theme === 'pd'
+              ? dark
+                  ? 'rgba(165,180,252,0.25)'
+                  : 'rgba(79,70,229,0.15)'
+              : dark
+                ? 'rgba(250,250,250,0.25)'
+                : 'rgba(23,23,23,0.15)';
     const unit = canvas.dataset.chartUnit ?? 'click';
     const line = canvas.dataset.chartType === 'line';
 
@@ -152,9 +180,9 @@ function buildClicksChart(canvas, dark, pd = false) {
     });
 }
 
-function buildBrowsersChart(canvas, dark, pd = false) {
+function buildBrowsersChart(canvas, dark, theme = 'default') {
     const values = readJson(canvas, 'chartValues');
-    const colors = values.map((_, i) => pick(dark, i, pd));
+    const colors = values.map((_, i) => pick(dark, i, theme));
 
     canvas._tlChart = new Chart(canvas, {
         type: 'doughnut',
@@ -211,11 +239,12 @@ export function initCharts(root = document) {
         }
 
         const dark = isDark();
-        // Canvases under the public dashboard theme (.pd) paint indigo.
-        const pd = canvas.closest('.pd') !== null;
+        // Emerald on the public dashboard (.nd), indigo on the legacy
+        // one (.pd), grayscale everywhere else.
+        const theme = themeOf(canvas);
 
-        if (canvas.dataset.chart === 'clicks') buildClicksChart(canvas, dark, pd);
-        if (canvas.dataset.chart === 'browsers') buildBrowsersChart(canvas, dark, pd);
+        if (canvas.dataset.chart === 'clicks') buildClicksChart(canvas, dark, theme);
+        if (canvas.dataset.chart === 'browsers') buildBrowsersChart(canvas, dark, theme);
     });
 }
 

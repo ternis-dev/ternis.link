@@ -45,7 +45,7 @@
                 </div>
             </div>
         @else
-            <livewire:dashboard.link-table scope="public" theme="public" />
+            <livewire:dashboard.link-table scope="public" theme="legacy" />
         @endif
     </div>
 
@@ -110,15 +110,15 @@
 
     <script type="application/json" id="tl-tour-steps">
         {!! json_encode([
-            'id' => 'public',
+            'id' => 'public-legacy',
             'autostart' => ($stats['total_links'] ?? 0) === 0,
             'theme' => 'public',
             'steps' => [
-                ['target' => null, 'title' => 'Welcome to my.ternis.link', 'body' => 'Your href.nz, meinlink.at and href.yt links live here. Short tour — skip anytime.'],
+                ['target' => null, 'title' => 'Welcome to '.\App\Support\PublicDashboard::label(), 'body' => 'Your href.nz, meinlink.at and href.yt links live here. Short tour — skip anytime.'],
                 ['target' => 'create', 'title' => 'New short link', 'body' => 'This button (or the C key) shortens a link without leaving the page.'],
                 ['target' => 'stats', 'title' => 'Your numbers', 'body' => 'Links, clicks, and fresh traffic at a glance.'],
                 ['target' => 'table', 'title' => 'Every link, filterable', 'body' => 'Search, filter by tag or domain, export CSV or grab a QR ZIP.'],
-                ['target' => 'nav', 'title' => 'Need more?', 'body' => 'API keys, domains, and settings live over on dash.ternis.link. Enjoy!'],
+                ['target' => 'nav', 'title' => 'Need more?', 'body' => 'API keys, domains and settings are here too — in the header. Enjoy!'],
             ],
         ]) !!}
     </script>

@@ -46,6 +46,44 @@ class TableColumnsTest extends TestCase
         $this->assertSame(['by'], $this->user->fresh()->table_columns['dashboard.activity']['hidden']);
     }
 
+    public function test_hidden_column_is_not_rendered_in_the_table(): void
+    {
+        // The point of the feature is that the column is GONE from the
+        // table — asserting only the stored preference would not catch
+        // a view that renders every column regardless.
+        Livewire::actingAs($this->user)
+            ->test(ActivityTable::class)
+            ->assertSeeHtml('<th>When</th>')
+            ->assertSeeHtml('<th>Subject</th>')
+            ->call('toggleColumn', 'subject', 'dashboard.activity')
+            ->assertDontSeeHtml('<th>Subject</th>')
+            ->assertSeeHtml('<th>When</th>');
+    }
+
+    public function test_a_hidden_column_can_be_shown_again(): void
+    {
+        // A separate account: the toggle is a switch, so the state it
+        // starts from decides which way the first call flips.
+        $user = User::factory()->create();
+
+        $component = Livewire::actingAs($user)->test(ActivityTable::class);
+
+        $component->call('toggleColumn', 'subject', 'dashboard.activity')
+            ->assertDontSeeHtml('<th>Subject</th>');
+
+        $component->call('toggleColumn', 'subject', 'dashboard.activity')
+            ->assertSeeHtml('<th>Subject</th>');
+    }
+
+    public function test_hidden_column_is_not_rendered_in_the_api_key_table(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(ApiKeyManager::class)
+            ->assertSeeHtml('<th>Prefix</th>')
+            ->call('toggleColumn', 'prefix', 'dashboard.api-keys')
+            ->assertDontSeeHtml('<th>Prefix</th>');
+    }
+
     public function test_api_key_table_renders_and_hides_columns(): void
     {
         Livewire::actingAs($this->user)

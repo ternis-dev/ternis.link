@@ -8,9 +8,9 @@
         </x-slot:actions>
     </x-pd.head>
 
-    <livewire:dashboard.settings-form />
+    <livewire:dashboard.settings-form surface="public" />
 
     <div class="mt-6">
-        <livewire:dashboard.privacy-settings />
+        <livewire:dashboard.privacy-settings theme="public" />
     </div>
 </x-layouts.public-dashboard>

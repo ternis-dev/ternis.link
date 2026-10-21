@@ -68,6 +68,23 @@ class BuildPrivacyExport implements ShouldQueue
             }
             fclose($keysHandle);
 
+            // session-tokens.csv — the short-lived tokens of the auth
+            // API (metadata only; the token itself is never stored).
+            $tokensHandle = fopen(Storage::disk('local')->path("{$dir}/session-tokens.csv"), 'w');
+            fputcsv($tokensHandle, ['id', 'token_prefix', 'origin', 'expires_at', 'last_used_at', 'revoked_at', 'created_at']);
+            foreach ($user->apiSessionTokens()->get() as $t) {
+                fputcsv($tokensHandle, [
+                    $t->id,
+                    $t->token_prefix,
+                    $t->origin,
+                    $t->expires_at?->toIso8601String(),
+                    $t->last_used_at?->toIso8601String(),
+                    $t->revoked_at?->toIso8601String(),
+                    $t->created_at?->toIso8601String(),
+                ]);
+            }
+            fclose($tokensHandle);
+
             // activity.csv (own actions + admin actions on own stuff; no IPs/user-agents)
             $activityHandle = fopen(Storage::disk('local')->path("{$dir}/activity.csv"), 'w');
             fputcsv($activityHandle, ['occurred_at', 'action', 'actor', 'subject_type', 'subject_label', 'metadata']);
@@ -132,12 +149,13 @@ class BuildPrivacyExport implements ShouldQueue
                 Storage::disk('local')->path("{$dir}/README.txt"),
                 "ternis.link privacy export. Aggregates only; no visitor IPs, no key digests, no SSO tokens.\n"
                 ."activity.csv holds your actions plus admin actions on your stuff; errors.csv holds error pages shown to you.\n"
+                ."session-tokens.csv lists the short-lived tokens of the auth API (prefix, origin, lifetime — never the token itself).\n"
             );
 
             $zipPath = "privacy/{$export->id}.zip";
             $zip = new \ZipArchive;
             $zip->open(Storage::disk('local')->path($zipPath), \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-            foreach (['profile.json', 'links.csv', 'domains.csv', 'api-keys.csv', 'activity.csv', 'errors.csv', 'bio-pages.csv', 'notifications.csv', 'README.txt'] as $f) {
+            foreach (['profile.json', 'links.csv', 'domains.csv', 'api-keys.csv', 'session-tokens.csv', 'activity.csv', 'errors.csv', 'bio-pages.csv', 'notifications.csv', 'README.txt'] as $f) {
                 $zip->addFile(Storage::disk('local')->path("{$dir}/{$f}"), $f);
             }
             $zip->close();

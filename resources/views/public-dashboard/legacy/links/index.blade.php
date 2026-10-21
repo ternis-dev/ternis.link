@@ -14,5 +14,5 @@
         </div>
     </div>
 
-    <livewire:dashboard.link-table scope="public" theme="public" />
+    <livewire:dashboard.link-table scope="public" theme="legacy" />
 </x-layouts.public-dashboard-legacy>

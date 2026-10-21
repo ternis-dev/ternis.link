@@ -2,6 +2,7 @@
 
 @php
 $dashHost = config('domains.dashboard_host', 'dash.ternis.link');
+$host = \App\Support\PublicDashboard::label();
 $isLocal = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true);
 $legacyPrefix = \App\Support\PublicDashboard::legacyRoutePrefix();
 $homeHref = $isLocal ? url('/dashboard') : \App\Support\PublicDashboard::legacyHomeUrl();
@@ -24,7 +25,7 @@ $nav = [
                 <div>
                     <p class="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide">
                         <span class="inline-block h-2 w-2 rounded-full bg-emerald-300"></span>
-                        my.ternis.link · public links
+                        {{ $host }} · public links
                     </p>
                     <h1 class="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">Your short links, minus the clutter.</h1>
                     <p class="mt-2 max-w-xl text-sm text-white/80">href.nz, meinlink.at &amp; href.yt in one focused workspace. Everything else lives on dash.ternis.link.</p>
@@ -49,9 +50,9 @@ $nav = [
                     >{{ $item['label'] }}</a>
                 @endforeach
                 <span class="mx-1 hidden h-6 w-px self-center bg-white/25 sm:inline-block" aria-hidden="true"></span>
-                <a href="https://{{ $dashHost }}/api-keys" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">API Keys ↗</a>
-                <a href="https://{{ $dashHost }}/domains" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">Domains ↗</a>
-                <a href="https://{{ $dashHost }}/settings" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">Settings ↗</a>
+                <a href="{{ \App\Support\PublicDashboard::route('api-keys') }}" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">API Keys</a>
+                <a href="{{ \App\Support\PublicDashboard::route('domains') }}" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">Domains</a>
+                <a href="{{ \App\Support\PublicDashboard::route('settings') }}" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">Settings</a>
             </nav>
             <form method="POST" action="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'switch-new') }}" class="mt-4">
                 @csrf
@@ -72,7 +73,7 @@ $nav = [
     @unless (request()->routeIs(\App\Support\PublicDashboard::legacyRoutePrefix().'links.create', \App\Support\PublicDashboard::legacyRoutePrefix().'new'))
         <div class="pd">
             <x-ui.modal name="link-creator" title="New Short Link">
-                <livewire:dashboard.link-form :modal="true" scope="public" theme="public" />
+                <livewire:dashboard.link-form :modal="true" scope="public" theme="legacy" />
             </x-ui.modal>
         </div>
 

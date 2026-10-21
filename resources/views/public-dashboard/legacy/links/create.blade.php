@@ -6,6 +6,6 @@
     </div>
 
     <div class="pd-card w-full rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
-        <livewire:dashboard.link-form scope="public" theme="public" />
+        <livewire:dashboard.link-form scope="public" theme="legacy" />
     </div>
 </x-layouts.public-dashboard-legacy>

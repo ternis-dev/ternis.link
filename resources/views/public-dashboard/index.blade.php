@@ -109,7 +109,7 @@
         {!! json_encode([
             'id' => 'public',
             'autostart' => ($stats['total_links'] ?? 0) === 0,
-            'theme' => 'public',
+            'theme' => 'public-new',
             'steps' => [
                 ['target' => null, 'title' => 'Welcome to '.\App\Support\PublicDashboard::label(), 'body' => 'Your href.nz, meinlink.at and href.yt links live here. Short tour — skip anytime.'],
                 ['target' => 'create', 'title' => 'New short link', 'body' => 'This button (or the C key) shortens a link without leaving the page.'],

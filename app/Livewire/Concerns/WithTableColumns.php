@@ -103,26 +103,6 @@ trait WithTableColumns
         return $this->columnStateFor($table)['visible'];
     }
 
-    /**
-     * Hidden column keys of a table.
-     *
-     * @return list<string>
-     */
-    public function hiddenColumns(?string $table = null): array
-    {
-        return $this->columnStateFor($table)['hidden'];
-    }
-
-    /**
-     * Ordered column keys of a table, hidden ones included.
-     *
-     * @return list<string>
-     */
-    public function columnOrder(?string $table = null): array
-    {
-        return $this->columnStateFor($table)['order'];
-    }
-
     public function toggleColumn(string $column, ?string $table = null): void
     {
         $key = $this->tableKeyFor($table);

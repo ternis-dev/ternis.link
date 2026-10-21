@@ -23,9 +23,22 @@ class AccountErasureService
             $user->notifications()->delete();
             $user->bulkOperations()->delete();
             $user->privacyExports()->delete();
+            $user->apiSessionTokens()->delete();
 
-            // Activity rows keep aggregates without user join.
-            ActivityLog::where('user_id', $user->id)->delete();
+            /*
+             * Activity rows keep aggregates without a user join — but
+             * the user's own rows are theirs to erase (Art. 17), so they
+             * go with the account. The FKs on actor_id/subject_owner_id
+             * are nullOnDelete and would only anonymize the rows.
+             *
+             * NOTE: activity_logs has no `user_id` column — querying it
+             * deletes nothing on SQLite (a double-quoted string is a
+             * literal there) and is a hard SQL error on MySQL/PostgreSQL,
+             * which aborted the whole erasure transaction.
+             */
+            ActivityLog::where('actor_id', $user->id)
+                ->orWhere('subject_owner_id', $user->id)
+                ->delete();
 
             $user->delete();
         });

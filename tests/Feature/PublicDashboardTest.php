@@ -183,6 +183,70 @@ class PublicDashboardTest extends TestCase
             ->assertDontSee('of your links live on the public dashboard', escape: false);
     }
 
+    public function test_account_sections_render_on_both_hosts(): void
+    {
+        $key = ApiKey::create([
+            'user_id' => $this->user->id,
+            'key_hash' => ApiKey::hashToken('tl_'.Str::random(48)),
+            'key_prefix' => 'tl_section',
+            'api_version' => 1,
+            'name' => 'Section Key',
+        ]);
+
+        foreach (['my.ternis.link', 'my.href.nz'] as $host) {
+            $this->actingAs($this->user)
+                ->get("http://{$host}/api-keys")
+                ->assertOk()
+                ->assertSee('Visible columns')
+                ->assertSee('Section Key');
+
+            $this->actingAs($this->user)
+                ->get("http://{$host}/domains")
+                ->assertOk()
+                ->assertSee('Your Domains')
+                ->assertSee('System Domains');
+
+            $settings = $this->actingAs($this->user)
+                ->get("http://{$host}/settings")
+                ->assertOk()
+                ->assertSee('Color Theme');
+
+            // The navigation layout is a dash-only setting — the public
+            // dashboard always uses a top bar.
+            $settings->assertDontSee('Navigation Layout');
+        }
+    }
+
+    public function test_alias_host_serves_the_same_data(): void
+    {
+        $this->makeLink('href.nz', 'pub-parity-1');
+
+        // A marker that must appear on both hosts, per page.
+        $markers = [
+            '/' => 'pub-parity-1',
+            '/links' => 'pub-parity-1',
+            '/api-keys' => 'Generate API Key',
+            '/domains' => 'Your Domains',
+        ];
+
+        foreach ($markers as $path => $marker) {
+            $canonical = $this->actingAs($this->user)->get("http://my.ternis.link{$path}");
+            $alias = $this->actingAs($this->user)->get("http://my.href.nz{$path}");
+
+            $canonical->assertOk();
+            $alias->assertOk();
+
+            // The same content on both hosts...
+            $this->assertStringContainsString($marker, $canonical->getContent());
+            $this->assertStringContainsString($marker, $alias->getContent());
+
+            // ...and the alias host never links back to the canonical
+            // one (the full markup differs by the per-request Livewire
+            // payload, so compare the stable parts).
+            $this->assertStringNotContainsString('my.ternis.link', $alias->getContent());
+        }
+    }
+
     public function test_alias_host_serves_the_public_dashboard(): void
     {
         // my.href.nz is a first-class host now: same app, same session,

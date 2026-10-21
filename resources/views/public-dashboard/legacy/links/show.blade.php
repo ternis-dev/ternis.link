@@ -46,5 +46,5 @@
         </div>
     </div>
 
-    <livewire:dashboard.link-analytics :link="$link" theme="public" />
+    <livewire:dashboard.link-analytics :link="$link" theme="legacy" />
 </x-layouts.public-dashboard-legacy>

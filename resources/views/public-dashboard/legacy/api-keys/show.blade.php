@@ -19,5 +19,5 @@
         </div>
     </div>
 
-    <livewire:dashboard.link-table :api-key-id="$apiKey->id" :key="'public-key-'.$apiKey->id" scope="public" theme="public" />
+    <livewire:dashboard.link-table :api-key-id="$apiKey->id" :key="'public-key-'.$apiKey->id" scope="public" theme="legacy" />
 </x-layouts.public-dashboard-legacy>

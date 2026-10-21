@@ -154,4 +154,51 @@ class PrivacySelfServiceTest extends TestCase
         $this->assertNull($link->fresh()->creator_ip_hash);
         $this->assertDatabaseMissing('users', ['id' => $this->user->id]);
     }
+
+    public function test_erasure_removes_the_users_activity_rows(): void
+    {
+        // The activity table has no `user_id` column — the rows belong
+        // to the user through actor_id / subject_owner_id. Erasure must
+        // actually delete them (Art. 17); a stray `where('user_id')`
+        // deletes nothing on SQLite and is a hard SQL error on
+        // MySQL/PostgreSQL, which would abort the whole erasure.
+        $own = Link::create([
+            'slug' => 'priv-activity',
+            'destination_url' => 'https://example.com/act',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        ActivityLog::create([
+            'actor_id' => $this->user->id,
+            'action' => 'link.created',
+            'subject_type' => Link::class,
+            'subject_id' => (string) $own->id,
+            'subject_owner_id' => $this->user->id,
+        ]);
+
+        // Somebody else's row must survive.
+        $other = User::factory()->create();
+        ActivityLog::create([
+            'actor_id' => $other->id,
+            'action' => 'link.created',
+            'subject_type' => Link::class,
+            'subject_id' => (string) $own->id,
+            'subject_owner_id' => $other->id,
+        ]);
+
+        $before = ActivityLog::count();
+
+        app(AccountErasureService::class)->erase($this->user);
+
+        // The user's own row is GONE — not merely anonymised. The
+        // actor_id/subject_owner_id FKs are nullOnDelete, so a wrong
+        // predicate would leave the row behind with null FKs and still
+        // pass an "assertDatabaseMissing(['actor_id' => ...])" check.
+        $this->assertSame($before - 1, ActivityLog::count());
+
+        // Somebody else's row survives.
+        $this->assertDatabaseHas('activity_logs', ['actor_id' => $other->id]);
+    }
 }

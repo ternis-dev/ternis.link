@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\ActivityLog;
 use App\Models\ApiKey;
+use App\Models\ApiSessionToken;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -67,6 +68,9 @@ final class Activity
             $subject instanceof User => mb_substr($subject->email ?? $subject->id, 0, 255),
             $subject instanceof ApiKey => mb_substr(
                 trim(($subject->name ?? '').' ('.($subject->key_prefix ?? '?').'…)'), 0, 255
+            ),
+            $subject instanceof ApiSessionToken => mb_substr(
+                'session token '.$subject->masked_token, 0, 255
             ),
             default => mb_substr((string) $subject->getKey(), 0, 255),
         };

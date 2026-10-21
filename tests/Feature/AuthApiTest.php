@@ -189,6 +189,36 @@ class AuthApiTest extends TestCase
         );
     }
 
+    public function test_disallowed_origin_gets_no_cors_grant_on_a_real_request(): void
+    {
+        $response = $this->get('http://my.ternis.link/auth/api/session', [
+            'Origin' => 'https://evil.example',
+        ]);
+
+        // The request is refused server-side...
+        $response->assertForbidden();
+
+        // ...and the response never names the requesting origin, so a
+        // browser cannot read it either. (With a single allowlisted
+        // origin the CORS layer echoes that entry — the point is that
+        // it is never the caller's origin.)
+        $this->assertNotSame('https://evil.example', $response->headers->get('Access-Control-Allow-Origin'));
+    }
+
+    public function test_token_endpoint_is_rate_limited(): void
+    {
+        // Minting writes a row, so it carries its own budget.
+        for ($i = 0; $i < 10; $i++) {
+            $this->actingAs($this->user)
+                ->postJson('http://my.ternis.link/auth/api/token')
+                ->assertCreated();
+        }
+
+        $this->actingAs($this->user)
+            ->postJson('http://my.ternis.link/auth/api/token')
+            ->assertStatus(429);
+    }
+
     public function test_preflight_never_grants_an_unknown_origin(): void
     {
         $response = $this->call('OPTIONS', 'http://my.ternis.link/auth/api/token', [], [], [], [

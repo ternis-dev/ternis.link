@@ -4,11 +4,13 @@
 /* ==========================================================
  * my.ternis.link — flat & simple public dashboard theme.
  *
- * Everything below is scoped under `.pd` (rendered by
- * x-layouts.public-dashboard), so dash.ternis.link and
- * admin.ternis.link are untouched. Shared Livewire components
- * (link table, forms, analytics) emit the same neutral markup
- * on both dashboards — this file re-skins it here.
+ * Two themes live here. `.pd` (indigo) is the legacy public
+ * dashboard, rendered by x-layouts.public-dashboard-legacy.
+ * `.nd` (emerald, further down) is the current public dashboard,
+ * rendered by x-layouts.public-dashboard. dash.ternis.link and
+ * admin.ternis.link are untouched by both. Shared Livewire
+ * components (link table, forms, analytics) emit the same neutral
+ * markup everywhere — this file re-skins it here.
  *
  * Flat rules: solid fills only, no gradients, no shadows,
  * 1px borders, small radii.
@@ -330,7 +332,7 @@ body:has(.pd-root) {
  *
  * Flat emerald system, scoped under `.nd` (rendered by
  * x-layouts.public-dashboard). The legacy indigo UI lives under
- * `.pd` in public-dashboard-legacy.css; dash/admin untouched.
+ * `.pd` in the same file; dash/admin untouched.
  * Shared Livewire components emit neutral markup on every
  * dashboard — this file re-skins it here.
  * ========================================================== */

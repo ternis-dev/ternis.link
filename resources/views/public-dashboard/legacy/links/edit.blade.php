@@ -10,10 +10,10 @@
     @endif
 
     <div class="pd-card mb-6 w-full rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
-        <livewire:dashboard.link-edit-form :link="$link" theme="public" />
+        <livewire:dashboard.link-edit-form :link="$link" theme="legacy" />
     </div>
 
     <div class="pd-card w-full rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
-        <livewire:dashboard.link-targeting :link="$link" theme="public" />
+        <livewire:dashboard.link-targeting :link="$link" theme="legacy" />
     </div>
 </x-layouts.public-dashboard-legacy>

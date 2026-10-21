@@ -104,6 +104,15 @@ class User extends Authenticatable
         return $this->hasMany(ApiKey::class);
     }
 
+    /**
+     * Short-lived tokens minted by the public dashboard's auth API for
+     * cross-origin clients.
+     */
+    public function apiSessionTokens(): HasMany
+    {
+        return $this->hasMany(ApiSessionToken::class);
+    }
+
     public function bulkOperations(): HasMany
     {
         return $this->hasMany(BulkOperation::class);

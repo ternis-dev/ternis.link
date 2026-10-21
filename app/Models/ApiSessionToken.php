@@ -92,6 +92,13 @@ class ApiSessionToken extends Model
 
     public function touchLastUsed(): void
     {
+        // Rate-limit the write: a busy client would otherwise cause one
+        // UPDATE per API request just to move a timestamp. A minute of
+        // granularity is enough to answer "when was this last used?".
+        if ($this->last_used_at !== null && $this->last_used_at->gt(now()->subMinute())) {
+            return;
+        }
+
         $this->update(['last_used_at' => now()]);
     }
 
