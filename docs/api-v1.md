@@ -17,6 +17,8 @@ curl https://links.t-api.de/v1/links \
 
 Keys are stored as hashes — the full key is shown **once** at creation. Revoke keys you no longer use, via the dashboard or `DELETE /v1/api-keys/{key}` below.
 
+Besides API keys and SSO access tokens, the API also accepts a **session token** (`ts_…`) — a short-lived token minted by the [auth API](./auth-api.md) of the public dashboard for cross-origin clients. It works like any other bearer token.
+
 Check compatibility first: `GET /v1/` is public (no auth) and reports the active version:
 
 ```bash

@@ -17,6 +17,8 @@ Use `GET /v2/me` to verify the authenticated account, key, plan, usage, and exac
 
 Send the key as a Bearer token, including the `Bearer ` prefix. Do not send it as `api_key` in a JSON body, query string, or `X-API-Key` header. Missing, malformed, expired, or revoked credentials return HTTP 401; they never fall back to guest creation on v2. SSO access tokens are also accepted after the account has logged in through the dashboard.
 
+Cross-origin clients (a web app on another origin) cannot read the dashboard session cookie. They use the [auth API](./auth-api.md) of the public dashboard instead: it reports whether the visitor is signed in and mints a short-lived `ts_…` session token, which is accepted as a Bearer token just like an API key.
+
 V2 has no guest creation endpoint. For anonymous creation only, use `POST https://links.t-api.de/v1/links/public` without Authorization. That endpoint applies a separate guest quota per IP and restricted guest fields. If you supply Authorization there, credentials are validated and the authenticated creation rules apply.
 
 ## Minimal workflow

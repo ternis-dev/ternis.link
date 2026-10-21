@@ -53,6 +53,14 @@ return Application::configure(basePath: dirname(__DIR__))
         // (session + PKCE live where the flow starts).
         $middleware->redirectGuestsTo(fn (Request $request) => $request->getSchemeAndHttpHost().'/login');
 
+        // The auth API of the public dashboard is called cross-origin:
+        // a browser client has no CSRF token for it. It is protected by
+        // the CORS origin allowlist (config/cors.php) instead, and the
+        // endpoints only ever act on the caller's own session.
+        $middleware->validateCsrfTokens(except: [
+            'auth/api/*',
+        ]);
+
         $middleware->alias([
             'resolve.domain' => ResolveDomain::class,
             'enforce.domain' => EnforceDomainAccess::class,

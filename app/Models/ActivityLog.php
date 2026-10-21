@@ -35,6 +35,10 @@ class ActivityLog extends Model
 
     public const AUTH_LOGOUT = 'auth.logout';
 
+    public const AUTH_TOKEN_ISSUED = 'auth.token_issued';
+
+    public const AUTH_TOKEN_REVOKED = 'auth.token_revoked';
+
     public const ADMIN_LINK_DEACTIVATED = 'admin.link.deactivated';
 
     public const ADMIN_LINK_REACTIVATED = 'admin.link.reactivated';

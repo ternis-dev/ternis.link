@@ -13,7 +13,8 @@ No account is needed to start: anyone can shorten links as a guest on [href.nz](
 | [href.re](https://href.re) | Official business links. |
 | [ternis.link](https://ternis.link) | Family, relatives, and partners — plus public network stats. |
 | [dash.ternis.link](https://dash.ternis.link) | Your dashboard: links, stats, domains, API keys. |
-| [my.ternis.link](https://my.ternis.link) | Public-links dashboard: your `href.nz`, `meinlink.at` and `href.yt` links. |
+| [my.ternis.link](https://my.ternis.link) | Public-links dashboard: your `href.nz`, `meinlink.at` and `href.yt` links, plus API keys, domains and settings. |
+| [my.href.nz](https://my.href.nz) | The same dashboard under its own brand. |
 | [admin.ternis.link](https://admin.ternis.link) | Admin console (admins only). |
 | [docs.ternis.link](https://docs.ternis.link) | These guides. |
 | [links.t-api.de](https://links.t-api.de) | The public API. |
@@ -25,6 +26,7 @@ No account is needed to start: anyone can shorten links as a guest on [href.nz](
 | [How it works](./architecture) | What happens when you shorten a link and when someone opens it. |
 | [Links & URLs](./links) | Guest and member shortening, custom slugs, QR codes, direct links, expiry. |
 | [Accounts & API keys](./authentication) | Password-free sign-in, what members get, using the API. |
+| [Auth API](./auth-api) | Cross-origin clients: ask who the visitor is, get a short-lived token. |
 | [Domains](./domains-routing) | Which host does what, plus your own custom domains. |
 | [API guide](./api) | Every endpoint with copy-paste examples. |
 

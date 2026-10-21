@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\ApiKey;
+use App\Models\ApiSessionToken;
 use App\Models\User;
 use App\Services\TernisAuthService;
 use Closure;
@@ -50,7 +51,28 @@ class AuthenticateApi
             return $next($request);
         }
 
-        // Strategy 2: SSO access token (validate against Ternis Auth userinfo, cached)
+        // Strategy 2: Session token minted by the public dashboard's
+        // auth API (starts with "ts_" prefix). Short-lived, stored as a
+        // SHA-256 digest, revocable — the cross-origin counterpart of
+        // an API key.
+        if (str_starts_with($token, ApiSessionToken::PREFIX)) {
+            $sessionToken = ApiSessionToken::where('token_hash', ApiSessionToken::hashToken($token))->first();
+
+            if (! $sessionToken || ! $sessionToken->verifyToken($token) || ! $sessionToken->isValid()) {
+                return response()->json(['message' => 'Invalid or expired session token.'], 401);
+            }
+
+            $sessionToken->touchLastUsed();
+
+            $request->attributes->set('session_token', $sessionToken);
+            $request->attributes->set('auth_via', 'session-token');
+            $request->setUserResolver(fn () => $sessionToken->user);
+            auth()->setUser($sessionToken->user);
+
+            return $next($request);
+        }
+
+        // Strategy 3: SSO access token (validate against Ternis Auth userinfo, cached)
         $cacheKey = 'sso_token:'.hash('sha256', $token);
 
         $userInfo = Cache::remember($cacheKey, 300, function () use ($token) {

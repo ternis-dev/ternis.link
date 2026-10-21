@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Api\V1\PublicQrCodeController;
+use App\Http\Controllers\Auth\AuthApiController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\BioPageController;
 use App\Http\Controllers\ContentController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\SiteFilesController;
 use App\Http\Controllers\StatsController;
 use App\Http\Middleware\EnforceDomainAccess;
+use App\Http\Middleware\EnsureCorsOrigin;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
@@ -232,6 +234,38 @@ foreach (PublicDashboard::hosts() as $publicDashboardHost) {
     Route::domain($publicDashboardHost)
         ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
         ->group(fn () => $publicDashboardRoutes($prefix));
+}
+
+/*
+|----------------------------------------------------------------------
+| Auth API (my.ternis.link + my.href.nz) — CORS-protected handshake
+| for cross-origin clients.
+|
+| A web app on another origin cannot read the session cookie, so it
+| asks GET /auth/api/session whether the visitor is signed in and
+| POST /auth/api/token for a short-lived bearer token for the REST
+| API. Only origins listed in config('cors.allowed_origins') get an
+| answer; the list is empty by default.
+|
+| These routes live outside the `auth` middleware on purpose: the
+| session endpoint has to answer "not signed in" to guests. They are
+| exempted from CSRF for the same reason — a cross-origin client has
+| no CSRF token — and are protected by the origin allowlist instead.
+|----------------------------------------------------------------------
+*/
+foreach (PublicDashboard::hosts() as $publicDashboardHost) {
+    $prefix = $publicDashboardHost === PublicDashboard::canonicalHost()
+        ? 'public-dashboard.'
+        : 'public-dashboard-alt.';
+
+    Route::domain($publicDashboardHost)
+        ->middleware(['ensure.domain:public-dashboard', EnsureCorsOrigin::class, 'throttle:30,1'])
+        ->prefix('auth/api')
+        ->group(function () use ($prefix) {
+            Route::get('session', [AuthApiController::class, 'session'])->name($prefix.'auth.session');
+            Route::post('token', [AuthApiController::class, 'token'])->name($prefix.'auth.token');
+            Route::delete('token', [AuthApiController::class, 'revoke'])->name($prefix.'auth.token.revoke');
+        });
 }
 
 /*
