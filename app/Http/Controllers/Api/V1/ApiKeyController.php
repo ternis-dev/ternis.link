@@ -24,10 +24,11 @@ class ApiKeyController extends Controller
     {
         $user = $request->user();
 
-        $keys = ($user->isAdmin() ? ApiKey::query() : $user->apiKeys())
+        $query = ($user->isAdmin() ? ApiKey::query() : $user->apiKeys())
             ->with($user->isAdmin() ? 'user:id,name,email' : [])
-            ->orderByDesc('created_at')
-            ->get();
+            ->orderByDesc('created_at');
+
+        $keys = $request->boolean('all') ? $query->get() : $query->paginate(25);
 
         return response()->json($keys);
     }
@@ -41,6 +42,7 @@ class ApiKeyController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'show_on_dashboard' => ['sometimes', 'boolean'],
             'api_version' => ['sometimes', 'integer', 'exists:api_versions,version'],
+            'expires_at' => ['sometimes', 'nullable', 'date'],
         ]);
 
         $rawKey = 'tl_'.Str::random(48);
@@ -52,6 +54,7 @@ class ApiKeyController extends Controller
             'api_version' => $validated['api_version'] ?? ApiVersion::latestVersion(),
             'name' => $validated['name'],
             'show_on_dashboard' => $validated['show_on_dashboard'] ?? true,
+            'expires_at' => $validated['expires_at'] ?? null,
         ]);
 
         Activity::record(ActivityLog::API_KEY_CREATED, $request->user(), $key, [
@@ -59,6 +62,7 @@ class ApiKeyController extends Controller
             'key_prefix' => $key->key_prefix,
             'show_on_dashboard' => $key->show_on_dashboard,
             'api_version' => $key->api_version,
+            'expires_at' => $key->expires_at?->toIso8601String(),
             'via' => 'api',
         ]);
 
@@ -92,8 +96,7 @@ class ApiKeyController extends Controller
 
     /**
      * PATCH /v1/api-keys/{key} — Rename a key, toggle its
-     * dashboard visibility (`show_on_dashboard`), or change `api_version`. Links are never
-     * moved or deleted; hiding only changes where they are listed.
+     * dashboard visibility (`show_on_dashboard`), change `api_version`, or update `expires_at`.
      */
     public function update(Request $request, ApiKey $apiKey): JsonResponse
     {
@@ -105,6 +108,7 @@ class ApiKeyController extends Controller
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'show_on_dashboard' => ['sometimes', 'required', 'boolean'],
             'api_version' => ['sometimes', 'required', 'integer', 'exists:api_versions,version'],
+            'expires_at' => ['sometimes', 'nullable', 'date'],
         ]);
 
         if ($validated === []) {
@@ -118,6 +122,7 @@ class ApiKeyController extends Controller
             'key_prefix' => $apiKey->key_prefix,
             'show_on_dashboard' => $apiKey->show_on_dashboard,
             'api_version' => $apiKey->api_version,
+            'expires_at' => $apiKey->expires_at?->toIso8601String(),
             'via' => 'api',
         ]);
 
@@ -151,6 +156,6 @@ class ApiKeyController extends Controller
             );
         }
 
-        return response()->json($apiKey->fresh(), 200);
+        return response()->json(null, 204);
     }
 }

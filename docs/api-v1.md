@@ -223,24 +223,27 @@ curl -X DELETE https://links.t-api.de/v1/domains/<ulid> -H "Authorization: Beare
 
 ```bash
 # List your keys (newest first; digests are never exposed)
+# Paginated (25 per page) by default — ?all=true returns every key as a plain array
 curl https://links.t-api.de/v1/api-keys -H "Authorization: Bearer tl_your_key_here"
 
 # Create — the raw token comes back as api_key exactly once
 # show_on_dashboard=false hides the key's links from the main
 # dashboard list (they stay on the key's own page)
+# expires_at is optional; the key stops working after that timestamp
 curl -X POST https://links.t-api.de/v1/api-keys \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{"name": "ci-runner", "show_on_dashboard": false}'
+  -d '{"name": "ci-runner", "show_on_dashboard": false, "expires_at": "2027-01-01T00:00:00Z"}'
 
 # Show a key (prefix + metadata, digests never exposed)
 curl https://links.t-api.de/v1/api-keys/<ulid> -H "Authorization: Bearer tl_your_key_here"
 
-# Rename or toggle dashboard visibility (nothing is moved or deleted)
+# Rename, toggle dashboard visibility, change the target version or set an expiry
+# (nothing is moved or deleted); responds 200 with the updated key
 curl -X PATCH https://links.t-api.de/v1/api-keys/<ulid> \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \
-  -d '{"show_on_dashboard": true}'
+  -d '{"show_on_dashboard": true, "expires_at": null}'
 
 # Revoke
 curl -X DELETE https://links.t-api.de/v1/api-keys/<ulid> -H "Authorization: Bearer tl_your_key_here"

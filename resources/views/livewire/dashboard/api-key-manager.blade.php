@@ -1,5 +1,5 @@
 <div>
-    <x-ui.card title="Generate API Key" class="mb-8 max-w-2xl">
+    <x-ui.card title="Generate API Key" class="mb-8">
         <p class="mb-5 text-sm text-neutral-500 dark:text-neutral-400">
             API keys allow you to authenticate with <code>links.t-api.de</code> programmatically.
         </p>
@@ -22,37 +22,69 @@
             </x-ui.alert>
         @endif
 
-        <form wire:submit="createKey" class="flex flex-wrap items-end gap-3">
-            <div class="min-w-60 flex-1">
-                <x-ui.input
-                    label="Key Label / Name *"
-                    name="keyName"
-                    type="text"
-                    wire:model="keyName"
-                    placeholder="e.g. CLI Script, Production Server"
-                    required
+        <form wire:submit="createKey" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                <div class="md:col-span-5">
+                    <x-ui.input
+                        label="Key Label / Name *"
+                        name="keyName"
+                        type="text"
+                        wire:model="keyName"
+                        placeholder="e.g. CLI Script, Production Server"
+                        required
+                    />
+                </div>
+                <div class="md:col-span-3">
+                    <x-ui.select
+                        label="API Version"
+                        name="apiVersion"
+                        wire:model="apiVersion"
+                    >
+                        @foreach ($availableVersions as $ver)
+                            <option value="{{ $ver->version }}">v{{ $ver->version }}{{ $ver->version === $latestVersion ? ' (Latest)' : '' }}</option>
+                        @endforeach
+                    </x-ui.select>
+                </div>
+                <div class="md:col-span-4">
+                    <x-ui.select
+                        label="Expiration"
+                        name="expirationChoice"
+                        wire:model.live="expirationChoice"
+                    >
+                        <option value="never">Never expires</option>
+                        <option value="30_days">In 30 days</option>
+                        <option value="60_days">In 60 days</option>
+                        <option value="90_days">In 90 days</option>
+                        <option value="1_year">In 1 year</option>
+                        <option value="custom">Custom date &amp; time</option>
+                    </x-ui.select>
+                </div>
+            </div>
+
+            @if ($expirationChoice === 'custom')
+                <div class="max-w-xs">
+                    <x-ui.input
+                        label="Custom Expiration Date"
+                        name="customExpiresAt"
+                        type="datetime-local"
+                        wire:model="customExpiresAt"
+                    />
+                </div>
+            @endif
+
+            <div class="pt-1">
+                <x-ui.checkbox
+                    wire:model="newKeyShowOnDashboard"
+                    name="newKeyShowOnDashboard"
+                    label="Show links on dashboard"
+                    description="When checked, links created with this key appear on your main links list. Unchecked keys keep their links isolated on the key's dedicated page."
                 />
             </div>
-            <div class="w-40">
-                <x-ui.select
-                    label="API Version"
-                    name="apiVersion"
-                    wire:model="apiVersion"
-                >
-                    @foreach ($availableVersions as $ver)
-                        <option value="{{ $ver->version }}">v{{ $ver->version }}{{ $ver->version === $latestVersion ? ' (Latest)' : '' }}</option>
-                    @endforeach
-                </x-ui.select>
+
+            <div class="pt-2">
+                <x-ui.button type="submit" variant="primary">Generate Key</x-ui.button>
             </div>
-            <label class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                <input type="checkbox" wire:model="newKeyShowOnDashboard" class="h-4 w-4 rounded" />
-                Show its links on the dashboard
-            </label>
-            <x-ui.button type="submit" variant="primary">Generate Key</x-ui.button>
         </form>
-        <p class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-            Unchecked keys hide their links from the main list — they stay visible on a dedicated per-key page.
-        </p>
     </x-ui.card>
 
     <x-ui.card title="Active API Keys">
@@ -63,45 +95,32 @@
                     <th>Prefix</th>
                     <th>API Version</th>
                     <th>Created</th>
+                    <th>Expires</th>
                     <th>Last Used</th>
                     <th>Dashboard</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($apiKeys as $key)
                     <tr>
                         <td class="font-semibold">
-                            @if ($editingKeyId === $key->id)
-                                <form wire:submit="saveKeyName" class="flex items-center gap-1.5">
-                                    <input
-                                        type="text"
-                                        wire:model="editingKeyName"
-                                        class="h-7 rounded border border-neutral-300 px-2 text-xs text-neutral-900 focus:border-neutral-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
-                                        required
-                                        autofocus
-                                    />
-                                    <x-ui.button type="submit" size="sm" variant="primary">Save</x-ui.button>
-                                    <x-ui.button type="button" wire:click="cancelEditing" size="sm">Cancel</x-ui.button>
-                                </form>
-                            @else
-                                <div class="flex items-center gap-1.5">
-                                    <a href="{{ route('dashboard.api-keys.show', $key->id) }}" class="underline-offset-2 hover:underline">{{ $key->name }}</a>
-                                    @if ($key->isValid())
-                                        <button
-                                            type="button"
-                                            wire:click="startEditing('{{ $key->id }}')"
-                                            class="cursor-pointer text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
-                                            title="Rename key"
-                                        >
-                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
-                                        </button>
-                                    @endif
-                                </div>
-                            @endif
+                            <div class="flex items-center gap-1.5">
+                                <a href="{{ route('dashboard.api-keys.show', $key->id) }}" class="underline-offset-2 hover:underline">{{ $key->name }}</a>
+                                @if ($key->isValid())
+                                    <button
+                                        type="button"
+                                        wire:click="openSettings('{{ $key->id }}')"
+                                        class="cursor-pointer text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                                        title="Edit key settings"
+                                    >
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                @endif
+                            </div>
                         </td>
                         <td><code>{{ $key->masked_key }}</code></td>
                         <td>
@@ -116,44 +135,142 @@
                                         class="cursor-pointer text-xs font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2 dark:text-primary-400"
                                         title="Upgrade this key to v{{ $latestVersion }}"
                                     >
-                                        Upgrade to v{{ $latestVersion }}
+                                        Upgrade
                                     </button>
                                 @endif
                             </div>
                         </td>
-                        <td class="text-xs text-neutral-500">{{ $key->created_at->format('M d, Y') }}</td>
-                        <td class="text-xs text-neutral-500">
+                        <td class="text-xs text-neutral-500 whitespace-nowrap">{{ $key->created_at->format('M d, Y') }}</td>
+                        <td class="text-xs whitespace-nowrap">
+                            @if (! $key->expires_at)
+                                <span class="text-neutral-400 dark:text-neutral-500">Never</span>
+                            @elseif ($key->isExpired())
+                                <span class="font-medium text-amber-600 dark:text-amber-400" title="{{ $key->expires_at->toRfc7231String() }}">
+                                    Expired {{ $key->expires_at->diffForHumans() }}
+                                </span>
+                            @else
+                                <span class="text-neutral-600 dark:text-neutral-400" title="{{ $key->expires_at->toRfc7231String() }}">
+                                    {{ $key->expires_at->format('M d, Y') }}
+                                    <span class="text-neutral-400 text-[11px]">({{ $key->expires_at->diffForHumans() }})</span>
+                                </span>
+                            @endif
+                        </td>
+                        <td class="text-xs text-neutral-500 whitespace-nowrap">
                             {{ $key->last_used_at ? $key->last_used_at->diffForHumans() : 'Never' }}
                         </td>
                         <td>
-                            <button type="button" wire:click="toggleVisibility('{{ $key->id }}')" title="Toggle dashboard visibility" class="cursor-pointer text-xs underline underline-offset-2">
+                            <button
+                                type="button"
+                                wire:click="toggleVisibility('{{ $key->id }}')"
+                                title="Click to toggle whether links appear on main dashboard"
+                                class="cursor-pointer inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium {{ $key->show_on_dashboard ? 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700' : 'bg-neutral-50 text-neutral-500 border border-neutral-200 hover:bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-700 dark:hover:bg-neutral-800' }}"
+                            >
+                                <span class="h-1.5 w-1.5 rounded-full {{ $key->show_on_dashboard ? 'bg-emerald-500' : 'bg-neutral-400' }}"></span>
                                 {{ $key->show_on_dashboard ? 'Shown' : 'Hidden' }}
                             </button>
                         </td>
                         <td>
-                            @if ($key->isValid())
-                                <x-ui.status state="active" />
-                            @else
+                            @if ($key->isRevoked())
                                 <x-ui.status state="disabled" />
+                            @elseif ($key->isExpired())
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+                                    <span class="h-2 w-2 rounded-full bg-amber-500"></span> Expired
+                                </span>
+                            @else
+                                <x-ui.status state="active" />
                             @endif
                         </td>
                         <td>
-                            <div class="flex gap-2">
+                            <div class="flex items-center gap-2">
                                 <x-ui.button href="{{ route('dashboard.api-keys.show', $key->id) }}" size="sm">Links</x-ui.button>
+                                <x-ui.button wire:click="openSettings('{{ $key->id }}')" size="sm" variant="ghost">Settings</x-ui.button>
                                 @if ($key->isValid())
-                                    <x-ui.button wire:click="revokeKey('{{ $key->id }}')" wire:confirm="Revoke this API key immediately?" size="sm" variant="danger">Revoke</x-ui.button>
+                                    <x-ui.button wire:click="revokeKey('{{ $key->id }}')" wire:confirm="Revoke this API key immediately? Requests using this key will immediately fail." size="sm" variant="danger">Revoke</x-ui.button>
                                 @else
-                                    <span class="text-xs text-neutral-500">Revoked</span>
+                                    <span class="text-xs text-neutral-400 dark:text-neutral-500">Revoked</span>
                                 @endif
                             </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center text-neutral-500 py-6">No API keys found. Generate one above to get started.</td>
+                        <td colspan="9" class="text-center text-neutral-500 py-6">No API keys found. Generate one above to get started.</td>
                     </tr>
                 @endforelse
             </tbody>
         </x-ui.table>
     </x-ui.card>
+
+    {{-- API Key Settings Modal --}}
+    @if ($showingSettingsModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title">
+            <div class="fixed inset-0 bg-neutral-950/60 backdrop-blur-xs transition-opacity" wire:click="closeSettings"></div>
+
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div class="relative w-full max-w-lg rounded-xl border border-neutral-200 bg-white p-6 shadow-xl dark:border-neutral-800 dark:bg-neutral-900 transition-all">
+                    <div class="mb-5 flex items-start justify-between gap-4">
+                        <div>
+                            <h3 id="modal-settings-title" class="font-display text-lg font-semibold tracking-tight text-neutral-900 dark:text-white">
+                                API Key Settings
+                            </h3>
+                            <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+                                Configure properties and behaviors for this API key.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            wire:click="closeSettings"
+                            class="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
+                        >
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                        </button>
+                    </div>
+
+                    <form wire:submit="saveSettings" class="space-y-4">
+                        <x-ui.input
+                            label="Key Label / Name *"
+                            name="settingsName"
+                            type="text"
+                            wire:model="settingsName"
+                            required
+                        />
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <x-ui.select
+                                label="Target API Version"
+                                name="settingsApiVersion"
+                                wire:model="settingsApiVersion"
+                            >
+                                @foreach ($availableVersions as $ver)
+                                    <option value="{{ $ver->version }}">v{{ $ver->version }}{{ $ver->version === $latestVersion ? ' (Latest)' : '' }}</option>
+                                @endforeach
+                            </x-ui.select>
+
+                            <x-ui.input
+                                label="Expires At (optional)"
+                                name="settingsExpiresAt"
+                                type="datetime-local"
+                                wire:model="settingsExpiresAt"
+                                hint="Leave empty for no expiration"
+                            />
+                        </div>
+
+                        <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/50">
+                            <x-ui.checkbox
+                                wire:model="settingsShowOnDashboard"
+                                name="settingsShowOnDashboard"
+                                label="Show links on dashboard"
+                                description="When enabled, links created with this key appear on the main links list. Otherwise, they only show on this key's dedicated page."
+                            />
+                        </div>
+
+                        <div class="flex justify-end gap-2.5 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                            <x-ui.button type="button" wire:click="closeSettings" variant="ghost">Cancel</x-ui.button>
+                            <x-ui.button type="submit" variant="primary">Save Changes</x-ui.button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

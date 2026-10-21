@@ -545,6 +545,12 @@ paths:
   /api-keys:
     get:
       summary: List own API keys (newest first, digests never exposed)
+      parameters:
+        - name: all
+          in: query
+          required: false
+          schema: { type: boolean, default: false }
+          description: Return every key as a plain array instead of a 25-per-page paginator.
       responses:
         '200': { description: Paginated keys (prefix + metadata, no raw tokens) }
         '401': { description: "{ message } — missing/invalid Bearer key or SSO token" }
@@ -556,6 +562,7 @@ paths:
         logged to the activity feed and triggers a security notification.
         `show_on_dashboard=false` hides the key's links from the main
         dashboard list (they stay on the key's own page).
+        `expires_at` makes the key stop working after that timestamp.
       requestBody:
         required: true
         content:
@@ -566,6 +573,7 @@ paths:
               properties:
                 name: { type: string, maxLength: 255 }
                 show_on_dashboard: { type: boolean, default: true }
+                expires_at: { type: string, format: date-time, nullable: true }
       responses:
         '201': { description: Created (includes one-time `api_key`) }
         '422': { description: Validation error (`{ message, errors }`) }
@@ -579,7 +587,7 @@ paths:
         '403': { description: "{ message: 'You do not own this API key.' }" }
         '404': { description: Unknown API key or wrong host }
     patch:
-      summary: Rename a key or toggle its dashboard visibility
+      summary: Rename a key, toggle its dashboard visibility, change its version, or set an expiry
       description: Links are never moved or deleted; hiding only changes where they are listed.
       requestBody:
         required: true
@@ -590,6 +598,8 @@ paths:
               properties:
                 name: { type: string, maxLength: 255 }
                 show_on_dashboard: { type: boolean }
+                api_version: { type: integer }
+                expires_at: { type: string, format: date-time, nullable: true }
       responses:
         '200': { description: Updated key }
         '403': { description: "{ message: 'You do not own this API key.' }" }

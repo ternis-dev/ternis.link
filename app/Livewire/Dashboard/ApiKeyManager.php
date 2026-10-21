@@ -8,6 +8,7 @@ use App\Models\ApiVersion;
 use App\Support\Activity;
 use App\Support\DomainUrls;
 use App\Support\Notifier;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
@@ -17,9 +18,26 @@ class ApiKeyManager extends Component
 
     public ?int $apiVersion = null;
 
+    public string $expirationChoice = 'never';
+
+    public ?string $customExpiresAt = null;
+
     public bool $newKeyShowOnDashboard = true;
 
     public ?string $newlyCreatedKey = null;
+
+    // Settings Modal state
+    public bool $showingSettingsModal = false;
+
+    public ?string $settingsKeyId = null;
+
+    public string $settingsName = '';
+
+    public int $settingsApiVersion = 2;
+
+    public bool $settingsShowOnDashboard = true;
+
+    public ?string $settingsExpiresAt = null;
 
     public ?string $editingKeyId = null;
 
@@ -39,7 +57,17 @@ class ApiKeyManager extends Component
             'keyName' => ['required', 'string', 'max:255'],
             'apiVersion' => ['required', 'integer', 'exists:api_versions,version'],
             'newKeyShowOnDashboard' => ['boolean'],
+            'customExpiresAt' => ['nullable', 'date'],
         ]);
+
+        $expiresAt = match ($this->expirationChoice) {
+            '30_days' => now()->addDays(30),
+            '60_days' => now()->addDays(60),
+            '90_days' => now()->addDays(90),
+            '1_year' => now()->addYear(),
+            'custom' => $this->customExpiresAt ? Carbon::parse($this->customExpiresAt) : null,
+            default => null,
+        };
 
         // Generate a raw key with tl_ prefix. Only the SHA-256 digest
         // is persisted (ApiKey::hashToken); the raw token lives only in
@@ -53,6 +81,7 @@ class ApiKeyManager extends Component
             'api_version' => $this->apiVersion ?: ApiVersion::latestVersion(),
             'name' => $this->keyName,
             'show_on_dashboard' => $this->newKeyShowOnDashboard,
+            'expires_at' => $expiresAt,
         ]);
 
         Activity::record(ActivityLog::API_KEY_CREATED, auth()->user(), $key, [
@@ -60,6 +89,7 @@ class ApiKeyManager extends Component
             'key_prefix' => $key->key_prefix,
             'api_version' => $key->api_version,
             'show_on_dashboard' => $key->show_on_dashboard,
+            'expires_at' => $key->expires_at?->toIso8601String(),
         ]);
 
         Notifier::security(
@@ -74,50 +104,72 @@ class ApiKeyManager extends Component
         $this->newlyCreatedKey = $rawKey;
         $this->keyName = '';
         $this->apiVersion = ApiVersion::latestVersion();
+        $this->expirationChoice = 'never';
+        $this->customExpiresAt = null;
         $this->newKeyShowOnDashboard = true;
 
         $this->dispatch('notify', message: "API key “{$key->name}” created — copy it now, it won't be shown again.", type: 'success');
     }
 
     /**
-     * Toggle whether links made with this key appear on the main
-     * dashboard list. Hidden keys keep their links on a dedicated
-     * per-key page (nothing is moved or deleted).
+     * Open settings editor for an existing API key.
      */
-    public function toggleVisibility(string $keyId): void
+    public function openSettings(string $keyId): void
     {
         $key = auth()->user()->apiKeys()->findOrFail($keyId);
-        $key->update(['show_on_dashboard' => ! $key->show_on_dashboard]);
+        $this->settingsKeyId = $key->id;
+        $this->settingsName = $key->name;
+        $this->settingsApiVersion = $key->api_version;
+        $this->settingsShowOnDashboard = (bool) $key->show_on_dashboard;
+        $this->settingsExpiresAt = $key->expires_at?->format('Y-m-d\TH:i');
+        $this->showingSettingsModal = true;
+        $this->resetValidation();
+    }
 
-        Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
-            'name' => $key->name,
-            'key_prefix' => $key->key_prefix,
-            'show_on_dashboard' => $key->fresh()->show_on_dashboard,
+    public function closeSettings(): void
+    {
+        $this->showingSettingsModal = false;
+        $this->settingsKeyId = null;
+        $this->resetValidation();
+    }
+
+    public function saveSettings(): void
+    {
+        if (! $this->settingsKeyId) {
+            return;
+        }
+
+        $this->validate([
+            'settingsName' => ['required', 'string', 'max:255'],
+            'settingsApiVersion' => ['required', 'integer', 'exists:api_versions,version'],
+            'settingsShowOnDashboard' => ['boolean'],
+            'settingsExpiresAt' => ['nullable', 'date'],
         ]);
 
-        $this->dispatch('notify', message: $key->fresh()->show_on_dashboard ? "Links for “{$key->name}” show on the dashboard." : "Links for “{$key->name}” moved to its key page.", type: 'info');
+        $key = auth()->user()->apiKeys()->findOrFail($this->settingsKeyId);
+        $key->update([
+            'name' => $this->settingsName,
+            'api_version' => $this->settingsApiVersion,
+            'show_on_dashboard' => $this->settingsShowOnDashboard,
+            'expires_at' => $this->settingsExpiresAt ? Carbon::parse($this->settingsExpiresAt) : null,
+        ]);
+
+        Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
+            'name' => $key->fresh()->name,
+            'key_prefix' => $key->key_prefix,
+            'show_on_dashboard' => $key->fresh()->show_on_dashboard,
+            'api_version' => $key->fresh()->api_version,
+            'expires_at' => $key->fresh()->expires_at?->toIso8601String(),
+        ]);
+
+        $this->closeSettings();
+        $this->dispatch('notify', message: "API key “{$key->fresh()->name}” settings saved.", type: 'success');
     }
 
     /**
-     * Change or upgrade an API key's target API version.
+     * Quick inline toggle for whether links made with this key appear on the main
+     * dashboard list.
      */
-    public function updateVersion(string $keyId, int $version): void
-    {
-        $key = auth()->user()->apiKeys()->findOrFail($keyId);
-
-        $targetVersion = ApiVersion::where('version', $version)->firstOrFail();
-
-        $key->update(['api_version' => $targetVersion->version]);
-
-        Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
-            'name' => $key->name,
-            'key_prefix' => $key->key_prefix,
-            'api_version' => $key->fresh()->api_version,
-        ]);
-
-        $this->dispatch('notify', message: "API key “{$key->name}” switched to v{$key->fresh()->api_version}.", type: 'success');
-    }
-
     public function startEditing(string $keyId): void
     {
         $key = auth()->user()->apiKeys()->findOrFail($keyId);
@@ -154,6 +206,40 @@ class ApiKeyManager extends Component
         $this->cancelEditing();
 
         $this->dispatch('notify', message: "API key renamed to “{$key->fresh()->name}”.", type: 'success');
+    }
+
+    public function toggleVisibility(string $keyId): void
+    {
+        $key = auth()->user()->apiKeys()->findOrFail($keyId);
+        $key->update(['show_on_dashboard' => ! $key->show_on_dashboard]);
+
+        Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
+            'name' => $key->name,
+            'key_prefix' => $key->key_prefix,
+            'show_on_dashboard' => $key->fresh()->show_on_dashboard,
+        ]);
+
+        $this->dispatch('notify', message: $key->fresh()->show_on_dashboard ? "Links for “{$key->name}” show on the dashboard." : "Links for “{$key->name}” moved to its key page.", type: 'info');
+    }
+
+    /**
+     * Quick upgrade or change of an API key's target API version.
+     */
+    public function updateVersion(string $keyId, int $version): void
+    {
+        $key = auth()->user()->apiKeys()->findOrFail($keyId);
+
+        $targetVersion = ApiVersion::where('version', $version)->firstOrFail();
+
+        $key->update(['api_version' => $targetVersion->version]);
+
+        Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
+            'name' => $key->name,
+            'key_prefix' => $key->key_prefix,
+            'api_version' => $key->fresh()->api_version,
+        ]);
+
+        $this->dispatch('notify', message: "API key “{$key->name}” switched to v{$key->fresh()->api_version}.", type: 'success');
     }
 
     public function revokeKey(string $keyId): void
