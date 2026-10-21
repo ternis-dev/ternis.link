@@ -156,6 +156,42 @@ class PublicDashboardController extends Controller
     }
 
     /**
+     * Notification inbox.
+     *
+     * The public dashboard raises security notifications of its own
+     * (API key created, domain verified) — they have to be readable
+     * here, not only on dash.ternis.link.
+     */
+    public function notifications(Request $request)
+    {
+        $notifications = $request->user()->notifications()
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return view($this->views.'.notifications.index', compact('notifications'));
+    }
+
+    public function markAllNotificationsRead(Request $request)
+    {
+        $request->user()->unreadNotifications->markAsRead();
+
+        return redirect()->route($this->routePrefix().'notifications');
+    }
+
+    public function markNotificationRead(Request $request, string $id)
+    {
+        $notification = $request->user()->notifications()->findOrFail($id);
+
+        if ($notification->read_at === null) {
+            $notification->markAsRead();
+        }
+
+        $url = $notification->data['action_url'] ?? null;
+
+        return $url ? redirect()->away($url) : redirect()->route($this->routePrefix().'notifications');
+    }
+
+    /**
      * Create link page (Livewire: LinkForm scoped to public hosts).
      */
     public function createLink()

@@ -9,6 +9,7 @@ use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
+use App\Notifications\SecurityAlert;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -215,6 +216,49 @@ class PublicDashboardTest extends TestCase
             // dashboard always uses a top bar.
             $settings->assertDontSee('Navigation Layout');
         }
+    }
+
+    public function test_notifications_are_readable_on_the_public_dashboard(): void
+    {
+        // The public dashboard raises security notifications of its own
+        // (API key created, domain verified) — they must be readable
+        // here, not only on dash.ternis.link.
+        $this->user->notify(new SecurityAlert(
+            'API key created',
+            ['A new key was created for your account.'],
+            'https://my.ternis.link/api-keys'
+        ));
+
+        $this->actingAs($this->user)
+            ->get('http://my.ternis.link/notifications')
+            ->assertOk()
+            ->assertSee('API key created')
+            ->assertSee('Mark all as read');
+
+        // The unread badge shows up in the navigation.
+        $this->actingAs($this->user)
+            ->get('http://my.ternis.link/')
+            ->assertOk()
+            ->assertSee('Notifications');
+    }
+
+    public function test_public_dashboard_domains_page_only_lists_usable_hostnames(): void
+    {
+        $html = $this->actingAs($this->user)
+            ->get('http://my.ternis.link/domains')
+            ->assertOk()
+            ->getContent();
+
+        // The dash-side system domains are not offered here (the page
+        // footer mentions clicked.at in passing, so check the rows).
+        $this->assertStringNotContainsString('<code>clicked.at</code>', $html);
+        $this->assertStringNotContainsString('<code>ternis.link</code>', $html);
+        $this->assertStringContainsString('<code>href.nz</code>', $html);
+
+        // ...and the custom-domain form is not either: a custom hostname
+        // cannot be used for a public link.
+        $this->assertStringNotContainsString('Add Custom Domain', $html);
+        $this->assertStringContainsString('dash.ternis.link', $html);
     }
 
     public function test_alias_host_serves_the_same_data(): void

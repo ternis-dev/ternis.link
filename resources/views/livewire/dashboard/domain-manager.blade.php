@@ -1,5 +1,15 @@
 <div>
-    @if ($canAdd)
+    @if (($theme ?? 'dashboard') === 'public')
+        {{-- Custom hostnames are a dash-side feature: public links only
+             run on href.nz, meinlink.at, href.yt and qr.href.nz. --}}
+        <x-ui.alert tone="info" class="mb-8 w-full">
+            <strong>Public links run on the built-in hostnames.</strong><br>
+            Custom hostnames and personal subdomains are managed on
+            <a href="{{ \App\Support\DomainUrls::dashboard('/domains') }}" class="font-semibold underline underline-offset-2">dash.ternis.link</a>.
+        </x-ui.alert>
+    @endif
+
+    @if (($theme ?? 'dashboard') === 'dashboard' && $canAdd)
         <x-ui.card title="Add Custom Domain" class="mb-8 w-full">
             <p class="mb-5 text-sm text-neutral-500 dark:text-neutral-400">
                 Point a hostname you own at ternis.link, then verify ownership with a DNS TXT record.
@@ -26,7 +36,7 @@
                 <x-ui.button type="submit" variant="primary">Add Domain</x-ui.button>
             </form>
         </x-ui.card>
-    @else
+    @elseif (($theme ?? 'dashboard') === 'dashboard')
         <x-ui.alert tone="error" class="mb-8 w-full">
             <strong>Custom domains are not included in your plan ({{ $planName }}).</strong><br>
             Upgrade to a plan with custom domains to register your own hostnames.
@@ -34,7 +44,7 @@
         </x-ui.alert>
     @endif
 
-    @if ($canClaimSubdomain)
+    @if (($theme ?? 'dashboard') === 'dashboard' && $canClaimSubdomain)
         <x-ui.card title="Your ternis.link Subdomain" class="mb-8 w-full">
             @if ($claimedHostname)
                 <x-ui.alert tone="success" class="mb-5">

@@ -260,6 +260,12 @@ class DomainManager extends Component
 
         $systemDomains = Domain::where('is_active', true)
             ->whereNull('user_id')
+            ->when($this->theme === 'public', function ($query) {
+                // On the public dashboard only the public shortener
+                // hostnames can be used — the dash-side ones would
+                // produce links that never show up here.
+                $query->whereIn('hostname', DomainUrls::publicDashboardHostnames());
+            })
             ->withCount('links')
             ->orderBy('hostname')
             ->get();

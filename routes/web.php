@@ -185,6 +185,9 @@ $publicDashboardRoutes = function (string $prefix): void {
     Route::get('/api-keys/{key}', [PublicDashboardController::class, 'showApiKey'])->name($prefix.'api-keys.show');
     Route::get('/domains', [PublicDashboardController::class, 'domains'])->name($prefix.'domains');
     Route::get('/settings', [PublicDashboardController::class, 'settings'])->name($prefix.'settings');
+    Route::get('/notifications', [PublicDashboardController::class, 'notifications'])->name($prefix.'notifications');
+    Route::post('/notifications/read', [PublicDashboardController::class, 'markAllNotificationsRead'])->name($prefix.'notifications.read-all');
+    Route::post('/notifications/{id}/read', [PublicDashboardController::class, 'markNotificationRead'])->name($prefix.'notifications.read');
     Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name($prefix.'settings.export-download');
 
     Route::post('/switch-to-legacy', [PublicDashboardController::class, 'switchToLegacy'])->name($prefix.'switch-legacy');
