@@ -7,6 +7,7 @@ use App\Models\Link;
 use App\Models\LinkTarget;
 use App\Support\IpCapture;
 use App\Support\IpHash;
+use App\Support\UserTracking;
 use Illuminate\Http\Request;
 
 class ClickTrackerService
@@ -31,9 +32,9 @@ class ClickTrackerService
     ): void {
         $geo = $this->geoIp->lookup($request);
 
-        $queryParams ??= \App\Support\UserTracking::extractQueryParams($request);
-        $tags ??= \App\Support\UserTracking::extractTags($request);
-        $userIdentifier ??= \App\Support\UserTracking::extractUserIdentifier($request, $link);
+        $queryParams ??= UserTracking::extractQueryParams($request);
+        $tags ??= UserTracking::extractTags($request);
+        $userIdentifier ??= UserTracking::extractUserIdentifier($request, $link);
 
         RecordClick::dispatch(
             linkId: $link->id,

@@ -6,6 +6,8 @@ use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
+use App\Services\DeviceDetector;
+use App\Services\LinkService;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -50,7 +52,7 @@ class TargetingTest extends TestCase
             'is_active' => true,
         ]);
 
-        app(\App\Services\LinkService::class)->syncTargets($link, [
+        app(LinkService::class)->syncTargets($link, [
             ['label' => 'US', 'destination_url' => 'https://example.com/us', 'country_codes' => ['US'], 'weight' => 100],
             ['label' => 'EU', 'destination_url' => 'https://example.com/eu', 'country_codes' => ['DE'], 'weight' => 100],
         ], $this->user);
@@ -104,7 +106,7 @@ class TargetingTest extends TestCase
             'is_active' => true,
         ]);
 
-        app(\App\Services\LinkService::class)->syncTargets($link, [
+        app(LinkService::class)->syncTargets($link, [
             ['label' => 'Only', 'destination_url' => 'https://example.com/only', 'weight' => 100],
         ], $this->user);
 
@@ -115,7 +117,7 @@ class TargetingTest extends TestCase
 
     public function test_device_detection(): void
     {
-        $d = app(\App\Services\DeviceDetector::class);
+        $d = app(DeviceDetector::class);
         $this->assertSame('mobile', $d->detect('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile/15E148'));
         $this->assertSame('tablet', $d->detect('Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X)'));
         $this->assertSame('desktop', $d->detect('Mozilla/5.0 (Windows NT 10.0; Win64; x64)'));

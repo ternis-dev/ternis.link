@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ApiKey;
+use App\Models\BulkOperation;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -86,7 +87,7 @@ class BulkOpsTest extends TestCase
 
     public function test_concurrent_guard(): void
     {
-        \App\Models\BulkOperation::create([
+        BulkOperation::create([
             'user_id' => $this->user->id,
             'type' => 'import',
             'status' => 'pending',

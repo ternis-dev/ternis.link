@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\UnsafeUrlException;
 use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
+use App\Services\LinkService;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
@@ -143,9 +145,9 @@ class SocialPreviewTest extends TestCase
 
     public function test_intranet_image_rejected(): void
     {
-        $service = app(\App\Services\LinkService::class);
+        $service = app(LinkService::class);
 
-        $this->expectException(\App\Exceptions\UnsafeUrlException::class);
+        $this->expectException(UnsafeUrlException::class);
         $service->create('https://example.com/a', $this->domain, $this->user, null, null, null, null, null, null, null, null, 'T', null, 'http://192.168.1.1/og.png');
     }
 }

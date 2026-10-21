@@ -6,10 +6,12 @@ use App\Livewire\Meinlink\ShortenForm as MeinlinkShortenForm;
 use App\Livewire\Public\ShortenForm;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Services\TurnstileService;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -240,7 +242,7 @@ class MeinlinkTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit', escape: false);
-        $response->assertSee("action: '".\App\Services\TurnstileService::ACTION."'", escape: false);
+        $response->assertSee("action: '".TurnstileService::ACTION."'", escape: false);
         $response->assertSee('data-cf-container', escape: false);
     }
 
@@ -251,11 +253,11 @@ class MeinlinkTest extends TestCase
             'services.turnstile.secret' => 'test-secret-key',
         ]);
 
-        \Illuminate\Support\Facades\Http::fake([
-            \App\Services\TurnstileService::VERIFY_URL => \Illuminate\Support\Facades\Http::response([
+        Http::fake([
+            TurnstileService::VERIFY_URL => Http::response([
                 'success' => true,
                 'hostname' => 'meinlink.at',
-                'action' => \App\Services\TurnstileService::ACTION,
+                'action' => TurnstileService::ACTION,
             ], 200),
         ]);
 
@@ -292,8 +294,8 @@ class MeinlinkTest extends TestCase
             'services.turnstile.secret' => 'test-secret-key',
         ]);
 
-        \Illuminate\Support\Facades\Http::fake([
-            \App\Services\TurnstileService::VERIFY_URL => \Illuminate\Support\Facades\Http::response([
+        Http::fake([
+            TurnstileService::VERIFY_URL => Http::response([
                 'success' => false,
                 'error-codes' => ['invalid-input-response'],
             ], 200),
