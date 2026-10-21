@@ -9,6 +9,7 @@ use App\Models\Plan;
 use App\Models\User;
 use App\Services\TernisAuthService;
 use App\Support\Activity;
+use App\Support\PublicDashboard;
 use App\Support\PublicHost;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
@@ -199,7 +200,7 @@ class TernisAuthController extends Controller
     private function homeUrl(Request $request): string
     {
         if ($request->attributes->get('domain_type') === 'public-dashboard') {
-            return route('public-dashboard');
+            return PublicDashboard::homeUrl();
         }
 
         if ($request->attributes->get('domain_type') === 'admin') {

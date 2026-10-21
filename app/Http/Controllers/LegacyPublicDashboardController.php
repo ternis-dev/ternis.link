@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PublicDashboard;
 use Illuminate\Http\Request;
 
 /**
@@ -14,7 +15,13 @@ class LegacyPublicDashboardController extends PublicDashboardController
 {
     protected string $views = 'public-dashboard.legacy';
 
-    protected string $routes = 'public-dashboard.legacy';
+    /**
+     * Legacy routes live under the host-aware public dashboard prefix.
+     */
+    protected function routePrefix(): string
+    {
+        return PublicDashboard::routePrefix().'legacy.';
+    }
 
     /**
      * Legacy overview: no preference bounce here (this IS the legacy
@@ -33,6 +40,6 @@ class LegacyPublicDashboardController extends PublicDashboardController
     {
         $request->user()->update(['public_dashboard_legacy' => false]);
 
-        return redirect()->route('public-dashboard');
+        return redirect()->route(rtrim(PublicDashboard::routePrefix(), '.'));
     }
 }

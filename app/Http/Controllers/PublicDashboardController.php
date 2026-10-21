@@ -7,6 +7,7 @@ use App\Models\Click;
 use App\Models\QrGeneration;
 use App\Services\LinkService;
 use App\Support\LinkQrCode;
+use App\Support\PublicDashboard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -19,9 +20,9 @@ use Illuminate\Support\Facades\Storage;
  * ternis.link, href.re, partner and custom domains stay there; links
  * without a domain row stay there too).
  *
- * Account-level sections (API keys, domains, bio, notifications,
- * activity, settings) stay single-homed on dash.ternis.link; this
- * controller serves overview + links CRUD + per-link analytics only.
+ * The public dashboard hosts the public links plus the API keys,
+ * domains and settings sections; bio pages, notifications and the
+ * activity feed stay single-homed on dash.ternis.link.
  *
  * View/route prefixes make the legacy dashboard a thin subclass; the
  * queries and exports below serve both UIs unchanged.
@@ -32,7 +33,15 @@ class PublicDashboardController extends Controller
 
     protected string $views = 'public-dashboard';
 
-    protected string $routes = 'public-dashboard';
+    /**
+     * Route name prefix of the public dashboard on the current host:
+     * "public-dashboard." on my.ternis.link, "public-dashboard-alt." on
+     * the alias host. Both serve the same app.
+     */
+    protected function routePrefix(): string
+    {
+        return PublicDashboard::routePrefix();
+    }
 
     /**
      * Overview stats for the signed-in user's public shortener links.
@@ -41,7 +50,7 @@ class PublicDashboardController extends Controller
     public function index(Request $request)
     {
         if ($request->user()->public_dashboard_legacy) {
-            return redirect()->route('public-dashboard.legacy');
+            return redirect()->route($this->routePrefix().'legacy');
         }
 
         return view($this->views.'.index', $this->overview($request->user()));
@@ -107,7 +116,7 @@ class PublicDashboardController extends Controller
     {
         $request->user()->update(['public_dashboard_legacy' => true]);
 
-        return redirect()->route('public-dashboard.legacy');
+        return redirect()->route($this->routePrefix().'legacy');
     }
 
     /**
@@ -116,6 +125,34 @@ class PublicDashboardController extends Controller
     public function links()
     {
         return view($this->views.'.links.index');
+    }
+
+    /**
+     * API keys page (Livewire: ApiKeyManager).
+     *
+     * Account-level section that used to live only on dash.ternis.link;
+     * it is reachable from the public dashboard as well so users who
+     * only ever touch href.nz links never have to cross over.
+     */
+    public function apiKeys()
+    {
+        return view($this->views.'.api-keys.index');
+    }
+
+    /**
+     * Domains page (Livewire: DomainManager).
+     */
+    public function domains()
+    {
+        return view($this->views.'.domains.index');
+    }
+
+    /**
+     * Account settings page (Livewire: SettingsForm).
+     */
+    public function settings()
+    {
+        return view($this->views.'.settings.index');
     }
 
     /**
@@ -195,7 +232,7 @@ class PublicDashboardController extends Controller
 
         $copy = app(LinkService::class)->duplicate($link, auth()->user());
 
-        return redirect()->route($this->routes.'.links.edit', $copy->id)
+        return redirect()->route($this->routePrefix().'links.edit', $copy->id)
             ->with('info', "Duplicated as {$copy->domain->hostname}/{$copy->slug} — set a slug, expiry, or password to finish.");
     }
 
@@ -366,13 +403,13 @@ class PublicDashboardController extends Controller
         if (is_string($fromApiKey) && $fromApiKey !== ''
             && auth()->user()->apiKeys()->whereKey($fromApiKey)->exists()) {
             return [
-                'backHref' => route($this->routes.'.api-keys.show', $fromApiKey),
+                'backHref' => route($this->routePrefix().'api-keys.show', $fromApiKey),
                 'backLabel' => 'Back to API key links',
             ];
         }
 
         return [
-            'backHref' => route($this->routes.'.links'),
+            'backHref' => route($this->routePrefix().'links'),
             'backLabel' => 'Back to Links',
         ];
     }

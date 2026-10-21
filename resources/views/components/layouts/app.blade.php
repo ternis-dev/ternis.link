@@ -1,5 +1,4 @@
 @props(['title' => 'ternis.link', 'maxWidth' => 'w-full', 'head' => null])
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,6 +27,10 @@
 </head>
 <body class="flex min-h-screen flex-col">
     <a href="#content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:border focus:border-neutral-900 focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-neutral-900">Skip to content</a>
+    @if (isset($header))
+        {{-- Custom shell header (the public dashboard ships its own). --}}
+        {{ $header }}
+    @else
     <header class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
         <div class="mx-auto flex w-full {{ $maxWidth }} items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
             @if (\App\Support\DomainUrls::isInternal())
@@ -99,6 +102,7 @@
             </div>
         </div>
     </header>
+    @endif
 
     <main class="mx-auto w-full {{ $maxWidth }} flex-1 px-4 py-6 sm:px-6 lg:px-8" id="content">
         {{ $slot }}

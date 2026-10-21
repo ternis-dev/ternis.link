@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Domain;
+use App\Support\PublicDashboard;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -71,13 +72,24 @@ class ResolveDomain
             }
         }
 
-        // Public dashboard legacy hosts: my.href.nz / my.href.yt now 302
-        // to the canonical my.ternis.link (shared ternis.link session).
+        // Retired public-dashboard hosts 302 to the canonical host.
         // Temporary (302, not 301) while the move settles.
         $publicDash = (string) config('domains.public_dashboard_host', 'my.ternis.link');
-        $legacyDashHosts = (array) config('domains.public_dashboard_legacy_hosts', ['my.href.nz', 'my.href.yt']);
+        $legacyDashHosts = (array) config('domains.public_dashboard_legacy_hosts', ['my.href.yt']);
         if (in_array($hostname, $legacyDashHosts, true)) {
             return redirect()->away($request->getScheme().'://'.$publicDash.$request->getRequestUri(), 302);
+        }
+
+        // The configured public-dashboard hosts (canonical + alias) are
+        // public dashboards even when they are not in the static map —
+        // self-hosted deployments and local dev (where the public
+        // dashboard host is "localhost") rely on this.
+        if (in_array($hostname, PublicDashboard::hosts(), true)) {
+            $request->attributes->set('domain_type', 'public-dashboard');
+            $request->attributes->set('domain_hostname', $hostname);
+            $request->attributes->set('domain_model', Domain::where('hostname', $hostname)->first());
+
+            return $next($request);
         }
 
         // 1. Direct match in config

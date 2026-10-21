@@ -26,6 +26,7 @@ use App\Models\Domain;
 use App\Support\ContentCollection;
 use App\Support\DomainUrls;
 use App\Support\NetworkStats;
+use App\Support\PublicDashboard;
 use App\Support\PublicHost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -148,65 +149,90 @@ if (app()->environment('local', 'testing')) {
 
 /*
 |----------------------------------------------------------------------
+| Public dashboard (my.ternis.link + my.href.nz) — the new UI for
+| href.nz, meinlink.at and href.yt links. Same strict partition and
+| feature set as legacy (overview, links, import/export, QR, per-key
+| pages) plus the account sections (API keys, domains, settings).
+| Users with the legacy opt-in bounce to /_legacy from the home page.
+|
+| Both hosts serve the very same app, session and data — only the
+| generated URLs and the brand in the header differ. The route group
+| is therefore registered once per host; the canonical host keeps the
+| historical "public-dashboard.*" names, the alias host uses
+| "public-dashboard-alt.*". Build URLs through
+| App\Support\PublicDashboard::route() so they point at the host the
+| visitor is actually on.
+|----------------------------------------------------------------------
+*/
+$publicDashboardRoutes = function (string $prefix): void {
+    Route::get('/', [PublicDashboardController::class, 'index'])->name(rtrim($prefix, '.'));
+    Route::get('/new', [PublicDashboardController::class, 'createLink'])->name($prefix.'new');
+    Route::get('/links', [PublicDashboardController::class, 'links'])->name($prefix.'links');
+    Route::get('/links/create', [PublicDashboardController::class, 'createLink'])->name($prefix.'links.create');
+    Route::get('/links/import', [PublicDashboardController::class, 'importLinks'])->name($prefix.'links.import');
+    Route::get('/links/export', [PublicDashboardController::class, 'exportLinks'])->name($prefix.'links.export-all');
+    Route::get('/links/qr-zip', [PublicDashboardController::class, 'qrZip'])->name($prefix.'links.qr-zip');
+    Route::get('/links/{link}', [PublicDashboardController::class, 'showLink'])->name($prefix.'links.show');
+    Route::get('/links/{link}/edit', [PublicDashboardController::class, 'editLink'])->name($prefix.'links.edit');
+    Route::get('/links/{link}/export', [PublicDashboardController::class, 'exportClicks'])->name($prefix.'links.export');
+    Route::get('/links/{link}/qr', [PublicDashboardController::class, 'qrCode'])->name($prefix.'links.qr');
+    Route::post('/links/{link}/duplicate', [PublicDashboardController::class, 'duplicate'])->name($prefix.'links.duplicate');
+
+    // Account sections — also reachable from my.ternis.link.
+    Route::get('/api-keys', [PublicDashboardController::class, 'apiKeys'])->name($prefix.'api-keys');
+    Route::get('/api-keys/{key}', [PublicDashboardController::class, 'showApiKey'])->name($prefix.'api-keys.show');
+    Route::get('/domains', [PublicDashboardController::class, 'domains'])->name($prefix.'domains');
+    Route::get('/settings', [PublicDashboardController::class, 'settings'])->name($prefix.'settings');
+    Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name($prefix.'settings.export-download');
+
+    Route::post('/switch-to-legacy', [PublicDashboardController::class, 'switchToLegacy'])->name($prefix.'switch-legacy');
+};
+
+/*
+|----------------------------------------------------------------------
 | Legacy public dashboard (my.ternis.link/_legacy/* ONLY) — the previous
 | indigo UI for href.nz, meinlink.at and href.yt links. Same strict
 | hostname partition as the new dashboard; account-level sections stay
 | single-homed on dash. Users opt in per account and switch back any
 | time; new users land on the new dashboard at the domain root.
 |
-| Registered BEFORE the dash group: every route is pinned to the
-| canonical host, so dash/localhost requests skip them and fall
+| Registered BEFORE the dash group: every route is pinned to a public
+| dashboard host, so dash/localhost requests skip them and fall
 | through to the dash versions below. (Host-blind routes below would
 | otherwise shadow these — Laravel matches the FIRST route per URI.)
 |----------------------------------------------------------------------
 */
-Route::domain((string) config('domains.public_dashboard_host', 'my.ternis.link'))
-    ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
-    ->group(function () {
-        Route::get('/_legacy', [LegacyPublicDashboardController::class, 'index'])->name('public-dashboard.legacy');
-        Route::get('/_legacy/new', [LegacyPublicDashboardController::class, 'createLink'])->name('public-dashboard.legacy.new');
-        Route::get('/_legacy/links', [LegacyPublicDashboardController::class, 'links'])->name('public-dashboard.legacy.links');
-        Route::get('/_legacy/links/create', [LegacyPublicDashboardController::class, 'createLink'])->name('public-dashboard.legacy.links.create');
-        Route::get('/_legacy/links/import', [LegacyPublicDashboardController::class, 'importLinks'])->name('public-dashboard.legacy.links.import');
-        Route::get('/_legacy/links/export', [LegacyPublicDashboardController::class, 'exportLinks'])->name('public-dashboard.legacy.links.export-all');
-        Route::get('/_legacy/links/qr-zip', [LegacyPublicDashboardController::class, 'qrZip'])->name('public-dashboard.legacy.links.qr-zip');
-        Route::get('/_legacy/links/{link}', [LegacyPublicDashboardController::class, 'showLink'])->name('public-dashboard.legacy.links.show');
-        Route::get('/_legacy/links/{link}/edit', [LegacyPublicDashboardController::class, 'editLink'])->name('public-dashboard.legacy.links.edit');
-        Route::get('/_legacy/links/{link}/export', [LegacyPublicDashboardController::class, 'exportClicks'])->name('public-dashboard.legacy.links.export');
-        Route::get('/_legacy/links/{link}/qr', [LegacyPublicDashboardController::class, 'qrCode'])->name('public-dashboard.legacy.links.qr');
-        Route::post('/_legacy/links/{link}/duplicate', [LegacyPublicDashboardController::class, 'duplicate'])->name('public-dashboard.legacy.links.duplicate');
-        Route::get('/_legacy/api-keys/{key}', [LegacyPublicDashboardController::class, 'showApiKey'])->name('public-dashboard.legacy.api-keys.show');
-        Route::get('/_legacy/settings/export/{export}/download', [LegacyPublicDashboardController::class, 'downloadExport'])->name('public-dashboard.legacy.settings.export-download');
-        Route::post('/_legacy/use-new', [LegacyPublicDashboardController::class, 'switchToNew'])->name('public-dashboard.legacy.switch-new');
-    });
+$legacyPublicDashboardRoutes = function (string $prefix): void {
+    Route::get('/_legacy', [LegacyPublicDashboardController::class, 'index'])->name($prefix.'legacy');
+    Route::get('/_legacy/new', [LegacyPublicDashboardController::class, 'createLink'])->name($prefix.'legacy.new');
+    Route::get('/_legacy/links', [LegacyPublicDashboardController::class, 'links'])->name($prefix.'legacy.links');
+    Route::get('/_legacy/links/create', [LegacyPublicDashboardController::class, 'createLink'])->name($prefix.'legacy.links.create');
+    Route::get('/_legacy/links/import', [LegacyPublicDashboardController::class, 'importLinks'])->name($prefix.'legacy.links.import');
+    Route::get('/_legacy/links/export', [LegacyPublicDashboardController::class, 'exportLinks'])->name($prefix.'legacy.links.export-all');
+    Route::get('/_legacy/links/qr-zip', [LegacyPublicDashboardController::class, 'qrZip'])->name($prefix.'legacy.links.qr-zip');
+    Route::get('/_legacy/links/{link}', [LegacyPublicDashboardController::class, 'showLink'])->name($prefix.'legacy.links.show');
+    Route::get('/_legacy/links/{link}/edit', [LegacyPublicDashboardController::class, 'editLink'])->name($prefix.'legacy.links.edit');
+    Route::get('/_legacy/links/{link}/export', [LegacyPublicDashboardController::class, 'exportClicks'])->name($prefix.'legacy.links.export');
+    Route::get('/_legacy/links/{link}/qr', [LegacyPublicDashboardController::class, 'qrCode'])->name($prefix.'legacy.links.qr');
+    Route::post('/_legacy/links/{link}/duplicate', [LegacyPublicDashboardController::class, 'duplicate'])->name($prefix.'legacy.links.duplicate');
+    Route::get('/_legacy/api-keys/{key}', [LegacyPublicDashboardController::class, 'showApiKey'])->name($prefix.'legacy.api-keys.show');
+    Route::get('/_legacy/settings/export/{export}/download', [LegacyPublicDashboardController::class, 'downloadExport'])->name($prefix.'legacy.settings.export-download');
+    Route::post('/_legacy/use-new', [LegacyPublicDashboardController::class, 'switchToNew'])->name($prefix.'legacy.switch-new');
+};
 
-/*
-|----------------------------------------------------------------------
-| Public dashboard (my.ternis.link ONLY) — the new UI for href.nz,
-| meinlink.at and href.yt links. Same strict partition and feature
-| set as legacy (overview, links, import/export, QR, per-key pages).
-| Users with the legacy opt-in bounce to /_legacy from the home page.
-|----------------------------------------------------------------------
-*/
-Route::domain((string) config('domains.public_dashboard_host', 'my.ternis.link'))
-    ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
-    ->group(function () {
-        Route::get('/', [PublicDashboardController::class, 'index'])->name('public-dashboard');
-        Route::get('/new', [PublicDashboardController::class, 'createLink'])->name('public-dashboard.new');
-        Route::get('/links', [PublicDashboardController::class, 'links'])->name('public-dashboard.links');
-        Route::get('/links/create', [PublicDashboardController::class, 'createLink'])->name('public-dashboard.links.create');
-        Route::get('/links/import', [PublicDashboardController::class, 'importLinks'])->name('public-dashboard.links.import');
-        Route::get('/links/export', [PublicDashboardController::class, 'exportLinks'])->name('public-dashboard.links.export-all');
-        Route::get('/links/qr-zip', [PublicDashboardController::class, 'qrZip'])->name('public-dashboard.links.qr-zip');
-        Route::get('/links/{link}', [PublicDashboardController::class, 'showLink'])->name('public-dashboard.links.show');
-        Route::get('/links/{link}/edit', [PublicDashboardController::class, 'editLink'])->name('public-dashboard.links.edit');
-        Route::get('/links/{link}/export', [PublicDashboardController::class, 'exportClicks'])->name('public-dashboard.links.export');
-        Route::get('/links/{link}/qr', [PublicDashboardController::class, 'qrCode'])->name('public-dashboard.links.qr');
-        Route::post('/links/{link}/duplicate', [PublicDashboardController::class, 'duplicate'])->name('public-dashboard.links.duplicate');
-        Route::get('/api-keys/{key}', [PublicDashboardController::class, 'showApiKey'])->name('public-dashboard.api-keys.show');
-        Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name('public-dashboard.settings.export-download');
-        Route::post('/switch-to-legacy', [PublicDashboardController::class, 'switchToLegacy'])->name('public-dashboard.switch-legacy');
-    });
+foreach (PublicDashboard::hosts() as $publicDashboardHost) {
+    $prefix = $publicDashboardHost === PublicDashboard::canonicalHost()
+        ? 'public-dashboard.'
+        : 'public-dashboard-alt.';
+
+    Route::domain($publicDashboardHost)
+        ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
+        ->group(fn () => $legacyPublicDashboardRoutes($prefix));
+
+    Route::domain($publicDashboardHost)
+        ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
+        ->group(fn () => $publicDashboardRoutes($prefix));
+}
 
 /*
 |----------------------------------------------------------------------

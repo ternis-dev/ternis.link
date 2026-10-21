@@ -1,8 +1,8 @@
-<x-layouts.public-dashboard title="Create Link — my.ternis.link">
+<x-layouts.public-dashboard title="Create Link — {{ \App\Support\PublicDashboard::label() }}">
     <x-pd.head
         title="Create Short Link"
         subtitle="Pick a domain, set a destination — custom slugs and short lengths included for members."
-        :backHref="route('public-dashboard.links')"
+        :backHref="\App\Support\PublicDashboard::route('links')"
         backLabel="Back to Links"
     />
 

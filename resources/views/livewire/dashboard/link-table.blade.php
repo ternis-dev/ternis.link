@@ -1,5 +1,5 @@
 @php
-    $rp = ($theme ?? 'dashboard') === 'public' ? 'public-dashboard.' : 'dashboard.';
+    $rp = ($theme ?? 'dashboard') === 'public' ? \App\Support\PublicDashboard::routePrefix() : 'dashboard.';
 @endphp
 <div wire:poll.30s.visible>
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">

@@ -20,9 +20,10 @@ return [
         'href.yt' => 'public',
         // Dedicated QR code generator utility
         'qr.href.nz' => 'public',
-        // Public dashboard (canonical my.ternis.link; my.href.nz and
-        // my.href.yt 302 there — see ResolveDomain legacy redirect)
+        // Public dashboard (canonical my.ternis.link; my.href.nz serves
+        // the same app under its own brand — see ResolveDomain)
         'my.ternis.link' => 'public-dashboard',
+        'my.href.nz' => 'public-dashboard',
         // Official QR API
         'qr.t-api.de' => 'api',
         // Business (ternis official)
@@ -97,9 +98,17 @@ return [
     'public_dashboard_host' => env('DOMAIN_PUBLIC_DASHBOARD', 'my.ternis.link'),
 
     /**
+     * Second host of the public dashboard. It serves the very same app
+     * (routes, session, data) under its own brand — only the generated
+     * URLs and the header label differ. Set to an empty string to
+     * disable it.
+     */
+    'public_dashboard_alias_host' => env('DOMAIN_PUBLIC_DASHBOARD_ALIAS', 'my.href.nz'),
+
+    /**
      * Retired public-dashboard hosts, 302d to the canonical host.
      */
-    'public_dashboard_legacy_hosts' => ['my.href.nz', 'my.href.yt'],
+    'public_dashboard_legacy_hosts' => ['my.href.yt'],
 
     'admin_host' => env('DOMAIN_ADMIN', 'admin.ternis.link'),
 

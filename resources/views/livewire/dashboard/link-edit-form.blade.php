@@ -144,7 +144,7 @@
 
         <div class="flex gap-3 pt-1">
             <x-ui.button type="submit" variant="primary">Save Changes</x-ui.button>
-            <x-ui.button href="{{ route(($theme ?? 'dashboard') === 'public' ? 'public-dashboard.links.show' : 'dashboard.links.show', $link->id) }}">Cancel</x-ui.button>
+            <x-ui.button href="{{ route(($theme ?? 'dashboard') === 'public' ? \App\Support\PublicDashboard::routePrefix().'links.show' : 'dashboard.links.show', $link->id) }}">Cancel</x-ui.button>
         </div>
     </form>
 </x-ui.card>

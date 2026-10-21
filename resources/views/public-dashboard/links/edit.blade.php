@@ -1,8 +1,8 @@
-<x-layouts.public-dashboard title="Edit Link — my.ternis.link">
+<x-layouts.public-dashboard title="Edit Link — {{ \App\Support\PublicDashboard::label() }}">
     <x-pd.head
         title="Edit Short Link"
         subtitle="Change where it points, when it expires, or switch it off."
-        :backHref="$backHref ?? route('public-dashboard.links')"
+        :backHref="$backHref ?? \App\Support\PublicDashboard::route('links')"
         :backLabel="$backLabel ?? 'Back to Links'"
     />
 

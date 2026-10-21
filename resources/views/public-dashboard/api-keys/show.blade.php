@@ -1,8 +1,8 @@
-<x-layouts.public-dashboard title="API Key Links — my.ternis.link">
+<x-layouts.public-dashboard title="API Key Links — {{ \App\Support\PublicDashboard::label() }}">
     <x-pd.head
         :title="$apiKey->name"
         subtitle="Public links created with this key. Key management lives on dash.ternis.link."
-        :backHref="route('public-dashboard.links')"
+        :backHref="\App\Support\PublicDashboard::route('links')"
         backLabel="Back to Links"
     >
         <x-slot:actions>

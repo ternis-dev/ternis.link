@@ -24,7 +24,9 @@ class DomainUrls
      */
     public static function publicDashboard(string $path = '/'): string
     {
-        return static::onHost(config('domains.public_dashboard_host', 'my.ternis.link'), $path);
+        // Follow the host the visitor is actually on (my.ternis.link or
+        // the my.href.nz alias) so links stay on the branded host.
+        return static::onHost(PublicDashboard::currentHost(), $path);
     }
 
     /**

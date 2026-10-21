@@ -166,10 +166,25 @@ class PublicDashboardTest extends TestCase
             ->assertDontSee('of your links live on the public dashboard', escape: false);
     }
 
-    public function test_legacy_hosts_redirect_to_canonical(): void
+    public function test_alias_host_serves_the_public_dashboard(): void
     {
-        $this->get('http://my.href.nz/links')
-            ->assertRedirect('http://my.ternis.link/links');
+        // my.href.nz is a first-class host now: same app, same session,
+        // same data — only the generated URLs and the brand differ.
+        $this->makeLink('href.nz', 'pub-alias-1');
+
+        $this->actingAs($this->user)
+            ->get('http://my.href.nz/links')
+            ->assertOk()
+            ->assertSee('my.href.nz', escape: false)
+            ->assertSee('pub-alias-1');
+
+        // Internal links stay on the alias host.
+        $this->actingAs($this->user)
+            ->get('http://my.href.nz/')
+            ->assertOk()
+            ->assertSee('http://my.href.nz/links', escape: false);
+
+        // Retired hosts still bounce to the canonical one.
         $this->get('http://my.href.yt/links')
             ->assertRedirect('http://my.ternis.link/links');
     }
@@ -452,10 +467,14 @@ class PublicDashboardTest extends TestCase
 
     public function test_global_header_adapts_to_public_dashboard(): void
     {
+        // The public dashboard ships its own app shell with the
+        // host-aware navigation (overview, links, keys, domains, settings).
         $this->actingAs($this->user)
             ->get('http://my.ternis.link/')
             ->assertOk()
-            ->assertSee('My links', escape: false)
+            ->assertSee('API keys', escape: false)
+            ->assertSee('Domains', escape: false)
+            ->assertSee('Settings', escape: false)
             ->assertSee('Account', escape: false);
 
         $this->actingAs($this->user)

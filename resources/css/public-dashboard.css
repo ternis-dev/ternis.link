@@ -349,10 +349,33 @@ body:has(.nd-root) {
 
 .nd-hero {
     background-color: #052e22;
+    background-image:
+        radial-gradient(120% 140% at 100% 0%, rgba(16, 185, 129, 0.28) 0%, rgba(16, 185, 129, 0) 55%),
+        linear-gradient(135deg, #04261c 0%, #052e22 45%, #064e3b 100%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .dark .nd-hero {
     background-color: #071a14;
+    background-image:
+        radial-gradient(120% 140% at 100% 0%, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0) 55%),
+        linear-gradient(135deg, #04140f 0%, #071a14 45%, #052e22 100%);
+}
+
+/* ---------- Sticky app shell header ---------- */
+
+.nd-shell-header {
+    box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.02);
+}
+
+.dark .nd-shell-header {
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Active nav pill: emerald fill with a readable label. */
+.nd-pill[aria-current='page'] {
+    background-color: #059669;
+    color: #fff;
 }
 
 /* ---------- Pills & nav ---------- */
@@ -374,11 +397,20 @@ body:has(.nd-root) {
     padding: 1.25rem 1.5rem;
     background: #fff;
     border: 1px solid #e5e9e6;
+    transition: border-color 0.15s ease;
+}
+
+.nd-stat:hover {
+    border-color: #cfd8d3;
 }
 
 .dark .nd-stat {
     background: #161c1a;
     border-color: rgba(255, 255, 255, 0.09);
+}
+
+.dark .nd-stat:hover {
+    border-color: rgba(255, 255, 255, 0.16);
 }
 
 .nd-stat .nd-stat-value {
@@ -407,6 +439,10 @@ body:has(.nd-root) {
     background-color: #059669;
     border-color: #059669;
     color: #fff;
+}
+
+.nd-stat-accent:hover {
+    border-color: #047857;
 }
 
 .nd-stat-accent .nd-stat-label {
