@@ -11,7 +11,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - `href.yt` / `*.href.yt`: Video-first public shortener & creator link accelerator.
   - `clicked.at` / `*.clicked.at`: Newsletter & email click-tracking branded domain.
   - `qr.href.nz`: Dedicated QR code generator utility (redirects to the QR API host for everything else).
-  - `my.ternis.link`: Public-links dashboard — your `href.nz`, `meinlink.at` and `href.yt` links, plus API keys, domains and settings.
+  - `my.ternis.link`: Public-links dashboard — your `href.nz`, `meinlink.at` and `href.yt` links, plus API keys, domains, settings, link groups and notifications.
   - `my.href.nz`: The same dashboard under its own brand (same app, same session, same data; only generated URLs and branding differ).
   - `meinlink.at` / `*.meinlink.at`: German-language public shortener with its own Amt-style theme (`landing-meinlink.css`, Inter grotesk + BEWILLIGT stamp). Same type/rules as `href.nz`; German form via `ShortenForm(locale=de, theme=board)`.
   - `href.re` / `*.href.re`: Reserved for official business links with its own landing page (`landing.business`, `public/css/landing-business.css`, no guest form).

@@ -11,7 +11,7 @@ Every host in the network does exactly one job. Pick the right one and the app b
 | `href.re` | Official business links. No guest form. | Required |
 | `ternis.link` | Family, relatives, partners. Public network stats live here too. | Required |
 | `dash.ternis.link` | Your dashboard: `clicked.at`, `ternis.link`, `href.re`, partner and custom-domain links, plus stats, domains, API keys. | Required |
-| `my.ternis.link` | Public-links dashboard: your `href.nz`, `meinlink.at` and `href.yt` links, plus the account pages (API keys, domains, settings). The previous indigo UI stays available under `/_legacy` per account preference (switch either way, any time). | Required |
+| `my.ternis.link` | Public-links dashboard: your `href.nz`, `meinlink.at` and `href.yt` links, plus the account pages (API keys, domains, settings, link groups, notifications). The previous indigo UI stays available under `/_legacy` per account preference (switch either way, any time). | Required |
 | `my.href.nz` | Same dashboard, same session, same data — under its own brand. Every link it renders stays on this host. | Required |
 | `admin.ternis.link` | Admin console: moderation, users, system overview. | Admins only |
 | `docs.ternis.link` | These guides. | Never |
