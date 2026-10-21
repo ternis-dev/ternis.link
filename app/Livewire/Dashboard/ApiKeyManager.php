@@ -15,6 +15,8 @@ class ApiKeyManager extends Component
 {
     public string $keyName = '';
 
+    public ?int $apiVersion = null;
+
     public bool $newKeyShowOnDashboard = true;
 
     public ?string $newlyCreatedKey = null;
@@ -23,6 +25,11 @@ class ApiKeyManager extends Component
 
     public string $editingKeyName = '';
 
+    public function mount(): void
+    {
+        $this->apiVersion = ApiVersion::latestVersion();
+    }
+
     /**
      * Generate a new API key.
      */
@@ -30,6 +37,7 @@ class ApiKeyManager extends Component
     {
         $this->validate([
             'keyName' => ['required', 'string', 'max:255'],
+            'apiVersion' => ['required', 'integer', 'exists:api_versions,version'],
             'newKeyShowOnDashboard' => ['boolean'],
         ]);
 
@@ -42,7 +50,7 @@ class ApiKeyManager extends Component
             'user_id' => auth()->id(),
             'key_hash' => ApiKey::hashToken($rawKey),
             'key_prefix' => substr($rawKey, 0, 8),
-            'api_version' => ApiVersion::latestVersion(),
+            'api_version' => $this->apiVersion ?: ApiVersion::latestVersion(),
             'name' => $this->keyName,
             'show_on_dashboard' => $this->newKeyShowOnDashboard,
         ]);
@@ -50,6 +58,7 @@ class ApiKeyManager extends Component
         Activity::record(ActivityLog::API_KEY_CREATED, auth()->user(), $key, [
             'name' => $key->name,
             'key_prefix' => $key->key_prefix,
+            'api_version' => $key->api_version,
             'show_on_dashboard' => $key->show_on_dashboard,
         ]);
 
@@ -64,6 +73,7 @@ class ApiKeyManager extends Component
         // Show the key to the user ONCE
         $this->newlyCreatedKey = $rawKey;
         $this->keyName = '';
+        $this->apiVersion = ApiVersion::latestVersion();
         $this->newKeyShowOnDashboard = true;
 
         $this->dispatch('notify', message: "API key “{$key->name}” created — copy it now, it won't be shown again.", type: 'success');
@@ -86,6 +96,26 @@ class ApiKeyManager extends Component
         ]);
 
         $this->dispatch('notify', message: $key->fresh()->show_on_dashboard ? "Links for “{$key->name}” show on the dashboard." : "Links for “{$key->name}” moved to its key page.", type: 'info');
+    }
+
+    /**
+     * Change or upgrade an API key's target API version.
+     */
+    public function updateVersion(string $keyId, int $version): void
+    {
+        $key = auth()->user()->apiKeys()->findOrFail($keyId);
+
+        $targetVersion = ApiVersion::where('version', $version)->firstOrFail();
+
+        $key->update(['api_version' => $targetVersion->version]);
+
+        Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
+            'name' => $key->name,
+            'key_prefix' => $key->key_prefix,
+            'api_version' => $key->fresh()->api_version,
+        ]);
+
+        $this->dispatch('notify', message: "API key “{$key->name}” switched to v{$key->fresh()->api_version}.", type: 'success');
     }
 
     public function startEditing(string $keyId): void
@@ -159,6 +189,9 @@ class ApiKeyManager extends Component
             ->orderByDesc('created_at')
             ->get();
 
-        return view('livewire.dashboard.api-key-manager', compact('apiKeys'));
+        $availableVersions = ApiVersion::orderByDesc('version')->get();
+        $latestVersion = ApiVersion::latestVersion();
+
+        return view('livewire.dashboard.api-key-manager', compact('apiKeys', 'availableVersions', 'latestVersion'));
     }
 }

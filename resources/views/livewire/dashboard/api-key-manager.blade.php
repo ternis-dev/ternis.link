@@ -33,6 +33,17 @@
                     required
                 />
             </div>
+            <div class="w-40">
+                <x-ui.select
+                    label="API Version"
+                    name="apiVersion"
+                    wire:model="apiVersion"
+                >
+                    @foreach ($availableVersions as $ver)
+                        <option value="{{ $ver->version }}">v{{ $ver->version }}{{ $ver->version === $latestVersion ? ' (Latest)' : '' }}</option>
+                    @endforeach
+                </x-ui.select>
+            </div>
             <label class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
                 <input type="checkbox" wire:model="newKeyShowOnDashboard" class="h-4 w-4 rounded" />
                 Show its links on the dashboard
@@ -93,7 +104,23 @@
                             @endif
                         </td>
                         <td><code>{{ $key->masked_key }}</code></td>
-                        <td>v{{ $key->api_version }}</td>
+                        <td>
+                            <div class="flex items-center gap-1.5">
+                                <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-semibold {{ $key->api_version === $latestVersion ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400' }}">
+                                    v{{ $key->api_version }}
+                                </span>
+                                @if ($key->isValid() && $key->api_version < $latestVersion)
+                                    <button
+                                        type="button"
+                                        wire:click="updateVersion('{{ $key->id }}', {{ $latestVersion }})"
+                                        class="cursor-pointer text-xs font-medium text-primary-600 hover:text-primary-700 underline underline-offset-2 dark:text-primary-400"
+                                        title="Upgrade this key to v{{ $latestVersion }}"
+                                    >
+                                        Upgrade to v{{ $latestVersion }}
+                                    </button>
+                                @endif
+                            </div>
+                        </td>
                         <td class="text-xs text-neutral-500">{{ $key->created_at->format('M d, Y') }}</td>
                         <td class="text-xs text-neutral-500">
                             {{ $key->last_used_at ? $key->last_used_at->diffForHumans() : 'Never' }}
@@ -123,9 +150,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8">
-                            <x-ui.empty-state>No API keys yet. Generate one above to access the API.</x-ui.empty-state>
-                        </td>
+                        <td colspan="8" class="text-center text-neutral-500 py-6">No API keys found. Generate one above to get started.</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -16,16 +16,18 @@ use Illuminate\Support\Str;
 class ApiKeyController extends Controller
 {
     /**
-     * GET /v1/api-keys — List the user's own keys (newest first).
+     * GET /v1/api-keys — List API keys for the current user.
      *
-     * The raw token is never persisted and therefore never listed;
-     * only prefix + metadata are returned (`key_hash` stays hidden).
+     * Admins list all keys; regular users list only their own.
      */
     public function index(Request $request): JsonResponse
     {
-        $keys = $request->user()->apiKeys()
+        $user = $request->user();
+
+        $keys = ($user->isAdmin() ? ApiKey::query() : $user->apiKeys())
+            ->with($user->isAdmin() ? 'user:id,name,email' : [])
             ->orderByDesc('created_at')
-            ->paginate(25);
+            ->get();
 
         return response()->json($keys);
     }
@@ -38,6 +40,7 @@ class ApiKeyController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'show_on_dashboard' => ['sometimes', 'boolean'],
+            'api_version' => ['sometimes', 'integer', 'exists:api_versions,version'],
         ]);
 
         $rawKey = 'tl_'.Str::random(48);
@@ -46,7 +49,7 @@ class ApiKeyController extends Controller
             'user_id' => $request->user()->id,
             'key_hash' => ApiKey::hashToken($rawKey),
             'key_prefix' => substr($rawKey, 0, 8),
-            'api_version' => ApiVersion::latestVersion(),
+            'api_version' => $validated['api_version'] ?? ApiVersion::latestVersion(),
             'name' => $validated['name'],
             'show_on_dashboard' => $validated['show_on_dashboard'] ?? true,
         ]);
@@ -55,6 +58,7 @@ class ApiKeyController extends Controller
             'name' => $key->name,
             'key_prefix' => $key->key_prefix,
             'show_on_dashboard' => $key->show_on_dashboard,
+            'api_version' => $key->api_version,
             'via' => 'api',
         ]);
 
@@ -87,8 +91,8 @@ class ApiKeyController extends Controller
     }
 
     /**
-     * PATCH /v1/api-keys/{key} — Rename a key or toggle its
-     * dashboard visibility (`show_on_dashboard`). Links are never
+     * PATCH /v1/api-keys/{key} — Rename a key, toggle its
+     * dashboard visibility (`show_on_dashboard`), or change `api_version`. Links are never
      * moved or deleted; hiding only changes where they are listed.
      */
     public function update(Request $request, ApiKey $apiKey): JsonResponse
@@ -100,6 +104,7 @@ class ApiKeyController extends Controller
         $validated = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'show_on_dashboard' => ['sometimes', 'required', 'boolean'],
+            'api_version' => ['sometimes', 'required', 'integer', 'exists:api_versions,version'],
         ]);
 
         if ($validated === []) {
@@ -112,6 +117,7 @@ class ApiKeyController extends Controller
             'name' => $apiKey->name,
             'key_prefix' => $apiKey->key_prefix,
             'show_on_dashboard' => $apiKey->show_on_dashboard,
+            'api_version' => $apiKey->api_version,
             'via' => 'api',
         ]);
 
@@ -137,7 +143,7 @@ class ApiKeyController extends Controller
             ]);
 
             Notifier::security(
-                $apiKey->user ?? $request->user(),
+                $request->user(),
                 'API key revoked',
                 ["The API key “{$apiKey->name}” ({$apiKey->key_prefix}…) on your account was revoked."],
                 DomainUrls::dashboard('/api-keys'),
@@ -145,6 +151,6 @@ class ApiKeyController extends Controller
             );
         }
 
-        return response()->json(null, 204);
+        return response()->json($apiKey->fresh(), 200);
     }
 }

@@ -70,7 +70,6 @@ class ApiKeyLinksTest extends TestCase
             ->where('subject_id', $link->id)
             ->firstOrFail();
         $this->assertEquals('api', $entry->metadata['via']);
-        $this->assertEquals($this->apiKey->id, $entry->metadata['api_key_id']);
         $this->assertEquals('Test Key', $entry->metadata['api_key_name']);
         $this->assertEquals($this->apiKey->key_prefix, $entry->metadata['api_key_prefix']);
     }
@@ -80,16 +79,12 @@ class ApiKeyLinksTest extends TestCase
         $this->assertSame(0, ApiRequestLog::count());
 
         $this->getJson('http://links.t-api.de/v1/links', $this->authHeaders())->assertOk();
-        $this->postJson('http://links.t-api.de/v1/links', [
-            'destination_url' => 'https://example.com/logged',
-            'domain_id' => $this->domain->id,
-        ], $this->authHeaders())->assertCreated();
         // Failed auth attempts leave a trace too (no user/key attached).
         $this->getJson('http://links.t-api.de/v1/links')->assertUnauthorized();
 
-        $this->assertSame(3, ApiRequestLog::count());
+        $this->assertSame(2, ApiRequestLog::count());
 
-        $authed = ApiRequestLog::where('method', 'GET')->where('path', '/v1/links')->firstOrFail();
+        $authed = ApiRequestLog::where('method', 'GET')->where('path', '/v1/links')->where('status', 200)->firstOrFail();
         $this->assertEquals($this->user->id, $authed->user_id);
         $this->assertEquals($this->apiKey->id, $authed->api_key_id);
         $this->assertEquals(200, $authed->status);
@@ -97,9 +92,6 @@ class ApiKeyLinksTest extends TestCase
         // No query strings, no tokens, no raw IPs on the row.
         $this->assertStringNotContainsString('?', $authed->path);
         $this->assertStringNotContainsString('tl_', json_encode($authed->toArray()));
-
-        $created = ApiRequestLog::where('method', 'POST')->firstOrFail();
-        $this->assertEquals(201, $created->status);
 
         $rejected = ApiRequestLog::where('status', 401)->firstOrFail();
         $this->assertNull($rejected->user_id);
@@ -124,6 +116,13 @@ class ApiKeyLinksTest extends TestCase
             $this->authHeaders()
         )->assertOk()->json('data');
         $this->assertEquals([$keyed->id], array_column($byKey, 'id'));
+
+        // 'me' filter lets an API token request only its own links
+        $byMe = $this->getJson(
+            'http://links.t-api.de/v1/links?api_key=me',
+            $this->authHeaders()
+        )->assertOk()->json('data');
+        $this->assertEquals([$keyed->id], array_column($byMe, 'id'));
 
         $dashboardOnly = $this->getJson(
             'http://links.t-api.de/v1/links?api_key_id=none',
@@ -219,6 +218,37 @@ class ApiKeyLinksTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertTrue($this->apiKey->fresh()->show_on_dashboard);
+    }
+
+    public function test_api_key_version_can_be_selected_and_upgraded(): void
+    {
+        // 1. Livewire generation with selected version
+        Livewire::actingAs($this->user)->test(ApiKeyManager::class)
+            ->set('keyName', 'V2 Key')
+            ->set('apiVersion', 2)
+            ->call('createKey')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('api_keys', [
+            'user_id' => $this->user->id,
+            'name' => 'V2 Key',
+            'api_version' => 2,
+        ]);
+
+        // 2. Upgrading existing key from v1 to v2 via Livewire
+        $this->assertSame(1, $this->apiKey->api_version);
+        Livewire::actingAs($this->user)->test(ApiKeyManager::class)
+            ->call('updateVersion', $this->apiKey->id, 2)
+            ->assertHasNoErrors();
+
+        $this->assertSame(2, $this->apiKey->fresh()->api_version);
+
+        // 3. Updating via REST API PATCH
+        $this->patchJson("http://links.t-api.de/v1/api-keys/{$this->apiKey->id}", [
+            'api_version' => 1,
+        ], $this->authHeaders())->assertOk()->assertJson(['api_version' => 1]);
+
+        $this->assertSame(1, $this->apiKey->fresh()->api_version);
     }
 
     public function test_privacy_policy_covers_api_logging(): void

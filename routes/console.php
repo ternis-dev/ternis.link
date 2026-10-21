@@ -12,3 +12,8 @@ Schedule::command('links:deactivate-expired')->daily();
 Schedule::command('bio:deactivate-expired')->daily();
 Schedule::command('privacy:prune-ips')->daily();
 Schedule::command('env:backup')->dailyAt('03:00');
+
+// Spatie backups
+Schedule::command('backup:clean')->dailyAt('01:00');
+Schedule::command('backup:run')->dailyAt('01:30');
+Schedule::command('backup:monitor')->dailyAt('03:30');

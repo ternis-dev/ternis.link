@@ -30,7 +30,7 @@ class LinkController extends Controller
      * own); regular users list their own links only. `?tag=` filters to
      * links carrying that exact tag. `?api_key_id=` filters to links
      * created with one API key (`none` = dashboard-created, i.e. no
-     * key involved).
+     * key involved, `me` = links created by the current authenticating API key).
      */
     public function index(Request $request): JsonResponse
     {
@@ -39,6 +39,15 @@ class LinkController extends Controller
 
         $tag = strtolower(trim((string) $request->query('tag', '')));
         $apiKeyFilter = trim((string) $request->query('api_key_id', $request->query('api_key', '')));
+
+        /** @var ApiKey|null $currentApiKey */
+        $currentApiKey = $request->attributes->get('api_key');
+        if ($apiKeyFilter === 'me') {
+            if (! $currentApiKey) {
+                abort(400, 'The "me" API key filter is only available when authenticating with an API key.');
+            }
+            $apiKeyFilter = (string) $currentApiKey->id;
+        }
 
         $links = ($adminAll ? Link::query() : $user->links())->notRemoved()
             ->with($adminAll ? ['domain', 'user', 'apiKey:id,name,key_prefix'] : ['domain', 'apiKey:id,name,key_prefix'])
@@ -248,7 +257,12 @@ class LinkController extends Controller
             abort(404);
         }
 
-        if ($link->user_id !== $request->user()->id && ! $request->user()->isAdmin()) {
+        if ($link->domain?->type === 'public') {
+            return;
+        }
+
+        $user = $request->user();
+        if (! $user || ($link->user_id !== $user->id && ! $user->isAdmin())) {
             abort(403, 'You do not own this link.');
         }
     }
