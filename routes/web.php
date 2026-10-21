@@ -15,6 +15,7 @@ use App\Http\Controllers\LegacyPublicDashboardController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\PublicDashboardController;
+use App\Http\Controllers\PublicGroupController;
 use App\Http\Controllers\QrController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\SiteFilesController;
@@ -188,6 +189,19 @@ $publicDashboardRoutes = function (string $prefix): void {
     Route::get('/notifications', [PublicDashboardController::class, 'notifications'])->name($prefix.'notifications');
     Route::post('/notifications/read', [PublicDashboardController::class, 'markAllNotificationsRead'])->name($prefix.'notifications.read-all');
     Route::post('/notifications/{id}/read', [PublicDashboardController::class, 'markNotificationRead'])->name($prefix.'notifications.read');
+
+    // Link groups — the public dashboard groups its own shortener
+    // links; the groups themselves are the same as on dash.
+    Route::get('/groups', [PublicGroupController::class, 'groups'])->name($prefix.'groups');
+    Route::get('/groups/create', [PublicGroupController::class, 'createGroup'])->name($prefix.'groups.create');
+    Route::post('/groups', [PublicGroupController::class, 'storeGroup'])->name($prefix.'groups.store');
+    Route::get('/groups/{group}', [PublicGroupController::class, 'showGroup'])->name($prefix.'groups.show');
+    Route::get('/groups/{group}/edit', [PublicGroupController::class, 'editGroup'])->name($prefix.'groups.edit');
+    Route::put('/groups/{group}', [PublicGroupController::class, 'updateGroup'])->name($prefix.'groups.update');
+    Route::delete('/groups/{group}', [PublicGroupController::class, 'deleteGroup'])->name($prefix.'groups.delete');
+    Route::post('/groups/{group}/links', [PublicGroupController::class, 'addGroupLink'])->name($prefix.'groups.links.add');
+    Route::delete('/groups/{group}/links/{link}', [PublicGroupController::class, 'removeGroupLink'])->name($prefix.'groups.links.remove');
+    Route::post('/groups/{group}/subgroups', [PublicGroupController::class, 'storeSubgroup'])->name($prefix.'groups.subgroups.store');
     Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name($prefix.'settings.export-download');
 
     Route::post('/switch-to-legacy', [PublicDashboardController::class, 'switchToLegacy'])->name($prefix.'switch-legacy');

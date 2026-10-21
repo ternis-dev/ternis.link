@@ -3,6 +3,8 @@
 namespace App\Livewire\Dashboard;
 
 use App\Support\Activity;
+use App\Support\DomainUrls;
+use App\Support\PublicDashboard;
 use Livewire\Component;
 
 class GroupLinkPicker extends Component
@@ -12,6 +14,12 @@ class GroupLinkPicker extends Component
     public string $search = '';
 
     public array $selected = [];
+
+    /**
+     * Which links may be picked: 'all' (dash) or 'public' (the public
+     * dashboard, which only groups its shortener links).
+     */
+    public string $scope = 'all';
 
     public function mount(string $groupId): void
     {
@@ -48,7 +56,11 @@ class GroupLinkPicker extends Component
         $this->search = '';
         $this->dispatch('notify', message: count($owned).' link(s) added.', type: 'success');
 
-        $this->redirect(request()->header('Referer', route('dashboard.groups.show', $this->groupId)), navigate: true);
+        $fallback = $this->scope === 'public'
+            ? route(PublicDashboard::routePrefix().'groups.show', $this->groupId)
+            : route('dashboard.groups.show', $this->groupId);
+
+        $this->redirect(request()->header('Referer', $fallback), navigate: true);
     }
 
     public function render()
@@ -57,7 +69,11 @@ class GroupLinkPicker extends Component
         $group = $user->groups()->notRemoved()->findOrFail($this->groupId);
         $memberIds = $group->links()->pluck('links.id')->toArray();
 
-        $results = $user->links()->notRemoved()->with(['domain'])
+        $results = $user->links()->notRemoved()
+            ->when($this->scope === 'public', function ($query) {
+                $query->whereHas('domain', fn ($q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames()));
+            })
+            ->with(['domain'])
             ->when($this->search !== '', fn ($q) => $q->where(function ($qq) {
                 $qq->where('slug', 'like', '%'.$this->search.'%')
                     ->orWhere('destination_url', 'like', '%'.$this->search.'%')

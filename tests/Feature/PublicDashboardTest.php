@@ -8,6 +8,7 @@ use App\Models\ApiKey;
 use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\LinkGroup;
 use App\Models\User;
 use App\Notifications\SecurityAlert;
 use Database\Seeders\ApiVersionSeeder;
@@ -216,6 +217,54 @@ class PublicDashboardTest extends TestCase
             // dashboard always uses a top bar.
             $settings->assertDontSee('Navigation Layout');
         }
+    }
+
+    public function test_groups_are_managed_on_the_public_dashboard(): void
+    {
+        $group = $this->user->groups()->create(['name' => 'Public Group']);
+
+        foreach (['my.ternis.link', 'my.href.nz'] as $host) {
+            $this->actingAs($this->user)
+                ->get("http://{$host}/groups")
+                ->assertOk()
+                ->assertSee('Public Group');
+
+            $this->actingAs($this->user)
+                ->get("http://{$host}/groups/create")
+                ->assertOk()
+                ->assertSee('New Group');
+        }
+
+        // A group can be created from the public dashboard.
+        $this->actingAs($this->user)
+            ->post('http://my.ternis.link/groups', ['name' => 'Made on public'])
+            ->assertRedirect('http://my.ternis.link/groups/'.LinkGroup::where('name', 'Made on public')->value('id'));
+
+        $this->assertDatabaseHas('link_groups', ['name' => 'Made on public']);
+    }
+
+    public function test_public_groups_only_accept_public_links(): void
+    {
+        $group = $this->user->groups()->create(['name' => 'Scoped Group']);
+
+        $public = $this->makeLink('href.nz', 'grp-public-1');
+        $personal = $this->makeLink('clicked.at', 'grp-personal-1');
+
+        $this->actingAs($this->user)
+            ->post("http://my.ternis.link/groups/{$group->id}/links", [
+                'link_ids' => [$public->id, $personal->id],
+            ])
+            ->assertRedirect();
+
+        // Only the public link made it into the group.
+        $this->assertDatabaseHas('link_group_items', [
+            'link_group_id' => $group->id,
+            'link_id' => $public->id,
+        ]);
+        $this->assertDatabaseMissing('link_group_items', [
+            'link_group_id' => $group->id,
+            'link_id' => $personal->id,
+        ]);
     }
 
     public function test_notifications_are_readable_on_the_public_dashboard(): void
