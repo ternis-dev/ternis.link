@@ -6,14 +6,14 @@
     </div>
 
     @if (session('info'))
-        <div class="mb-6 max-w-2xl rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-200" role="status">{{ session('info') }}</div>
+        <div class="mb-6 w-full rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-200" role="status">{{ session('info') }}</div>
     @endif
 
-    <div class="pd-card mb-6 max-w-2xl rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
+    <div class="pd-card mb-6 w-full rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
         <livewire:dashboard.link-edit-form :link="$link" theme="public" />
     </div>
 
-    <div class="pd-card max-w-2xl rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
+    <div class="pd-card w-full rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
         <livewire:dashboard.link-targeting :link="$link" theme="public" />
     </div>
 </x-layouts.public-dashboard-legacy>

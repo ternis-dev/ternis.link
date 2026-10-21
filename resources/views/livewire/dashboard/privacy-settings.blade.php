@@ -46,10 +46,12 @@
                 Your links become anonymous guest links (stats stay, ownership and IPs go);
                 keys, domains metadata and settings are removed.
             </p>
-            <label class="mb-3 flex cursor-pointer items-start gap-2 text-sm">
-                <input type="checkbox" wire:model="acknowledged" class="mt-0.5 h-4 w-4 rounded accent-neutral-900 dark:accent-white">
-                I understand this cannot be undone after the grace period.
-            </label>
+            <div class="mb-3">
+                <x-ui.checkbox
+                    wire:model="acknowledged"
+                    label="I understand this cannot be undone after the grace period."
+                />
+            </div>
             <div class="flex flex-wrap items-center gap-3">
                 <x-ui.input label="Type DELETE-ME to confirm" name="confirmText" type="text" wire:model="confirmText" maxlength="20" class="max-w-xs" />
                 <x-ui.button wire:click="scheduleDeletion" variant="danger" wire:confirm="Schedule deletion of your entire account?">Schedule deletion</x-ui.button>

@@ -310,10 +310,7 @@
                                 @if (in_array($newKind, ['link', 'social'], true))
                                     <x-ui.input label="Highlight badge (optional)" name="newBadge" type="text" wire:model="newBadge" placeholder="NEW or 50% OFF" maxlength="12" />
                                     <div class="flex items-center pt-6">
-                                        <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-                                            <input type="checkbox" wire:model="newOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
-                                            <span>Open link in new browser tab</span>
-                                        </label>
+                                        <x-ui.checkbox wire:model="newOpenNew" label="Open link in new browser tab" />
                                     </div>
                                 @endif
 
@@ -396,10 +393,7 @@
                                                 <x-ui.input label="Show from" name="editStartsAt" type="datetime-local" wire:model="editStartsAt" />
                                                 <x-ui.input label="Show until" name="editEndsAt" type="datetime-local" wire:model="editEndsAt" />
                                                 <div class="sm:col-span-2 flex items-center">
-                                                    <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-                                                        <input type="checkbox" wire:model="editOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
-                                                        <span>Open link in new browser tab</span>
-                                                    </label>
+                                                    <x-ui.checkbox wire:model="editOpenNew" label="Open link in new browser tab" />
                                                 </div>
                                                 <div class="sm:col-span-2 flex items-center gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
                                                     <x-ui.button type="submit" variant="primary" size="sm">Save block</x-ui.button>
@@ -505,8 +499,8 @@
                                 @php($importable = auth()->user()->links()->notRemoved()->with('domain:id,hostname')->orderByDesc('created_at')->limit(50)->get())
                                 <div class="max-h-48 overflow-y-auto space-y-1.5 pr-1">
                                     @forelse ($importable as $link)
-                                        <label class="flex cursor-pointer items-center gap-2 rounded-lg p-1.5 text-xs transition hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
-                                            <input type="checkbox" wire:model="importLinkIds" value="{{ $link->id }}" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                                        <label class="flex cursor-pointer items-center gap-2.5 rounded-lg p-1.5 text-xs transition hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
+                                            <x-ui.checkbox wire:model="importLinkIds" value="{{ $link->id }}" />
                                             <span class="truncate font-medium text-neutral-800 dark:text-neutral-200">{{ $link->description ?: $link->slug }}</span>
                                             <span class="ml-auto shrink-0 font-mono text-[10px] text-neutral-400">{{ $link->domain?->hostname }}/{{ $link->slug }}</span>
                                         </label>
@@ -709,13 +703,7 @@
                         </div>
 
                         <div class="mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-800 space-y-3">
-                            <label class="flex cursor-pointer items-start gap-2.5 text-xs text-neutral-700 dark:text-neutral-300">
-                                <input type="checkbox" wire:model="hide_branding" class="mt-0.5 h-4 w-4 rounded accent-neutral-900 dark:accent-white">
-                                <div>
-                                    <span class="font-semibold">Hide &ldquo;Powered by ternis.link&rdquo; badge</span>
-                                    <p class="text-[11px] text-neutral-500">Removes system footer attribution (Pro &amp; Business plans).</p>
-                                </div>
-                            </label>
+                            <x-ui.checkbox wire:model="hide_branding" label="Hide &ldquo;Powered by ternis.link&rdquo; badge" description="Removes system footer attribution (Pro &amp; Business plans)." />
                             <x-ui.input label="Custom footer copyright or note" name="footer_text" type="text" wire:model="footer_text" placeholder="e.g. &copy; 2026 Acme Corp. All rights reserved." maxlength="140" />
                         </div>
                     </x-ui.card>
@@ -775,13 +763,7 @@
                             </x-ui.select>
 
                             <div class="flex items-center pt-6">
-                                <label class="flex cursor-pointer items-start gap-2.5 text-xs text-neutral-700 dark:text-neutral-300">
-                                    <input type="checkbox" wire:model="show_stats" class="mt-0.5 h-4 w-4 rounded accent-neutral-900 dark:accent-white">
-                                    <div>
-                                        <span class="font-semibold">Show public view counter</span>
-                                        <p class="text-[11px] text-neutral-500">Displays total page visits in the header.</p>
-                                    </div>
-                                </label>
+                                <x-ui.checkbox wire:model="show_stats" label="Show public view counter" description="Displays total page visits in the header." />
                             </div>
                         </div>
                     </x-ui.card>

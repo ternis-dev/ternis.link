@@ -1,11 +1,11 @@
 <div>
     @if ($saved)
-        <x-ui.alert tone="success" class="mb-6 max-w-2xl">
+        <x-ui.alert tone="success" class="mb-6 w-full">
             Settings saved. Navigation layout applies immediately; theme applies on this device now and everywhere on next visit.
         </x-ui.alert>
     @endif
 
-    <form wire:submit="save" class="max-w-2xl space-y-6">
+    <form wire:submit="save" class="w-full space-y-6">
         <x-ui.card title="Navigation Layout">
             <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Choose how the dashboard navigation is arranged.</p>
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -108,29 +108,26 @@
 
         <x-ui.card title="Email Notifications">
             <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Important events always appear in your in-app inbox. These toggles control whether you also get an email.</p>
-            <div class="space-y-3">
-                <label class="flex cursor-pointer items-start gap-3">
-                    <input type="checkbox" wire:model.live="notify_security_email" value="1" class="mt-1 accent-neutral-900 dark:accent-white">
-                    <span>
-                        <span class="block text-sm font-medium">Security events</span>
-                        <span class="block text-xs text-neutral-500 dark:text-neutral-400">API keys, domains, role or plan changes on your account.</span>
-                    </span>
-                </label>
+            <div class="space-y-4">
+                <x-ui.checkbox
+                    wire:model.live="notify_security_email"
+                    value="1"
+                    label="Security events"
+                    description="API keys, domains, role or plan changes on your account."
+                />
                 @if (auth()->user()->isAdmin())
-                    <label class="flex cursor-pointer items-start gap-3">
-                        <input type="checkbox" wire:model.live="notify_admin_security_email" value="1" class="mt-1 accent-neutral-900 dark:accent-white">
-                        <span>
-                            <span class="block text-sm font-medium">Admin security notices</span>
-                            <span class="block text-xs text-neutral-500 dark:text-neutral-400">Privilege and plan changes performed by other admins.</span>
-                        </span>
-                    </label>
-                    <label class="flex cursor-pointer items-start gap-3">
-                        <input type="checkbox" wire:model.live="notify_server_error_email" value="1" class="mt-1 accent-neutral-900 dark:accent-white">
-                        <span>
-                            <span class="block text-sm font-medium">Server error alerts</span>
-                            <span class="block text-xs text-neutral-500 dark:text-neutral-400">One email per error type every 30 minutes when 5xx responses are rendered.</span>
-                        </span>
-                    </label>
+                    <x-ui.checkbox
+                        wire:model.live="notify_admin_security_email"
+                        value="1"
+                        label="Admin security notices"
+                        description="Privilege and plan changes performed by other admins."
+                    />
+                    <x-ui.checkbox
+                        wire:model.live="notify_server_error_email"
+                        value="1"
+                        label="Server error alerts"
+                        description="One email per error type every 30 minutes when 5xx responses are rendered."
+                    />
                 @endif
             </div>
         </x-ui.card>

@@ -1,11 +1,11 @@
-<x-layouts.dashboard title="Edit Group — {{ $group->name }}">
+<x-layouts.dashboard title="Edit {{ $group->name }} — ternis.link">
     <x-ui.page-header
-        :title="'Edit “'.$group->name.'”'"
-        :backHref="route('dashboard.groups.show', $group->id)"
-        backLabel="Back to Group"
+        title="Edit {{ $group->name }}"
+        backHref="{{ route('dashboard.groups.show', $group->id) }}"
+        backLabel="Back to {{ $group->name }}"
     />
 
-    <x-ui.card class="max-w-xl">
+    <x-ui.card class="w-full">
         <form method="POST" action="{{ route('dashboard.groups.update', $group->id) }}" class="space-y-4">
             @csrf
             @method('PUT')
@@ -17,7 +17,7 @@
             </div>
 
             <div>
-                <label for="description" class="mb-1 block text-sm font-medium">Description</label>
+                <label for="description" class="mb-1 block text-sm font-medium">Description <span class="font-normal text-neutral-400">(optional)</span></label>
                 <textarea id="description" name="description" rows="3" maxlength="1000" class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-800 dark:bg-neutral-900">{{ old('description', $group->description) }}</textarea>
                 @error('description')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
@@ -40,10 +40,15 @@
                 </div>
             </div>
 
-            <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $group->is_active)) class="h-4 w-4 rounded" />
-                Active
-            </label>
+            <div class="pt-1">
+                <x-ui.checkbox
+                    name="is_active"
+                    value="1"
+                    :checked="old('is_active', $group->is_active)"
+                    label="Active"
+                    description="When disabled, this group is archived from active filters."
+                />
+            </div>
 
             <div class="flex items-center gap-2 pt-2">
                 <x-ui.button type="submit" variant="primary">Save</x-ui.button>
@@ -52,13 +57,13 @@
         </form>
     </x-ui.card>
 
-    <x-ui.card class="mt-4 max-w-xl border-red-200 dark:border-red-900">
+    <x-ui.card class="mt-4 w-full border-red-200 dark:border-red-900">
         <h2 class="text-sm font-semibold text-red-700 dark:text-red-300">Danger zone</h2>
         <p class="mt-1 text-sm text-neutral-500">Deleting removes the group only — links stay, subgroups move up one level.</p>
         <form method="POST" action="{{ route('dashboard.groups.delete', $group->id) }}" class="mt-3" onsubmit="return confirm('Delete group “{{ $group->name }}”?')">
             @csrf
             @method('DELETE')
-            <x-ui.button type="submit" variant="secondary">Delete Group</x-ui.button>
+            <x-ui.button type="submit" variant="danger" size="sm">Delete Group</x-ui.button>
         </form>
     </x-ui.card>
 </x-layouts.dashboard>

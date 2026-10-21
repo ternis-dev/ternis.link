@@ -6,7 +6,7 @@
         backLabel="Back to Links"
     />
 
-    <div class="nd-card max-w-2xl rounded-xl border border-neutral-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900">
+    <div class="nd-card w-full rounded-xl border border-neutral-200 bg-white p-6 sm:p-8 dark:border-neutral-800 dark:bg-neutral-900">
         <livewire:dashboard.link-form scope="public" theme="public" />
     </div>
 </x-layouts.public-dashboard>

@@ -7,14 +7,14 @@
     />
 
     @if (session('info'))
-        <x-ui.alert tone="info" class="mb-6 max-w-2xl">{{ session('info') }}</x-ui.alert>
+        <x-ui.alert tone="info" class="mb-6 w-full">{{ session('info') }}</x-ui.alert>
     @endif
 
-    <div class="max-w-2xl">
+    <div class="w-full">
         <livewire:dashboard.link-edit-form :link="$link" />
     </div>
 
-    <div class="mt-6 max-w-2xl">
+    <div class="mt-6 w-full">
         <livewire:dashboard.link-targeting :link="$link" />
     </div>
 </x-layouts.dashboard>

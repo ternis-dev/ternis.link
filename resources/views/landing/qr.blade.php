@@ -191,8 +191,9 @@
                                 </select>
                             </div>
                         </div>
-                        <label class="flex items-center gap-2 text-xs text-slate-400">
-                            <input type="checkbox" id="wifi-hidden" class="rounded border-slate-700 text-emerald-500 focus:ring-0"> Hidden Network
+                        <label class="flex cursor-pointer items-center gap-2.5 text-xs text-slate-300 select-none">
+                            <input type="checkbox" id="wifi-hidden" class="h-4 w-4 cursor-pointer rounded border border-slate-700 bg-slate-950 text-emerald-500 shadow-xs transition focus:ring-2 focus:ring-emerald-500/20 focus:ring-offset-0 accent-emerald-500">
+                            <span>Hidden Network</span>
                         </label>
                     </div>
 

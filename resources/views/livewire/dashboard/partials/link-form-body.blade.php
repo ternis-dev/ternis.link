@@ -165,13 +165,12 @@
             </svg>
         </summary>
         <div class="space-y-4 border-t border-neutral-200/60 px-4 pt-3 pb-4 dark:border-neutral-800/60">
-            <label class="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" wire:model="user_tracking_enabled" class="mt-1 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-800">
-                <div class="text-sm">
-                    <span class="font-medium text-neutral-800 dark:text-neutral-200">Enable user tracking</span>
-                    <p class="text-xs text-neutral-500 dark:text-neutral-400">Captures user/subscriber identifiers passed in the URL (e.g. <code>?uid=</code>, <code>?email=</code>) following privacy best practices (raw emails are automatically pseudonymized with SHA-256). Respects Do Not Track.</p>
-                </div>
-            </label>
+            <x-ui.checkbox
+                wire:model="user_tracking_enabled"
+                name="user_tracking_enabled"
+                label="Enable user tracking"
+                description="Captures user/subscriber identifiers passed in the URL (e.g. ?uid=, ?email=) following privacy best practices (raw emails are automatically pseudonymized with SHA-256). Respects Do Not Track."
+            />
         </div>
     </details>
 

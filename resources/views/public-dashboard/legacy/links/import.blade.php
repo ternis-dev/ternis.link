@@ -5,7 +5,7 @@
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Bulk-create href.nz, meinlink.at &amp; href.yt links from pasted CSV rows.</p>
     </div>
 
-    <div class="pd-card max-w-3xl rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
+    <div class="pd-card w-full rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
         <livewire:dashboard.link-import scope="public" theme="public" />
     </div>
 </x-layouts.public-dashboard-legacy>

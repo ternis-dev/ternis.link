@@ -6,7 +6,7 @@
         backLabel="Back to Links"
     />
 
-    <div class="max-w-2xl">
+    <div class="w-full">
         <livewire:dashboard.link-form scope="personal" />
     </div>
 </x-layouts.dashboard>

@@ -39,7 +39,7 @@
                     </x-ui.select>
                 @endif
                 <label class="flex shrink-0 cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap text-neutral-500 dark:text-neutral-400" title="Also show links made with API keys hidden from the dashboard">
-                    <input type="checkbox" wire:model.live="includeHidden" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                    <x-ui.checkbox wire:model.live="includeHidden" />
                     Include hidden
                 </label>
             @endif
@@ -54,11 +54,11 @@
         <thead>
             <tr>
                 <th class="w-8">
-                    <input type="checkbox"
+                    <x-ui.checkbox
                         aria-label="Select all on this page"
                         @checked(count($selected) > 0 && count(array_intersect($selected, $pageIds)) === count($pageIds) && count($pageIds) > 0)
                         wire:change="toggleSelectAll($event.target.checked)"
-                        class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                    />
                 </th>
                 @foreach ($visibleColumns as $column)
                     @if ($column === 'slug')

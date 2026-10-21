@@ -118,13 +118,12 @@
                 </svg>
             </summary>
             <div class="space-y-4 border-t border-neutral-200/60 px-4 pt-3 pb-4 dark:border-neutral-800/60">
-                <label class="flex items-start gap-3 cursor-pointer">
-                    <input type="checkbox" wire:model="user_tracking_enabled" class="mt-1 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-800">
-                    <div class="text-sm">
-                        <span class="font-medium text-neutral-800 dark:text-neutral-200">Enable user tracking</span>
-                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Captures user/subscriber identifiers passed in the URL (e.g. <code>?uid=</code>, <code>?email=</code>) following privacy best practices (raw emails are automatically pseudonymized with SHA-256). Respects Do Not Track.</p>
-                    </div>
-                </label>
+                <x-ui.checkbox
+                    wire:model="user_tracking_enabled"
+                    name="user_tracking_enabled"
+                    label="Enable user tracking"
+                    description="Captures user/subscriber identifiers passed in the URL (e.g. ?uid=, ?email=) following privacy best practices (raw emails are automatically pseudonymized with SHA-256). Respects Do Not Track."
+                />
             </div>
         </details>
 
@@ -136,11 +135,12 @@
             hint="Leave blank for no expiry. Saving an unchanged past date is fine; new dates must be in the future."
         />
 
-        <label class="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            <input type="checkbox" wire:model="is_active" class="h-4 w-4 shrink-0 rounded accent-neutral-900 dark:accent-white">
-            Link is active
-            <span class="font-normal text-neutral-500 dark:text-neutral-500">(inactive links show the not-found page)</span>
-        </label>
+        <x-ui.checkbox
+            wire:model="is_active"
+            name="is_active"
+            label="Link is active"
+            description="Inactive links show the not-found page"
+        />
 
         <div class="flex gap-3 pt-1">
             <x-ui.button type="submit" variant="primary">Save Changes</x-ui.button>

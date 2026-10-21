@@ -6,7 +6,7 @@ $linksHref = $isLocal ? url('/links') : route('public-dashboard.links');
 $homeHref = $isLocal ? url('/dashboard') : route('public-dashboard');
 @endphp
 
-<x-layouts.app :title="$title" maxWidth="max-w-6xl">
+<x-layouts.app :title="$title" maxWidth="w-full">
     <x-slot:head>
         @vite(['resources/css/public-dashboard.css'])
     </x-slot:head>

@@ -11,7 +11,7 @@ $nav = [
 ];
 @endphp
 
-<x-layouts.app :title="$title" maxWidth="max-w-6xl">
+<x-layouts.app :title="$title" maxWidth="w-full">
     <x-slot:head>
         @vite(['resources/css/public-dashboard.css'])
     </x-slot:head>

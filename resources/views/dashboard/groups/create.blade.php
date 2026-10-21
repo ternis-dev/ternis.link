@@ -5,7 +5,7 @@
         :backLabel="isset($parent) ? 'Back to '.$parent->name : 'Back to Groups'"
     />
 
-    <x-ui.card class="max-w-xl">
+    <x-ui.card class="w-full">
         <form method="POST" action="{{ route('dashboard.groups.store') }}" class="space-y-4">
             @csrf
             @if (isset($parent))

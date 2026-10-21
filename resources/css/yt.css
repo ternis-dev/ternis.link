@@ -1675,3 +1675,22 @@ kbd {
     .yt-stats { grid-template-columns: 1fr; }
     .yt-mock-comment { flex-direction: column; }
 }
+
+
+/* Universally hide scrollbars across the entire website while preserving scrollability */
+html,
+body,
+*,
+*::before,
+*::after {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+}

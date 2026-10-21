@@ -2088,3 +2088,22 @@ html::-webkit-scrollbar, body.sk-root::-webkit-scrollbar {
     .dk { animation: none; }
     .sk-tada, .sk-oops, .sk-input-row:has(.is-valid) .sk-btn { animation: none !important; }
 }
+
+
+/* Universally hide scrollbars across the entire website while preserving scrollability */
+html,
+body,
+*,
+*::before,
+*::after {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+}

@@ -94,9 +94,9 @@
             <x-ui.input label="Publish at (optional)" name="published_at" type="datetime-local" wire:model="published_at" hint="Future dates hide the page until then. Blank = visible now." />
             <x-ui.input label="Expires at (optional)" name="expires_at" type="datetime-local" wire:model="expires_at" hint="Page stops resolving after this. Blank = never." />
             <x-ui.input label="After expiry, go to (optional)" name="gone_url" type="url" wire:model="gone_url" placeholder="https://… — redirect instead of 404" maxlength="2048" />
-            <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                <input type="checkbox" wire:model="show_stats" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Show public view counter
-            </label>
+            <div class="sm:col-span-2 pt-1">
+                <x-ui.checkbox wire:model="show_stats" label="Show public view counter" description="Displays a visitor count badge on your public bio page" />
+            </div>
             <x-ui.select label="Button style" name="button_style" wire:model="button_style">
                 <option value="filled">Filled</option>
                 <option value="outline">Outline</option>
@@ -108,11 +108,10 @@
             </x-ui.select>
             <x-ui.input label="Page password (optional)" name="page_password" type="password" wire:model="page_password" placeholder="Min. 8 characters — blank keeps current" maxlength="72" autocomplete="new-password" />
             <x-ui.input label="Password hint (optional)" name="password_hint" type="text" wire:model="password_hint" placeholder="Shown on the locked page" maxlength="120" />
-            <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                <input type="checkbox" wire:model="hide_branding" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Hide “Powered by” footer
-                <span class="font-normal text-neutral-500">(eligible plans only)</span>
-            </label>
-            <div class="flex flex-wrap items-end gap-2">
+            <div class="sm:col-span-2 pt-1">
+                <x-ui.checkbox wire:model="hide_branding" label="Hide “Powered by” footer" description="(eligible plans only)" />
+            </div>
+            <div class="flex flex-wrap items-end gap-2 sm:col-span-2 pt-2">
                 <x-ui.button type="submit" variant="primary">Save page</x-ui.button>
                 @if ($editing->password_hash)
                     <x-ui.button type="button" wire:click="removePassword" variant="ghost">Remove password</x-ui.button>
@@ -187,9 +186,9 @@
                     <x-ui.input label="Contact email" name="newContactEmail" type="email" wire:model="newContactEmail" maxlength="255" />
                     <x-ui.input label="Contact phone" name="newContactPhone" type="tel" wire:model="newContactPhone" maxlength="40" />
                 @endif
-                <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                    <input type="checkbox" wire:model="newOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Open in new tab
-                </label>
+                <div class="flex items-center pt-2">
+                    <x-ui.checkbox wire:model="newOpenNew" label="Open in new tab" />
+                </div>
                 <x-ui.input label="Badge" name="newBadge" type="text" wire:model="newBadge" placeholder="NEW" maxlength="12" />
                 <x-ui.input label="Countdown to" name="newEventAt" type="datetime-local" wire:model="newEventAt" hint="Only for countdown blocks." />
                 <x-ui.select label="Action" name="newAction" wire:model.live="newAction">
@@ -251,10 +250,10 @@
                                 <x-ui.input label="Badge" name="editBadge" type="text" wire:model="editBadge" maxlength="12" />
                                 <x-ui.input label="Show from" name="editStartsAt" type="datetime-local" wire:model="editStartsAt" />
                                 <x-ui.input label="Show until" name="editEndsAt" type="datetime-local" wire:model="editEndsAt" />
-                                <label class="flex cursor-pointer items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                                    <input type="checkbox" wire:model="editOpenNew" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white"> Open in new tab
-                                </label>
-                                <div class="flex items-end gap-2">
+                                <div class="sm:col-span-2 flex items-center pt-1">
+                                    <x-ui.checkbox wire:model="editOpenNew" label="Open in new tab" />
+                                </div>
+                                <div class="flex items-end gap-2 sm:col-span-2 pt-2">
                                     <x-ui.button type="submit" variant="primary">Save</x-ui.button>
                                     <x-ui.button type="button" wire:click="cancelEditButton">Cancel</x-ui.button>
                                 </div>
@@ -309,10 +308,10 @@
                 <div class="mt-2 space-y-2">
                     @php($importable = auth()->user()->links()->notRemoved()->with('domain:id,hostname')->orderByDesc('created_at')->limit(50)->get())
                     @forelse ($importable as $link)
-                        <label class="flex cursor-pointer items-center gap-2 text-sm">
-                            <input type="checkbox" wire:model="importLinkIds" value="{{ $link->id }}" class="h-4 w-4 rounded accent-neutral-900 dark:accent-white">
+                        <label class="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900">
+                            <x-ui.checkbox wire:model="importLinkIds" value="{{ $link->id }}" />
                             <span class="truncate">{{ $link->description ?: $link->slug }}</span>
-                            <span class="shrink-0 font-mono text-xs text-neutral-500">{{ $link->domain?->hostname }}</span>
+                            <span class="ml-auto shrink-0 font-mono text-xs text-neutral-500">{{ $link->domain?->hostname }}</span>
                         </label>
                     @empty
                         <p class="text-sm text-neutral-500">No short links yet.</p>

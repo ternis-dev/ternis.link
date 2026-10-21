@@ -1,6 +1,6 @@
 <div>
     @if ($canAdd)
-        <x-ui.card title="Add Custom Domain" class="mb-8 max-w-2xl">
+        <x-ui.card title="Add Custom Domain" class="mb-8 w-full">
             <p class="mb-5 text-sm text-neutral-500 dark:text-neutral-400">
                 Point a hostname you own at ternis.link, then verify ownership with a DNS TXT record.
                 Verified domains become available in the link creation form.
@@ -27,7 +27,7 @@
             </form>
         </x-ui.card>
     @else
-        <x-ui.alert tone="error" class="mb-8 max-w-2xl">
+        <x-ui.alert tone="error" class="mb-8 w-full">
             <strong>Custom domains are not included in your plan ({{ $planName }}).</strong><br>
             Upgrade to a plan with custom domains to register your own hostnames.
             You can still create links on the system domains below.
@@ -35,7 +35,7 @@
     @endif
 
     @if ($canClaimSubdomain)
-        <x-ui.card title="Your ternis.link Subdomain" class="mb-8 max-w-2xl">
+        <x-ui.card title="Your ternis.link Subdomain" class="mb-8 w-full">
             @if ($claimedHostname)
                 <x-ui.alert tone="success" class="mb-5">
                     <strong><code>{{ $claimedHostname }}</code> is yours!</strong><br>
