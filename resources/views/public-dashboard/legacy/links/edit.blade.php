@@ -1,6 +1,6 @@
-<x-layouts.public-dashboard-legacy title="Edit Link — my.ternis.link">
+<x-layouts.public-dashboard-legacy title="Edit Link — {{ \App\Support\PublicDashboard::label() }}">
     <div class="mb-6">
-        <a href="{{ $backHref ?? route('public-dashboard.legacy.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← {{ $backLabel ?? 'Back to Links' }}</a>
+        <a href="{{ $backHref ?? route(\App\Support\PublicDashboard::legacyRoutePrefix().'links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← {{ $backLabel ?? 'Back to Links' }}</a>
         <h2 class="mt-2 font-display text-2xl font-bold tracking-tight">Edit Short Link</h2>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Change where it points, when it expires, or switch it off.</p>
     </div>

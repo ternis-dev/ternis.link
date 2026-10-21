@@ -1,4 +1,4 @@
-<x-layouts.public-dashboard-legacy title="Dashboard — my.ternis.link">
+<x-layouts.public-dashboard-legacy title="Dashboard — {{ \App\Support\PublicDashboard::label() }}">
     <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
             <h2 class="font-display text-2xl font-bold tracking-tight">Good {{ now()->hour < 12 ? 'morning' : (now()->hour < 18 ? 'afternoon' : 'evening') }}, {{ auth()->user()->name }}.</h2>
@@ -33,15 +33,15 @@
     <div class="pd-card rounded-2xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900" data-tour="table">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h3 class="font-display text-lg font-bold tracking-tight">Recent links</h3>
-            <a href="{{ route('public-dashboard.legacy.links') }}" class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">View all →</a>
+            <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links') }}" class="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">View all →</a>
         </div>
         @if ($stats['total_links'] === 0)
             <div class="rounded-xl bg-indigo-600 p-8 text-center text-white">
                 <h4 class="font-display text-xl font-bold">Shorten your first link</h4>
                 <p class="mx-auto mt-2 max-w-md text-sm text-white/80">Paste any long URL and get an 8-character link back — or sign the details with a custom slug, tags, and expiry.</p>
                 <div class="mt-5 flex flex-wrap justify-center gap-2">
-                    <a href="{{ route('public-dashboard.legacy.new') }}" class="rounded-full bg-white px-5 py-2 text-sm font-bold text-indigo-700 transition hover:bg-indigo-50">Create a link</a>
-                    <a href="{{ route('public-dashboard.legacy.links.import') }}" class="rounded-full border border-white/40 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Import CSV</a>
+                    <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'new') }}" class="rounded-full bg-white px-5 py-2 text-sm font-bold text-indigo-700 transition hover:bg-indigo-50">Create a link</a>
+                    <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links.import') }}" class="rounded-full border border-white/40 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Import CSV</a>
                 </div>
             </div>
         @else
@@ -70,7 +70,7 @@
             <ul class="space-y-2">
                 @foreach ($expiringSoon as $expiring)
                     <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white/70 px-4 py-2.5 text-sm dark:bg-black/20">
-                        <a href="{{ route('public-dashboard.legacy.links.edit', $expiring->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($expiring->domain->hostname ?? 'href.nz').'/'.$expiring->slug }}</a>
+                        <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links.edit', $expiring->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($expiring->domain->hostname ?? 'href.nz').'/'.$expiring->slug }}</a>
                         <span class="text-xs font-semibold text-amber-700 dark:text-amber-300">expires {{ $expiring->expires_at->diffForHumans() }}</span>
                     </li>
                 @endforeach
@@ -85,7 +85,7 @@
             <ul class="space-y-2">
                 @foreach ($topLinks as $top)
                     <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-neutral-50 px-4 py-2.5 text-sm dark:bg-white/5">
-                        <a href="{{ route('public-dashboard.legacy.links.show', $top->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($top->domain->hostname ?? 'href.nz').'/'.$top->slug }}</a>
+                        <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links.show', $top->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($top->domain->hostname ?? 'href.nz').'/'.$top->slug }}</a>
                         <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">{{ number_format($top->click_count) }} clicks</span>
                     </li>
                 @endforeach
@@ -100,7 +100,7 @@
             <ul class="space-y-2">
                 @foreach ($recentClicks as $click)
                     <li class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-neutral-50 px-4 py-2.5 text-sm dark:bg-white/5">
-                        <a href="{{ route('public-dashboard.legacy.links.show', $click->link->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($click->link->domain->hostname ?? 'href.nz').'/'.$click->link->slug }}</a>
+                        <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links.show', $click->link->id) }}" class="font-bold text-indigo-700 hover:underline dark:text-indigo-300">{{ ($click->link->domain->hostname ?? 'href.nz').'/'.$click->link->slug }}</a>
                         <span class="text-xs text-neutral-500 dark:text-neutral-400">{{ $click->created_at->diffForHumans() }}@if ($click->referrer) · {{ Str::limit(parse_url($click->referrer, PHP_URL_HOST) ?? $click->referrer, 28) }}@endif</span>
                     </li>
                 @endforeach

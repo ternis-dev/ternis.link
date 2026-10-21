@@ -2,21 +2,24 @@
 
 @php
     $host = \App\Support\PublicDashboard::label();
-    $isLocal = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true);
+
+    // The route name prefix of the host being served: "public-dashboard."
+    // on my.ternis.link, "public-dashboard-alt." on the alias host. Every
+    // URL and every active-state pattern is built from it.
+    $prefix = \App\Support\PublicDashboard::routePrefix();
 
     // Route prefixes differ per host (my.ternis.link vs my.href.nz), so
     // every link is built through the helper instead of route().
     $nav = [
-        ['label' => 'Overview', 'href' => \App\Support\PublicDashboard::homeUrl(), 'match' => 'public-dashboard', 'icon' => '<path d="M3 3h7v7H3zM14 3h3v4h-3zM14 10h3v7h-3zM3 13h7v4H3z"/>'],
-        ['label' => 'Links', 'href' => \App\Support\PublicDashboard::route('links'), 'match' => 'public-dashboard.links*', 'icon' => '<path d="M10 13a5 5 0 0 0 7.54.54l2.1-2.1a5 5 0 0 0-7.07-7.07l-1.06 1.06M14 11a5 5 0 0 0-7.54-.54l-2.1 2.1a5 5 0 0 0 7.07 7.07l1.06-1.06"/>'],
-        ['label' => 'API keys', 'href' => \App\Support\PublicDashboard::route('api-keys'), 'match' => 'public-dashboard.api-keys*', 'icon' => '<circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/>'],
-        ['label' => 'Domains', 'href' => \App\Support\PublicDashboard::route('domains'), 'match' => 'public-dashboard.domains*', 'icon' => '<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-9-9h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/>'],
-        ['label' => 'Settings', 'href' => \App\Support\PublicDashboard::route('settings'), 'match' => 'public-dashboard.settings*', 'icon' => '<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>'],
+        ['label' => 'Overview', 'href' => \App\Support\PublicDashboard::homeUrl(), 'match' => [rtrim($prefix, '.')], 'icon' => '<path d="M3 3h7v7H3zM14 3h3v4h-3zM14 10h3v7h-3zM3 13h7v4H3z"/>'],
+        ['label' => 'Links', 'href' => \App\Support\PublicDashboard::route('links'), 'match' => [$prefix.'links*'], 'icon' => '<path d="M10 13a5 5 0 0 0 7.54.54l2.1-2.1a5 5 0 0 0-7.07-7.07l-1.06 1.06M14 11a5 5 0 0 0-7.54-.54l-2.1 2.1a5 5 0 0 0 7.07 7.07l1.06-1.06"/>'],
+        ['label' => 'API keys', 'href' => \App\Support\PublicDashboard::route('api-keys'), 'match' => [$prefix.'api-keys*'], 'icon' => '<circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/>'],
+        ['label' => 'Domains', 'href' => \App\Support\PublicDashboard::route('domains'), 'match' => [$prefix.'domains*'], 'icon' => '<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-9-9h18M12 3c2.5 2.6 3.9 5.7 3.9 9S14.5 18.4 12 21c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/>'],
+        ['label' => 'Settings', 'href' => \App\Support\PublicDashboard::route('settings'), 'match' => [$prefix.'settings*'], 'icon' => '<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>'],
     ];
 
-    // The route name prefix of the host being served. The alias host
-    // uses "public-dashboard-alt.", so both are matched.
-    $prefix = \App\Support\PublicDashboard::routePrefix();
+    // The per-key page belongs to the API keys section.
+    $nav[2]['match'][] = $prefix.'api-keys.show';
 @endphp
 
 <x-layouts.app :title="$title" maxWidth="w-full">
@@ -34,14 +37,15 @@
 
                 <nav aria-label="Public dashboard" data-tour="nav" class="no-scrollbar -mx-1 flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-1">
                     @foreach ($nav as $item)
+                        @php($isActive = collect($item['match'])->contains(fn ($pattern) => request()->routeIs($pattern)))
                         <a
                             href="{{ $item['href'] }}"
                             @class([
                                 'nd-pill flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors',
-                                'bg-emerald-600 text-white' => request()->routeIs($item['match']) || request()->routeIs($prefix.'api-keys.show'),
-                                'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-white' => ! (request()->routeIs($item['match']) || request()->routeIs($prefix.'api-keys.show')),
+                                'bg-emerald-600 text-white' => $isActive,
+                                'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-900 dark:hover:text-white' => ! $isActive,
                             ])
-                            @if (request()->routeIs($item['match']) || request()->routeIs($prefix.'api-keys.show')) aria-current="page" @endif
+                            @if ($isActive) aria-current="page" @endif
                         >
                             <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $item['icon'] !!}</svg>
                             <span class="hidden md:inline">{{ $item['label'] }}</span>

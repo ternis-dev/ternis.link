@@ -1,6 +1,6 @@
-<x-layouts.public-dashboard-legacy title="Import Links — my.ternis.link">
+<x-layouts.public-dashboard-legacy title="Import Links — {{ \App\Support\PublicDashboard::label() }}">
     <div class="mb-6">
-        <a href="{{ route('public-dashboard.legacy.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
+        <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
         <h2 class="mt-2 font-display text-2xl font-bold tracking-tight">Import Links</h2>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Bulk-create href.nz, meinlink.at &amp; href.yt links from pasted CSV rows.</p>
     </div>

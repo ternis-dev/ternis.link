@@ -104,6 +104,23 @@ class PublicDashboard
     }
 
     /**
+     * Route name prefix of the legacy public dashboard on the current
+     * host ("public-dashboard.legacy." / "public-dashboard-alt.legacy.").
+     */
+    public static function legacyRoutePrefix(): string
+    {
+        return self::routePrefix().'legacy.';
+    }
+
+    /**
+     * URL of the legacy public dashboard home on the current host.
+     */
+    public static function legacyHomeUrl(): string
+    {
+        return route(rtrim(self::legacyRoutePrefix(), '.'));
+    }
+
+    /**
      * True when the current request is served by the alias host.
      */
     public static function onAliasHost(): bool

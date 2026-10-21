@@ -1,6 +1,6 @@
 <x-layouts.public-dashboard-legacy title="Link Analytics — {{ $link->slug }}">
     <div class="mb-6">
-        <a href="{{ $backHref ?? route('public-dashboard.legacy.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← {{ $backLabel ?? 'Back to Links' }}</a>
+        <a href="{{ $backHref ?? route(\App\Support\PublicDashboard::legacyRoutePrefix().'links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← {{ $backLabel ?? 'Back to Links' }}</a>
         <div class="mt-2 flex flex-wrap items-center gap-3">
             <h2 class="font-display text-2xl font-bold tracking-tight">{{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}</h2>
             <span class="pd-domain-chip">{{ $link->domain->hostname ?? 'href.nz' }}</span>
@@ -19,14 +19,14 @@
             </p>
         @endif
         <div class="mt-4 flex flex-wrap gap-2">
-            <a href="{{ route('public-dashboard.legacy.links.edit', $link->id) }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Edit link</a>
+            <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links.edit', $link->id) }}" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Edit link</a>
             <button type="button" data-copy="{{ $link->short_url }}" title="Copy short link" aria-label="Copy short link {{ $link->slug }} to clipboard" class="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Copy</button>
-            <form method="POST" action="{{ route('public-dashboard.legacy.links.duplicate', $link->id) }}" class="inline">
+            <form method="POST" action="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links.duplicate', $link->id) }}" class="inline">
                 @csrf
                 <button type="submit" class="cursor-pointer rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Duplicate</button>
             </form>
             <a href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" target="_blank" class="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-semibold transition hover:border-indigo-600 hover:text-indigo-600 dark:border-neutral-700 dark:hover:border-indigo-400 dark:hover:text-indigo-300">Visit link ↗</a>
-            <a href="{{ route('public-dashboard.legacy.links.qr', $link->id) }}" class="rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-indigo-500">Download QR</a>
+            <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links.qr', $link->id) }}" class="rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-indigo-500">Download QR</a>
         </div>
     </div>
 
@@ -40,7 +40,7 @@
                 <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Scan to open <code class="rounded bg-indigo-50 px-1 py-0.5 text-xs text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-300">https://{{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}</code></p>
                 <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">PNG download, 600×600 — print-ready for flyers and stickers.</p>
                 <div class="mt-3">
-                    <a href="{{ route('public-dashboard.legacy.links.qr', $link->id) }}" class="rounded-full bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-indigo-500">Download PNG</a>
+                    <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links.qr', $link->id) }}" class="rounded-full bg-indigo-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-indigo-500">Download PNG</a>
                 </div>
             </div>
         </div>

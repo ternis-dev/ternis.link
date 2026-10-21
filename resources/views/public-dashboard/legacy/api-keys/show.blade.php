@@ -1,6 +1,6 @@
-<x-layouts.public-dashboard-legacy title="API Key Links — my.ternis.link">
+<x-layouts.public-dashboard-legacy title="API Key Links — {{ \App\Support\PublicDashboard::label() }}">
     <div class="mb-6">
-        <a href="{{ route('public-dashboard.legacy.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
+        <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
         <div class="mt-2 flex flex-wrap items-center gap-3">
             <h2 class="font-display text-2xl font-bold tracking-tight">{{ $apiKey->name }}</h2>
             <span class="pd-domain-chip">{{ $apiKey->key_prefix }}…</span>

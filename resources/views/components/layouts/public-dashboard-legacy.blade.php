@@ -3,11 +3,12 @@
 @php
 $dashHost = config('domains.dashboard_host', 'dash.ternis.link');
 $isLocal = in_array(request()->getHost(), ['localhost', '127.0.0.1', '::1', 'testserver'], true);
-$homeHref = $isLocal ? url('/dashboard') : route('public-dashboard.legacy');
+$legacyPrefix = \App\Support\PublicDashboard::legacyRoutePrefix();
+$homeHref = $isLocal ? url('/dashboard') : \App\Support\PublicDashboard::legacyHomeUrl();
 
 $nav = [
-    ['href' => $homeHref, 'match' => 'public-dashboard.legacy', 'label' => 'Overview'],
-    ['href' => $isLocal ? url('/links') : route('public-dashboard.legacy.links'), 'match' => 'public-dashboard.legacy.links*', 'label' => 'Links'],
+    ['href' => $homeHref, 'match' => rtrim($legacyPrefix, '.'), 'label' => 'Overview'],
+    ['href' => $isLocal ? url('/links') : route($legacyPrefix.'links'), 'match' => $legacyPrefix.'links*', 'label' => 'Links'],
 ];
 @endphp
 
@@ -52,7 +53,7 @@ $nav = [
                 <a href="https://{{ $dashHost }}/domains" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">Domains ↗</a>
                 <a href="https://{{ $dashHost }}/settings" class="pd-pill px-4 py-1.5 text-sm font-semibold text-white/85 hover:bg-white/15 hover:text-white">Settings ↗</a>
             </nav>
-            <form method="POST" action="{{ route('public-dashboard.legacy.switch-new') }}" class="mt-4">
+            <form method="POST" action="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'switch-new') }}" class="mt-4">
                 @csrf
                 <button type="submit" class="w-full cursor-pointer rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-indigo-200 dark:hover:bg-indigo-400/20">✨ Try the new dashboard</button>
             </form>
@@ -68,7 +69,7 @@ $nav = [
         </p>
     </div>
 
-    @unless (request()->routeIs('public-dashboard.legacy.links.create', 'public-dashboard.legacy.new'))
+    @unless (request()->routeIs(\App\Support\PublicDashboard::legacyRoutePrefix().'links.create', \App\Support\PublicDashboard::legacyRoutePrefix().'new'))
         <div class="pd">
             <x-ui.modal name="link-creator" title="New Short Link">
                 <livewire:dashboard.link-form :modal="true" scope="public" theme="public" />

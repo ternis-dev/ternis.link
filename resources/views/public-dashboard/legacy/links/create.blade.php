@@ -1,6 +1,6 @@
-<x-layouts.public-dashboard-legacy title="Create Link — my.ternis.link">
+<x-layouts.public-dashboard-legacy title="Create Link — {{ \App\Support\PublicDashboard::label() }}">
     <div class="mb-6">
-        <a href="{{ route('public-dashboard.legacy.links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
+        <a href="{{ route(\App\Support\PublicDashboard::legacyRoutePrefix().'links') }}" class="text-sm font-semibold text-indigo-600 hover:underline dark:text-indigo-300">← Back to Links</a>
         <h2 class="mt-2 font-display text-2xl font-bold tracking-tight">Create Short Link</h2>
         <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Pick a domain, set a destination — custom slugs and short lengths included for members.</p>
     </div>
