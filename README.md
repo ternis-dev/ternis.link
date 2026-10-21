@@ -8,6 +8,11 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
 
 - **Multi-Domain Routing**:
   - `href.nz` / `*.href.nz`: Public link shortener with its own landing page (`landing.public`, `public/css/landing-public.css`). Guest form + direct `/url/{url}` redirects and bare redirects.
+  - `href.yt` / `*.href.yt`: Video-first public shortener & creator link accelerator.
+  - `clicked.at` / `*.clicked.at`: Newsletter & email click-tracking branded domain.
+  - `qr.href.nz`: Dedicated QR code generator utility (redirects to the QR API host for everything else).
+  - `my.ternis.link`: Public-links dashboard — your `href.nz`, `meinlink.at` and `href.yt` links, plus API keys, domains and settings.
+  - `my.href.nz`: The same dashboard under its own brand (same app, same session, same data; only generated URLs and branding differ).
   - `meinlink.at` / `*.meinlink.at`: German-language public shortener with its own Amt-style theme (`landing-meinlink.css`, Inter grotesk + BEWILLIGT stamp). Same type/rules as `href.nz`; German form via `ShortenForm(locale=de, theme=board)`.
   - `href.re` / `*.href.re`: Reserved for official business links with its own landing page (`landing.business`, `public/css/landing-business.css`, no guest form).
   - `ternis.link` / `*.ternis.link`: Reserved for family members, relatives, and partners (generic `landing.index` fallback).
@@ -19,6 +24,12 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - `links.t-api.de`: Dedicated API domain (`/v1`, `/` → latest version).
   - `api.ternis.link`: Permanent redirect to `links.t-api.de`.
   - Frontend assets and fonts are local: single Vite bundle + `public/fonts/*.woff2` (Inter + Space Grotesk). The only deliberate third-party runtime is the Cloudflare Turnstile bot check on protected public forms.
+- **Public Dashboard (`my.ternis.link` / `my.href.nz`)**:
+  - Own app shell (sticky header, host branding, navigation) instead of the generic dashboard chrome.
+  - Serves the public link hosts only; `clicked.at`, `ternis.link`, `href.re` and custom domains stay on `dash.ternis.link`.
+  - The previous indigo UI stays available under `/_legacy` per account preference (switch either way, any time).
+  - **CORS-protected auth API** (`/auth/api/session`, `/auth/api/token`): cross-origin clients cannot read the session cookie, so they ask who the visitor is and exchange the session for a short-lived `ts_…` bearer token. Off by default — `CORS_ALLOWED_ORIGINS` lists the allowed origins, and a request from any other origin is rejected server-side (403), not just by the browser.
+- **Per-user table customization**: every dashboard table (links, activity, analytics, API keys, domains, admin tables) offers a Cloudflare-style "Visible columns" picker — toggle visibility, reorder, persisted per user in `users.table_columns`.
 - **Authentication — Ternis Auth SSO Only**:
   - **No local passwords or registration**: Authentication is delegated exclusively to Ternis Auth SSO via OAuth 2.0 / OpenID Connect with PKCE.
   - Silent SSO authentication check support (`prompt=none`).
@@ -89,6 +100,10 @@ short-link hosts (`public,business,ternis,partner`) — so `href.nz/login` and
 `ternis.link/login` redirect instead of 404ing — and 404 elsewhere (API hosts).
 Single route definitions branch on `domain_type` inside the handler (Laravel only
 matches the first route per URI, so duplicated per-host routes would shadow each other).
+The public-dashboard routes are host-pinned to *both* public dashboard hosts
+(`my.ternis.link` and `my.href.nz`); since a host-pinned route always generates
+its own domain, every public URL is built through `App\Support\PublicDashboard`,
+which picks the route prefix matching the host the visitor is on.
 Authenticated `/v1/*` is `links.t-api.de`-only, `/dashboard/*` is
 `dash/admin.ternis.link`-only, `/admin/*` is `admin.ternis.link`-only
 (`/` there redirects to the admin overview), and `/url/*` + `/go/*` + `/{slug}` are
@@ -175,6 +190,9 @@ All feature and unit tests cover:
 - Admin dashboard (`admin.ternis.link` overview, link moderation, domain moderation, user role/plan management, host pinning, self-demotion guard)
 - Redirect cache (hot-slug hits skip DB, per-domain keys, update/deactivate/expiry invalidation, no negative caching)
 - Chrome extension (`extension/` MV3: popup/menu/omnibox shorten, guest + API-key modes, QR preview; `ternis.link/pages/extension` download page + `.md` twin + `/version` JSON + `/download` zip via `extension:build`; `docs.ternis.link/extension`)
+- Column customizer (per-user toggle/reorder/reset, persistence, independent state per table)
+- Public dashboard on both hosts (identical data, host-correct URLs, no cross-host leakage) and the legacy-UI switch round trip
+- Auth API (session check, token minting with clamped TTL, revocation, expiry, live-token cap, CORS allow/deny, origin guard)
 
 > Multi-domain tests must put the host in the URL
 > (e.g. `$this->get('http://links.t-api.de/v1/links')`):

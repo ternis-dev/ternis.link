@@ -209,6 +209,56 @@ class AuthApiTest extends TestCase
         $this->getJson('http://links.t-api.de/auth/api/session')->assertNotFound();
     }
 
+    public function test_only_a_bounded_number_of_tokens_stay_live(): void
+    {
+        Config::set('privacy.session_token_max_active', 3);
+
+        for ($i = 0; $i < 6; $i++) {
+            $this->actingAs($this->user)
+                ->postJson('http://my.ternis.link/auth/api/token')
+                ->assertCreated();
+        }
+
+        $live = ApiSessionToken::whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->count();
+
+        $this->assertSame(3, $live);
+    }
+
+    public function test_dead_tokens_are_removed_when_a_new_one_is_minted(): void
+    {
+        $this->actingAs($this->user)
+            ->postJson('http://my.ternis.link/auth/api/token')
+            ->assertCreated();
+
+        // One dead row and one live row.
+        ApiSessionToken::query()->update(['expires_at' => now()->subHour()]);
+        ApiSessionToken::query()->where('id', '!=', ApiSessionToken::query()->orderByDesc('created_at')->value('id'))
+            ->delete();
+
+        $this->actingAs($this->user)
+            ->postJson('http://my.ternis.link/auth/api/token')
+            ->assertCreated();
+
+        // The dead row is gone, the live ones remain.
+        $this->assertSame(1, ApiSessionToken::whereNull('revoked_at')->where('expires_at', '>', now())->count());
+        $this->assertSame(1, ApiSessionToken::count());
+    }
+
+    public function test_expired_tokens_are_pruned_by_the_cleanup_command(): void
+    {
+        $this->actingAs($this->user)
+            ->postJson('http://my.ternis.link/auth/api/token')
+            ->assertCreated();
+
+        ApiSessionToken::query()->update(['expires_at' => now()->subDays(90)]);
+
+        $this->artisan('privacy:prune-session-tokens')->assertSuccessful();
+
+        $this->assertDatabaseCount('api_session_tokens', 0);
+    }
+
     public function test_token_issuing_is_audited(): void
     {
         $this->actingAs($this->user)

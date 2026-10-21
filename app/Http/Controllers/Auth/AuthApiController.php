@@ -89,6 +89,8 @@ class AuthApiController extends Controller
             ]
         );
 
+        $this->enforceTokenLimit($user);
+
         return response()->json([
             'token' => $raw,
             'token_type' => 'Bearer',
@@ -140,6 +142,48 @@ class AuthApiController extends Controller
         }
 
         return min($requested, self::MAX_TTL);
+    }
+
+    /**
+     * Keep the number of live session tokens per account bounded.
+     *
+     * Without a cap a script holding the session cookie could mint
+     * thousands of tokens and fill the table. The oldest ones are
+     * revoked instead — a client that still holds one of them gets a
+     * clear 401 rather than a silent surprise.
+     *
+     * Tokens of this account that are already dead (expired or
+     * revoked) are removed right away: they can never authenticate
+     * anything again, and dropping them keeps the table proportional
+     * to the number of live sessions instead of to the request rate.
+     */
+    private function enforceTokenLimit(User $user): void
+    {
+        ApiSessionToken::where('user_id', $user->id)
+            ->where(function ($query) {
+                $query->where('expires_at', '<=', now())
+                    ->orWhereNotNull('revoked_at');
+            })
+            ->delete();
+
+        $max = (int) config('privacy.session_token_max_active', 5);
+
+        if ($max <= 0) {
+            return;
+        }
+
+        $active = ApiSessionToken::where('user_id', $user->id)
+            ->whereNull('revoked_at')
+            ->where('expires_at', '>', now())
+            ->orderByDesc('created_at')
+            ->pluck('id');
+
+        if ($active->count() <= $max) {
+            return;
+        }
+
+        ApiSessionToken::whereIn('id', $active->slice($max)->all())
+            ->update(['revoked_at' => now()]);
     }
 
     /**

@@ -259,12 +259,23 @@ foreach (PublicDashboard::hosts() as $publicDashboardHost) {
         : 'public-dashboard-alt.';
 
     Route::domain($publicDashboardHost)
-        ->middleware(['ensure.domain:public-dashboard', EnsureCorsOrigin::class, 'throttle:30,1'])
+        ->middleware(['ensure.domain:public-dashboard', EnsureCorsOrigin::class])
         ->prefix('auth/api')
         ->group(function () use ($prefix) {
-            Route::get('session', [AuthApiController::class, 'session'])->name($prefix.'auth.session');
-            Route::post('token', [AuthApiController::class, 'token'])->name($prefix.'auth.token');
-            Route::delete('token', [AuthApiController::class, 'revoke'])->name($prefix.'auth.token.revoke');
+            // One throttle per route: stacking two on the same path
+            // makes them share a limiter key, which halves the budget.
+            Route::get('session', [AuthApiController::class, 'session'])
+                ->middleware('throttle:60,1')
+                ->name($prefix.'auth.session');
+
+            // Minting writes a row, so it gets a tighter budget.
+            Route::post('token', [AuthApiController::class, 'token'])
+                ->middleware('throttle:10,1')
+                ->name($prefix.'auth.token');
+
+            Route::delete('token', [AuthApiController::class, 'revoke'])
+                ->middleware('throttle:30,1')
+                ->name($prefix.'auth.token.revoke');
         });
 }
 

@@ -102,6 +102,23 @@ class PublicDashboardTest extends TestCase
         $this->assertFalse($this->user->fresh()->public_dashboard_legacy);
     }
 
+    public function test_legacy_ui_switch_is_reachable_from_the_dashboard(): void
+    {
+        // The switch has to be offered in the UI, not just reachable by
+        // posting to the route — otherwise the promise "switch either
+        // way, any time" is broken.
+        $this->actingAs($this->user)
+            ->get('http://my.ternis.link/')
+            ->assertOk()
+            ->assertSee('action="http://my.ternis.link/switch-to-legacy"', escape: false);
+
+        // Same on the alias host, pointing at the alias host.
+        $this->actingAs($this->user)
+            ->get('http://my.href.nz/')
+            ->assertOk()
+            ->assertSee('action="http://my.href.nz/switch-to-legacy"', escape: false);
+    }
+
     public function test_links_table_partitions_public_and_personal(): void
     {
         $public = $this->makeLink('href.nz', 'pub-part-1');

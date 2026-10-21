@@ -109,6 +109,13 @@
                                     <a href="{{ \App\Support\DomainUrls::dashboard('/') }}" role="menuitem" class="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white">Everything else → dash.ternis.link</a>
                                 </nav>
                                 <div class="border-t border-neutral-200 p-1.5 dark:border-neutral-800">
+                                    {{-- The previous indigo dashboard stays one click away. --}}
+                                    <form method="POST" action="{{ \App\Support\PublicDashboard::route('switch-legacy') }}">
+                                        @csrf
+                                        <button type="submit" role="menuitem" class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white">Use the previous UI</button>
+                                    </form>
+                                </div>
+                                <div class="border-t border-neutral-200 p-1.5 dark:border-neutral-800">
                                     <form method="POST" action="{{ url('/logout') }}">
                                         @csrf
                                         <button type="submit" role="menuitem" class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white">Log out</button>
