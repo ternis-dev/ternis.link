@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ScopesPublicLinks;
 use App\Models\Click;
 use App\Models\QrGeneration;
+use App\Services\LinkInsights;
 use App\Services\LinkService;
 use App\Support\LinkQrCode;
 use App\Support\PublicDashboard;
@@ -31,7 +32,15 @@ class PublicDashboardController extends Controller
 {
     use ScopesPublicLinks;
 
-    protected string $views = 'public-dashboard';
+    /**
+     * View namespace of the dashboard on the host being served —
+     * "public-dashboard" on my.ternis.link, "hnz-dashboard" on the
+     * my.href.nz alias host, which has its own design system.
+     */
+    protected function viewNamespace(): string
+    {
+        return PublicDashboard::viewNamespace();
+    }
 
     /**
      * Route name prefix of the public dashboard on the current host:
@@ -49,11 +58,13 @@ class PublicDashboardController extends Controller
      */
     public function index(Request $request)
     {
-        if ($request->user()->public_dashboard_legacy) {
+        // The legacy indigo UI only exists on the canonical host; the
+        // my.href.nz alias host has its own design instead.
+        if ($request->user()->public_dashboard_legacy && PublicDashboard::hasLegacyUi()) {
             return redirect()->route($this->routePrefix().'legacy');
         }
 
-        return view($this->views.'.index', $this->overview($request->user()));
+        return view($this->viewNamespace().'.index', $this->overview($request->user()));
     }
 
     /**
@@ -124,7 +135,7 @@ class PublicDashboardController extends Controller
      */
     public function links()
     {
-        return view($this->views.'.links.index');
+        return view($this->viewNamespace().'.links.index');
     }
 
     /**
@@ -136,7 +147,7 @@ class PublicDashboardController extends Controller
      */
     public function apiKeys()
     {
-        return view($this->views.'.api-keys.index');
+        return view($this->viewNamespace().'.api-keys.index');
     }
 
     /**
@@ -144,7 +155,7 @@ class PublicDashboardController extends Controller
      */
     public function domains()
     {
-        return view($this->views.'.domains.index');
+        return view($this->viewNamespace().'.domains.index');
     }
 
     /**
@@ -152,7 +163,29 @@ class PublicDashboardController extends Controller
      */
     public function settings()
     {
-        return view($this->views.'.settings.index');
+        return view($this->viewNamespace().'.settings.index');
+    }
+
+    /**
+     * Insights: when people click, where they come from and what is
+     * about to expire.
+     */
+    public function insights(Request $request, LinkInsights $insights)
+    {
+        $links = $this->publicLinksQuery($request->user());
+        $days = (int) $request->query('days', 90);
+        $days = in_array($days, [30, 90, 180, 365], true) ? $days : 90;
+
+        return view($this->viewNamespace().'.insights.index', [
+            'days' => $days,
+            'heatmap' => $insights->clickHeatmap($links, $days),
+            'bestTimes' => $insights->bestTimes($links, $days),
+            'hourlyProfile' => $insights->hourlyProfile($links, $days),
+            'expiryCalendar' => $insights->expiryCalendar($links),
+            'topReferrers' => $insights->topReferrers($links, $days),
+            'topCountries' => $insights->topCountries($links, $days),
+            'totalClicks' => (int) $links->clone()->sum('links.click_count'),
+        ]);
     }
 
     /**
@@ -168,7 +201,7 @@ class PublicDashboardController extends Controller
             ->orderByDesc('created_at')
             ->paginate(20);
 
-        return view($this->views.'.notifications.index', compact('notifications'));
+        return view($this->viewNamespace().'.notifications.index', compact('notifications'));
     }
 
     public function markAllNotificationsRead(Request $request)
@@ -196,7 +229,7 @@ class PublicDashboardController extends Controller
      */
     public function createLink()
     {
-        return view($this->views.'.links.create');
+        return view($this->viewNamespace().'.links.create');
     }
 
     /**
@@ -204,7 +237,7 @@ class PublicDashboardController extends Controller
      */
     public function importLinks()
     {
-        return view($this->views.'.links.import');
+        return view($this->viewNamespace().'.links.import');
     }
 
     /**
@@ -223,7 +256,7 @@ class PublicDashboardController extends Controller
             'total_clicks' => (clone $links)->sum('links.click_count'),
         ];
 
-        return view($this->views.'.api-keys.show', compact('apiKey', 'stats'));
+        return view($this->viewNamespace().'.api-keys.show', compact('apiKey', 'stats'));
     }
 
     /**
@@ -241,7 +274,7 @@ class PublicDashboardController extends Controller
         $qrSvg = LinkQrCode::svgDataUri($link);
         ['backHref' => $backHref, 'backLabel' => $backLabel] = $this->linkBackContext($request);
 
-        return view($this->views.'.links.show', compact('link', 'qrSvg', 'backHref', 'backLabel'));
+        return view($this->viewNamespace().'.links.show', compact('link', 'qrSvg', 'backHref', 'backLabel'));
     }
 
     /**
@@ -255,7 +288,7 @@ class PublicDashboardController extends Controller
 
         ['backHref' => $backHref, 'backLabel' => $backLabel] = $this->linkBackContext($request);
 
-        return view($this->views.'.links.edit', compact('link', 'backHref', 'backLabel'));
+        return view($this->viewNamespace().'.links.edit', compact('link', 'backHref', 'backLabel'));
     }
 
     /**

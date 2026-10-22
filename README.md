@@ -12,7 +12,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - `clicked.at` / `*.clicked.at`: Newsletter & email click-tracking branded domain.
   - `qr.href.nz`: Dedicated QR code generator utility (redirects to the QR API host for everything else).
   - `my.ternis.link`: Public-links dashboard — your `href.nz`, `meinlink.at` and `href.yt` links, plus API keys, domains, settings, link groups and notifications.
-  - `my.href.nz`: The same dashboard under its own brand (same app, same session, same data; only generated URLs and branding differ).
+  - `my.href.nz`: The public dashboard under its own brand AND its own design system — a violet-to-blue "elevated" theme with a persistent sidebar, its own component set (`x-hnz.*`) and its own stylesheet. Same app, same session, same data; only the frontend differs.
   - `meinlink.at` / `*.meinlink.at`: German-language public shortener with its own Amt-style theme (`landing-meinlink.css`, Inter grotesk + BEWILLIGT stamp). Same type/rules as `href.nz`; German form via `ShortenForm(locale=de, theme=board)`.
   - `href.re` / `*.href.re`: Reserved for official business links with its own landing page (`landing.business`, `public/css/landing-business.css`, no guest form).
   - `ternis.link` / `*.ternis.link`: Reserved for family members, relatives, and partners (generic `landing.index` fallback).
@@ -29,6 +29,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - Serves the public link hosts only; `clicked.at`, `ternis.link`, `href.re` and custom domains stay on `dash.ternis.link`.
   - The previous indigo UI stays available under `/_legacy` per account preference (switch either way, any time).
   - **CORS-protected auth API** (`/auth/api/session`, `/auth/api/token`): cross-origin clients cannot read the session cookie, so they ask who the visitor is and exchange the session for a short-lived `ts_…` bearer token. Off by default — `CORS_ALLOWED_ORIGINS` lists the allowed origins, and a request from any other origin is rejected server-side (403), not just by the browser.
+- **Insights**: a 7×24 weekday/hour heatmap of the clicks, the busiest slots, an expiry calendar for the next 60 days, and the top referrers and countries — computed in SQL, not by loading clicks into PHP.
 - **Per-user table customization**: every dashboard table (links, activity, analytics, API keys, domains, admin tables) offers a Cloudflare-style "Visible columns" picker — toggle visibility, reorder, persisted per user in `users.table_columns`.
 - **Authentication — Ternis Auth SSO Only**:
   - **No local passwords or registration**: Authentication is delegated exclusively to Ternis Auth SSO via OAuth 2.0 / OpenID Connect with PKCE.

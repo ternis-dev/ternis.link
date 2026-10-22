@@ -21,7 +21,7 @@ class PublicGroupController extends Controller
 
     protected function groupViews(): string
     {
-        return 'public-dashboard.groups';
+        return PublicDashboard::viewNamespace().'.groups';
     }
 
     protected function groupRoutePrefix(): string

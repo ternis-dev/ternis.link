@@ -192,6 +192,7 @@ $publicDashboardRoutes = function (string $prefix): void {
 
     // Link groups — the public dashboard groups its own shortener
     // links; the groups themselves are the same as on dash.
+    Route::get('/insights', [PublicDashboardController::class, 'insights'])->name($prefix.'insights');
     Route::get('/groups', [PublicGroupController::class, 'groups'])->name($prefix.'groups');
     Route::get('/groups/create', [PublicGroupController::class, 'createGroup'])->name($prefix.'groups.create');
     Route::post('/groups', [PublicGroupController::class, 'storeGroup'])->name($prefix.'groups.store');

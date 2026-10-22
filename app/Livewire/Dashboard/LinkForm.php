@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Models\ActivityLog;
 use App\Models\Domain;
+use App\Models\Link;
 use App\Services\LinkService;
 use App\Support\Activity;
 use App\Support\DomainUrls;
@@ -63,6 +64,12 @@ class LinkForm extends Component
     public string $destination_url = '';
 
     public ?string $slug = null;
+
+    /**
+     * Result of the last availability check for the custom slug:
+     * 'free', 'taken', 'invalid', 'too_short' or null (not checked).
+     */
+    public ?string $slugStatus = null;
 
     public ?string $domain_id = null;
 
@@ -319,6 +326,42 @@ class LinkForm extends Component
         $this->tags = null;
         $this->user_tracking_enabled = false;
         $this->expires_at = null;
+    }
+
+    /**
+     * Check whether the custom slug is still available on the selected
+     * domain. Explicit (a button) rather than per keystroke — the
+     * check is a database query.
+     */
+    public function checkSlugAvailability(): void
+    {
+        $slug = trim((string) $this->slug);
+
+        if ($slug === '') {
+            $this->slugStatus = null;
+
+            return;
+        }
+
+        if (! preg_match('/^[A-Za-z0-9_-]+$/', $slug)) {
+            $this->slugStatus = 'invalid';
+
+            return;
+        }
+
+        $minLength = auth()->user()?->plan?->min_slug_length ?? LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH;
+
+        if (strlen($slug) < $minLength) {
+            $this->slugStatus = 'too_short';
+
+            return;
+        }
+
+        $taken = Link::where('domain_id', $this->domain_id)
+            ->where('slug', $slug)
+            ->exists();
+
+        $this->slugStatus = $taken ? 'taken' : 'free';
     }
 
     public function render()

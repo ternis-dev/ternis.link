@@ -29,6 +29,12 @@ class LegacyPublicDashboardController extends PublicDashboardController
      */
     public function index(Request $request)
     {
+        // The my.href.nz alias host has its own design — the previous
+        // indigo UI is not offered there.
+        if (! PublicDashboard::hasLegacyUi()) {
+            return redirect()->route(rtrim(PublicDashboard::routePrefix(), '.'));
+        }
+
         return view($this->views.'.index', $this->overview($request->user()));
     }
 

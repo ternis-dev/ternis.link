@@ -1,0 +1,367 @@
+@import 'tailwindcss';
+
+/* ==========================================================
+ * my.href.nz — the "elevated" dashboard theme.
+ *
+ * A deliberately different design language from my.ternis.link:
+ *
+ *   my.ternis.link   flat emerald, pill buttons, no shadows, top bar
+ *   my.href.nz       violet-to-blue accent, rounded-xl buttons, soft
+ *                    shadows, persistent sidebar
+ *
+ * Everything is scoped under `.hnz` (rendered by
+ * x-layouts.hnz-dashboard), so the other dashboards — and the shared
+ * Livewire components they use — are untouched. The shared components
+ * emit neutral markup; the rules below re-skin it here.
+ * ========================================================== */
+
+/* ---------- Page canvas ---------- */
+
+body:has(.hnz-root) {
+    background-color: #f7f7fb;
+    background-image:
+        radial-gradient(60rem 30rem at 85% -10%, rgba(124, 58, 237, 0.07), transparent 60%),
+        radial-gradient(50rem 26rem at 5% 0%, rgba(59, 130, 246, 0.06), transparent 55%);
+    background-attachment: fixed;
+}
+
+.dark body:has(.hnz-root) {
+    background-color: #0a0a12;
+    background-image:
+        radial-gradient(60rem 30rem at 85% -10%, rgba(124, 58, 237, 0.14), transparent 60%),
+        radial-gradient(50rem 26rem at 5% 0%, rgba(59, 130, 246, 0.1), transparent 55%);
+}
+
+/* ---------- Sidebar ---------- */
+
+.hnz-sidebar {
+    box-shadow: 1px 0 0 rgba(15, 23, 42, 0.04);
+}
+
+.dark .hnz-sidebar {
+    box-shadow: 1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+.hnz-nav-link {
+    position: relative;
+}
+
+.hnz-nav-link:not([aria-current='page']):hover svg {
+    color: #7c3aed;
+}
+
+.dark .hnz-nav-link:not([aria-current='page']):hover svg {
+    color: #a78bfa;
+}
+
+/* ---------- Chips ---------- */
+
+.hnz-chip {
+    background-color: #ede9fe;
+    color: #5b21b6;
+    box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.14);
+}
+
+.dark .hnz-chip {
+    background-color: rgba(139, 92, 246, 0.16);
+    color: #ddd6fe;
+    box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.2);
+}
+
+/* ---------- Badges ---------- */
+
+.hnz-badge {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.dark .hnz-badge {
+    background-color: rgba(255, 255, 255, 0.07);
+    color: #cbd5e1;
+}
+
+.hnz-badge[data-tone='success'] {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.dark .hnz-badge[data-tone='success'] {
+    background-color: rgba(52, 211, 153, 0.16);
+    color: #6ee7b7;
+}
+
+.hnz-badge[data-tone='danger'] {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.dark .hnz-badge[data-tone='danger'] {
+    background-color: rgba(248, 113, 113, 0.16);
+    color: #fca5a5;
+}
+
+.hnz-badge[data-tone='warning'] {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.dark .hnz-badge[data-tone='warning'] {
+    background-color: rgba(251, 191, 36, 0.16);
+    color: #fcd34d;
+}
+
+/* ---------- Alerts ---------- */
+
+.hnz-alert {
+    background-color: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e3a8a;
+}
+
+.dark .hnz-alert {
+    background-color: rgba(59, 130, 246, 0.12);
+    border-color: rgba(96, 165, 250, 0.25);
+    color: #bfdbfe;
+}
+
+.hnz-alert[data-tone='error'] {
+    background-color: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.dark .hnz-alert[data-tone='error'] {
+    background-color: rgba(248, 113, 113, 0.12);
+    border-color: rgba(248, 113, 113, 0.25);
+    color: #fecaca;
+}
+
+.hnz-alert[data-tone='success'] {
+    background-color: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+}
+
+.dark .hnz-alert[data-tone='success'] {
+    background-color: rgba(52, 211, 153, 0.12);
+    border-color: rgba(52, 211, 153, 0.25);
+    color: #a7f3d0;
+}
+
+.hnz-alert[data-tone='warning'] {
+    background-color: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+.dark .hnnz-alert[data-tone='warning'],
+.dark .hnz-alert[data-tone='warning'] {
+    background-color: rgba(251, 191, 36, 0.12);
+    border-color: rgba(251, 191, 36, 0.25);
+    color: #fde68a;
+}
+
+/* ---------- Cards, tables and other neutral surfaces ---------- */
+
+.hnz .ui-table thead th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.dark .hnz .ui-table thead th {
+    color: #94a3b8;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.hnz .ui-table tbody td {
+    border-top: 1px solid #f1f5f9;
+}
+
+.dark .hnz .ui-table tbody td {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.hnz .ui-table tbody tr:hover td {
+    background-color: #faf5ff;
+}
+
+.dark .hnz .ui-table tbody tr:hover td {
+    background-color: rgba(139, 92, 246, 0.07);
+}
+
+.hnz .ui-table tbody a {
+    color: #6d28d9;
+}
+
+.dark .hnz .ui-table tbody a {
+    color: #c4b5fd;
+}
+
+.hnz .ui-table code {
+    background-color: #f5f3ff;
+    color: #5b21b6;
+    border-radius: 0.375rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.dark .hnz .ui-table code {
+    background-color: rgba(139, 92, 246, 0.16);
+    color: #ddd6fe;
+}
+
+.hnz .hnz-table thead th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.dark .hnz .hnz-table thead th {
+    color: #94a3b8;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.hnz .hnz-table tbody td {
+    border-top: 1px solid #f1f5f9;
+}
+
+.dark .hnz .hnz-table tbody td {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.hnz .hnz-table tbody tr:hover td {
+    background-color: #faf5ff;
+}
+
+.dark .hnz .hnz-table tbody tr:hover td {
+    background-color: rgba(139, 92, 246, 0.07);
+}
+
+/* ---------- Forms ---------- */
+
+.hnz input:not([type='checkbox']):not([type='radio']):not([type='submit']):not([type='color']),
+.hnz select,
+.hnz textarea {
+    border-radius: 0.75rem;
+    border-color: #e2e8f0;
+    background-color: #fff;
+}
+
+.dark .hnz input:not([type='checkbox']):not([type='radio']):not([type='submit']):not([type='color']),
+.dark .hnz select,
+.dark .hnz textarea {
+    border-color: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.hnz input:not([type='checkbox']):not([type='radio']):not([type='submit']):not([type='color']):focus,
+.hnz select:focus,
+.hnz textarea:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.14);
+    outline: none;
+}
+
+.hnz input[type='checkbox'],
+.hnz input[type='radio'] {
+    accent-color: #7c3aed;
+}
+
+.hnz details {
+    border-radius: 1rem;
+    border-color: #e2e8f0;
+}
+
+.dark .hnz details {
+    border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* ---------- Buttons rendered by the shared components ---------- */
+
+.hnz a[class*='bg-neutral-900'],
+.hnz button[class*='bg-neutral-900'] {
+    background-image: linear-gradient(135deg, #7c3aed, #2563eb);
+    background-color: #7c3aed;
+    border-color: transparent;
+    color: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba(124, 58, 237, 0.25);
+}
+
+.hnz a[class*='bg-neutral-900']:hover,
+.hnz button[class*='bg-neutral-900']:hover {
+    background-image: linear-gradient(135deg, #6d28d9, #1d4ed8);
+    background-color: #6d28d9;
+}
+
+.hnz a[class*='border-neutral-300'],
+.hnz button[class*='border-neutral-300'] {
+    border-color: #e2e8f0;
+    border-radius: 0.75rem;
+}
+
+.hnz a[class*='border-neutral-300']:hover,
+.hnz button[class*='border-neutral-300']:hover {
+    border-color: #a78bfa;
+    color: #6d28d9;
+}
+
+.dark .hnz a[class*='border-neutral-300']:hover,
+.dark .hnz button[class*='border-neutral-300']:hover {
+    color: #c4b5fd;
+}
+
+/* ---------- Status dots & analytics ---------- */
+
+.hnz span[class*='rounded-full'][class*='bg-neutral-900'] {
+    background-color: #7c3aed;
+}
+
+.hnz div[role='progressbar'] > div {
+    background-image: linear-gradient(90deg, #7c3aed, #2563eb);
+    background-color: #7c3aed;
+}
+
+.hnz nav[aria-label='Pagination'] [aria-current='page'] {
+    background-image: linear-gradient(135deg, #7c3aed, #2563eb);
+    background-color: #7c3aed;
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(124, 58, 237, 0.25);
+}
+
+.hnz nav[aria-label='Pagination'] button:hover {
+    border-color: #a78bfa;
+    color: #6d28d9;
+}
+
+/* ---------- Modal ---------- */
+
+.hnz div[role='dialog'] {
+    border-radius: 1.25rem;
+    border-color: #e2e8f0;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+}
+
+.dark .hnz div[role='dialog'] {
+    border-color: rgba(255, 255, 255, 0.1);
+    background-color: #111827;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- Column customizer ---------- */
+
+.hnz div[aria-label='Customize columns'] {
+    border-radius: 0.75rem;
+}

@@ -114,11 +114,12 @@ class PublicDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('action="http://my.ternis.link/switch-to-legacy"', escape: false);
 
-        // Same on the alias host, pointing at the alias host.
+        // The my.href.nz host has its own design instead of the
+        // previous indigo dashboard, so it offers no switch.
         $this->actingAs($this->user)
             ->get('http://my.href.nz/')
             ->assertOk()
-            ->assertSee('action="http://my.href.nz/switch-to-legacy"', escape: false);
+            ->assertDontSee('action="http://my.href.nz/switch-to-legacy"', escape: false);
     }
 
     public function test_links_table_partitions_public_and_personal(): void

@@ -63,14 +63,50 @@
         @endforeach
     </x-ui.select>
 
-    <x-ui.input
-        label="Custom Slug (optional)"
-        name="slug"
-        type="text"
-        wire:model="slug"
-        placeholder="Leave blank for automatic generation"
-        hint="Alphanumeric characters, dashes, and underscores only. Min length: {{ auth()->user()->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH }} chars."
-    />
+    <div>
+        <x-ui.input
+            label="Custom Slug (optional)"
+            name="slug"
+            type="text"
+            wire:model="slug"
+            placeholder="Leave blank for automatic generation"
+            hint="Alphanumeric characters, dashes, and underscores only. Min length: {{ auth()->user()->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH }} chars."
+        />
+
+        <div class="mt-2 flex flex-wrap items-center gap-2">
+            <button
+                type="button"
+                wire:click="checkSlugAvailability"
+                wire:loading.attr="disabled"
+                wire:target="checkSlugAvailability"
+                class="cursor-pointer rounded-lg border border-neutral-300 px-2.5 py-1 text-xs font-semibold text-neutral-600 transition hover:border-violet-400 hover:text-violet-700 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-violet-300"
+            >Check availability</button>
+
+            @if ($slugStatus)
+                <span @class([
+                    'text-xs font-semibold',
+                    'text-emerald-600 dark:text-emerald-400' => $slugStatus === 'free',
+                    'text-red-600 dark:text-red-400' => in_array($slugStatus, ['taken', 'invalid'], true),
+                    'text-amber-600 dark:text-amber-400' => $slugStatus === 'too_short',
+                ])>
+                    @switch($slugStatus)
+                        @case('free')
+                            ✓ This slug is free on the selected domain.
+                            @break
+                        @case('taken')
+                            ✕ This slug is already taken on the selected domain.
+                            @break
+                        @case('invalid')
+                            ✕ Only letters, numbers, dashes and underscores are allowed.
+                            @break
+                        @case('too_short')
+                            ⚠ Too short for your plan — {{ auth()->user()->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH }} characters minimum.
+                            @break
+                    @endswitch
+                </span>
+            @endif
+        </div>
+    </div>
 
     @if ($canChooseSlugLength)
         <x-ui.input

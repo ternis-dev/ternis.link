@@ -68,6 +68,27 @@ class PublicDashboard
     }
 
     /**
+     * View namespace of the dashboard for the host being served.
+     *
+     * my.ternis.link uses "public-dashboard" (flat emerald), the
+     * my.href.nz alias host uses "hnz-dashboard" (its own violet-blue
+     * design system with a sidebar).
+     */
+    public static function viewNamespace(): string
+    {
+        return self::currentHost() === self::aliasHost() ? 'hnz-dashboard' : 'public-dashboard';
+    }
+
+    /**
+     * True when the host still offers the previous indigo dashboard.
+     * The my.href.nz host has its own design instead.
+     */
+    public static function hasLegacyUi(): bool
+    {
+        return self::currentHost() !== self::aliasHost();
+    }
+
+    /**
      * Route name prefix for the current host. The canonical host keeps
      * the historical "public-dashboard." names; the alias host uses
      * "public-dashboard-alt.".
