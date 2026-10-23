@@ -166,7 +166,7 @@
                                         @break
 
                                     @case('user_agent')
-                                        <td class="max-w-[200px] truncate text-xs text-neutral-500">
+                                        <td class="{{ (auth()->check() && auth()->user()->isAdmin()) ? 'max-w-none break-all font-mono text-xs text-neutral-700 dark:text-neutral-300 select-all' : 'max-w-[200px] truncate text-xs text-neutral-500' }}" title="{{ $click->user_agent ?? 'Unknown' }}">
                                             {{ $click->user_agent ?? 'Unknown' }}
                                         </td>
                                         @break

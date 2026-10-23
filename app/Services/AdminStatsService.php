@@ -522,6 +522,11 @@ class AdminStatsService
 
         $domains = Domain::orderBy('hostname')->get(['id', 'hostname']);
 
+        $recentClicks = (clone $query)->with(['link.domain', 'link.user'])
+            ->orderByDesc('created_at')
+            ->limit(25)
+            ->get();
+
         return [
             'days' => $days,
             'filters' => $params,
@@ -537,6 +542,7 @@ class AdminStatsService
             'by_referer' => $byReferer,
             'by_country' => $byCountry,
             'domains' => $domains,
+            'recent_clicks' => $recentClicks,
         ];
     }
 
@@ -616,6 +622,51 @@ class AdminStatsService
             'domain_ratios' => $domainRatios,
             'top_links' => $topLinks,
             'domains' => $domains,
+        ];
+    }
+
+    /**
+     * System-wide insights: 7x24 heatmap, peak hours, hourly profile,
+     * expiry calendar across all links, and geo/referrer telemetry.
+     */
+    public function getInsightsStats(array $params = []): array
+    {
+        $days = (int) ($params['days'] ?? 90);
+        $days = in_array($days, [7, 14, 30, 90], true) ? $days : 90;
+
+        $links = Link::notRemoved();
+        $insights = app(LinkInsights::class);
+
+        $heatmap = $insights->clickHeatmap($links, $days);
+        $bestTimes = $insights->bestTimes($links, $days);
+        $hourlyProfile = $insights->hourlyProfile($links, $days);
+        $expiryCalendar = $insights->expiryCalendar($links, 60);
+        $topReferrers = $insights->topReferrers($links, $days, 10);
+        $topCountries = $insights->topCountries($links, $days, 10);
+
+        $cutoff = now()->subDays($days)->startOfDay();
+        $totalClicksInWindow = Click::where('created_at', '>=', $cutoff)
+            ->where('is_direct_url', false)
+            ->count();
+
+        $topLinks = (clone $links)->with(['domain', 'user:id,name,email'])
+            ->orderByDesc('click_count')
+            ->limit(12)
+            ->get();
+
+        return [
+            'days' => $days,
+            'filters' => $params,
+            'heatmap' => $heatmap,
+            'best_times' => $bestTimes,
+            'hourly_profile' => $hourlyProfile,
+            'expiry_calendar' => $expiryCalendar,
+            'top_referrers' => $topReferrers,
+            'top_countries' => $topCountries,
+            'top_links' => $topLinks,
+            'total_clicks_in_window' => $totalClicksInWindow,
+            'total_links' => Link::count(),
+            'active_links' => Link::where('is_active', true)->where('is_removed', false)->count(),
         ];
     }
 }

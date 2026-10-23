@@ -69,6 +69,7 @@ class ActivityLogTable extends Component
             'subject' => 'Subject',
             'actor' => 'Actor',
             'owner' => 'Owner',
+            'user_agent' => 'User Agent',
         ];
     }
 

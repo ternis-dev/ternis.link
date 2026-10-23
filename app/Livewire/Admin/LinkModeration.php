@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
+use App\Models\Domain;
 use App\Models\Link;
 use App\Models\LinkTombstone;
 use App\Support\Activity;
@@ -22,9 +23,15 @@ class LinkModeration extends Component
 
     public string $status = 'all';
 
+    public string $domainFilter = '';
+
+    public string $clicksFilter = 'all';
+
     public string $sortBy = 'created_at';
 
     public string $sortDir = 'desc';
+
+    public string $sortOption = 'newest';
 
     public function updatingSearch(): void
     {
@@ -36,6 +43,42 @@ class LinkModeration extends Component
         $this->resetPage();
     }
 
+    public function updatingDomainFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingClicksFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSortOption(string $val): void
+    {
+        match ($val) {
+            'most_clicks' => [$this->sortBy, $this->sortDir] = ['click_count', 'desc'],
+            'least_clicks' => [$this->sortBy, $this->sortDir] = ['click_count', 'asc'],
+            'newest' => [$this->sortBy, $this->sortDir] = ['created_at', 'desc'],
+            'oldest' => [$this->sortBy, $this->sortDir] = ['created_at', 'asc'],
+            'slug_asc' => [$this->sortBy, $this->sortDir] = ['slug', 'asc'],
+            'slug_desc' => [$this->sortBy, $this->sortDir] = ['slug', 'desc'],
+            default => null,
+        };
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->status = 'all';
+        $this->domainFilter = '';
+        $this->clicksFilter = 'all';
+        $this->sortOption = 'newest';
+        $this->sortBy = 'created_at';
+        $this->sortDir = 'desc';
+        $this->resetPage();
+    }
+
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
@@ -43,6 +86,14 @@ class LinkModeration extends Component
         } else {
             $this->sortBy = $column;
             $this->sortDir = 'desc';
+        }
+
+        if ($this->sortBy === 'click_count') {
+            $this->sortOption = $this->sortDir === 'desc' ? 'most_clicks' : 'least_clicks';
+        } elseif ($this->sortBy === 'created_at') {
+            $this->sortOption = $this->sortDir === 'desc' ? 'newest' : 'oldest';
+        } elseif ($this->sortBy === 'slug') {
+            $this->sortOption = $this->sortDir === 'asc' ? 'slug_asc' : 'slug_desc';
         }
     }
 
@@ -194,18 +245,25 @@ class LinkModeration extends Component
                     $q->where('slug', 'like', "%{$this->search}%")
                         ->orWhere('destination_url', 'like', "%{$this->search}%")
                         ->orWhere('description', 'like', "%{$this->search}%")
-                        ->orWhere('tags', 'like', "%{$this->search}%");
+                        ->orWhere('tags', 'like', "%{$this->search}%")
+                        ->orWhereHas('user', fn ($u) => $u->where('email', 'like', "%{$this->search}%")->orWhere('name', 'like', "%{$this->search}%"));
                 });
             })
             ->when($this->status === 'active', fn ($q) => $q->where('is_active', true)->where(fn ($s) => $s->whereNull('expires_at')->orWhere('expires_at', '>', now())))
             ->when($this->status === 'disabled', fn ($q) => $q->where('is_active', false)->where('is_removed', false))
             ->when($this->status === 'removed', fn ($q) => $q->where('is_removed', true))
             ->when($this->status === 'expired', fn ($q) => $q->whereNotNull('expires_at')->where('expires_at', '<=', now()))
+            ->when($this->domainFilter !== '', fn ($q) => $q->whereHas('domain', fn ($d) => $d->where('hostname', $this->domainFilter)))
+            ->when($this->clicksFilter === 'has_clicks', fn ($q) => $q->where('click_count', '>', 0))
+            ->when($this->clicksFilter === '100_plus', fn ($q) => $q->where('click_count', '>=', 100))
+            ->when($this->clicksFilter === '10_plus', fn ($q) => $q->where('click_count', '>=', 10))
+            ->when($this->clicksFilter === 'zero', fn ($q) => $q->where('click_count', 0))
             ->orderBy($this->sortBy, $this->sortDir)
             ->paginate(20);
 
         return view('livewire.admin.link-moderation', [
             'links' => $links,
+            'domains' => Domain::orderBy('hostname')->pluck('hostname')->all(),
             'visibleColumns' => $visible = $this->visibleColumns(),
             'columnCount' => count($visible) + 1, // + fixed Actions column
         ]);

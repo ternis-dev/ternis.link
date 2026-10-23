@@ -100,12 +100,13 @@
         </div>
     </div>
 
-    {{-- Daily Clicks Timeline Chart --}}
+    {{-- Daily Clicks Timeline Graph --}}
     <div class="mb-8">
         @include('admin.stats._timeline-chart', [
             'timeline' => $stats['timeline'],
             'title' => 'Clicks Received Per Day',
             'color' => 'amber',
+            'unit' => 'click',
         ])
     </div>
 
@@ -171,4 +172,49 @@
             </div>
         </x-ui.card>
     </div>
+
+    {{-- Recent Clicks Stream with Fully Visible User-Agents for Admins --}}
+    @if (!empty($stats['recent_clicks']) && count($stats['recent_clicks']) > 0)
+        <x-ui.card title="Recent Click Stream &amp; Full User-Agent Telemetry">
+            <p class="mb-4 text-xs text-neutral-500 dark:text-neutral-400">Live click telemetry stream. User-agent strings are shown completely without truncation for full diagnostic inspection.</p>
+            <x-ui.table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Link / Domain</th>
+                        <th>Referrer</th>
+                        <th>Country</th>
+                        <th>IP Hash</th>
+                        <th>User Agent (Fully Visible)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($stats['recent_clicks'] as $click)
+                        <tr>
+                            <td class="whitespace-nowrap text-xs text-neutral-500">{{ $click->created_at->format('M d, H:i:s') }}</td>
+                            <td class="font-mono text-xs font-semibold">
+                                @if ($click->link)
+                                    <a href="{{ route('admin.links', ['search' => $click->link->slug]) }}" class="hover:underline">
+                                        {{ $click->link->domain?->hostname }}/{{ $click->link->slug }}
+                                    </a>
+                                @else
+                                    <span class="text-neutral-400">Direct hit</span>
+                                @endif
+                            </td>
+                            <td class="max-w-[160px] truncate text-xs text-neutral-500" title="{{ $click->referrer ?? 'Direct' }}">
+                                {{ $click->referrer ?? 'Direct' }}
+                            </td>
+                            <td class="font-mono text-xs">{{ $click->country_code ?: '—' }}</td>
+                            <td class="font-mono text-[11px] text-neutral-400">
+                                {{ substr($click->ip_hash ?? '', 0, 10) }}…
+                            </td>
+                            <td class="font-mono text-xs break-all text-neutral-700 dark:text-neutral-300 select-all max-w-lg">
+                                {{ $click->user_agent ?: 'Unknown' }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </x-ui.table>
+        </x-ui.card>
+    @endif
 </x-layouts.admin>

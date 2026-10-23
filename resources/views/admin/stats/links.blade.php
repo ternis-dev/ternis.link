@@ -101,6 +101,7 @@
             'timeline' => $stats['timeline'],
             'title' => 'Links Created Per Day',
             'color' => 'blue',
+            'unit' => 'link',
         ])
     </div>
 

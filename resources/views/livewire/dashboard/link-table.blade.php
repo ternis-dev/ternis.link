@@ -1,17 +1,58 @@
 @php
     $rp = \App\Support\PublicDashboard::routePrefixFor($theme ?? 'dashboard');
+    $hasActiveFilters = $search !== '' || $tag !== '' || ($domainFilter ?? '') !== '' || ($statusFilter ?? 'all') !== 'all' || ($clicksFilter ?? 'all') !== 'all' || ($sortOption ?? 'newest') !== 'newest' || ($adminScope ?? 'mine') !== 'mine' || ($lockedApiKeyId === null && ($apiKeyFilter ?? '') !== '');
 @endphp
 <div wire:poll.30s.visible>
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2.5">
             <x-ui.input
                 name="table-search"
                 type="text"
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search by slug, URL, description or tag..."
+                placeholder="{{ $isAdmin && ($adminScope ?? '') === 'all' ? 'Search all platform links by slug, URL, tag, owner...' : 'Search by slug, URL, description or tag...' }}"
                 autocomplete="off"
-                class="max-w-md flex-1"
+                class="max-w-md flex-1 min-w-[200px]"
             />
+
+            {{-- Sort selection dropdown: most clicks, least clicks, newest, etc. --}}
+            <x-ui.select name="table-sort" wire:model.live="sortOption" class="w-auto" aria-label="Sort links">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="most_clicks">Most clicks</option>
+                <option value="least_clicks">Least clicks</option>
+                <option value="slug_asc">Short Link (A–Z)</option>
+                <option value="slug_desc">Short Link (Z–A)</option>
+            </x-ui.select>
+
+            {{-- Clicks filter: enables instant filtering to links with clicks/high traffic --}}
+            <x-ui.select name="table-clicks-filter" wire:model.live="clicksFilter" class="w-auto" aria-label="Filter by clicks">
+                <option value="all">All click traffic</option>
+                <option value="has_clicks">With clicks (&gt; 0)</option>
+                <option value="100_plus">100+ clicks (Top)</option>
+                <option value="10_plus">10+ clicks</option>
+                <option value="zero">0 clicks (Dormant)</option>
+            </x-ui.select>
+
+            {{-- Status filter --}}
+            <x-ui.select name="table-status" wire:model.live="statusFilter" class="w-auto" aria-label="Filter by status">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="disabled">Disabled</option>
+                <option value="expired">Expired</option>
+                <option value="password">Password protected</option>
+            </x-ui.select>
+
+            {{-- Domain filter across all dashboard themes --}}
+            @if (!empty($availableDomains))
+                <x-ui.select name="table-domain" wire:model.live="domainFilter" class="w-auto" aria-label="Filter by domain">
+                    <option value="">All domains</option>
+                    @foreach ($availableDomains as $hostname)
+                        <option value="{{ $hostname }}">{{ $hostname }}</option>
+                    @endforeach
+                </x-ui.select>
+            @endif
+
+            {{-- Tag filter --}}
             @if ($availableTags !== [])
                 <x-ui.select name="table-tag" wire:model.live="tag" class="w-auto" aria-label="Filter by tag">
                     <option value="">All tags</option>
@@ -20,14 +61,8 @@
                     @endforeach
                 </x-ui.select>
             @endif
-            @if (\App\Support\PublicDashboard::isPublicTheme($theme ?? 'dashboard'))
-                <x-ui.select name="table-domain" wire:model.live="domainFilter" class="w-auto" aria-label="Filter by domain">
-                    <option value="">All domains</option>
-                    @foreach (\App\Support\DomainUrls::publicDashboardHostnames() as $hostname)
-                        <option value="{{ $hostname }}">{{ $hostname }}</option>
-                    @endforeach
-                </x-ui.select>
-            @endif
+
+            {{-- Origin / API Key filter --}}
             @if (! isset($lockedApiKeyId) || $lockedApiKeyId === null)
                 @if (isset($apiKeys) && $apiKeys->isNotEmpty())
                     <x-ui.select name="table-api-key" wire:model.live="apiKeyFilter" class="w-auto" aria-label="Filter by API key">
@@ -42,6 +77,20 @@
                     <x-ui.checkbox wire:model.live="includeHidden" />
                     Include hidden
                 </label>
+            @endif
+
+            {{-- Admin Scope Switcher: Switch between "My links" and "All links (platform-wide)" --}}
+            @if ($isAdmin)
+                <x-ui.select name="table-admin-scope" wire:model.live="adminScope" class="w-auto font-semibold border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200" aria-label="Admin Scope">
+                    <option value="mine">Scope: My links</option>
+                    <option value="all">Scope: All links (System-wide)</option>
+                </x-ui.select>
+            @endif
+
+            @if ($hasActiveFilters)
+                <button type="button" wire:click="resetFilters" class="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 underline cursor-pointer shrink-0">
+                    Reset
+                </button>
             @endif
         </div>
         <div class="flex items-center gap-2">
@@ -72,6 +121,8 @@
                         <th>Destination URL</th>
                     @elseif ($column === 'domain')
                         <th>Domain</th>
+                    @elseif ($column === 'owner')
+                        <th>Owner</th>
                     @elseif ($column === 'clicks')
                         <th aria-sort="{{ $sortBy === 'click_count' ? ($sortDir === 'asc' ? 'ascending' : 'descending') : 'none' }}">
                             <button type="button" wire:click="sort('click_count')" class="inline-flex cursor-pointer items-center gap-1 uppercase hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
@@ -97,6 +148,9 @@
             @forelse ($links as $link)
                 @php
                     $rowQuery = isset($fromApiKey) && $fromApiKey ? ['from_api_key' => $fromApiKey] : [];
+                    $isOwnLink = auth()->id() === $link->user_id;
+                    $linkShowUrl = $isOwnLink ? route($rp.'links.show', array_merge([$link->id], $rowQuery)) : \App\Support\DomainUrls::admin('/links');
+                    $linkEditUrl = $isOwnLink ? route($rp.'links.edit', array_merge([$link->id], $rowQuery)) : null;
                 @endphp
                 <tr>
                     <td>
@@ -105,7 +159,7 @@
                     @foreach ($visibleColumns as $column)
                         @if ($column === 'slug')
                             <td>
-                                <a href="{{ route($rp.'links.show', array_merge([$link->id], $rowQuery)) }}" class="font-semibold underline-offset-2 hover:underline">
+                                <a href="{{ $linkShowUrl }}" class="font-semibold underline-offset-2 hover:underline">
                                     {{ $link->slug }}
                                 </a>
                                 <button type="button" data-copy="{{ $link->short_url }}" title="Copy short link" aria-label="Copy short link {{ $link->slug }} to clipboard" class="ml-1 inline-flex cursor-pointer items-center rounded-full border border-neutral-300 px-1.5 py-px text-[11px] font-medium text-neutral-600 transition-colors hover:border-neutral-900 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white">Copy</button>
@@ -136,6 +190,10 @@
                             <td>
                                 <code>{{ $link->domain->hostname ?? 'href.nz' }}</code>
                             </td>
+                        @elseif ($column === 'owner')
+                            <td class="tl-sensitive text-xs text-neutral-500 max-w-[180px] truncate" title="{{ $link->user?->email ?? 'Guest' }}">
+                                {{ $link->user?->email ?? 'Guest' }}
+                            </td>
                         @elseif ($column === 'clicks')
                             <td class="font-bold">{{ number_format($link->click_count) }}</td>
                         @elseif ($column === 'status')
@@ -156,8 +214,10 @@
                     @endforeach
                     <td>
                         <div class="flex gap-2">
-                            <x-ui.button href="{{ route($rp.'links.show', array_merge([$link->id], $rowQuery)) }}" size="sm">Analytics</x-ui.button>
-                            <x-ui.button href="{{ route($rp.'links.edit', array_merge([$link->id], $rowQuery)) }}" size="sm">Edit</x-ui.button>
+                            <x-ui.button href="{{ $linkShowUrl }}" size="sm">{{ $isOwnLink ? 'Analytics' : 'Moderate' }}</x-ui.button>
+                            @if ($linkEditUrl)
+                                <x-ui.button href="{{ $linkEditUrl }}" size="sm">Edit</x-ui.button>
+                            @endif
                             @if ($link->is_active)
                                 <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" wire:loading.attr="disabled" wire:target="deactivate" size="sm" variant="danger">Deactivate</x-ui.button>
                             @endif
@@ -167,7 +227,7 @@
             @empty
                 <tr>
                     <td colspan="{{ $columnCount }}">
-                        @if ($search !== '' || $tag !== '' || ($domainFilter ?? '') !== '' || ($lockedApiKeyId === null && $apiKeyFilter !== ''))
+                        @if ($hasActiveFilters)
                             <x-ui.empty-state>
                                 No short links match your current search or filter.
                                 <div class="mt-2">

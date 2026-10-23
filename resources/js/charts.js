@@ -116,24 +116,45 @@ function paintLegend(canvas, colors) {
 }
 
 function buildClicksChart(canvas, dark, theme = 'default') {
-    const solid =
-        theme === 'nd'
-            ? dark ? SOLID_ND_DARK : SOLID_ND_LIGHT
-            : theme === 'pd'
-              ? dark ? SOLID_PD_DARK : SOLID_PD_LIGHT
-              : dark ? '#fafafa' : '#171717';
-    const soft =
-        theme === 'nd'
-            ? dark
-                ? 'rgba(52,211,153,0.25)'
-                : 'rgba(5,150,105,0.15)'
-            : theme === 'pd'
-              ? dark
-                  ? 'rgba(165,180,252,0.25)'
-                  : 'rgba(79,70,229,0.15)'
-              : dark
-                ? 'rgba(250,250,250,0.25)'
-                : 'rgba(23,23,23,0.15)';
+    const color = canvas.dataset.chartColor;
+    let solid, soft;
+
+    if (color === 'amber') {
+        solid = dark ? '#fbbf24' : '#d97706';
+        soft = dark ? 'rgba(251, 191, 36, 0.25)' : 'rgba(217, 119, 6, 0.15)';
+    } else if (color === 'blue') {
+        solid = dark ? '#60a5fa' : '#2563eb';
+        soft = dark ? 'rgba(96, 165, 250, 0.25)' : 'rgba(37, 99, 235, 0.15)';
+    } else if (color === 'red') {
+        solid = dark ? '#f87171' : '#dc2626';
+        soft = dark ? 'rgba(248, 113, 113, 0.25)' : 'rgba(220, 38, 38, 0.15)';
+    } else if (color === 'emerald') {
+        solid = dark ? '#34d399' : '#059669';
+        soft = dark ? 'rgba(52, 211, 153, 0.25)' : 'rgba(5, 150, 105, 0.15)';
+    } else if (color === 'purple') {
+        solid = dark ? '#c084fc' : '#7c3aed';
+        soft = dark ? 'rgba(192, 132, 252, 0.25)' : 'rgba(124, 58, 237, 0.15)';
+    } else {
+        solid =
+            theme === 'nd'
+                ? dark ? SOLID_ND_DARK : SOLID_ND_LIGHT
+                : theme === 'pd'
+                  ? dark ? SOLID_PD_DARK : SOLID_PD_LIGHT
+                  : dark ? '#fafafa' : '#171717';
+        soft =
+            theme === 'nd'
+                ? dark
+                    ? 'rgba(52,211,153,0.25)'
+                    : 'rgba(5,150,105,0.15)'
+                : theme === 'pd'
+                  ? dark
+                      ? 'rgba(165,180,252,0.25)'
+                      : 'rgba(79,70,229,0.15)'
+                  : dark
+                    ? 'rgba(250,250,250,0.25)'
+                    : 'rgba(23,23,23,0.15)';
+    }
+
     const unit = canvas.dataset.chartUnit ?? 'click';
     const line = canvas.dataset.chartType === 'line';
 

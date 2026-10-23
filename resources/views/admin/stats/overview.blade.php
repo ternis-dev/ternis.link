@@ -51,6 +51,7 @@
             'timeline' => $stats['clicks_timeline'],
             'title' => 'Daily Link Clicks Traffic',
             'color' => 'amber',
+            'unit' => 'click',
         ])
     </div>
 
@@ -60,6 +61,7 @@
             'timeline' => $stats['links_timeline'],
             'title' => 'Daily Link Creation Volume',
             'color' => 'blue',
+            'unit' => 'link',
         ])
     </div>
 

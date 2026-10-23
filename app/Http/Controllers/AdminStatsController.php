@@ -21,7 +21,7 @@ class AdminStatsController extends Controller
     }
 
     /**
-     * Show specific stats page: overview, errors, activities, links, clicks, ratio.
+     * Show specific stats page: overview, errors, activities, links, clicks, ratio, insights.
      */
     public function show(Request $request, string $section)
     {
@@ -32,6 +32,7 @@ class AdminStatsController extends Controller
             'links', 'link' => 'links',
             'clicks', 'click', 'link-clicks' => 'clicks',
             'ratio', 'ratios', 'link-clicks-ratio' => 'ratio',
+            'insights', 'insight' => 'insights',
             default => null,
         };
 
@@ -48,6 +49,7 @@ class AdminStatsController extends Controller
             'links' => $this->statsService->getLinkStats($params),
             'clicks' => $this->statsService->getClickStats($params),
             'ratio' => $this->statsService->getRatioStats($params),
+            'insights' => $this->statsService->getInsightsStats($params),
         };
 
         if ($request->wantsJson() || $request->query('format') === 'json') {

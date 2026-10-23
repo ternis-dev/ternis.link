@@ -59,18 +59,22 @@
         </div>
 
         <div class="rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500">Primary Category</span>
-            @php
-            arsort($stats['categories']);
-            $topCat = array_key_first($stats['categories']);
-            @endphp
-            <p class="mt-2 text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">{{ $topCat }}</p>
-            <p class="mt-1 text-xs text-neutral-500">{{ number_format($stats['categories'][$topCat]) }} events</p>
+            <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500">Top Action</span>
+            <p class="mt-2 text-xl font-extrabold tracking-tight text-neutral-900 dark:text-white truncate">
+                {{ $stats['by_action'][0]['action'] ?? '—' }}
+            </p>
+            <p class="mt-1 text-xs text-neutral-500">
+                @if (!empty($stats['by_action'][0]))
+                    {{ number_format($stats['by_action'][0]['count']) }} calls ({{ $stats['by_action'][0]['percentage'] }}%)
+                @else
+                    no logs
+                @endif
+            </p>
         </div>
     </div>
 
     {{-- Category Pills --}}
-    <div class="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+    <div class="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         @foreach ($stats['categories'] as $cat => $count)
             <div class="rounded-xl border border-neutral-200/80 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
                 <span class="text-[11px] font-semibold text-neutral-500 uppercase">{{ $cat }}</span>
@@ -79,12 +83,13 @@
         @endforeach
     </div>
 
-    {{-- Daily Timeline Chart --}}
+    {{-- Daily Timeline Graph --}}
     <div class="mb-8">
         @include('admin.stats._timeline-chart', [
             'timeline' => $stats['timeline'],
             'title' => 'Audit Activities Per Day',
             'color' => 'purple',
+            'unit' => 'event',
         ])
     </div>
 
@@ -95,7 +100,7 @@
             <div class="space-y-3">
                 @forelse ($stats['by_action'] as $act)
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-mono font-semibold text-neutral-800 dark:text-neutral-200">{{ $act['action'] }}</span>
+                        <span class="font-mono text-neutral-800 dark:text-neutral-200">{{ $act['action'] }}</span>
                         <div class="flex items-center gap-3">
                             <span class="font-bold text-neutral-900 dark:text-white">{{ number_format($act['count']) }}</span>
                             <span class="w-12 text-right text-neutral-400">({{ $act['percentage'] }}%)</span>
@@ -105,26 +110,26 @@
                         <div style="width: {{ $act['percentage'] }}%" class="h-full rounded-full bg-purple-500"></div>
                     </div>
                 @empty
-                    <p class="text-xs text-neutral-500">No activity logs recorded.</p>
+                    <p class="text-xs text-neutral-500">No actions recorded in period.</p>
                 @endforelse
             </div>
         </x-ui.card>
 
-        {{-- Top Actors --}}
-        <x-ui.card title="Most Active Users">
+        {{-- Top Active Actors --}}
+        <x-ui.card title="Top Active Actors">
             <x-ui.table>
                 <thead>
                     <tr>
                         <th>User</th>
                         <th>Email</th>
-                        <th>Events</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($stats['top_users'] as $u)
                         <tr>
-                            <td class="font-medium text-xs">{{ $u->actor?->name ?? 'User '.$u->actor_id }}</td>
-                            <td class="text-xs text-neutral-500 font-mono">{{ $u->actor?->email ?? '—' }}</td>
+                            <td class="font-semibold text-xs">{{ $u->actor?->name ?? 'System' }}</td>
+                            <td class="text-xs text-neutral-500">{{ $u->actor?->email ?? '—' }}</td>
                             <td class="font-bold text-neutral-900 dark:text-white">{{ number_format($u->count) }}</td>
                         </tr>
                     @empty
@@ -137,7 +142,7 @@
         </x-ui.card>
     </div>
 
-    {{-- Recent Activities Table --}}
+    {{-- Recent Activities Table with Fully Visible User Agents --}}
     <x-ui.card title="Recent Audit Log Entries">
         <x-ui.table>
             <thead>
@@ -146,6 +151,7 @@
                     <th>Action</th>
                     <th>Actor</th>
                     <th>IP Hash</th>
+                    <th>User Agent (Fully Visible)</th>
                 </tr>
             </thead>
             <tbody>
@@ -163,10 +169,13 @@
                         <td class="font-mono text-[11px] text-neutral-400">
                             {{ substr($log->ip_hash ?? '', 0, 10) }}…
                         </td>
+                        <td class="font-mono text-xs break-all text-neutral-700 dark:text-neutral-300 select-all max-w-sm">
+                            {{ $log->user_agent ?: '—' }}
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="text-center text-xs text-neutral-500 py-4">No audit activities in this timeframe.</td>
+                        <td colspan="5" class="text-center text-xs text-neutral-500 py-4">No audit activities in this timeframe.</td>
                     </tr>
                 @endforelse
             </tbody>

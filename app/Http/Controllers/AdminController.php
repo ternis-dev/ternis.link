@@ -49,6 +49,14 @@ class AdminController extends Controller
     }
 
     /**
+     * System-wide link insights and telemetry heatmap.
+     */
+    public function insights(Request $request)
+    {
+        return redirect()->route('admin.stats.show', array_merge(['section' => 'insights'], $request->query()));
+    }
+
+    /**
      * Link moderation page (Livewire: Admin\LinkModeration).
      */
     public function links()

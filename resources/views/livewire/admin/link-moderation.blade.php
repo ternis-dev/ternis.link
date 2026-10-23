@@ -1,21 +1,63 @@
 <div>
+    @php
+        $hasActiveFilters = $search !== '' || $status !== 'all' || $domainFilter !== '' || $clicksFilter !== 'all' || $sortOption !== 'newest';
+    @endphp
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <x-ui.input
-            name="moderation-search"
-            type="text"
-            wire:model.live.debounce.300ms="search"
-            placeholder="Search by slug, destination URL, description or tag..."
-            class="max-w-xs"
-        />
-        <div class="flex items-center gap-2">
-            @include('livewire.partials.column-customizer')
-            <x-ui.select name="moderation-status" wire:model.live="status" class="w-auto">
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2.5">
+            <x-ui.input
+                name="moderation-search"
+                type="text"
+                wire:model.live.debounce.300ms="search"
+                placeholder="Search all links by slug, destination, description, tag or owner..."
+                class="max-w-xs flex-1 min-w-[200px]"
+            />
+
+            {{-- Sort selection dropdown --}}
+            <x-ui.select name="moderation-sort" wire:model.live="sortOption" class="w-auto" aria-label="Sort links">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="most_clicks">Most clicks</option>
+                <option value="least_clicks">Least clicks</option>
+                <option value="slug_asc">Slug (A–Z)</option>
+                <option value="slug_desc">Slug (Z–A)</option>
+            </x-ui.select>
+
+            {{-- Clicks filter --}}
+            <x-ui.select name="moderation-clicks" wire:model.live="clicksFilter" class="w-auto" aria-label="Filter by clicks">
+                <option value="all">All click traffic</option>
+                <option value="has_clicks">With clicks (&gt; 0)</option>
+                <option value="100_plus">100+ clicks</option>
+                <option value="10_plus">10+ clicks</option>
+                <option value="zero">0 clicks (Dormant)</option>
+            </x-ui.select>
+
+            {{-- Domain filter --}}
+            @if (!empty($domains))
+                <x-ui.select name="moderation-domain" wire:model.live="domainFilter" class="w-auto" aria-label="Filter by domain">
+                    <option value="">All domains</option>
+                    @foreach ($domains as $hostname)
+                        <option value="{{ $hostname }}">{{ $hostname }}</option>
+                    @endforeach
+                </x-ui.select>
+            @endif
+
+            {{-- Status filter --}}
+            <x-ui.select name="moderation-status" wire:model.live="status" class="w-auto" aria-label="Filter by status">
                 <option value="all">All statuses</option>
                 <option value="active">Active</option>
                 <option value="disabled">Disabled</option>
                 <option value="removed">Removed</option>
                 <option value="expired">Expired</option>
             </x-ui.select>
+
+            @if ($hasActiveFilters)
+                <button type="button" wire:click="resetFilters" class="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 underline cursor-pointer shrink-0">
+                    Reset
+                </button>
+            @endif
+        </div>
+        <div class="flex items-center gap-2">
+            @include('livewire.partials.column-customizer')
         </div>
     </div>
 
@@ -115,7 +157,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ $columnCount }}"><x-ui.empty-state>No links found.</x-ui.empty-state></td>
+                    <td colspan="{{ $columnCount }}"><x-ui.empty-state>No links found matching your filters.</x-ui.empty-state></td>
                 </tr>
             @endforelse
         </tbody>

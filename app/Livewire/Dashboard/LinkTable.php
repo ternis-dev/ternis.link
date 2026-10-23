@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
+use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
 use App\Support\Activity;
@@ -51,6 +52,26 @@ class LinkTable extends Component
     public string $sortDir = 'desc';
 
     /**
+     * Sort option selector: newest, oldest, most_clicks, least_clicks, slug_asc, slug_desc.
+     */
+    public string $sortOption = 'newest';
+
+    /**
+     * Status filter: all, active, disabled, expired, password.
+     */
+    public string $statusFilter = 'all';
+
+    /**
+     * Clicks traffic filter: all, has_clicks, 100_plus, 10_plus, zero.
+     */
+    public string $clicksFilter = 'all';
+
+    /**
+     * Admin-only scope: 'mine' (strictly own links) or 'all' (all platform links).
+     */
+    public string $adminScope = 'mine';
+
+    /**
      * Dashboard scope: null = legacy global (all own links),
      * 'public' = only my.ternis.link hostnames (href.nz, meinlink.at,
      * href.yt, qr.href.nz), 'personal' = everything else (dash side of
@@ -91,19 +112,25 @@ class LinkTable extends Component
 
     protected function availableColumns(): array
     {
-        return [
+        $cols = [
             'slug' => 'Short Link',
             'destination' => 'Destination URL',
             'domain' => 'Domain',
-            'clicks' => 'Clicks',
-            'status' => 'Status',
-            'created' => 'Created',
         ];
+
+        if (auth()->check() && auth()->user()->isAdmin() && $this->adminScope === 'all') {
+            $cols['owner'] = 'Owner';
+        }
+
+        $cols['clicks'] = 'Clicks';
+        $cols['status'] = 'Status';
+        $cols['created'] = 'Created';
+
+        return $cols;
     }
 
     /**
-     * Domain filter (public theme only): '' = all public hosts,
-     * otherwise one of DomainUrls::publicDashboardHostnames().
+     * Domain filter: '' = all hosts, otherwise hostname.
      */
     public string $domainFilter = '';
 
@@ -127,8 +154,37 @@ class LinkTable extends Component
         $this->resetPage();
     }
 
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingClicksFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingAdminScope(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatingIncludeHidden(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatingSortOption(string $val): void
+    {
+        match ($val) {
+            'most_clicks' => [$this->sortBy, $this->sortDir] = ['click_count', 'desc'],
+            'least_clicks' => [$this->sortBy, $this->sortDir] = ['click_count', 'asc'],
+            'newest' => [$this->sortBy, $this->sortDir] = ['created_at', 'desc'],
+            'oldest' => [$this->sortBy, $this->sortDir] = ['created_at', 'asc'],
+            'slug_asc' => [$this->sortBy, $this->sortDir] = ['slug', 'asc'],
+            'slug_desc' => [$this->sortBy, $this->sortDir] = ['slug', 'desc'],
+            default => null,
+        };
         $this->resetPage();
     }
 
@@ -137,7 +193,13 @@ class LinkTable extends Component
         $this->search = '';
         $this->tag = '';
         $this->domainFilter = '';
+        $this->statusFilter = 'all';
+        $this->clicksFilter = 'all';
+        $this->sortOption = 'newest';
+        $this->sortBy = 'created_at';
+        $this->sortDir = 'desc';
         $this->includeHidden = false;
+        $this->adminScope = 'mine';
         if ($this->lockedApiKeyId === null) {
             $this->apiKeyFilter = '';
         }
@@ -170,16 +232,31 @@ class LinkTable extends Component
             $this->sortBy = $column;
             $this->sortDir = 'desc';
         }
+
+        $this->syncSortOption();
+    }
+
+    private function syncSortOption(): void
+    {
+        if ($this->sortBy === 'click_count') {
+            $this->sortOption = $this->sortDir === 'desc' ? 'most_clicks' : 'least_clicks';
+        } elseif ($this->sortBy === 'created_at') {
+            $this->sortOption = $this->sortDir === 'desc' ? 'newest' : 'oldest';
+        } elseif ($this->sortBy === 'slug') {
+            $this->sortOption = $this->sortDir === 'asc' ? 'slug_asc' : 'slug_desc';
+        }
     }
 
     public function deactivate(string $linkId): void
     {
-        // Strictly per-user: cross-user moderation happens on the
-        // admin host (Admin\LinkModeration), never from dash.
-        $link = auth()->user()->links()->notRemoved()->findOrFail($linkId);
+        $user = auth()->user();
+        $link = ($user && $user->isAdmin() && $this->adminScope === 'all')
+            ? Link::notRemoved()->findOrFail($linkId)
+            : $user->links()->notRemoved()->findOrFail($linkId);
+
         app(LinkService::class)->deactivate($link);
 
-        Activity::record(ActivityLog::LINK_DEACTIVATED, auth()->user(), $link, [
+        Activity::record(ActivityLog::LINK_DEACTIVATED, $user, $link, [
             'slug' => $link->slug,
             'via' => 'dashboard',
         ]);
@@ -195,12 +272,13 @@ class LinkTable extends Component
     public function bulkSetActive(LinkService $links, bool $active): void
     {
         $user = auth()->user();
+        $isAdmin = $user && $user->isAdmin() && $this->adminScope === 'all';
         $ids = array_slice(array_unique($this->selected), 0, 200);
         $done = 0;
         $skipped = 0;
 
         foreach ($ids as $id) {
-            $link = $user->links()->notRemoved()->find($id);
+            $link = $isAdmin ? Link::notRemoved()->find($id) : $user->links()->notRemoved()->find($id);
 
             if (! $link) {
                 $skipped++;
@@ -236,7 +314,10 @@ class LinkTable extends Component
         $sortDir = $this->sortDir === 'asc' ? 'asc' : 'desc';
 
         $user = auth()->user();
-        $base = $user->links()->notRemoved();
+        $isAdmin = $user && $user->isAdmin();
+        $isAllPlatform = $isAdmin && $this->adminScope === 'all';
+
+        $base = $isAllPlatform ? Link::notRemoved() : $user->links()->notRemoved();
 
         // Owned keys for the origin filter (id => label). Revoked keys
         // stay listed so their historical links remain findable.
@@ -260,16 +341,28 @@ class LinkTable extends Component
             ->when($this->domainFilter !== '' && ($this->scope !== 'public' || in_array($this->domainFilter, DomainUrls::publicDashboardHostnames(), true)), function ($query) {
                 $query->whereHas('domain', fn ($q) => $q->where('hostname', $this->domainFilter));
             })
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
+            ->when($this->search, function ($query) use ($isAllPlatform) {
+                $query->where(function ($q) use ($isAllPlatform) {
                     $q->where('slug', 'like', "%{$this->search}%")
                         ->orWhere('destination_url', 'like', "%{$this->search}%")
                         ->orWhere('description', 'like', "%{$this->search}%")
                         ->orWhere('tags', 'like', "%{$this->search}%");
+
+                    if ($isAllPlatform) {
+                        $q->orWhereHas('user', fn ($u) => $u->where('email', 'like', "%{$this->search}%")->orWhere('name', 'like', "%{$this->search}%"));
+                    }
                 });
             })
             ->when($this->tag, fn ($query) => $query->where('tags', 'like', '%"'.strtolower($this->tag).'"%'))
-            ->when(true, function ($query) use ($effectiveFilter) {
+            ->when($this->statusFilter === 'active', fn ($q) => $q->where('is_active', true)->where(fn ($s) => $s->whereNull('expires_at')->orWhere('expires_at', '>', now())))
+            ->when($this->statusFilter === 'disabled', fn ($q) => $q->where('is_active', false))
+            ->when($this->statusFilter === 'expired', fn ($q) => $q->whereNotNull('expires_at')->where('expires_at', '<=', now()))
+            ->when($this->statusFilter === 'password', fn ($q) => $q->whereNotNull('password_hash'))
+            ->when($this->clicksFilter === 'has_clicks', fn ($q) => $q->where('click_count', '>', 0))
+            ->when($this->clicksFilter === '100_plus', fn ($q) => $q->where('click_count', '>=', 100))
+            ->when($this->clicksFilter === '10_plus', fn ($q) => $q->where('click_count', '>=', 10))
+            ->when($this->clicksFilter === 'zero', fn ($q) => $q->where('click_count', 0))
+            ->when(! $isAllPlatform, function ($query) use ($effectiveFilter) {
                 if ($effectiveFilter === 'none') {
                     $query->whereNull('api_key_id');
                 } elseif ($effectiveFilter !== '') {
@@ -289,23 +382,47 @@ class LinkTable extends Component
         // How many links in this scope exist but are kept off the
         // dashboard by their API key. Without this the table says
         // "create your first link" while the overview counts them.
-        $hiddenByKeyCount = $this->hiddenByKeyCount($base, $effectiveFilter);
+        $hiddenByKeyCount = $isAllPlatform ? 0 : $this->hiddenByKeyCount($base, $effectiveFilter);
 
         // Preserve the back-link context (per-key page) on row links.
         $fromApiKey = $this->lockedApiKeyId ?? ($effectiveFilter !== '' && $effectiveFilter !== 'none' ? $effectiveFilter : null);
 
         $this->pageIds = $links->getCollection()->pluck('id')->all();
 
+        $availableDomains = $this->availableDomains($user, $isAllPlatform);
+
         return view('livewire.dashboard.link-table', [
             'links' => $links,
             'availableTags' => $this->availableTags($this->scopedBase($base, $effectiveFilter)),
+            'availableDomains' => $availableDomains,
             'apiKeys' => $apiKeys,
             'apiKeyLinkCounts' => $this->apiKeyLinkCounts($base),
             'fromApiKey' => $fromApiKey,
             'visibleColumns' => $visibleColumns,
             'hiddenByKeyCount' => $hiddenByKeyCount,
             'columnCount' => count($visibleColumns) + 2, // + checkbox + fixed Actions column
+            'isAllPlatform' => $isAllPlatform,
+            'isAdmin' => $isAdmin,
         ]);
+    }
+
+    private function availableDomains($user, bool $isAllPlatform): array
+    {
+        if ($isAllPlatform) {
+            return Domain::orderBy('hostname')->pluck('hostname')->all();
+        }
+
+        if ($this->scope === 'public') {
+            return DomainUrls::publicDashboardHostnames();
+        }
+
+        return $user->links()->with('domain')->get()
+            ->pluck('domain.hostname')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 
     /**

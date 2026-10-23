@@ -3,6 +3,7 @@
 @php
 $sections = [
     'overview' => ['label' => 'Overview', 'icon' => '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>'],
+    'insights' => ['label' => 'Insights', 'icon' => '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'],
     'errors' => ['label' => 'Errors', 'icon' => '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>'],
     'activities' => ['label' => 'Audit Activities', 'icon' => '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'],
     'links' => ['label' => 'Links', 'icon' => '<path d="M10 13a5 5 0 0 0 7.54.54l2.1-2.1a5 5 0 0 0-7.07-7.07l-1.06 1.06M14 11a5 5 0 0 0-7.54-.54l-2.1 2.1a5 5 0 0 0 7.07 7.07l1.06-1.06"/>'],

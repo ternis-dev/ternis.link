@@ -32,6 +32,8 @@
                         <th>Actor</th>
                     @elseif ($column === 'owner')
                         <th>Owner</th>
+                    @elseif ($column === 'user_agent')
+                        <th>User Agent</th>
                     @endif
                 @endforeach
             </tr>
@@ -50,6 +52,8 @@
                             <td class="tl-sensitive text-xs text-neutral-500" title="{{ $entry->actor?->email ?? 'System' }}">{{ $entry->actor?->email ?? 'System' }}</td>
                         @elseif ($column === 'owner')
                             <td class="tl-sensitive text-xs text-neutral-500" title="{{ $entry->subjectOwner?->email ?? '—' }}">{{ $entry->subjectOwner?->email ?? '—' }}</td>
+                        @elseif ($column === 'user_agent')
+                            <td class="font-mono text-xs break-all text-neutral-700 dark:text-neutral-300 select-all max-w-sm">{{ $entry->user_agent ?: '—' }}</td>
                         @endif
                     @endforeach
                 </tr>

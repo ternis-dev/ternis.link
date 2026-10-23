@@ -71,6 +71,7 @@ class ErrorEncounterTable extends Component
             'request' => 'Request',
             'message' => 'Error',
             'user' => 'User',
+            'user_agent' => 'User Agent',
         ];
     }
 

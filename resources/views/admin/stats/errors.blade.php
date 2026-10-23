@@ -58,14 +58,14 @@
 
         <div class="rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500">Errors Today</span>
-            <p class="mt-2 text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">{{ number_format($stats['errors_today']) }}</p>
+            <p class="mt-2 text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">{{ number_format($stats['errors_today']) }}</p>
             <p class="mt-1 text-xs text-neutral-500">since 00:00 UTC</p>
         </div>
 
         <div class="rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500">Client Errors (4xx)</span>
             <p class="mt-2 text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">{{ number_format($stats['count_4xx']) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">404s, 403s, 422s, 429s</p>
+            <p class="mt-1 text-xs text-neutral-500">404s, 401s, 403s</p>
         </div>
 
         <div class="rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -75,12 +75,13 @@
         </div>
     </div>
 
-    {{-- Daily Timeline Chart --}}
+    {{-- Daily Timeline Graph --}}
     <div class="mb-8">
         @include('admin.stats._timeline-chart', [
             'timeline' => $stats['timeline'],
             'title' => 'Errors Recorded Per Day',
             'color' => 'red',
+            'unit' => 'error',
         ])
     </div>
 
@@ -93,20 +94,18 @@
                     <div class="flex items-center justify-between text-xs">
                         <div class="flex items-center gap-2">
                             <span @class([
-                                'rounded px-2 py-0.5 font-mono font-bold',
+                                'rounded px-1.5 py-0.5 font-mono text-xs font-bold',
                                 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' => $c['code'] >= 500,
-                                'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' => $c['code'] >= 400 && $c['code'] < 500,
-                                'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-300' => $c['code'] < 400,
+                                'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' => $c['code'] < 500,
                             ])>
                                 {{ $c['code'] }}
                             </span>
-                            <span class="text-neutral-600 dark:text-neutral-400">
-                                @if($c['code'] === 404) Not Found
-                                @elseif($c['code'] === 500) Server Error
-                                @elseif($c['code'] === 403) Forbidden
-                                @elseif($c['code'] === 429) Too Many Requests
-                                @elseif($c['code'] === 422) Validation Failed
-                                @else HTTP {{ $c['code'] }}
+                            <span class="text-neutral-500">
+                                @if ($c['code'] == 404) Not Found
+                                @elseif ($c['code'] == 403) Forbidden
+                                @elseif ($c['code'] == 401) Unauthorized
+                                @elseif ($c['code'] == 422) Unprocessable
+                                @elseif ($c['code'] == 500) Server Error
                                 @endif
                             </span>
                         </div>
@@ -153,7 +152,7 @@
         </x-ui.card>
     </div>
 
-    {{-- Recent Errors Table --}}
+    {{-- Recent Errors Table with Fully Visible User Agents --}}
     <x-ui.card title="Recent Error Encounters">
         <x-ui.table>
             <thead>
@@ -164,6 +163,7 @@
                     <th>Host &amp; Path</th>
                     <th>Error Message</th>
                     <th>Actor</th>
+                    <th>User Agent (Fully Visible)</th>
                 </tr>
             </thead>
             <tbody>
@@ -183,16 +183,19 @@
                         <td class="font-mono text-xs max-w-[200px] truncate" title="{{ $err->host }}{{ $err->path }}">
                             <span class="text-neutral-400">{{ $err->host }}</span>{{ $err->path }}
                         </td>
-                        <td class="text-xs text-neutral-600 dark:text-neutral-400 max-w-[280px] truncate" title="{{ $err->error_message }}">
+                        <td class="text-xs text-neutral-600 dark:text-neutral-400 max-w-[240px] truncate" title="{{ $err->error_message }}">
                             {{ $err->error_message }}
                         </td>
                         <td class="text-xs text-neutral-500">
                             {{ $err->user?->email ?? 'Guest' }}
                         </td>
+                        <td class="font-mono text-xs break-all text-neutral-700 dark:text-neutral-300 select-all max-w-sm">
+                            {{ $err->user_agent ?: '—' }}
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center text-xs text-neutral-500 py-4">No error encounters in this timeframe.</td>
+                        <td colspan="7" class="text-center text-xs text-neutral-500 py-4">No error encounters in this timeframe.</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -31,6 +31,8 @@
                         <th>Error</th>
                     @elseif ($column === 'user')
                         <th>User</th>
+                    @elseif ($column === 'user_agent')
+                        <th>User Agent</th>
                     @endif
                 @endforeach
                 <th>Actions</th>
@@ -57,6 +59,8 @@
                             </td>
                         @elseif ($column === 'user')
                             <td class="tl-sensitive max-w-[200px] truncate text-xs text-neutral-500" title="{{ $entry->user?->email ?? 'Guest' }}">{{ $entry->user?->email ?? 'Guest' }}</td>
+                        @elseif ($column === 'user_agent')
+                            <td class="font-mono text-xs break-all text-neutral-700 dark:text-neutral-300 select-all max-w-sm">{{ $entry->user_agent ?: '—' }}</td>
                         @endif
                     @endforeach
                     <td>
