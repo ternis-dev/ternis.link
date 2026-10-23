@@ -21,10 +21,12 @@ git pull origin master
 
 composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
+# Apply additive schema changes before building assets for the new code.
+php artisan migrate --force
+php artisan deploy:check
+
 npm ci
 npm run build
-
-php artisan migrate --force
 php artisan optimize:clear
 php artisan config:cache
 php artisan view:clear

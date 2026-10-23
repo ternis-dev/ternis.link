@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Link;
 use App\Models\LinkTarget;
+use App\Support\RedirectResilience;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -29,7 +30,7 @@ class TargetSelector
     public function targetsFor(Link $link): array
     {
         $key = self::cacheKey($link->id);
-        $cached = Cache::get($key);
+        $cached = RedirectResilience::optional(fn () => Cache::get($key));
 
         if (is_array($cached)) {
             $targets = [];
@@ -50,7 +51,7 @@ class TargetSelector
             ->get()
             ->all();
 
-        Cache::put($key, array_map(fn (LinkTarget $t) => $t->getAttributes(), $targets), LinkService::RESOLVE_CACHE_TTL);
+        RedirectResilience::optional(fn () => Cache::put($key, array_map(fn (LinkTarget $t) => $t->getAttributes(), $targets), LinkService::RESOLVE_CACHE_TTL));
 
         return $targets;
     }

@@ -46,6 +46,12 @@ Route::get('/healthz', HealthController::class)
     ->withoutMiddleware(ResolveDomain::class)
     ->name('healthz');
 
+// Deployment readiness is separate: pending optional migrations must not evict
+// live redirect servers from the load balancer's /healthz pool.
+Route::get('/readyz', [HealthController::class, 'ready'])
+    ->withoutMiddleware(ResolveDomain::class)
+    ->name('readyz');
+
 /*
 |----------------------------------------------------------------------
 | Machine-readable site files — REAL routes, host-blind (crawlers and

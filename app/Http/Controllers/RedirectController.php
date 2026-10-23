@@ -11,7 +11,9 @@ use App\Services\LinkService;
 use App\Services\SlugResolverService;
 use App\Services\TargetSelector;
 use App\Support\PublicHost;
+use App\Support\RedirectResilience;
 use App\Support\UserTracking;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -42,16 +44,15 @@ class RedirectController extends Controller
         }
 
         $normalizedUrl = $this->slugResolver->normalizeUrl($url);
-        $domain = $request->attributes->get('domain_model');
+        RedirectResilience::optional(function () use ($request, $normalizedUrl) {
+            $domain = $request->attributes->get('domain_model')
+                ?? Domain::where('hostname', 'href.nz')->first();
 
-        if (! $domain) {
-            $domain = Domain::where('hostname', 'href.nz')->first();
-        }
-
-        if ($domain && ! $this->junkUrls->isJunk($normalizedUrl)) {
-            $link = $this->linkService->findOrCreateDirectUrlLink($normalizedUrl, $domain);
-            $this->clickTracker->track($link, $request, isDirectUrl: true);
-        }
+            if ($domain && ! $this->junkUrls->isJunk($normalizedUrl)) {
+                $link = $this->linkService->findOrCreateDirectUrlLink($normalizedUrl, $domain);
+                $this->clickTracker->track($link, $request, isDirectUrl: true);
+            }
+        });
 
         return redirect()->away($normalizedUrl, 302);
     }
@@ -81,6 +82,9 @@ class RedirectController extends Controller
                     return app(BioPageController::class)->showSub($request, $input);
                 } catch (NotFoundHttpException) {
                     // No sub-page — fall through to slug redirect below.
+                } catch (QueryException $e) {
+                    RedirectResilience::reportFailure($e);
+                    // A missing bio migration must not break existing short links.
                 }
             }
         }
@@ -108,11 +112,11 @@ class RedirectController extends Controller
             // Bio-mode domains get a branded 404 pointing home instead
             // of the generic dead-link page.
             if (! $domain->isSystemDomain()) {
-                $root = BioPage::where('domain_id', $domain->id)
+                $root = RedirectResilience::optional(fn () => BioPage::where('domain_id', $domain->id)
                     ->whereNull('parent_id')
                     ->where('is_removed', false)
                     ->where('is_active', true)
-                    ->first();
+                    ->first());
 
                 if ($root) {
                     return response()->view('bio.not-found', [
@@ -141,18 +145,22 @@ class RedirectController extends Controller
         $debugOg = $request->query('debug') === 'og';
 
         if ($link->hasSocialPreview() && ($isCrawler || $debugOg)) {
-            // Crawlers (and ?debug=og) get a fast HTML stub — no click counted.
-            return response()
+            // Preview rendering is optional; a broken template still redirects.
+            $preview = RedirectResilience::optional(fn () => response()
                 ->view('redirect.preview-stub', [
-                    'link' => $link->load('domain'),
+                    'link' => $link->setRelation('domain', $domain),
                     'og' => $link->effectiveSocialPreview(),
                     'destination' => (string) $link->destination_url,
                 ], 200, ['Cache-Control' => 'public, max-age=300'])
-                ->header('Vary', 'User-Agent');
+                ->header('Vary', 'User-Agent'));
+
+            if ($preview !== null) {
+                return $preview;
+            }
         }
 
         $debugTarget = $request->query('target') === 'debug';
-        $target = $this->targets->pick($link, $request);
+        $target = RedirectResilience::optional(fn () => $this->targets->pick($link, $request));
         $destination = LinkService::destinationWithUtm($link, $target?->destination_url ?? (string) $link->destination_url);
 
         $incomingQuery = $request->query();
@@ -169,7 +177,7 @@ class RedirectController extends Controller
             ]);
         }
 
-        $this->clickTracker->track($link, $request, target: $target);
+        RedirectResilience::optional(fn () => $this->clickTracker->track($link, $request, target: $target));
 
         return redirect()->away($destination, 302);
     }

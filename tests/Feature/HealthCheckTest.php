@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class HealthCheckTest extends TestCase
@@ -25,5 +26,15 @@ class HealthCheckTest extends TestCase
 
         $response->assertOk();
         $response->assertJson(['status' => 'ok']);
+    }
+
+    public function test_readiness_reports_unapplied_migrations_without_disabling_live_servers(): void
+    {
+        DB::table('migrations')->where('migration', '2026_10_01_000029_create_link_targets_table')->delete();
+
+        $this->get('http://10.0.0.5/readyz')
+            ->assertStatus(503)
+            ->assertJson(['status' => 'degraded', 'database' => 'ok', 'migrations' => 'pending']);
+        $this->get('http://10.0.0.5/healthz')->assertOk();
     }
 }

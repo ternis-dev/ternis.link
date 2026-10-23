@@ -9,12 +9,14 @@ use App\Http\Middleware\EnsureDomainType;
 use App\Http\Middleware\LogApiRequest;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
+use App\Http\Middleware\StartResilientSession;
 use App\Models\ErrorEncounter;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 
@@ -39,6 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: $trusted === '*' ? '*' : array_map('trim', explode(',', (string) $trusted)));
 
         $middleware->prepend(ResolveDomain::class);
+        $middleware->web(replace: [
+            StartSession::class => StartResilientSession::class,
+        ]);
         // Keep host/version checks and response formatting outside auth,
         // throttling and route bindings, so errors use the same API contract.
         $before = ThrottleRequests::class;
@@ -98,7 +103,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Skips validation noise + health probes; record() never throws.
         $exceptions->respond(function ($response, Throwable $e) {
             if (! $e instanceof ValidationException
-                && ! in_array(request()->path(), ['healthz', 'up'], true)) {
+                && ! in_array(request()->path(), ['healthz', 'readyz', 'up'], true)) {
                 ErrorEncounter::record($e);
             }
 

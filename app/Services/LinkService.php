@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\DailyLinkQuota;
 use App\Support\IpCapture;
 use App\Support\IpHash;
+use App\Support\RedirectResilience;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
@@ -526,7 +527,7 @@ class LinkService
     public function resolveSlug(string $slug, Domain $domain): ?Link
     {
         $key = Link::cacheKey($domain->id, $slug);
-        $cached = Cache::get($key);
+        $cached = RedirectResilience::optional(fn () => Cache::get($key));
 
         if (is_array($cached)
             && ($cached['domain_id'] ?? null) === $domain->id
@@ -538,7 +539,7 @@ class LinkService
                 return $link;
             }
 
-            Cache::forget($key);
+            RedirectResilience::optional(fn () => Cache::forget($key));
         }
 
         $link = Link::accessible()
@@ -547,7 +548,7 @@ class LinkService
             ->first();
 
         if ($link) {
-            Cache::put($key, Arr::except($link->getAttributes(), ['creator_ip_encrypted', 'creator_ip_hash']), self::RESOLVE_CACHE_TTL);
+            RedirectResilience::optional(fn () => Cache::put($key, Arr::except($link->getAttributes(), ['creator_ip_encrypted', 'creator_ip_hash']), self::RESOLVE_CACHE_TTL));
         }
 
         return $link;

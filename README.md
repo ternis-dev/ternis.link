@@ -70,7 +70,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
    Turnstile widget for the public shortener host (`href.nz`) and set both
    `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`; partial configuration fails closed.
 2. **Install & migrate**: `composer install --no-dev`,
-   `php artisan migrate --force`, `npm ci && npm run build`, `php artisan extension:build`
+   `php artisan migrate --force && php artisan deploy:check`, `npm ci && npm run build`, `php artisan extension:build`
    (packages the Chrome extension zip served at `ternis.link/pages/extension/download`).
    Run `php artisan key:generate` **only on first install when `APP_KEY` is still
    empty — never re-run it**: rotating the key orphans every encrypted value
@@ -83,12 +83,27 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
    The app trusts the proxy via `TRUSTED_PROXIES` so client IPs stay correct.
 6. **Health check**: point monitoring at `GET /healthz` — `200 {"status":"ok"}`
    when the database is reachable, `503` otherwise. Answers on any Host/IP.
+   Monitor `/readyz` separately for unapplied migrations (`503` when pending);
+   use it to gate new releases. Keep live servers on `/healthz` so a pending
+   optional migration does not remove working redirect servers from the pool.
+   `/up` remains the lightweight liveness probe.
 7. **On every update** (`git pull`): refresh everything code-derived, or new
    routes/views/config won't take effect (stale caches 500 with
    `Route […] not defined` while serving new Blade):
-   `php artisan migrate --force && php artisan optimize:clear && php artisan optimize && php artisan view:clear && npm run build`
+   `bash scripts/deploy.sh` (includes mandatory migration and `deploy:check` gates)
    and restart the queue worker (`supervisorctl restart` or equivalent —
    long-running workers boot the app once and never see new job classes).
+
+**Redirect failure isolation**: optional targeting failures fall back to the primary
+link destination; analytics/queue, social preview, and cache failures are reported
+without interrupting redirects. Failed session reads use an empty, non-persistent
+session, so public links continue and password-protected links remain locked.
+Unlocks cannot persist until session storage recovers. Domain and link records
+(including access restrictions) remain required; this does not provide database
+outage failover. Use additive migrations and run migrations plus `deploy:check`
+in a staged release before switching traffic for atomic deployments. The supplied
+in-place deploy script fails on migration errors but cannot roll back a `git pull`.
+Monitor `/readyz` for migration drift and a real shortlink for end-to-end delivery.
 
 **Rate-limit layers**: HTTP `throttle:api` (60/min) on API v1, `throttle:10,1` on
 OAuth entry points, plus per-plan per-minute/daily quotas enforced in

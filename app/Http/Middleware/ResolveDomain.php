@@ -19,7 +19,7 @@ class ResolveDomain
         // Health probes must answer on any Host/IP (load balancers hit
         // pod IPs directly). Bypass domain resolution entirely — this
         // is defense in depth alongside withoutMiddleware() on the route.
-        if (in_array($request->path(), ['healthz', 'up'], true)) {
+        if (in_array($request->path(), ['healthz', 'readyz', 'up'], true)) {
             return $next($request);
         }
 
