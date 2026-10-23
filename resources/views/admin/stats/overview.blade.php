@@ -108,6 +108,14 @@
         {{-- Deep Dive Jump Links --}}
         <x-ui.card title="Explore Dedicated Telemetry">
             <div class="grid gap-3 sm:grid-cols-2">
+                <a href="{{ route('admin.stats.show', ['section' => 'insights'] + $params) }}" class="flex flex-col rounded-xl border border-amber-200 bg-amber-50/50 p-4 transition hover:border-amber-400 dark:border-amber-900/50 dark:bg-amber-950/20 dark:hover:border-amber-700 sm:col-span-2">
+                    <span class="text-xs font-semibold text-amber-900 dark:text-amber-200 flex items-center justify-between">
+                        <span>Traffic &amp; Behavioral Insights (Heatmap &amp; Curves)</span>
+                        <span>&rarr;</span>
+                    </span>
+                    <span class="mt-1 text-[11px] text-neutral-600 dark:text-neutral-400">7&times;24 weekday heatmaps, peak traffic hours, 24h curve, top links, and expiring calendars.</span>
+                </a>
+
                 <a href="{{ route('admin.stats.show', ['section' => 'errors'] + $params) }}" class="flex flex-col rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 transition hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-neutral-700">
                     <span class="text-xs font-semibold text-neutral-900 dark:text-white flex items-center justify-between">
                         <span>Errors Telemetry</span>
