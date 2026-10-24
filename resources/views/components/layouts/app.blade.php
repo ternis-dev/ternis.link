@@ -31,7 +31,7 @@
         {{-- Custom shell header (the public dashboard ships its own). --}}
         {{ $header }}
     @else
-    <header class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
+    <header class="sticky top-0 z-40 border-b border-neutral-200/80 bg-white/80 backdrop-blur-md dark:border-neutral-800/80 dark:bg-neutral-950/80 transition-colors">
         <div class="mx-auto flex w-full {{ $maxWidth }} items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
             @if (\App\Support\DomainUrls::isInternal())
                 <div class="flex items-center gap-2.5">

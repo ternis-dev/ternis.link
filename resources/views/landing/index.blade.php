@@ -37,21 +37,46 @@ $faqJsonLd = array_map(fn ($faq) => [
         {!! json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', '@id' => 'https://ternis.link/#faq', 'mainEntity' => $faqJsonLd], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
         </script>
     </x-slot:head>
-    <div class="mx-auto flex max-w-4xl flex-col items-center px-4 py-20 text-center sm:px-6">
-        <x-ui.badge tone="solid" class="mb-6">For family &amp; partners</x-ui.badge>
-        <h1 class="font-display text-5xl font-bold tracking-tight sm:text-6xl">Short links, <span class="text-neutral-400 dark:text-neutral-500">on your own name.</span></h1>
+
+    <div class="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24">
+        {{-- Ambient decorative background glow --}}
+        <div class="pointer-events-none absolute -top-24 left-1/2 -z-10 h-96 w-full -translate-x-1/2 max-w-4xl overflow-hidden blur-3xl" aria-hidden="true">
+            <div class="mx-auto h-full w-3/4 rounded-full bg-gradient-to-tr from-neutral-200/50 via-neutral-100/40 to-transparent dark:from-neutral-800/40 dark:via-neutral-900/30"></div>
+        </div>
+
+        {{-- Live Status Badge --}}
+        <x-ui.badge tone="solid" class="mb-6 inline-flex items-center gap-2 px-3 py-1 text-xs">
+            <span class="relative flex h-2 w-2">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            </span>
+            For family &amp; partners
+        </x-ui.badge>
+
+        {{-- Hero Headline --}}
+        <h1 class="font-display text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">Short links, <span class="text-neutral-400 dark:text-neutral-500">on your own name.</span></h1>
         <p class="mt-4 max-w-2xl text-lg text-neutral-500 dark:text-neutral-400">
             Claim your personal <code>{name}.ternis.link</code> subdomain, create branded short links with
             custom slugs, and see exactly how they perform — no DNS setup, no fuss.
         </p>
+
+        {{-- Hero CTAs --}}
         <div class="mt-8 flex flex-wrap justify-center gap-3">
             @auth
-                <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/') }}" variant="primary" size="lg">Go to Dashboard</x-ui.button>
+                <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/') }}" variant="primary" size="lg" class="shadow-sm">
+                    <span>Go to Dashboard</span>
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </x-ui.button>
             @else
-                <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/login') }}" variant="primary" size="lg">Get Started with Ternis Auth</x-ui.button>
+                <x-ui.button href="{{ \App\Support\DomainUrls::dashboard('/login') }}" variant="primary" size="lg" class="shadow-sm">
+                    <span>Get Started with Ternis Auth</span>
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </x-ui.button>
             @endauth
             <x-ui.button href="#how-it-works" variant="secondary" size="lg">How it works</x-ui.button>
         </div>
+
+        {{-- Quick Secondary Navigation --}}
         <p class="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
             <a href="{{ url('/pages/stats') }}" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">Live network stats</a>
             <span aria-hidden="true" class="mx-1">·</span>
@@ -62,130 +87,346 @@ $faqJsonLd = array_map(fn ($faq) => [
             <a href="#faq" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">FAQ</a>
         </p>
 
+        {{-- Interactive Live Subdomain & Short Link Simulator --}}
+        <div
+            x-data="{
+                subdomain: 'sarah',
+                slug: 'launch',
+                copied: false,
+                showQr: false,
+                get fullUrl() {
+                    const s = (this.subdomain || '').trim().replace(/[^a-zA-Z0-9-]/g, '') || 'name';
+                    const p = (this.slug || '').trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'link';
+                    return `https://${s}.ternis.link/${p}`;
+                },
+                copyLink() {
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(this.fullUrl).then(() => {
+                            this.copied = true;
+                            setTimeout(() => { this.copied = false; }, 2000);
+                        });
+                    }
+                }
+            }"
+            class="mt-12 w-full max-w-3xl overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-xl dark:border-neutral-800/90 dark:bg-neutral-900/90"
+        >
+            {{-- Top browser frame header --}}
+            <div class="flex items-center justify-between border-b border-neutral-200/80 bg-neutral-50/90 px-4 py-2.5 text-xs text-neutral-500 dark:border-neutral-800/80 dark:bg-neutral-950/70 dark:text-neutral-400">
+                <div class="flex items-center gap-2">
+                    <span class="h-2.5 w-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
+                    <span class="h-2.5 w-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
+                    <span class="h-2.5 w-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
+                    <span class="ml-2 font-mono text-[11px] font-medium tracking-wide">Interactive Subdomain Simulator</span>
+                </div>
+                <div class="flex items-center gap-1.5 font-mono text-[11px]">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Zero DNS Setup</span>
+                </div>
+            </div>
+
+            {{-- Simulator controls --}}
+            <div class="p-5 text-left sm:p-6">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Personal Subdomain</label>
+                        <div class="mt-1.5 flex rounded-lg border border-neutral-300 bg-white shadow-xs focus-within:border-neutral-900 focus-within:ring-1 focus-within:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-950 dark:focus-within:border-neutral-100 dark:focus-within:ring-neutral-100">
+                            <input
+                                type="text"
+                                x-model="subdomain"
+                                maxlength="24"
+                                placeholder="sarah"
+                                class="w-full min-w-0 border-0 bg-transparent px-3 py-2 font-mono text-sm font-medium text-neutral-900 focus:outline-none dark:text-white"
+                            >
+                            <span class="flex items-center pr-3 font-mono text-xs text-neutral-400 dark:text-neutral-500">.ternis.link</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Custom Slug</label>
+                        <div class="mt-1.5 flex rounded-lg border border-neutral-300 bg-white shadow-xs focus-within:border-neutral-900 focus-within:ring-1 focus-within:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-950 dark:focus-within:border-neutral-100 dark:focus-within:ring-neutral-100">
+                            <span class="flex items-center pl-3 font-mono text-xs text-neutral-400 dark:text-neutral-500">/</span>
+                            <input
+                                type="text"
+                                x-model="slug"
+                                maxlength="32"
+                                placeholder="launch"
+                                class="w-full min-w-0 border-0 bg-transparent px-2 py-2 font-mono text-sm font-medium text-neutral-900 focus:outline-none dark:text-white"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Live rendered short link card --}}
+                <div class="mt-5 flex flex-col gap-3 rounded-xl border border-neutral-200/90 bg-neutral-50/80 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800/90 dark:bg-neutral-950/60">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                            <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400">Generated Branded URL</span>
+                        </div>
+                        <div class="mt-1 truncate font-mono text-base font-bold text-neutral-900 dark:text-neutral-100" x-text="fullUrl"></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            @click="copyLink()"
+                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 shadow-xs transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                            aria-label="Copy generated URL"
+                        >
+                            <template x-if="!copied">
+                                <span class="flex items-center gap-1.5">
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                                    <span>Copy</span>
+                                </span>
+                            </template>
+                            <template x-if="copied">
+                                <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                                    <span>Copied!</span>
+                                </span>
+                            </template>
+                        </button>
+                        <button
+                            type="button"
+                            @click="showQr = !showQr"
+                            :class="showQr ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-white text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200'"
+                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium shadow-xs transition hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                            aria-label="Toggle QR code"
+                        >
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                            <span x-text="showQr ? 'Hide QR' : 'QR Code'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- QR code preview drawer --}}
+                <div
+                    x-show="showQr"
+                    x-cloak
+                    x-transition
+                    class="mt-4 flex flex-col items-center justify-center rounded-xl border border-neutral-200 bg-white p-5 text-center dark:border-neutral-800 dark:bg-neutral-900"
+                >
+                    <div class="relative rounded-lg border border-neutral-200 bg-white p-3 shadow-xs dark:border-neutral-700">
+                        <svg class="h-28 w-28 text-neutral-900 dark:text-neutral-100" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true">
+                            <rect x="5" y="5" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
+                            <rect x="13" y="13" width="12" height="12" rx="2"/>
+                            <rect x="67" y="5" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
+                            <rect x="75" y="13" width="12" height="12" rx="2"/>
+                            <rect x="5" y="67" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
+                            <rect x="13" y="75" width="12" height="12" rx="2"/>
+                            <rect x="42" y="10" width="8" height="8" rx="1"/>
+                            <rect x="52" y="18" width="6" height="6" rx="1"/>
+                            <rect x="42" y="26" width="8" height="8" rx="1"/>
+                            <rect x="12" y="44" width="8" height="8" rx="1"/>
+                            <rect x="24" y="52" width="6" height="6" rx="1"/>
+                            <rect x="44" y="44" width="12" height="12" rx="2"/>
+                            <rect x="66" y="44" width="8" height="8" rx="1"/>
+                            <rect x="78" y="52" width="8" height="8" rx="1"/>
+                            <rect x="66" y="66" width="8" height="8" rx="1"/>
+                            <rect x="80" y="72" width="10" height="8" rx="1"/>
+                            <rect x="44" y="72" width="10" height="8" rx="1"/>
+                            <rect x="56" y="82" width="8" height="8" rx="1"/>
+                            <rect x="70" y="84" width="8" height="8" rx="1"/>
+                        </svg>
+                    </div>
+                    <p class="mt-2.5 font-mono text-xs text-neutral-500 dark:text-neutral-400">
+                        Vector QR code ready for print and screen for <span class="font-bold text-neutral-800 dark:text-neutral-200" x-text="fullUrl"></span>
+                    </p>
+                </div>
+
+                {{-- Performance telemetry markers --}}
+                <div class="mt-4 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-3 text-center dark:border-neutral-800/80">
+                    <div>
+                        <p class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">⚡ &lt; 15ms</p>
+                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Edge Redirect Latency</p>
+                    </div>
+                    <div>
+                        <p class="font-mono text-xs font-bold text-neutral-900 dark:text-neutral-100">🔒 Hashed IP</p>
+                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Cookie-Free Privacy</p>
+                    </div>
+                    <div>
+                        <p class="font-mono text-xs font-bold text-neutral-900 dark:text-neutral-100">📊 Live Per-Day</p>
+                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Referrer Analytics</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Feature Cards Grid --}}
         <div class="mt-16 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
-            <x-ui.card>
+            <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">
                 <div class="flex items-center gap-3">
-                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9s-1.4 6.4-3.9 9c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 shadow-xs ring-1 ring-neutral-200/60 transition-colors group-hover:bg-neutral-900 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700/60 dark:group-hover:bg-white dark:group-hover:text-neutral-900">
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.9 5.7 3.9 9s-1.4 6.4-3.9 9c-2.5-2.6-3.9-5.7-3.9-9S9.5 5.6 12 3Z"/></svg>
+                    </div>
                     <div class="font-display text-lg font-bold">Personal subdomain</div>
                 </div>
-                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Your own <code>{name}.ternis.link</code>, verified instantly — one per account, ready for links right away.</p>
+                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Your own <code>{name}.ternis.link</code>, verified instantly — one per account, ready for links right away.</p>
             </x-ui.card>
-            <x-ui.card>
+
+            <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">
                 <div class="flex items-center gap-3">
-                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12L20.5 12 12 20.5Z"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 shadow-xs ring-1 ring-neutral-200/60 transition-colors group-hover:bg-neutral-900 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700/60 dark:group-hover:bg-white dark:group-hover:text-neutral-900">
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12V4.5A1 1 0 0 1 4.5 3.5H12L20.5 12 12 20.5Z"/><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/></svg>
+                    </div>
                     <div class="font-display text-lg font-bold">Custom slugs</div>
                 </div>
-                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Memorable codes in your own words — or pick the auto-generated length, from 3 to 64 characters.</p>
+                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Memorable codes in your own words — or pick the auto-generated length, from 3 to 64 characters.</p>
             </x-ui.card>
-            <x-ui.card>
+
+            <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">
                 <div class="flex items-center gap-3">
-                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6H21M8.5 12H21M8.5 18H21"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 shadow-xs ring-1 ring-neutral-200/60 transition-colors group-hover:bg-neutral-900 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700/60 dark:group-hover:bg-white dark:group-hover:text-neutral-900">
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    </div>
                     <div class="font-display text-lg font-bold">Descriptions &amp; tags</div>
                 </div>
-                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Note what each link is for and organize with tags, so every short link stays findable.</p>
+                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Keep campaigns organised with free-text descriptions, searchable tags and link targeting.</p>
             </x-ui.card>
-            <x-ui.card>
+
+            <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">
                 <div class="flex items-center gap-3">
-                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16"/><path d="M7 20v-6M12 20V6M17 20v-9"/></svg>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 shadow-xs ring-1 ring-neutral-200/60 transition-colors group-hover:bg-neutral-900 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700/60 dark:group-hover:bg-white dark:group-hover:text-neutral-900">
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 14 4-4 4 3 5-7"/></svg>
+                    </div>
                     <div class="font-display text-lg font-bold">Click analytics</div>
                 </div>
-                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Referrers, countries and per-day charts per link, with CSV export for deeper digging.</p>
+                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Referrers, countries and per-day charts per link, with CSV export for deeper digging.</p>
             </x-ui.card>
-            <x-ui.card>
+
+            <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">
                 <div class="flex items-center gap-3">
-                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/></svg>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 shadow-xs ring-1 ring-neutral-200/60 transition-colors group-hover:bg-neutral-900 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700/60 dark:group-hover:bg-white dark:group-hover:text-neutral-900">
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="12" r="4"/><path d="M11 12H21"/><path d="M17 12v4M20.5 12v3"/></svg>
+                    </div>
                     <div class="font-display text-lg font-bold">API access</div>
                 </div>
-                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Create and manage links programmatically with scoped API keys and a versioned REST API.</p>
+                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Create and manage links programmatically with scoped API keys and a versioned REST API.</p>
             </x-ui.card>
-            <x-ui.card>
+
+            <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">
                 <div class="flex items-center gap-3">
-                    <svg class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 shadow-xs ring-1 ring-neutral-200/60 transition-colors group-hover:bg-neutral-900 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700/60 dark:group-hover:bg-white dark:group-hover:text-neutral-900">
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+                    </div>
                     <div class="font-display text-lg font-bold">Custom domains</div>
                 </div>
-                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Bring your own hostname on eligible plans — verified by DNS and ready in minutes.</p>
+                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Bring your own hostname on eligible plans — verified by DNS and ready in minutes.</p>
             </x-ui.card>
         </div>
 
-        <div id="how-it-works" class="mt-16 w-full scroll-mt-8 text-left">
-            <h2 class="text-center font-display text-2xl font-bold tracking-tight">How it works</h2>
-            <ol class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <li class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+        {{-- How It Works --}}
+        <div id="how-it-works" class="mt-20 w-full scroll-mt-8 text-left">
+            <div class="text-center">
+                <h2 class="font-display text-2xl font-bold tracking-tight sm:text-3xl">How it works</h2>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Three straightforward steps from sign-in to branded links.</p>
+            </div>
+            <ol class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <li class="relative rounded-xl border border-neutral-200 bg-white p-6 shadow-xs transition-all hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700">
                     <div class="flex items-center gap-3">
                         <span aria-hidden="true" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">1</span>
                         <p class="font-medium">Sign in with Ternis Auth</p>
                     </div>
-                    <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">One account across the family of services — no new password.</p>
+                    <p class="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">One account across the family of services — no new password.</p>
                 </li>
-                <li class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <li class="relative rounded-xl border border-neutral-200 bg-white p-6 shadow-xs transition-all hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700">
                     <div class="flex items-center gap-3">
                         <span aria-hidden="true" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">2</span>
                         <p class="font-medium">Claim your subdomain</p>
                     </div>
-                    <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Pick your <code>{name}.ternis.link</code> on the Domains page — verified instantly.</p>
+                    <p class="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">Pick your <code>{name}.ternis.link</code> on the Domains page — verified instantly.</p>
                 </li>
-                <li class="rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <li class="relative rounded-xl border border-neutral-200 bg-white p-6 shadow-xs transition-all hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700">
                     <div class="flex items-center gap-3">
                         <span aria-hidden="true" class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-neutral-900 font-display text-base font-bold dark:border-white">3</span>
                         <p class="font-medium">Share &amp; measure</p>
                     </div>
-                    <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Create branded links, tag them, and watch the analytics roll in.</p>
+                    <p class="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">Create branded links, tag them, and watch the analytics roll in.</p>
                 </li>
             </ol>
         </div>
 
+        {{-- Family & Partners Use Cases --}}
         <div class="mt-12 grid w-full grid-cols-1 gap-4 text-left sm:grid-cols-2">
-            <x-ui.card>
-                <div class="font-display text-lg font-bold">Family</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Your corner of ternis.link — personal subdomains, generous quotas and full analytics for the whole household.</p>
+            <x-ui.card class="transition-all hover:border-neutral-300 dark:hover:border-neutral-700">
+                <div class="flex items-center justify-between">
+                    <div class="font-display text-lg font-bold">Family</div>
+                    <span class="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">Personal &amp; Household</span>
+                </div>
+                <p class="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">Your corner of ternis.link — personal subdomains, generous quotas and full analytics for the whole household.</p>
             </x-ui.card>
-            <x-ui.card>
-                <div class="font-display text-lg font-bold">Partners</div>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Branded short links on infrastructure you can trust, with API access for your own tooling.</p>
+            <x-ui.card class="transition-all hover:border-neutral-300 dark:hover:border-neutral-700">
+                <div class="flex items-center justify-between">
+                    <div class="font-display text-lg font-bold">Partners</div>
+                    <span class="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">Team &amp; Tooling</span>
+                </div>
+                <p class="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">Branded short links on infrastructure you can trust, with API access for your own tooling.</p>
             </x-ui.card>
         </div>
 
-        <div class="mt-12 w-full rounded-xl border border-neutral-200 bg-white p-5 text-left dark:border-neutral-800 dark:bg-neutral-900">
-            <div class="flex flex-wrap items-baseline justify-between gap-2">
-                <span class="font-display text-lg font-bold">Live from the network</span>
-                <a href="{{ url('/pages/stats') }}" class="text-sm text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">All stats →</a>
+        {{-- Live Telemetry from the Network --}}
+        <div class="mt-12 w-full rounded-2xl border border-neutral-200 bg-white p-6 text-left shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-100 pb-4 dark:border-neutral-800">
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                    </span>
+                    <span class="font-display text-lg font-bold">Live from the network</span>
+                </div>
+                <a href="{{ url('/pages/stats') }}" class="text-sm font-medium text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white">All stats →</a>
             </div>
-            <dl class="mt-3 grid grid-cols-3 gap-4 text-center">
-                <div>
-                    <dd class="font-display text-2xl font-bold tracking-tight">{{ number_format($stats['total_links'] ?? 0) }}</dd>
-                    <dt class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">short links created</dt>
+            <dl class="mt-5 grid grid-cols-1 gap-4 text-center sm:grid-cols-3">
+                <div class="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-950/60">
+                    <dd class="font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">{{ number_format($stats['total_links'] ?? 0) }}</dd>
+                    <dt class="mt-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">short links created</dt>
                 </div>
-                <div>
-                    <dd class="font-display text-2xl font-bold tracking-tight">{{ number_format($stats['total_clicks'] ?? 0) }}</dd>
-                    <dt class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">redirects counted</dt>
+                <div class="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-950/60">
+                    <dd class="font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">{{ number_format($stats['total_clicks'] ?? 0) }}</dd>
+                    <dt class="mt-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">redirects counted</dt>
                 </div>
-                <div>
-                    <dd class="font-display text-2xl font-bold tracking-tight">{{ number_format($stats['links_today'] ?? 0) }}</dd>
-                    <dt class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">created today</dt>
+                <div class="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-950/60">
+                    <dd class="font-display text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">{{ number_format($stats['links_today'] ?? 0) }}</dd>
+                    <dt class="mt-1 text-xs font-medium text-neutral-500 dark:text-neutral-400">created today</dt>
                 </div>
             </dl>
         </div>
 
-        <div id="faq" class="mt-16 w-full scroll-mt-8 text-left">
-            <h2 class="text-center font-display text-2xl font-bold tracking-tight">Frequently asked questions</h2>
-            <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                @foreach ($faqs as $faq)
-                    <x-ui.card>
-                        <h3 class="font-display text-base font-bold">{{ $faq['q'] }}</h3>
-                        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{!! $faq['a'] !!}</p>
-                    </x-ui.card>
+        {{-- Frequently Asked Questions (Interactive Accordion) --}}
+        <div id="faq" class="mt-20 w-full scroll-mt-8 text-left">
+            <div class="text-center">
+                <h2 class="font-display text-2xl font-bold tracking-tight sm:text-3xl">Frequently asked questions</h2>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Quick answers to common questions about accounts, privacy, and limits.</p>
+            </div>
+            <div class="mt-8 space-y-3">
+                @foreach ($faqs as $index => $faq)
+                    <details class="group rounded-xl border border-neutral-200 bg-white p-5 transition-colors hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700" {{ $index === 0 ? 'open' : '' }}>
+                        <summary class="flex cursor-pointer items-center justify-between gap-4 font-display text-base font-bold text-neutral-900 select-none dark:text-neutral-100">
+                            <span class="flex items-center gap-3">
+                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-bold text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">Q</span>
+                                <span>{{ $faq['q'] }}</span>
+                            </span>
+                            <svg class="h-4 w-4 shrink-0 text-neutral-400 transition-transform duration-200 group-open:rotate-180 dark:text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="m6 9 6 6 6-6"/>
+                            </svg>
+                        </summary>
+                        <div class="mt-3 pl-9 pr-4 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                            {!! $faq['a'] !!}
+                        </div>
+                    </details>
                 @endforeach
             </div>
         </div>
 
-        <p class="mt-10 text-sm text-neutral-500 dark:text-neutral-400">
-            Just need one quick link with no account? <a href="https://href.nz" class="font-semibold text-neutral-900 underline underline-offset-2 dark:text-neutral-100">Use href.nz</a>
-        </p>
-        <p class="mt-3 max-w-2xl text-xs text-neutral-400 dark:text-neutral-500">
-            The wider Ternis network also covers German-language links on <a href="https://meinlink.at" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">meinlink.at</a>,
-            click tracking on <a href="https://clicked.at" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">clicked.at</a>,
-            and creator-focused links on <a href="https://href.yt" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">href.yt</a>;
-            <a href="https://href.re" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">href.re</a> supports other Ternis applications.
-        </p>
+        {{-- Guest and Network Footer Callout --}}
+        <div class="mt-14 w-full rounded-2xl border border-dashed border-neutral-300 p-6 text-center dark:border-neutral-700">
+            <p class="text-sm text-neutral-600 dark:text-neutral-300">
+                Just need one quick link with no account? <a href="https://href.nz" class="font-semibold text-neutral-900 underline underline-offset-2 dark:text-neutral-100">Use href.nz</a>
+            </p>
+            <p class="mt-3 max-w-2xl text-xs text-neutral-400 dark:text-neutral-500">
+                The wider Ternis network also covers German-language links on <a href="https://meinlink.at" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">meinlink.at</a>,
+                click tracking on <a href="https://clicked.at" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">clicked.at</a>,
+                and creator-focused links on <a href="https://href.yt" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">href.yt</a>;
+                <a href="https://href.re" class="underline underline-offset-2 hover:text-neutral-700 dark:hover:text-neutral-300">href.re</a> supports other Ternis applications.
+            </p>
+        </div>
     </div>
 </x-layouts.app>
