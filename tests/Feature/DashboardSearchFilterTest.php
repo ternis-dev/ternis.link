@@ -19,7 +19,9 @@ class DashboardSearchFilterTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected User $admin;
+
     protected Domain $domain;
 
     protected function setUp(): void

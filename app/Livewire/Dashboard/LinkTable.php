@@ -333,7 +333,7 @@ class LinkTable extends Component
             $effectiveFilter = '';
         }
 
-        $links = $base
+        $links = (clone $base)
             ->with(['domain', 'user', 'apiKey:id,name,key_prefix'])
             ->when($this->scope === 'public', function ($query) {
                 $query->whereHas('domain', fn ($q) => $q->whereIn('hostname', DomainUrls::publicDashboardHostnames()));
@@ -437,6 +437,7 @@ class LinkTable extends Component
     private function apiKeyLinkCounts(mixed $base): Collection
     {
         return $this->scopedBase($base, '')
+            ->reorder()
             ->whereNotNull('api_key_id')
             ->selectRaw('api_key_id, count(*) as link_count')
             ->groupBy('api_key_id')
@@ -488,6 +489,7 @@ class LinkTable extends Component
             ->when($effectiveFilter !== '' && $effectiveFilter !== 'none', function ($query) use ($effectiveFilter) {
                 $query->where('api_key_id', $effectiveFilter);
             })
+            ->reorder()
             ->whereNotNull('api_key_id')
             ->whereHas('apiKey', fn ($q) => $q->where('show_on_dashboard', false))
             ->count();

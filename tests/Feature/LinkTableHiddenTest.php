@@ -11,6 +11,7 @@ use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -100,5 +101,26 @@ class LinkTableHiddenTest extends TestCase
             ->assertStatus(200)
             ->assertSee('hidden-abc')
             ->assertDontSee('Include hidden', escape: false);
+    }
+
+    public function test_api_key_link_counts_query_clears_order_by_clause(): void
+    {
+        $key = $this->makeKey('Key 1', true);
+        $this->makeLink('link-1', $key);
+
+        DB::enableQueryLog();
+
+        Livewire::actingAs($this->user)
+            ->test(LinkTable::class)
+            ->set('sortOption', 'newest')
+            ->assertOk();
+
+        $queries = DB::getQueryLog();
+        $groupQueries = array_filter($queries, fn ($q) => str_contains(strtolower($q['query']), 'group by `api_key_id`') || str_contains(strtolower($q['query']), 'group by "api_key_id"'));
+
+        $this->assertNotEmpty($groupQueries);
+        foreach ($groupQueries as $query) {
+            $this->assertStringNotContainsString('order by', strtolower($query['query']));
+        }
     }
 }
