@@ -133,4 +133,72 @@ class RedirectResilienceTest extends TestCase
         DB::table('migrations')->where('migration', '2026_10_01_000029_create_link_targets_table')->delete();
         $this->artisan('deploy:check')->assertFailed();
     }
+
+    public function test_all_optional_tables_missing_still_redirect(): void
+    {
+        $this->link();
+        Schema::drop('link_targets');
+        Schema::drop('clicks');
+        Schema::drop('cache');
+        config(['cache.default' => 'database']);
+        Cache::forgetDriver('database');
+        Schema::drop('sessions');
+        config(['session.driver' => 'database']);
+        app('session')->forgetDrivers();
+        Schema::drop('bio_pages');
+
+        $this->get('http://href.nz/resilient')
+            ->assertRedirect('https://example.com/destination?utm_source=newsletter');
+    }
+
+    public function test_multiple_optional_table_failures_do_not_bypass_restrictions(): void
+    {
+        Schema::drop('link_targets');
+        $this->link(['slug' => 'inactive', 'is_active' => false]);
+        $this->link(['slug' => 'removed', 'is_removed' => true]);
+        $this->link(['slug' => 'expired', 'expires_at' => now()->subMinute()]);
+        $this->link(['slug' => 'locked', 'password_hash' => Hash::make('secret')]);
+
+        foreach (['inactive', 'removed', 'expired', 'unknown'] as $slug) {
+            $this->get('http://href.nz/'.$slug)->assertNotFound();
+        }
+        $this->get('http://href.nz/locked')->assertOk()->assertDontSee('https://example.com/destination', false);
+    }
+
+    public function test_cold_then_warm_cache_with_missing_cache_table(): void
+    {
+        $this->link();
+        config(['cache.default' => 'database']);
+        Cache::forgetDriver('database');
+        Schema::drop('cache');
+
+        // First request: cold cache miss, should still redirect
+        $this->get('http://href.nz/resilient')
+            ->assertRedirect('https://example.com/destination?utm_source=newsletter');
+
+        // Second request: cache still missing, should still redirect
+        $this->get('http://href.nz/resilient')
+            ->assertRedirect('https://example.com/destination?utm_source=newsletter');
+    }
+
+    public function test_bio_page_with_missing_tables_and_custom_domain(): void
+    {
+        $domain = Domain::create([
+            'hostname' => 'custom.example',
+            'type' => 'partner',
+            'user_id' => User::factory()->create()->id,
+            'is_active' => true,
+            'verified_at' => now(),
+        ]);
+        $this->link(['domain_id' => $domain->id]);
+        Schema::drop('link_targets');
+        Schema::drop('cache');
+        Schema::drop('bio_pages');
+
+        // Known slug should still redirect (falls back to primary destination)
+        $this->get('http://custom.example/resilient')
+            ->assertRedirect('https://example.com/destination?utm_source=newsletter');
+        // Unknown slug should 404 (no bio pages to fall back to)
+        $this->get('http://custom.example/unknown')->assertNotFound();
+    }
 }
