@@ -28,27 +28,56 @@ class LinkInsights
      */
     public function clickHeatmap(HasMany|Builder $links, int $days = 90): array
     {
-        $rows = $this->clicksQuery($links, $days)
-            ->selectRaw(
-                'CAST(strftime("%w", created_at) AS INTEGER) as weekday,'.
-                'CAST(strftime("%H", created_at) AS INTEGER) as hour,'.
-                'COUNT(*) as total'
-            )
+        $query = $this->clicksQuery($links, $days);
+        $driver = $query->getConnection()->getDriverName();
+
+        $rows = $query
+            ->selectRaw($this->heatmapSelectExpression($driver))
             ->groupBy('weekday', 'hour')
             ->get();
 
         $grid = array_fill(0, 7, array_fill(0, 24, 0));
 
         foreach ($rows as $row) {
-            // SQLite's %w is Sunday-based (0 = Sunday); shift it to
-            // Monday-based so the grid reads Monday → Sunday.
-            $weekday = ((int) $row->weekday + 6) % 7;
+            $weekday = $this->normalizeWeekday((int) $row->weekday, $driver);
             $hour = (int) $row->hour;
 
-            $grid[$weekday][$hour] = (int) $row->total;
+            if ($weekday >= 0 && $weekday < 7 && $hour >= 0 && $hour < 24) {
+                $grid[$weekday][$hour] = (int) $row->total;
+            }
         }
 
         return $grid;
+    }
+
+    /**
+     * Database-specific SQL select expression for grouping by weekday and hour.
+     */
+    public function heatmapSelectExpression(string $driver): string
+    {
+        return match ($driver) {
+            'sqlite' => 'CAST(strftime("%w", created_at) AS INTEGER) as weekday,'.
+                        'CAST(strftime("%H", created_at) AS INTEGER) as hour,'.
+                        'COUNT(*) as total',
+            'pgsql' => 'CAST(EXTRACT(DOW FROM created_at) AS INTEGER) as weekday,'.
+                       'CAST(EXTRACT(HOUR FROM created_at) AS INTEGER) as hour,'.
+                       'COUNT(*) as total',
+            default => 'WEEKDAY(created_at) as weekday,'.
+                       'HOUR(created_at) as hour,'.
+                       'COUNT(*) as total',
+        };
+    }
+
+    /**
+     * Normalize weekday from database driver convention to Monday-based index (0 = Monday, 6 = Sunday).
+     */
+    public function normalizeWeekday(int $rawWeekday, string $driver): int
+    {
+        // SQLite %w and PostgreSQL EXTRACT(DOW) are Sunday-based (0 = Sunday). Shift to Monday-based.
+        // MySQL / MariaDB WEEKDAY() is already Monday-based (0 = Monday, 6 = Sunday).
+        return in_array($driver, ['sqlite', 'pgsql'], true)
+            ? ($rawWeekday + 6) % 7
+            : $rawWeekday;
     }
 
     /**

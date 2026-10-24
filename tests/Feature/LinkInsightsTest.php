@@ -6,6 +6,7 @@ use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
+use App\Services\LinkInsights;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -128,6 +129,30 @@ class LinkInsightsTest extends TestCase
         $this->assertSame('https://news.example', $referrers[0]['referrer']);
         $this->assertSame(2, $referrers[0]['count']);
         $this->assertSame('AT', $countries[0]['country']);
+    }
+
+    public function test_heatmap_select_expression_and_weekday_normalization_support_mysql_and_sqlite(): void
+    {
+        $insights = app(LinkInsights::class);
+
+        // MySQL expression uses WEEKDAY and HOUR, not SQLite strftime
+        $mysqlExpr = $insights->heatmapSelectExpression('mysql');
+        $this->assertStringContainsString('WEEKDAY(created_at) as weekday', $mysqlExpr);
+        $this->assertStringContainsString('HOUR(created_at) as hour', $mysqlExpr);
+        $this->assertStringNotContainsString('strftime', $mysqlExpr);
+
+        // MySQL returns 0 = Monday, 6 = Sunday
+        $this->assertSame(0, $insights->normalizeWeekday(0, 'mysql'));
+        $this->assertSame(6, $insights->normalizeWeekday(6, 'mysql'));
+
+        // SQLite expression uses strftime
+        $sqliteExpr = $insights->heatmapSelectExpression('sqlite');
+        $this->assertStringContainsString('strftime("%w", created_at)', $sqliteExpr);
+        $this->assertStringContainsString('strftime("%H", created_at)', $sqliteExpr);
+
+        // SQLite returns 0 = Sunday, 1 = Monday; shifted to 6 = Sunday, 0 = Monday
+        $this->assertSame(6, $insights->normalizeWeekday(0, 'sqlite'));
+        $this->assertSame(0, $insights->normalizeWeekday(1, 'sqlite'));
     }
 
     public function test_insights_window_is_configurable(): void
