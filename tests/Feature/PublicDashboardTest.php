@@ -66,7 +66,8 @@ class PublicDashboardTest extends TestCase
             ->assertOk()
             ->assertViewHas('stats', fn ($stats) => $stats['total_links'] === 3)
             ->assertSee('nd-stat-value', escape: false)
-            ->assertSee('Links by domain', escape: false);
+            ->assertSee('Links by domain', escape: false)
+            ->assertDontSee("\\n", escape: false);
     }
 
     public function test_legacy_opt_in_redirects_home_to_legacy(): void
