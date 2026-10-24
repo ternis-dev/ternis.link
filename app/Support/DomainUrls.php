@@ -58,6 +58,14 @@ class DomainUrls
     /**
      * Absolute URL on the internal gateway host (int.ternis.link).
      */
+    /**
+     * Absolute URL on the docs host (docs.ternis.link).
+     */
+    public static function docs(string $path = "/"): string
+    {
+        return static::onHost(config("domains.docs_host", "docs.ternis.link"), $path);
+    }
+
     public static function internal(string $path = '/'): string
     {
         return static::onHost(config('domains.internal_host', 'int.ternis.link'), $path);

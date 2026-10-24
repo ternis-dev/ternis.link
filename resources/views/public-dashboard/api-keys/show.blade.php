@@ -1,17 +1,17 @@
 <x-layouts.public-dashboard title="API Key Links — {{ \App\Support\PublicDashboard::label() }}">
     <x-pd.head
         :title="$apiKey->name"
-        subtitle="Public links created with this key. Key management lives on dash.ternis.link."
-        :backHref="\App\Support\PublicDashboard::route('links')"
-        backLabel="Back to Links"
+        subtitle="Public links created with this key. Real-time telemetry and management below."
+        :backHref="\App\Support\PublicDashboard::route('api-keys')"
+        backLabel="Back to API Keys"
     >
         <x-slot:actions>
             <x-pd.chip>{{ $apiKey->key_prefix }}…</x-pd.chip>
         </x-slot:actions>
     </x-pd.head>
 
-    <div class="mb-6 grid grid-cols-2 gap-4">
-        <x-pd.stat :value="number_format($stats['total_links'])" label="Key links" />
+    <div class="mb-8 grid grid-cols-2 gap-4">
+        <x-pd.stat :value="number_format($stats['total_links'])" label="Key links" accent="true" />
         <x-pd.stat :value="number_format($stats['total_clicks'])" label="Key clicks" />
     </div>
 
