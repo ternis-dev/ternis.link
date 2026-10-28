@@ -47,6 +47,62 @@ class AdminStatsTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_admin_overview_and_moderation_pages_render_heatmaps_and_charts(): void
+    {
+        $link = Link::create([
+            'slug' => 'overview-heat-1',
+            'destination_url' => 'https://example.com/overview',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+            'click_count' => 4,
+        ]);
+
+        Click::create([
+            'link_id' => $link->id,
+            'ip_hash' => 'ip_admin_idx',
+            'user_agent' => 'Mozilla/5.0',
+            'country_code' => 'DE',
+        ]);
+
+        ErrorEncounter::create([
+            'http_code' => 404,
+            'error_message' => 'Missing slug',
+            'exception_class' => 'Exception',
+            'method' => 'GET',
+            'host' => 'href.nz',
+            'path' => '/missing',
+            'ip_hash' => 'ip_err_idx',
+        ]);
+
+        ActivityLog::create([
+            'actor_id' => $this->admin->id,
+            'action' => 'link.created',
+            'ip_hash' => 'ip_act_idx',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get('http://admin.ternis.link/')
+            ->assertOk()
+            ->assertSee('30-Day Platform Traffic &amp; Link Creation', escape: false)
+            ->assertSee('System Activity Heatmap (Last 30 Days)', escape: false)
+            ->assertSee('data-chart="multi"', escape: false)
+            ->assertSee('data-heatmap', escape: false);
+
+        foreach ([
+            'http://admin.ternis.link/links' => 'Link Creation Heatmap (30d)',
+            'http://admin.ternis.link/users' => 'Account Signup Heatmap (30d)',
+            'http://admin.ternis.link/activity' => 'Audit Activity Heatmap (30d)',
+            'http://admin.ternis.link/errors' => 'Error Encounter Heatmap (30d)',
+        ] as $url => $expectedTitle) {
+            $this->actingAs($this->admin)
+                ->get($url)
+                ->assertOk()
+                ->assertSee($expectedTitle, escape: false)
+                ->assertSee('data-heatmap', escape: false);
+        }
+    }
+
     public function test_admin_can_access_stats_overview(): void
     {
         $link = Link::create([
@@ -72,6 +128,11 @@ class AdminStatsTest extends TestCase
         $response->assertSee('Stats &amp; System Analytics', escape: false);
         $response->assertSee('Link/Clicks Ratio', escape: false);
         $response->assertSee('Daily Link Clicks Traffic', escape: false);
+        $response->assertSee('Daily Link Creation Volume', escape: false);
+        $response->assertSee('Platform Activity Heatmaps', escape: false);
+        $response->assertSee('data-chart="clicks"', escape: false);
+        $response->assertSee('data-chart="horizontal-bar"', escape: false);
+        $response->assertSee('data-heatmap', escape: false);
     }
 
     public function test_admin_can_access_stats_errors_with_parameter_filtering(): void
@@ -102,6 +163,10 @@ class AdminStatsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Error Encounters Telemetry', escape: false);
+        $response->assertSee('Errors Recorded Per Day', escape: false);
+        $response->assertSee('data-chart="doughnut"', escape: false);
+        $response->assertSee('data-chart="multi"', escape: false);
+        $response->assertSee('data-heatmap', escape: false);
         $response->assertSee('Slug not found');
         $response->assertDontSee('Internal server error occurred');
     }
@@ -125,6 +190,9 @@ class AdminStatsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Audit Activities Telemetry', escape: false);
+        $response->assertSee('Audit Activity Heatmap', escape: false);
+        $response->assertSee('data-chart="horizontal-bar"', escape: false);
+        $response->assertSee('data-heatmap', escape: false);
         $response->assertSee('link.created');
     }
 
@@ -144,6 +212,10 @@ class AdminStatsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Short Links Telemetry', escape: false);
+        $response->assertSee('Links Created Per Day', escape: false);
+        $response->assertSee('data-chart="horizontal-bar"', escape: false);
+        $response->assertSee('data-chart="clicks"', escape: false);
+        $response->assertSee('data-heatmap', escape: false);
         $response->assertSee('links-stat-slug');
     }
 
@@ -170,10 +242,14 @@ class AdminStatsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Link Clicks Traffic Telemetry', escape: false);
+        $response->assertSee('Clicks Received Per Day', escape: false);
+        $response->assertSee('data-chart="doughnut"', escape: false);
+        $response->assertSee('data-chart="clicks"', escape: false);
+        $response->assertSee('data-heatmap', escape: false);
         $response->assertSee('mobile');
     }
 
-    public function test_admin_can_access_stats_ratio(): void
+    public function test_admin_can_access_stats_ratio_and_filter_by_domain(): void
     {
         $link1 = Link::create([
             'slug' => 'ratio-link-1',
@@ -184,7 +260,13 @@ class AdminStatsTest extends TestCase
             'click_count' => 100,
         ]);
 
-        $link2 = Link::create([
+        Click::create([
+            'link_id' => $link1->id,
+            'ip_hash' => 'ip_ratio_1',
+            'user_agent' => 'Mozilla/5.0',
+        ]);
+
+        Link::create([
             'slug' => 'ratio-link-2',
             'destination_url' => 'https://example.com/b',
             'domain_id' => $this->domain->id,
@@ -194,12 +276,17 @@ class AdminStatsTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->admin)
-            ->get('http://admin.ternis.link/stats/ratio');
+            ->get('http://admin.ternis.link/stats/ratio?domain_id='.$this->domain->id);
 
         $response->assertOk();
         $response->assertSee('Link / Clicks Ratio &amp; Engagement Telemetry', escape: false);
         $response->assertSee('Average Clicks / Link', escape: false);
         $response->assertSee('Clicks-per-Link Volume Distribution Tiers', escape: false);
+        $response->assertSee('Daily Clicks vs. Links Created Volume', escape: false);
+        $response->assertSee('Engagement vs. Creation Heatmap', escape: false);
+        $response->assertSee('data-chart="multi"', escape: false);
+        $response->assertSee('data-chart="horizontal-bar"', escape: false);
+        $response->assertSee('data-heatmap', escape: false);
     }
 
     public function test_admin_stats_supports_json_format(): void
@@ -214,6 +301,7 @@ class AdminStatsTest extends TestCase
                 'days',
                 'total_filtered',
                 'timeline',
+                'heatmap',
                 'by_code',
             ],
         ]);

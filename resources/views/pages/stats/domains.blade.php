@@ -19,7 +19,77 @@
         backLabel="Back to Stats Overview"
     />
 
-    <p class="mb-4 text-sm text-neutral-500 dark:text-neutral-400">Platform domains are listed for everyone; your own custom domains appear here once you're signed in. Other users' hostnames are never shown. System traffic is included in the totals on the overview.</p>
+    <p class="mb-6 text-sm text-neutral-500 dark:text-neutral-400">Platform domains are listed for everyone; your own custom domains appear here once you're signed in. Other users' hostnames are never shown. System traffic is included in the totals on the overview.</p>
+
+    @if ($domains->isNotEmpty())
+        @php
+            $domainLabels = $domains->pluck('hostname')->values()->all();
+            $domainLinks = $domains->map(fn ($d) => (int) $d->links_count)->values()->all();
+            $domainClicks = $domains->map(fn ($d) => (int) ($d->links_sum_click_count ?? 0))->values()->all();
+            $colorsLight = $domains->map(fn ($d) => $domainColors[$d->hostname]['light'] ?? '#2563eb')->values()->all();
+            $colorsDark = $domains->map(fn ($d) => $domainColors[$d->hostname]['dark'] ?? '#60a5fa')->values()->all();
+        @endphp
+
+        <x-ui.card
+            title="Volume Per Domain"
+            description="Each domain is shown in its own distinct color across Bar Graph and Graph modes."
+            class="mb-6"
+            data-chart-card
+            x-data="{ metric: 'links' }"
+        >
+            <x-slot:actions>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="inline-flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 text-[11px] dark:border-neutral-800 dark:bg-neutral-950" role="tablist" aria-label="Domain metric">
+                        <button
+                            type="button"
+                            role="tab"
+                            @click="metric = 'links'; $nextTick(() => document.dispatchEvent(new CustomEvent('tl:charts-refresh', { detail: { root: $el.closest('[data-chart-card]') } })))"
+                            :aria-selected="(metric === 'links').toString()"
+                            :class="metric === 'links' ? 'bg-white font-bold text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white' : 'text-neutral-500'"
+                            class="cursor-pointer rounded-md px-2.5 py-1 transition-all"
+                        >Links</button>
+                        <button
+                            type="button"
+                            role="tab"
+                            @click="metric = 'clicks'; $nextTick(() => document.dispatchEvent(new CustomEvent('tl:charts-refresh', { detail: { root: $el.closest('[data-chart-card]') } })))"
+                            :aria-selected="(metric === 'clicks').toString()"
+                            :class="metric === 'clicks' ? 'bg-white font-bold text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white' : 'text-neutral-500'"
+                            class="cursor-pointer rounded-md px-2.5 py-1 transition-all"
+                        >Clicks</button>
+                    </div>
+
+                    <div class="inline-flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 text-[11px] dark:border-neutral-800 dark:bg-neutral-950" role="group" aria-label="Domain chart display mode">
+                        <button type="button" data-chart-switch="bar" data-active="true" aria-pressed="true" class="cursor-pointer rounded-md px-2.5 py-1 transition-all data-[active=true]:bg-white data-[active=true]:font-bold data-[active=true]:text-neutral-900 data-[active=true]:shadow-xs dark:data-[active=true]:bg-neutral-800 dark:data-[active=true]:text-white data-[active=false]:text-neutral-500">Bar Graph</button>
+                        <button type="button" data-chart-switch="line" data-active="false" aria-pressed="false" class="cursor-pointer rounded-md px-2.5 py-1 transition-all data-[active=true]:bg-white data-[active=true]:font-bold data-[active=true]:text-neutral-900 data-[active=true]:shadow-xs dark:data-[active=true]:bg-neutral-800 dark:data-[active=true]:text-white data-[active=false]:text-neutral-500">Graph</button>
+                    </div>
+                </div>
+            </x-slot:actions>
+
+            <div x-show="metric === 'links'" class="relative h-64" role="img" aria-label="Links per domain">
+                <canvas
+                    data-chart="clicks"
+                    data-chart-type="bar"
+                    data-chart-unit="link"
+                    data-chart-labels='@json($domainLabels)'
+                    data-chart-values='@json($domainLinks)'
+                    data-chart-colors-light='@json($colorsLight)'
+                    data-chart-colors-dark='@json($colorsDark)'
+                ></canvas>
+            </div>
+
+            <div x-show="metric === 'clicks'" x-cloak class="relative h-64" role="img" aria-label="Clicks per domain">
+                <canvas
+                    data-chart="clicks"
+                    data-chart-type="bar"
+                    data-chart-unit="click"
+                    data-chart-labels='@json($domainLabels)'
+                    data-chart-values='@json($domainClicks)'
+                    data-chart-colors-light='@json($colorsLight)'
+                    data-chart-colors-dark='@json($colorsDark)'
+                ></canvas>
+            </div>
+        </x-ui.card>
+    @endif
 
     <x-ui.card>
         <x-ui.table>
@@ -32,8 +102,16 @@
             </thead>
             <tbody>
                 @forelse ($domains as $domain)
+                    @php
+                        $swatchColor = $domainColors[$domain->hostname]['light'] ?? '#2563eb';
+                    @endphp
                     <tr>
-                        <td><code>{{ $domain->hostname }}</code></td>
+                        <td>
+                            <span class="inline-flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background-color: {{ $swatchColor }}"></span>
+                                <code>{{ $domain->hostname }}</code>
+                            </span>
+                        </td>
                         <td class="font-bold">{{ number_format($domain->links_count) }}</td>
                         <td class="font-bold">{{ number_format($domain->links_sum_click_count ?? 0) }}</td>
                     </tr>

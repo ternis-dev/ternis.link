@@ -1,7 +1,7 @@
 <x-layouts.admin title="Links Stats — admin.ternis.link">
     @include('admin.stats._header', [
         'title' => 'Short Links Telemetry',
-        'subtitle' => 'Link creation volume per day, domain distribution, privacy tracking adoption, and status metrics.',
+        'subtitle' => 'Link creation volume per day, 7×24 creation heatmap, domain distribution, privacy tracking adoption, and status metrics.',
         'section' => 'links',
         'params' => $params,
     ])
@@ -105,10 +105,36 @@
         ])
     </div>
 
+    {{-- Filtered 7x24 Link Creation Heatmap --}}
+    <div class="mb-8">
+        <x-ui.heatmap
+            :heatmap="$stats['heatmap']"
+            title="Link Creation Heatmap (7×24 Weekday & Hour)"
+            subtitle="When short links are created across the week, filtered by active domain, status, and privacy options."
+            color="blue"
+            unit="link"
+        />
+    </div>
+
     {{-- Breakdown Grid --}}
     <div class="grid gap-6 lg:grid-cols-2 mb-8">
         {{-- Distribution by Domain --}}
         <x-ui.card title="Links Distribution by Domain">
+            @if ($stats['by_domain']->isNotEmpty())
+                @php
+                    $byDomainLabels = $stats['by_domain']->map(fn ($d) => $d->domain?->hostname ?? 'Unknown')->values();
+                    $byDomainValues = $stats['by_domain']->pluck('count')->map(fn ($c) => (int) $c)->values();
+                @endphp
+                <div class="relative mb-5 h-48 w-full" role="img" aria-label="Links created per domain">
+                    <canvas
+                        data-chart="horizontal-bar"
+                        data-chart-color="blue"
+                        data-chart-unit="link"
+                        data-chart-labels='@json($byDomainLabels)'
+                        data-chart-values='@json($byDomainValues)'
+                    ></canvas>
+                </div>
+            @endif
             <div class="space-y-3">
                 @forelse ($stats['by_domain'] as $dom)
                     @php
@@ -147,7 +173,7 @@
                             <td class="font-mono text-xs font-semibold">{{ $lnk->slug }}</td>
                             <td class="font-mono text-xs text-neutral-500">{{ $lnk->domain?->hostname ?? '—' }}</td>
                             <td class="font-bold text-neutral-900 dark:text-white">{{ number_format($lnk->click_count) }}</td>
-                            <td class="text-xs text-neutral-500">{{ $lnk->user?->email ?? 'Guest' }}</td>
+                            <td class="tl-sensitive text-xs text-neutral-500">{{ $lnk->user?->email ?? 'Guest' }}</td>
                         </tr>
                     @empty
                         <tr>

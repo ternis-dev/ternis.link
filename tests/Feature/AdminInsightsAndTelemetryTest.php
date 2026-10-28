@@ -72,7 +72,12 @@ class AdminInsightsAndTelemetryTest extends TestCase
         $response->assertOk()
             ->assertSee('Traffic & Behavioral Insights', false)
             ->assertSee('Activity Heatmap')
+            ->assertSee('Daily Clicks Contribution Calendar')
             ->assertSee('Hourly Click Profile')
+            ->assertSee('"00:00"', false)
+            ->assertSee('"23:00"', false)
+            ->assertSee('data-calendar-heatmap', false)
+            ->assertSee('data-heatmap', false)
             ->assertSee('Top Referrers')
             ->assertSee('Top Countries')
             ->assertSee('insights-test');
@@ -110,7 +115,7 @@ class AdminInsightsAndTelemetryTest extends TestCase
             ->assertSee($fullUa);
     }
 
-    public function test_admin_timeline_charts_render_svg_graphs_and_line_data(): void
+    public function test_admin_timeline_charts_render_chartjs_canvases_and_mode_switches(): void
     {
         $admin = User::factory()->admin()->create();
         $domain = Domain::where('hostname', 'clicked.at')->first();
@@ -137,6 +142,8 @@ class AdminInsightsAndTelemetryTest extends TestCase
         $response->assertOk()
             ->assertSee('data-chart-type="line"', escape: false)
             ->assertSee('data-chart-unit="click"', escape: false)
+            ->assertSee('data-chart-switch="line"', escape: false)
+            ->assertSee('data-chart-switch="bar"', escape: false)
             ->assertSee('Graph', escape: false)
             ->assertSee('Bars', escape: false);
     }

@@ -1,7 +1,7 @@
 <x-layouts.admin title="Error Stats — admin.ternis.link">
     @include('admin.stats._header', [
         'title' => 'Error Encounters Telemetry',
-        'subtitle' => 'Analysis of application errors per day, HTTP status codes, failing routes, and exceptions.',
+        'subtitle' => 'Analysis of application errors per day, 7×24 error burst heatmap, HTTP status codes, failing routes, and exceptions.',
         'section' => 'errors',
         'params' => $params,
     ])
@@ -75,24 +75,69 @@
         </div>
     </div>
 
-    {{-- Daily Timeline Graph --}}
+    {{-- Daily Timeline Multi-Series Chart (5xx vs 4xx) --}}
     <div class="mb-8">
         @include('admin.stats._timeline-chart', [
-            'timeline' => $stats['timeline'],
+            'labels' => array_keys($stats['timeline']),
+            'datasets' => [
+                [
+                    'label' => '5xx Server Errors',
+                    'values' => array_values($stats['timeline_5xx'] ?? []),
+                    'color' => 'red',
+                    'unit' => 'error',
+                ],
+                [
+                    'label' => '4xx Client Errors',
+                    'values' => array_values($stats['timeline_4xx'] ?? []),
+                    'color' => 'amber',
+                    'unit' => 'error',
+                ],
+            ],
+            'stacked' => true,
             'title' => 'Errors Recorded Per Day',
+            'subtitle' => 'Daily comparison of 5xx server faults and 4xx client rejections.',
             'color' => 'red',
             'unit' => 'error',
         ])
+    </div>
+
+    {{-- Filtered 7x24 Error Encounters Heatmap --}}
+    <div class="mb-8">
+        <x-ui.heatmap
+            :heatmap="$stats['heatmap']"
+            title="Error Encounters Heatmap (7×24 Weekday & Hour)"
+            subtitle="Spot automated scanner bursts, scheduled job anomalies, and peak error hours across the week."
+            color="red"
+            unit="error"
+        />
     </div>
 
     {{-- Breakdown Tables --}}
     <div class="grid gap-6 lg:grid-cols-2 mb-8">
         {{-- By HTTP Status Code --}}
         <x-ui.card title="Errors by HTTP Status Code">
-            <div class="space-y-3">
-                @forelse ($stats['by_code'] as $c)
+            @if ($stats['by_code']->isNotEmpty())
+                @php
+                    $byCodeLabels = $stats['by_code']->map(fn ($c) => 'HTTP '.$c['code'])->values();
+                    $byCodeValues = $stats['by_code']->pluck('count')->values();
+                @endphp
+                <div class="mb-5 flex items-center justify-center">
+                    <div class="relative h-36 w-36" role="img" aria-label="Errors by HTTP status code">
+                        <canvas
+                            id="admin-errors-codes"
+                            data-chart="doughnut"
+                            data-chart-palette="red"
+                            data-chart-labels='@json($byCodeLabels)'
+                            data-chart-values='@json($byCodeValues)'
+                        ></canvas>
+                    </div>
+                </div>
+            @endif
+            <div class="space-y-3" data-chart-legend="admin-errors-codes">
+                @forelse ($stats['by_code'] as $idx => $c)
                     <div class="flex items-center justify-between text-xs">
                         <div class="flex items-center gap-2">
+                            <span data-swatch="{{ $idx }}" class="h-2.5 w-2.5 shrink-0 rounded-xs bg-red-500"></span>
                             <span @class([
                                 'rounded px-1.5 py-0.5 font-mono text-xs font-bold',
                                 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' => $c['code'] >= 500,
@@ -124,7 +169,7 @@
         </x-ui.card>
 
         {{-- Top Failing Endpoints --}}
-        <x-ui.card title="Top Failing Routes &amp; Endpoints">
+        <x-ui.card title="Top Failing Routes & Endpoints">
             <x-ui.table>
                 <thead>
                     <tr>
@@ -186,7 +231,7 @@
                         <td class="text-xs text-neutral-600 dark:text-neutral-400 max-w-[240px] truncate" title="{{ $err->error_message }}">
                             {{ $err->error_message }}
                         </td>
-                        <td class="text-xs text-neutral-500">
+                        <td class="tl-sensitive text-xs text-neutral-500">
                             {{ $err->user?->email ?? 'Guest' }}
                         </td>
                         <td class="font-mono text-xs break-all text-neutral-700 dark:text-neutral-300 select-all max-w-sm">

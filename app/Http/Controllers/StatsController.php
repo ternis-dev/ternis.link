@@ -16,22 +16,26 @@ class StatsController extends Controller
     public const MARKDOWN = 'text/markdown; charset=UTF-8';
 
     /**
-     * Overview: all-time totals + creations/clicks/QR per day (30d).
+     * Overview: all-time totals + heatmaps + creations/clicks/QR per day (30d).
      */
     public function index()
     {
-        $creations = NetworkStats::creationsByDay(30);
-        $clicks = NetworkStats::clicksByDay(30);
-        $qr = NetworkStats::qrByDay(30);
+        $creations = NetworkStats::creationsByDomain(30);
+        $clicks = NetworkStats::clicksByDomain(30);
+        $qr = NetworkStats::qrByDomain(30);
 
         return view('pages.stats.index', [
             'stats' => NetworkStats::overview(),
+            'heatmaps' => NetworkStats::heatmaps(),
             'creationLabels' => collect($creations['labels']),
             'creationValues' => collect($creations['values']),
+            'creationDatasets' => $creations['datasets'],
             'clickLabels' => collect($clicks['labels']),
             'clickValues' => collect($clicks['values']),
+            'clickDatasets' => $clicks['datasets'],
             'qrLabels' => collect($qr['labels']),
             'qrValues' => collect($qr['values']),
+            'qrDatasets' => $qr['datasets'],
         ]);
     }
 
@@ -46,6 +50,7 @@ class StatsController extends Controller
 
         return response()->view('pages.stats.index-md', [
             'stats' => NetworkStats::overview(),
+            'heatmaps' => NetworkStats::heatmaps(),
             'creationLabels' => $creations['labels'],
             'creationValues' => $creations['values'],
             'clickLabels' => $clicks['labels'],
@@ -62,8 +67,14 @@ class StatsController extends Controller
      */
     public function domains()
     {
+        $domains = $this->visibleDomains();
+        $domainColors = $domains->mapWithKeys(fn ($domain) => [
+            $domain->hostname => NetworkStats::domainColor($domain->hostname),
+        ])->all();
+
         return view('pages.stats.domains', [
-            'domains' => $this->visibleDomains(),
+            'domains' => $domains,
+            'domainColors' => $domainColors,
         ]);
     }
 

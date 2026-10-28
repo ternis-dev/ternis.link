@@ -1,91 +1,94 @@
-@props(['timeline' => [], 'title' => 'Daily Timeline', 'color' => 'amber', 'unit' => 'event'])
+@props([
+    'timeline' => [],
+    'datasets' => null,
+    'labels' => null,
+    'title' => 'Daily Timeline',
+    'subtitle' => null,
+    'color' => 'amber',
+    'unit' => 'event',
+    'defaultType' => 'line',
+    'stacked' => false,
+    'heightClass' => 'h-56',
+])
 
 @php
-$values = array_values($timeline);
-$dates = array_keys($timeline);
-$max = max(1, ...$values);
-$total = array_sum($values);
-$count = count($timeline);
-$avg = $count > 0 ? round($total / $count, 1) : 0;
-
-$barColor = match ($color) {
-    'emerald' => 'bg-emerald-500 hover:bg-emerald-600',
-    'blue' => 'bg-blue-500 hover:bg-blue-600',
-    'red' => 'bg-red-500 hover:bg-red-600',
-    'purple' => 'bg-purple-500 hover:bg-purple-600',
-    default => 'bg-amber-500 hover:bg-amber-600',
-};
-
-$strokeHex = match ($color) {
-    'emerald' => '#10b981',
-    'blue' => '#3b82f6',
-    'red' => '#ef4444',
-    'purple' => '#8b5cf6',
-    default => '#f59e0b',
-};
-
-$gradientId = 'grad-' . $color . '-' . md5($title . $count);
-
-// SVG coordinate calculations for line graph
-$labels = array_map(fn ($d) => \Carbon\Carbon::parse($d)->format('M d'), $dates);
-$points = [];
-$width = 960;
-$height = 140;
-$paddingY = 16;
-$usableHeight = $height - ($paddingY * 2);
-
-foreach ($values as $i => $val) {
-    $x = $count > 1 ? round(($i / ($count - 1)) * $width, 1) : round($width / 2, 1);
-    $y = round($height - $paddingY - (($val / $max) * $usableHeight), 1);
-    $points[] = ['x' => $x, 'y' => $y, 'val' => $val, 'date' => $labels[$i]];
-}
-
-$pathD = '';
-foreach ($points as $idx => $pt) {
-    if ($idx === 0) {
-        $pathD .= "M {$pt['x']},{$pt['y']}";
-    } else {
-        $prev = $points[$idx - 1];
-        $cpX1 = round($prev['x'] + ($pt['x'] - $prev['x']) / 3, 1);
-        $cpX2 = round($prev['x'] + 2 * ($pt['x'] - $prev['x']) / 3, 1);
-        $pathD .= " C {$cpX1},{$prev['y']} {$cpX2},{$pt['y']} {$pt['x']},{$pt['y']}";
+$formatKey = static function (string $key): string {
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $key) === 1) {
+        return \Carbon\Carbon::parse($key)->format('M j');
     }
+
+    return $key;
+};
+
+$isMulti = is_array($datasets) && count($datasets) > 0;
+
+if ($isMulti) {
+    $rawKeys = is_array($labels) ? $labels : array_keys($timeline);
+    $chartLabels = array_map(fn ($k) => $formatKey((string) $k), $rawKeys);
+    $primaryValues = array_values($datasets[0]['values'] ?? []);
+    $allSums = [];
+    foreach ($datasets as $ds) {
+        foreach (array_values($ds['values'] ?? []) as $idx => $v) {
+            $allSums[$idx] = ($allSums[$idx] ?? 0) + (int) $v;
+        }
+    }
+    $values = $allSums !== [] ? $allSums : [0];
+    $total = array_sum($values);
+    $count = count($chartLabels);
+} else {
+    $values = array_map('intval', array_values($timeline));
+    $dates = array_keys($timeline);
+    $chartLabels = array_map(fn ($d) => $formatKey((string) $d), $dates);
+    $total = array_sum($values);
+    $count = count($timeline);
 }
-$lastPt = !empty($points) ? end($points) : ['x' => $width, 'y' => $height];
-$firstPt = !empty($points) ? $points[0] : ['x' => 0, 'y' => $height];
-$areaD = $pathD . " L {$lastPt['x']}," . ($height) . " L {$firstPt['x']}," . ($height) . " Z";
+
+$max = $values !== [] ? max($values) : 0;
+$peakIdx = $max > 0 ? array_search($max, $values, true) : false;
+$peakAt = ($peakIdx !== false && isset($chartLabels[$peakIdx])) ? $chartLabels[$peakIdx] : null;
+$avg = $count > 0 ? round($total / $count, 1) : 0;
+$isHourly = $count === 24 && isset($chartLabels[0]) && str_ends_with((string) $chartLabels[0], ':00');
+$avgLabel = $isHourly ? 'Avg/hr' : 'Avg/day';
+$resolvedSubtitle = $subtitle ?? ($isHourly ? '24-hour distribution curve (UTC)' : 'Telemetry trend across the selected window');
 @endphp
 
-<div x-data="{ mode: 'graph' }" class="rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+<div data-chart-card class="rounded-2xl border border-neutral-200/90 bg-white p-5 sm:p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-            <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">{{ $title }}</h3>
-            <p class="text-xs text-neutral-500">Telemetry trend graph across the period</p>
+            <h3 class="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-white">{{ $title }}</h3>
+            <p class="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">{{ $resolvedSubtitle }}</p>
         </div>
-        <div class="flex flex-wrap items-center gap-4 text-xs">
-            <div class="flex items-center gap-3">
-                <span class="font-medium text-neutral-600 dark:text-neutral-300">Total: <strong class="text-neutral-900 dark:text-white font-bold">{{ number_format($total) }}</strong></span>
-                <span class="text-neutral-400 dark:text-neutral-600">&bull;</span>
-                <span class="font-medium text-neutral-600 dark:text-neutral-300">Peak: <strong class="text-neutral-900 dark:text-white font-bold">{{ number_format($max) }}</strong></span>
-                <span class="text-neutral-400 dark:text-neutral-600">&bull;</span>
-                <span class="font-medium text-neutral-600 dark:text-neutral-300">Avg/day: <strong class="text-neutral-900 dark:text-white font-bold">{{ $avg }}</strong></span>
+
+        <div class="flex flex-wrap items-center gap-3 text-xs">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="rounded-lg bg-neutral-100 px-2.5 py-1 font-medium text-neutral-600 dark:bg-neutral-800/80 dark:text-neutral-300">
+                    Total: <strong class="font-bold text-neutral-900 dark:text-white">{{ number_format($total) }}</strong>
+                </span>
+                <span class="rounded-lg bg-neutral-100 px-2.5 py-1 font-medium text-neutral-600 dark:bg-neutral-800/80 dark:text-neutral-300">
+                    Peak: <strong class="font-bold text-neutral-900 dark:text-white">{{ number_format($max) }}</strong>@if ($peakAt)<span class="text-neutral-400 dark:text-neutral-500"> ({{ $peakAt }})</span>@endif
+                </span>
+                <span class="hidden sm:inline-flex rounded-lg bg-neutral-100 px-2.5 py-1 font-medium text-neutral-600 dark:bg-neutral-800/80 dark:text-neutral-300">
+                    {{ $avgLabel }}: <strong class="font-bold text-neutral-900 dark:text-white">{{ $avg }}</strong>
+                </span>
             </div>
 
-            {{-- Graph vs Bars View Toggle (Default: Graph) --}}
-            <div class="inline-flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 text-[11px] dark:border-neutral-800 dark:bg-neutral-950">
+            {{-- Graph (Line) vs Bars Switcher --}}
+            <div class="inline-flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 text-[11px] dark:border-neutral-800 dark:bg-neutral-950" role="group" aria-label="Chart display mode">
                 <button
                     type="button"
-                    @click="mode = 'graph'"
-                    :class="mode === 'graph' ? 'bg-white text-neutral-900 shadow-xs font-bold dark:bg-neutral-800 dark:text-white' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'"
-                    class="rounded-md px-2.5 py-1 transition-all cursor-pointer"
+                    data-chart-switch="line"
+                    data-active="{{ $defaultType === 'line' ? 'true' : 'false' }}"
+                    aria-pressed="{{ $defaultType === 'line' ? 'true' : 'false' }}"
+                    class="cursor-pointer rounded-md px-2.5 py-1 transition-all data-[active=true]:bg-white data-[active=true]:font-bold data-[active=true]:text-neutral-900 data-[active=true]:shadow-xs dark:data-[active=true]:bg-neutral-800 dark:data-[active=true]:text-white data-[active=false]:text-neutral-500 data-[active=false]:hover:text-neutral-900 dark:data-[active=false]:hover:text-white"
                 >
                     Graph
                 </button>
                 <button
                     type="button"
-                    @click="mode = 'bars'"
-                    :class="mode === 'bars' ? 'bg-white text-neutral-900 shadow-xs font-bold dark:bg-neutral-800 dark:text-white' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'"
-                    class="rounded-md px-2.5 py-1 transition-all cursor-pointer"
+                    data-chart-switch="bar"
+                    data-active="{{ $defaultType === 'bar' ? 'true' : 'false' }}"
+                    aria-pressed="{{ $defaultType === 'bar' ? 'true' : 'false' }}"
+                    class="cursor-pointer rounded-md px-2.5 py-1 transition-all data-[active=true]:bg-white data-[active=true]:font-bold data-[active=true]:text-neutral-900 data-[active=true]:shadow-xs dark:data-[active=true]:bg-neutral-800 dark:data-[active=true]:text-white data-[active=false]:text-neutral-500 data-[active=false]:hover:text-neutral-900 dark:data-[active=false]:hover:text-white"
                 >
                     Bars
                 </button>
@@ -94,94 +97,31 @@ $areaD = $pathD . " L {$lastPt['x']}," . ($height) . " L {$firstPt['x']}," . ($h
     </div>
 
     @if ($total === 0)
-        <div class="flex h-40 items-center justify-center rounded-xl bg-neutral-50 text-xs text-neutral-400 dark:bg-neutral-950/40">
-            No events recorded in this time range.
+        <div class="flex h-44 items-center justify-center rounded-xl bg-neutral-50 text-xs text-neutral-400 dark:bg-neutral-950/40">
+            No {{ $unit }}s recorded in this time range.
         </div>
     @else
-        {{-- Mode: Line Graph View (Default) --}}
-        <div x-show="mode === 'graph'" class="relative pt-4">
-            <div class="relative h-44 w-full">
+        <div class="relative {{ $heightClass }} w-full" role="img" aria-label="{{ $title }}">
+            @if ($isMulti)
+                <canvas
+                    data-chart="multi"
+                    data-chart-type="{{ $defaultType }}"
+                    data-chart-unit="{{ $unit }}"
+                    @if ($stacked) data-chart-stacked="true" @endif
+                    data-chart-labels='@json($chartLabels)'
+                    data-chart-datasets='@json($datasets)'
+                    class="h-full w-full"
+                ></canvas>
+            @else
                 <canvas
                     data-chart="clicks"
-                    data-chart-type="line"
+                    data-chart-type="{{ $defaultType }}"
                     data-chart-color="{{ $color }}"
                     data-chart-unit="{{ $unit }}"
-                    data-chart-labels='@json($labels)'
+                    data-chart-labels='@json($chartLabels)'
                     data-chart-values='@json($values)'
-                    class="relative z-10 h-full w-full"
+                    class="h-full w-full"
                 ></canvas>
-
-                {{-- Immediate SVG Area Fallback / Backdrop Graph --}}
-                <div class="pointer-events-none absolute inset-0 z-0">
-                    <svg viewBox="0 0 {{ $width }} {{ $height }}" preserveAspectRatio="none" class="h-full w-full opacity-60 dark:opacity-40">
-                        <defs>
-                            <linearGradient id="{{ $gradientId }}" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="{{ $strokeHex }}" stop-opacity="0.35" />
-                                <stop offset="100%" stop-color="{{ $strokeHex }}" stop-opacity="0.0" />
-                            </linearGradient>
-                        </defs>
-                        @if ($pathD !== '')
-                            <path d="{{ $areaD }}" fill="url(#{{ $gradientId }})" />
-                            <path d="{{ $pathD }}" fill="none" stroke="{{ $strokeHex }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-                        @endif
-                    </svg>
-                </div>
-            </div>
-
-            @if ($count > 1)
-                @php
-                $firstDate = \Carbon\Carbon::parse($dates[0])->format('M d');
-                $midDate = \Carbon\Carbon::parse($dates[(int) floor($count / 2)])->format('M d');
-                $lastDate = \Carbon\Carbon::parse(end($dates))->format('M d');
-                @endphp
-                <div class="mt-2 flex items-center justify-between text-[11px] font-mono text-neutral-400">
-                    <span>{{ $firstDate }}</span>
-                    <span>{{ $midDate }}</span>
-                    <span>{{ $lastDate }}</span>
-                </div>
-            @endif
-        </div>
-
-        {{-- Mode: Bar Chart View (Secondary Option) --}}
-        <div x-show="mode === 'bars'" x-cloak class="relative pt-6">
-            {{-- Horizontal guide lines --}}
-            <div class="pointer-events-none absolute inset-x-0 top-0 flex flex-col justify-between h-40 opacity-15">
-                <div class="border-b border-dashed border-neutral-500 w-full"></div>
-                <div class="border-b border-dashed border-neutral-500 w-full"></div>
-                <div class="border-b border-neutral-500 w-full"></div>
-            </div>
-
-            {{-- Bars Container --}}
-            <div class="relative flex h-40 items-end gap-1 sm:gap-1.5 overflow-x-auto pb-1">
-                @foreach ($timeline as $date => $val)
-                    @php
-                    $pct = max(4, round(($val / $max) * 100));
-                    $humanDate = \Carbon\Carbon::parse($date)->format('M d');
-                    @endphp
-                    <div class="group relative flex-1 flex flex-col items-center justify-end h-full min-w-[8px]" @if ($val > 0) tabindex="0" aria-label="{{ $humanDate }}: {{ number_format($val) }} {{ $unit }}s" @endif>
-                        {{-- Tooltip --}}
-                        <div class="pointer-events-none absolute -top-9 z-30 hidden rounded-md bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white shadow-lg group-hover:block group-focus-within:block whitespace-nowrap dark:bg-white dark:text-neutral-900">
-                            {{ $humanDate }}: {{ number_format($val) }}
-                        </div>
-                        {{-- Bar --}}
-                        <div
-                            style="height: {{ $pct }}%;"
-                            class="w-full rounded-t-sm transition-all duration-300 {{ $barColor }} cursor-pointer"
-                        ></div>
-                    </div>
-                @endforeach
-            </div>
-
-            @if ($count > 1)
-                @php
-                $firstDate = \Carbon\Carbon::parse($dates[0])->format('M d');
-                $lastDate = \Carbon\Carbon::parse(end($dates))->format('M d');
-                @endphp
-                <div class="mt-2 flex items-center justify-between text-[11px] font-mono text-neutral-400">
-                    <span>{{ $firstDate }}</span>
-                    <span>Daily distribution</span>
-                    <span>{{ $lastDate }}</span>
-                </div>
             @endif
         </div>
     @endif

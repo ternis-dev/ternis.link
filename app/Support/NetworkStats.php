@@ -7,6 +7,7 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Models\LinkTombstone;
 use App\Models\QrGeneration;
+use App\Services\LinkInsights;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -16,14 +17,75 @@ use Illuminate\Support\Facades\Cache;
  * (HTML + Markdown twins) and machine-readable files (llms-full.txt).
  *
  * DSGVO by design: every number here is an aggregate (counts grouped
- * by day or domain). No personal data — no IPs, no user agents, no
- * referrers, no per-user rows — ever leaves the database. Raw rows
- * are never deleted (only IP ciphertext is pruned after 30 days),
- * so all-time totals stay complete forever. Hard-deleted links leave
- * a tombstone carrying their aggregates, merged in below.
+ * by day, weekday/hour, or domain). No personal data — no IPs, no user
+ * agents, no referrers, no per-user rows — ever leaves the database.
+ * Raw rows are never deleted (only IP ciphertext is pruned after 30
+ * days), so all-time totals stay complete forever. Hard-deleted links
+ * leave a tombstone carrying their aggregates, merged in below.
  */
 class NetworkStats
 {
+    /**
+     * Distinct brand color pairs (light / dark hex) per platform domain.
+     *
+     * @var array<string, array{light: string, dark: string}>
+     */
+    private const DOMAIN_COLORS = [
+        'href.nz' => ['light' => '#7c3aed', 'dark' => '#a78bfa'],
+        'ternis.link' => ['light' => '#059669', 'dark' => '#34d399'],
+        'meinlink.at' => ['light' => '#e11d48', 'dark' => '#fb7185'],
+        'clicked.at' => ['light' => '#4f46e5', 'dark' => '#818cf8'],
+        'qr.href.nz' => ['light' => '#0891b2', 'dark' => '#22d3ee'],
+        'qr.href.nz / Direct QR' => ['light' => '#0891b2', 'dark' => '#22d3ee'],
+        'href.yt' => ['light' => '#dc2626', 'dark' => '#f87171'],
+        'href.re' => ['light' => '#d97706', 'dark' => '#fbbf24'],
+        'int.ternis.link' => ['light' => '#0284c7', 'dark' => '#38bdf8'],
+        'links.thosted.de' => ['light' => '#0d9488', 'dark' => '#2dd4bf'],
+        'short.thosted.de' => ['light' => '#ea580c', 'dark' => '#fb923c'],
+        'go.thosted.de' => ['light' => '#65a30d', 'dark' => '#a3e635'],
+        'go.ternis.net' => ['light' => '#2563eb', 'dark' => '#60a5fa'],
+        'go.ternis.dev' => ['light' => '#c026d3', 'dark' => '#e879f9'],
+        'go.ternis.org' => ['light' => '#db2777', 'dark' => '#f472b6'],
+        'go.ternis.eu' => ['light' => '#ca8a04', 'dark' => '#facc15'],
+        'Custom domains' => ['light' => '#9333ea', 'dark' => '#d8b4fe'],
+    ];
+
+    /**
+     * Fallback vibrant color pairs hashed deterministically for custom domains.
+     *
+     * @var list<array{light: string, dark: string}>
+     */
+    private const FALLBACK_DOMAIN_COLORS = [
+        ['light' => '#2563eb', 'dark' => '#60a5fa'],
+        ['light' => '#059669', 'dark' => '#34d399'],
+        ['light' => '#d97706', 'dark' => '#fbbf24'],
+        ['light' => '#7c3aed', 'dark' => '#a78bfa'],
+        ['light' => '#e11d48', 'dark' => '#fb7185'],
+        ['light' => '#0891b2', 'dark' => '#22d3ee'],
+        ['light' => '#ea580c', 'dark' => '#fb923c'],
+        ['light' => '#4f46e5', 'dark' => '#818cf8'],
+        ['light' => '#0d9488', 'dark' => '#2dd4bf'],
+        ['light' => '#c026d3', 'dark' => '#e879f9'],
+        ['light' => '#65a30d', 'dark' => '#a3e635'],
+        ['light' => '#dc2626', 'dark' => '#f87171'],
+    ];
+
+    /**
+     * Resolve a distinct light/dark color pair for any domain label.
+     *
+     * @return array{light: string, dark: string}
+     */
+    public static function domainColor(string $hostname): array
+    {
+        if (isset(self::DOMAIN_COLORS[$hostname])) {
+            return self::DOMAIN_COLORS[$hostname];
+        }
+
+        $idx = abs(crc32(strtolower($hostname))) % count(self::FALLBACK_DOMAIN_COLORS);
+
+        return self::FALLBACK_DOMAIN_COLORS[$idx];
+    }
+
     /**
      * All-time totals + today's counts (cached 10 minutes).
      *
@@ -110,6 +172,54 @@ class NetworkStats
     }
 
     /**
+     * Links created per day broken down by platform domain (+ aggregate
+     * "Custom domains" bucket so private hostnames are never exposed).
+     *
+     * @return array{labels: list<string>, values: list<int>, datasets: list<array<string, mixed>>}
+     */
+    public static function creationsByDomain(int $days = 30): array
+    {
+        $byDomain = Cache::remember('stats:creations-domains-30d', 600, function () use ($days) {
+            $cutoff = now()->subDays($days - 1)->startOfDay();
+            $platformById = Domain::whereNull('user_id')->pluck('hostname', 'id')->all();
+            $platformHostnames = array_flip(array_values($platformById));
+
+            $buckets = [];
+
+            $liveRows = Link::query()
+                ->selectRaw('domain_id, DATE(created_at) as date, COUNT(*) as count')
+                ->where('created_at', '>=', $cutoff)
+                ->groupBy('domain_id')
+                ->groupByRaw('DATE(created_at)')
+                ->get();
+
+            foreach ($liveRows as $row) {
+                $label = $platformById[$row->domain_id] ?? 'Custom domains';
+                $date = (string) $row->date;
+                $buckets[$label][$date] = ($buckets[$label][$date] ?? 0) + (int) $row->count;
+            }
+
+            $deletedRows = LinkTombstone::query()
+                ->selectRaw('domain_hostname, DATE(created_day) as date, COUNT(*) as count')
+                ->where('created_day', '>=', $cutoff->format('Y-m-d'))
+                ->groupBy('domain_hostname')
+                ->groupByRaw('DATE(created_day)')
+                ->get();
+
+            foreach ($deletedRows as $row) {
+                $host = (string) $row->domain_hostname;
+                $label = isset($platformHostnames[$host]) ? $host : 'Custom domains';
+                $date = (string) $row->date;
+                $buckets[$label][$date] = ($buckets[$label][$date] ?? 0) + (int) $row->count;
+            }
+
+            return $buckets;
+        });
+
+        return self::formatDomainDatasets($byDomain, $days, 'link', null, 'href.nz');
+    }
+
+    /**
      * Clicks per day, zero-filled.
      *
      * @return array{labels: list<string>, values: list<int>}
@@ -143,6 +253,58 @@ class NetworkStats
     }
 
     /**
+     * Clicks per day broken down by platform domain (+ aggregate
+     * "Custom domains" bucket), merging tombstoned click histories.
+     *
+     * @return array{labels: list<string>, values: list<int>, datasets: list<array<string, mixed>>}
+     */
+    public static function clicksByDomain(int $days = 30): array
+    {
+        $byDomain = Cache::remember('stats:clicks-domains-30d', 600, function () use ($days) {
+            $cutoff = now()->subDays($days - 1)->startOfDay();
+            $cutoffDate = $cutoff->format('Y-m-d');
+            $platformById = Domain::whereNull('user_id')->pluck('hostname', 'id')->all();
+            $platformHostnames = array_flip(array_values($platformById));
+
+            $buckets = [];
+
+            $liveRows = Click::query()
+                ->leftJoin('links', 'clicks.link_id', '=', 'links.id')
+                ->selectRaw('links.domain_id as domain_id, DATE(clicks.created_at) as date, COUNT(*) as count')
+                ->where('clicks.created_at', '>=', $cutoff)
+                ->groupBy('links.domain_id')
+                ->groupByRaw('DATE(clicks.created_at)')
+                ->get();
+
+            foreach ($liveRows as $row) {
+                $label = $row->domain_id !== null
+                    ? ($platformById[$row->domain_id] ?? 'Custom domains')
+                    : 'href.nz';
+                $date = (string) $row->date;
+                $buckets[$label][$date] = ($buckets[$label][$date] ?? 0) + (int) $row->count;
+            }
+
+            $tombstones = LinkTombstone::query()
+                ->whereNotNull('clicks_by_day')
+                ->get(['domain_hostname', 'clicks_by_day']);
+
+            foreach ($tombstones as $tomb) {
+                $host = (string) $tomb->domain_hostname;
+                $label = isset($platformHostnames[$host]) ? $host : 'Custom domains';
+                foreach ((array) $tomb->clicks_by_day as $date => $count) {
+                    if ($date >= $cutoffDate) {
+                        $buckets[$label][$date] = ($buckets[$label][$date] ?? 0) + (int) $count;
+                    }
+                }
+            }
+
+            return $buckets;
+        });
+
+        return self::formatDomainDatasets($byDomain, $days, 'click', null, 'href.nz');
+    }
+
+    /**
      * QR codes generated per day, zero-filled.
      *
      * @return array{labels: list<string>, values: list<int>}
@@ -170,6 +332,212 @@ class NetworkStats
     }
 
     /**
+     * QR codes generated per day broken down by link domain (plus
+     * "qr.href.nz / Direct QR" for standalone QR Studio & /v1/qr renders).
+     *
+     * @return array{labels: list<string>, values: list<int>, datasets: list<array<string, mixed>>}
+     */
+    public static function qrByDomain(int $days = 30): array
+    {
+        $byDomain = Cache::remember('stats:qr-domains-30d', 600, function () use ($days) {
+            $cutoff = now()->subDays($days - 1)->startOfDay();
+            $platformById = Domain::whereNull('user_id')->pluck('hostname', 'id')->all();
+
+            $buckets = [];
+
+            $rows = QrGeneration::query()
+                ->leftJoin('links', 'qr_generations.link_id', '=', 'links.id')
+                ->selectRaw('links.domain_id as domain_id, DATE(qr_generations.created_at) as date, COUNT(*) as count')
+                ->where('qr_generations.created_at', '>=', $cutoff)
+                ->groupBy('links.domain_id')
+                ->groupByRaw('DATE(qr_generations.created_at)')
+                ->get();
+
+            foreach ($rows as $row) {
+                $label = $row->domain_id !== null
+                    ? ($platformById[$row->domain_id] ?? 'Custom domains')
+                    : 'qr.href.nz / Direct QR';
+                $date = (string) $row->date;
+                $buckets[$label][$date] = ($buckets[$label][$date] ?? 0) + (int) $row->count;
+            }
+
+            return $buckets;
+        });
+
+        return self::formatDomainDatasets($byDomain, $days, 'QR code', 'generated', 'qr.href.nz / Direct QR');
+    }
+
+    /**
+     * Normalize per-domain daily maps into sorted Chart.js datasets with distinct colors.
+     *
+     * @param  array<string, array<string, int>>  $byDomain
+     * @return array{labels: list<string>, values: list<int>, datasets: list<array<string, mixed>>}
+     */
+    private static function formatDomainDatasets(
+        array $byDomain,
+        int $days,
+        string $unit,
+        ?string $verb,
+        string $emptyFallbackDomain,
+    ): array {
+        $window = self::lastDays($days);
+        $labels = [];
+        $dates = [];
+
+        foreach ($window as $day) {
+            $labels[] = $day['label'];
+            $dates[] = $day['date'];
+        }
+
+        $totals = array_fill(0, count($dates), 0);
+        $series = [];
+
+        foreach ($byDomain as $domainLabel => $dailyCounts) {
+            $vals = [];
+            $sum = 0;
+            foreach ($dates as $idx => $d) {
+                $c = (int) ($dailyCounts[$d] ?? 0);
+                $vals[] = $c;
+                $sum += $c;
+                $totals[$idx] += $c;
+            }
+
+            if ($sum > 0) {
+                $colors = self::domainColor($domainLabel);
+                $dataset = [
+                    'label' => $domainLabel,
+                    'values' => $vals,
+                    'sum' => $sum,
+                    'colorLight' => $colors['light'],
+                    'colorDark' => $colors['dark'],
+                    'unit' => $unit,
+                ];
+                if ($verb !== null) {
+                    $dataset['verb'] = $verb;
+                }
+                $series[] = $dataset;
+            }
+        }
+
+        usort($series, fn (array $a, array $b) => $b['sum'] <=> $a['sum']);
+
+        if ($series === []) {
+            $colors = self::domainColor($emptyFallbackDomain);
+            $fallback = [
+                'label' => $emptyFallbackDomain,
+                'values' => array_fill(0, count($dates), 0),
+                'colorLight' => $colors['light'],
+                'colorDark' => $colors['dark'],
+                'unit' => $unit,
+            ];
+            if ($verb !== null) {
+                $fallback['verb'] = $verb;
+            }
+            $series[] = $fallback;
+        } else {
+            $series = array_map(fn (array $ds) => Arr::except($ds, ['sum']), $series);
+        }
+
+        return [
+            'labels' => $labels,
+            'values' => $totals,
+            'datasets' => array_values($series),
+        ];
+    }
+
+    /**
+     * Aggregate network heatmaps (cached 10 minutes):
+     * - `hourly`: 7×24 (Mon..Sun × 00..23 UTC) grids over the last 90 days
+     *   for clicks, link creations, and QR generations.
+     * - `calendar`: 52-week (364-day) daily calendars [Y-m-d => count]
+     *   merging live records and tombstones for clicks, links, and QR codes.
+     *
+     * @return array{
+     *     hourly: array{clicks: array<int, array<int, int>>, links: array<int, array<int, int>>, qr: array<int, array<int, int>>},
+     *     calendar: array{clicks: array<string, int>, links: array<string, int>, qr: array<string, int>}
+     * }
+     */
+    public static function heatmaps(int $calendarDays = 364, int $hourlyDays = 90): array
+    {
+        return Cache::remember("stats:heatmaps:{$calendarDays}:{$hourlyDays}", 600, function () use ($calendarDays, $hourlyDays) {
+            $insights = app(LinkInsights::class);
+            $hourlyCutoff = now()->subDays($hourlyDays - 1)->startOfDay();
+            $calendarCutoff = now()->subDays($calendarDays - 1)->startOfDay();
+
+            $hourlyClicks = $insights->weekdayHourGrid(
+                Click::query()->where('created_at', '>=', $hourlyCutoff)
+            );
+            $hourlyLinks = $insights->weekdayHourGrid(
+                Link::query()->where('created_at', '>=', $hourlyCutoff)
+            );
+            $hourlyQr = $insights->weekdayHourGrid(
+                QrGeneration::query()->where('created_at', '>=', $hourlyCutoff)
+            );
+
+            // Daily calendar maps (last 364 days / 52 weeks)
+            $liveClicks = Click::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                ->where('created_at', '>=', $calendarCutoff)
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('count', 'date')
+                ->map(fn ($c) => (int) $c)
+                ->all();
+
+            foreach (self::tombstoneClicksByDay() as $date => $count) {
+                $liveClicks[$date] = ($liveClicks[$date] ?? 0) + $count;
+            }
+
+            $liveLinks = Link::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                ->where('created_at', '>=', $calendarCutoff)
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('count', 'date')
+                ->map(fn ($c) => (int) $c)
+                ->all();
+
+            $deletedLinks = LinkTombstone::selectRaw('DATE(created_day) as date, COUNT(*) as count')
+                ->where('created_day', '>=', $calendarCutoff->format('Y-m-d'))
+                ->groupByRaw('DATE(created_day)')
+                ->pluck('count', 'date')
+                ->map(fn ($c) => (int) $c)
+                ->all();
+
+            foreach ($deletedLinks as $date => $count) {
+                $liveLinks[$date] = ($liveLinks[$date] ?? 0) + $count;
+            }
+
+            $liveQr = QrGeneration::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+                ->where('created_at', '>=', $calendarCutoff)
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('count', 'date')
+                ->map(fn ($c) => (int) $c)
+                ->all();
+
+            $calendarClicks = [];
+            $calendarLinks = [];
+            $calendarQr = [];
+
+            foreach (self::lastDays($calendarDays) as $day) {
+                $d = $day['date'];
+                $calendarClicks[$d] = (int) ($liveClicks[$d] ?? 0);
+                $calendarLinks[$d] = (int) ($liveLinks[$d] ?? 0);
+                $calendarQr[$d] = (int) ($liveQr[$d] ?? 0);
+            }
+
+            return [
+                'hourly' => [
+                    'clicks' => $hourlyClicks,
+                    'links' => $hourlyLinks,
+                    'qr' => $hourlyQr,
+                ],
+                'calendar' => [
+                    'clicks' => $calendarClicks,
+                    'links' => $calendarLinks,
+                    'qr' => $calendarQr,
+                ],
+            ];
+        });
+    }
+
+    /**
      * Links + clicks per domain, most links first (cached 10 minutes).
      * Tombstoned links stay counted against their original hostname.
      * Visibility (platform vs. own domains) is decided per request in
@@ -186,9 +554,6 @@ class NetworkStats
         $rows = Cache::get('stats:domains:v2');
 
         if (! is_array($rows)) {
-            // Anything that isn't attribute rows (e.g. a payload cached
-            // by another release) is discarded and rebuilt transparently
-            // instead of fataling the return type on unserialize.
             Cache::forget('stats:domains:v2');
             $rows = self::buildDomainRows();
             Cache::put('stats:domains:v2', $rows, 600);
@@ -229,7 +594,18 @@ class NetworkStats
      */
     public static function flush(): void
     {
-        foreach (['stats:overview', 'stats:creations-30d', 'stats:clicks-30d', 'stats:qr-30d', 'stats:domains', 'stats:domains:v2'] as $key) {
+        foreach ([
+            'stats:overview',
+            'stats:creations-30d',
+            'stats:creations-domains-30d',
+            'stats:clicks-30d',
+            'stats:clicks-domains-30d',
+            'stats:qr-30d',
+            'stats:qr-domains-30d',
+            'stats:heatmaps:364:90',
+            'stats:domains',
+            'stats:domains:v2',
+        ] as $key) {
             Cache::forget($key);
         }
     }

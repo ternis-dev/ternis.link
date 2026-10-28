@@ -36,6 +36,8 @@ class QrGeneration extends Model
         static::created(function () {
             Cache::forget('stats:overview');
             Cache::forget('stats:qr-30d');
+            Cache::forget('stats:qr-domains-30d');
+            Cache::forget('stats:heatmaps:364:90');
         });
     }
 }

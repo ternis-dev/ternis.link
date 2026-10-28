@@ -1,7 +1,7 @@
-<x-layouts.admin title="System Stats &amp; Overview — admin.ternis.link">
+<x-layouts.admin title="System Stats & Overview — admin.ternis.link">
     @include('admin.stats._header', [
         'title' => 'Stats &amp; System Analytics',
-        'subtitle' => 'High-level telemetry, link traffic, conversion metrics, and system activity.',
+        'subtitle' => 'High-level telemetry, link traffic, conversion metrics, heatmaps, and system activity.',
         'section' => 'overview',
         'params' => $params,
     ])
@@ -45,18 +45,15 @@
         </div>
     </div>
 
-    {{-- Daily Clicks Timeline Bar Chart --}}
-    <div class="mb-8">
+    {{-- Daily Clicks & Daily Links Timeline Charts --}}
+    <div class="mb-8 grid gap-6 xl:grid-cols-2">
         @include('admin.stats._timeline-chart', [
             'timeline' => $stats['clicks_timeline'],
             'title' => 'Daily Link Clicks Traffic',
             'color' => 'amber',
             'unit' => 'click',
         ])
-    </div>
 
-    {{-- Daily Links Timeline Bar Chart --}}
-    <div class="mb-8">
         @include('admin.stats._timeline-chart', [
             'timeline' => $stats['links_timeline'],
             'title' => 'Daily Link Creation Volume',
@@ -65,10 +62,78 @@
         ])
     </div>
 
+    {{-- Multi-Signal Platform Heatmaps (7x24 + Daily Calendar) --}}
+    <section
+        x-data="{ signal: 'clicks' }"
+        class="mb-8 rounded-2xl border border-neutral-200/90 bg-white p-5 sm:p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+    >
+        <div class="mb-5 flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 pb-4 dark:border-neutral-800">
+            <div>
+                <h2 class="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-white">Platform Activity Heatmaps</h2>
+                <p class="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">Compare 7&times;24 hourly patterns and daily intensity across clicks, link creations, audit events, and errors.</p>
+            </div>
+            <div class="inline-flex flex-wrap items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 text-xs dark:border-neutral-800 dark:bg-neutral-950" role="tablist" aria-label="Platform signal heatmap">
+                @foreach (['clicks' => 'Clicks', 'links' => 'Links Created', 'activities' => 'Audit Log', 'errors' => 'Errors'] as $key => $lbl)
+                    <button
+                        type="button"
+                        role="tab"
+                        @click="signal = '{{ $key }}'"
+                        :aria-selected="(signal === '{{ $key }}').toString()"
+                        :class="signal === '{{ $key }}'
+                            ? 'bg-white font-semibold text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
+                            : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'"
+                        class="cursor-pointer rounded-md px-3 py-1.5 transition-all"
+                    >
+                        {{ $lbl }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        <div x-show="signal === 'clicks'" class="space-y-6">
+            <x-ui.heatmap :heatmap="$stats['heatmaps']['clicks']" title="Clicks — 7×24 Weekday & Hour" color="amber" unit="click" :wrapped="false" />
+            <div class="border-t border-neutral-100 pt-5 dark:border-neutral-800">
+                <x-ui.calendar-heatmap :days="$stats['clicks_timeline']" title="Clicks — Daily Calendar" color="amber" unit="click" :wrapped="false" />
+            </div>
+        </div>
+
+        <div x-show="signal === 'links'" x-cloak class="space-y-6">
+            <x-ui.heatmap :heatmap="$stats['heatmaps']['links']" title="Links Created — 7×24 Weekday & Hour" color="blue" unit="link" :wrapped="false" />
+            <div class="border-t border-neutral-100 pt-5 dark:border-neutral-800">
+                <x-ui.calendar-heatmap :days="$stats['links_timeline']" title="Links Created — Daily Calendar" color="blue" unit="link" :wrapped="false" />
+            </div>
+        </div>
+
+        <div x-show="signal === 'activities'" x-cloak class="space-y-6">
+            <x-ui.heatmap :heatmap="$stats['heatmaps']['activities']" title="Audit Activities — 7×24 Weekday & Hour" color="purple" unit="event" :wrapped="false" />
+            <div class="border-t border-neutral-100 pt-5 dark:border-neutral-800">
+                <x-ui.calendar-heatmap :days="$stats['activities_timeline']" title="Audit Activities — Daily Calendar" color="purple" unit="event" :wrapped="false" />
+            </div>
+        </div>
+
+        <div x-show="signal === 'errors'" x-cloak class="space-y-6">
+            <x-ui.heatmap :heatmap="$stats['heatmaps']['errors']" title="Error Encounters — 7×24 Weekday & Hour" color="red" unit="error" :wrapped="false" />
+            <div class="border-t border-neutral-100 pt-5 dark:border-neutral-800">
+                <x-ui.calendar-heatmap :days="$stats['errors_timeline']" title="Error Encounters — Daily Calendar" color="red" unit="error" :wrapped="false" />
+            </div>
+        </div>
+    </section>
+
     {{-- Quick Breakdown Sections Grid --}}
     <div class="grid gap-6 lg:grid-cols-2">
-        {{-- Domains Activity Card --}}
-        <x-ui.card title="Domains Performance &amp; Ratio">
+        {{-- Domains Activity Card with Chart --}}
+        <x-ui.card title="Domains Performance & Ratio">
+            @if ($stats['domain_stats']->sum('clicks_count') > 0)
+                <div class="relative mb-5 h-48 w-full" role="img" aria-label="Clicks per domain">
+                    <canvas
+                        data-chart="horizontal-bar"
+                        data-chart-color="amber"
+                        data-chart-unit="click"
+                        data-chart-labels='@json($stats["domain_stats"]->pluck("hostname")->values())'
+                        data-chart-values='@json($stats["domain_stats"]->pluck("clicks_count")->values())'
+                    ></canvas>
+                </div>
+            @endif
             <x-ui.table>
                 <thead>
                     <tr>
@@ -113,7 +178,7 @@
                         <span>Traffic &amp; Behavioral Insights (Heatmap &amp; Curves)</span>
                         <span>&rarr;</span>
                     </span>
-                    <span class="mt-1 text-[11px] text-neutral-600 dark:text-neutral-400">7&times;24 weekday heatmaps, peak traffic hours, 24h curve, top links, and expiring calendars.</span>
+                    <span class="mt-1 text-[11px] text-neutral-600 dark:text-neutral-400">7&times;24 weekday heatmaps, daily contribution calendar, peak traffic hours, 24h curve, top links, and expiring calendars.</span>
                 </a>
 
                 <a href="{{ route('admin.stats.show', ['section' => 'errors'] + $params) }}" class="flex flex-col rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 transition hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-neutral-700">
@@ -121,7 +186,7 @@
                         <span>Errors Telemetry</span>
                         <span>&rarr;</span>
                     </span>
-                    <span class="mt-1 text-[11px] text-neutral-500">Exceptions per day, HTTP code breakdown, failing routes.</span>
+                    <span class="mt-1 text-[11px] text-neutral-500">4xx/5xx timelines, error burst heatmap, HTTP code breakdown, failing routes.</span>
                 </a>
 
                 <a href="{{ route('admin.stats.show', ['section' => 'activities'] + $params) }}" class="flex flex-col rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 transition hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-neutral-700">
@@ -129,7 +194,7 @@
                         <span>Audit Activities</span>
                         <span>&rarr;</span>
                     </span>
-                    <span class="mt-1 text-[11px] text-neutral-500">Action audit logs, actors, security and moderation events.</span>
+                    <span class="mt-1 text-[11px] text-neutral-500">Action audit logs, activity heatmap, actors, security and moderation events.</span>
                 </a>
 
                 <a href="{{ route('admin.stats.show', ['section' => 'links'] + $params) }}" class="flex flex-col rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 transition hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-neutral-700">
@@ -137,7 +202,7 @@
                         <span>Links Telemetry</span>
                         <span>&rarr;</span>
                     </span>
-                    <span class="mt-1 text-[11px] text-neutral-500">Creation frequency, tags, tracking adoption, active status.</span>
+                    <span class="mt-1 text-[11px] text-neutral-500">Creation frequency &amp; heatmap, domain chart, tracking adoption, active status.</span>
                 </a>
 
                 <a href="{{ route('admin.stats.show', ['section' => 'clicks'] + $params) }}" class="flex flex-col rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 transition hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-neutral-700">
@@ -145,7 +210,7 @@
                         <span>Link Clicks Telemetry</span>
                         <span>&rarr;</span>
                     </span>
-                    <span class="mt-1 text-[11px] text-neutral-500">Traffic origins, device types, query parameters &amp; user tags.</span>
+                    <span class="mt-1 text-[11px] text-neutral-500">Filtered click heatmap, device doughnut, traffic origins, query params &amp; tags.</span>
                 </a>
             </div>
         </x-ui.card>

@@ -1,7 +1,7 @@
 <x-layouts.admin title="Audit Activities Stats — admin.ternis.link">
     @include('admin.stats._header', [
         'title' => 'Audit Activities Telemetry',
-        'subtitle' => 'System-wide activity log frequency per day, action distribution, and actor analytics.',
+        'subtitle' => 'System-wide activity log frequency per day, 7×24 audit heatmap, action distribution, and actor analytics.',
         'section' => 'activities',
         'params' => $params,
     ])
@@ -93,10 +93,32 @@
         ])
     </div>
 
+    {{-- Filtered 7x24 Audit Activity Heatmap --}}
+    <div class="mb-8">
+        <x-ui.heatmap
+            :heatmap="$stats['heatmap']"
+            title="Audit Activity Heatmap (7×24 Weekday & Hour)"
+            subtitle="Hourly distribution of recorded user, API, and moderation events."
+            color="purple"
+            unit="event"
+        />
+    </div>
+
     {{-- Breakdown Grid --}}
     <div class="grid gap-6 lg:grid-cols-2 mb-8">
         {{-- By Action Type --}}
         <x-ui.card title="Activity by Action Type">
+            @if ($stats['by_action']->isNotEmpty())
+                <div class="relative mb-5 h-48 w-full" role="img" aria-label="Audit events by action type">
+                    <canvas
+                        data-chart="horizontal-bar"
+                        data-chart-color="purple"
+                        data-chart-unit="event"
+                        data-chart-labels='@json($stats["by_action"]->take(6)->pluck("action")->values())'
+                        data-chart-values='@json($stats["by_action"]->take(6)->pluck("count")->values())'
+                    ></canvas>
+                </div>
+            @endif
             <div class="space-y-3">
                 @forelse ($stats['by_action'] as $act)
                     <div class="flex items-center justify-between text-xs">
@@ -129,7 +151,7 @@
                     @forelse ($stats['top_users'] as $u)
                         <tr>
                             <td class="font-semibold text-xs">{{ $u->actor?->name ?? 'System' }}</td>
-                            <td class="text-xs text-neutral-500">{{ $u->actor?->email ?? '—' }}</td>
+                            <td class="tl-sensitive text-xs text-neutral-500">{{ $u->actor?->email ?? '—' }}</td>
                             <td class="font-bold text-neutral-900 dark:text-white">{{ number_format($u->count) }}</td>
                         </tr>
                     @empty
@@ -163,7 +185,7 @@
                                 {{ $log->action }}
                             </span>
                         </td>
-                        <td class="text-xs text-neutral-600 dark:text-neutral-300">
+                        <td class="tl-sensitive text-xs text-neutral-600 dark:text-neutral-300">
                             {{ $log->actor?->email ?? 'System / Guest' }}
                         </td>
                         <td class="font-mono text-[11px] text-neutral-400">

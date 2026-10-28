@@ -28,11 +28,21 @@ class LinkInsights
      */
     public function clickHeatmap(HasMany|Builder $links, int $days = 90): array
     {
-        $query = $this->clicksQuery($links, $days);
+        return $this->weekdayHourGrid($this->clicksQuery($links, $days));
+    }
+
+    /**
+     * Build a 7×24 (Monday..Sunday × 00..23) count matrix from any Eloquent builder.
+     *
+     * @return array<int, array<int, int>>
+     */
+    public function weekdayHourGrid(Builder $query, string $column = 'created_at'): array
+    {
         $driver = $query->getConnection()->getDriverName();
 
-        $rows = $query
-            ->selectRaw($this->heatmapSelectExpression($driver))
+        $rows = (clone $query)
+            ->reorder()
+            ->selectRaw($this->heatmapSelectExpression($driver, $column))
             ->groupBy('weekday', 'hour')
             ->get();
 
@@ -53,17 +63,17 @@ class LinkInsights
     /**
      * Database-specific SQL select expression for grouping by weekday and hour.
      */
-    public function heatmapSelectExpression(string $driver): string
+    public function heatmapSelectExpression(string $driver, string $column = 'created_at'): string
     {
         return match ($driver) {
-            'sqlite' => 'CAST(strftime("%w", created_at) AS INTEGER) as weekday,'.
-                        'CAST(strftime("%H", created_at) AS INTEGER) as hour,'.
+            'sqlite' => "CAST(strftime(\"%w\", {$column}) AS INTEGER) as weekday,".
+                        "CAST(strftime(\"%H\", {$column}) AS INTEGER) as hour,".
                         'COUNT(*) as total',
-            'pgsql' => 'CAST(EXTRACT(DOW FROM created_at) AS INTEGER) as weekday,'.
-                       'CAST(EXTRACT(HOUR FROM created_at) AS INTEGER) as hour,'.
+            'pgsql' => "CAST(EXTRACT(DOW FROM {$column}) AS INTEGER) as weekday,".
+                       "CAST(EXTRACT(HOUR FROM {$column}) AS INTEGER) as hour,".
                        'COUNT(*) as total',
-            default => 'WEEKDAY(created_at) as weekday,'.
-                       'HOUR(created_at) as hour,'.
+            default => "WEEKDAY({$column}) as weekday,".
+                       "HOUR({$column}) as hour,".
                        'COUNT(*) as total',
         };
     }
@@ -81,24 +91,22 @@ class LinkInsights
     }
 
     /**
-     * The three busiest hours of the week, as
-     * ['label' => 'Mon 14:00', 'count' => 42].
+     * Extract the busiest weekday/hour slots from an existing 7×24 grid.
      *
+     * @param  array<int, array<int, int>>  $grid
      * @return list<array{label: string, count: int}>
      */
-    public function bestTimes(HasMany|Builder $links, int $days = 90): array
+    public static function topSlotsFromGrid(array $grid, int $limit = 5): array
     {
-        $grid = $this->clickHeatmap($links, $days);
-        $days_ = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
+        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         $flat = [];
 
         foreach ($grid as $weekday => $hours) {
             foreach ($hours as $hour => $count) {
                 if ($count > 0) {
                     $flat[] = [
-                        'label' => $days_[$weekday].' '.str_pad((string) $hour, 2, '0', STR_PAD_LEFT).':00',
-                        'count' => $count,
+                        'label' => ($days[$weekday] ?? 'Day').' '.str_pad((string) $hour, 2, '0', STR_PAD_LEFT).':00',
+                        'count' => (int) $count,
                     ];
                 }
             }
@@ -106,28 +114,48 @@ class LinkInsights
 
         usort($flat, fn ($a, $b) => $b['count'] <=> $a['count']);
 
-        return array_slice($flat, 0, 5);
+        return array_slice($flat, 0, $limit);
     }
 
     /**
-     * Clicks per hour of the day, averaged over the whole week.
+     * Collapse an existing 7×24 grid into a 24-hour distribution profile.
      *
+     * @param  array<int, array<int, int>>  $grid
      * @return list<array{hour: int, count: int}>
      */
-    public function hourlyProfile(HasMany|Builder $links, int $days = 90): array
+    public static function hourlyProfileFromGrid(array $grid): array
     {
-        $grid = $this->clickHeatmap($links, $days);
         $profile = [];
 
         for ($hour = 0; $hour < 24; $hour++) {
             $total = 0;
             for ($weekday = 0; $weekday < 7; $weekday++) {
-                $total += $grid[$weekday][$hour];
+                $total += (int) ($grid[$weekday][$hour] ?? 0);
             }
             $profile[] = ['hour' => $hour, 'count' => $total];
         }
 
         return $profile;
+    }
+
+    /**
+     * The busiest hours of the week, as ['label' => 'Mon 14:00', 'count' => 42].
+     *
+     * @return list<array{label: string, count: int}>
+     */
+    public function bestTimes(HasMany|Builder $links, int $days = 90): array
+    {
+        return self::topSlotsFromGrid($this->clickHeatmap($links, $days), 5);
+    }
+
+    /**
+     * Clicks per hour of the day, summed over the whole week.
+     *
+     * @return list<array{hour: int, count: int}>
+     */
+    public function hourlyProfile(HasMany|Builder $links, int $days = 90): array
+    {
+        return self::hourlyProfileFromGrid($this->clickHeatmap($links, $days));
     }
 
     /**

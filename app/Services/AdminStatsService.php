@@ -12,7 +12,6 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class AdminStatsService
 {
@@ -40,9 +39,9 @@ class AdminStatsService
      *
      * @return array<string, int>
      */
-    public function generateDateRange(?Carbon $startDate): array
+    public function generateDateRange(?Carbon $startDate, int $allFallbackDays = 90): array
     {
-        $start = $startDate ? $startDate->copy()->startOfDay() : now()->subDays(30)->startOfDay();
+        $start = $startDate ? $startDate->copy()->startOfDay() : now()->subDays($allFallbackDays)->startOfDay();
         $end = now()->startOfDay();
 
         $period = CarbonPeriod::create($start, '1 day', $end);
@@ -80,6 +79,7 @@ class AdminStatsService
     {
         $days = $params['days'] ?? 30;
         $cutoff = $this->resolveDateCutoff($days);
+        $insights = app(LinkInsights::class);
 
         $totalLinks = Link::count();
         $activeLinks = Link::where('is_active', true)->where('is_removed', false)->count();
@@ -94,20 +94,41 @@ class AdminStatsService
         $overallRatio = $totalLinks > 0 ? round($totalClicks / $totalLinks, 2) : 0;
         $windowRatio = $linksInWindow > 0 ? round($clicksInWindow / $linksInWindow, 2) : 0;
 
-        // Daily clicks timeline
+        // Daily timelines
         $dateRange = $this->generateDateRange($cutoff);
-        $dailyClicksQuery = Click::when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))
+        $rangeStart = array_key_first($dateRange);
+
+        $dailyClicksQuery = Click::where('created_at', '>=', $rangeStart)
             ->selectRaw('DATE(created_at) as date, count(*) as count')
             ->groupBy('date')
             ->pluck('count', 'date');
         $clicksTimeline = $this->mergeTimeline($dateRange, $dailyClicksQuery);
 
-        // Daily links timeline
-        $dailyLinksQuery = Link::when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))
+        $dailyLinksQuery = Link::where('created_at', '>=', $rangeStart)
             ->selectRaw('DATE(created_at) as date, count(*) as count')
             ->groupBy('date')
             ->pluck('count', 'date');
         $linksTimeline = $this->mergeTimeline($dateRange, $dailyLinksQuery);
+
+        $dailyErrorsQuery = ErrorEncounter::where('created_at', '>=', $rangeStart)
+            ->selectRaw('DATE(created_at) as date, count(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date');
+        $errorsTimeline = $this->mergeTimeline($dateRange, $dailyErrorsQuery);
+
+        $dailyActivitiesQuery = ActivityLog::where('created_at', '>=', $rangeStart)
+            ->selectRaw('DATE(created_at) as date, count(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date');
+        $activitiesTimeline = $this->mergeTimeline($dateRange, $dailyActivitiesQuery);
+
+        // 7x24 Weekday x Hour heatmaps per system signal
+        $heatmaps = [
+            'clicks' => $insights->weekdayHourGrid(Click::query()->when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))),
+            'links' => $insights->weekdayHourGrid(Link::query()->when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))),
+            'activities' => $insights->weekdayHourGrid(ActivityLog::query()->when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))),
+            'errors' => $insights->weekdayHourGrid(ErrorEncounter::query()->when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))),
+        ];
 
         // Domains breakdown
         $domainStats = Domain::withCount(['links', 'clicks'])
@@ -128,6 +149,10 @@ class AdminStatsService
             'window_ratio' => $windowRatio,
             'clicks_timeline' => $clicksTimeline,
             'links_timeline' => $linksTimeline,
+            'errors_timeline' => $errorsTimeline,
+            'activities_timeline' => $activitiesTimeline,
+            'heatmap' => $heatmaps['clicks'],
+            'heatmaps' => $heatmaps,
             'domain_stats' => $domainStats,
             'total_users' => User::count(),
             'total_domains' => Domain::count(),
@@ -135,12 +160,13 @@ class AdminStatsService
     }
 
     /**
-     * Errors statistics with code, path, method, and day breakdowns.
+     * Errors statistics with code, path, method, day, and 7x24 heatmap breakdowns.
      */
     public function getErrorStats(array $params = []): array
     {
         $days = $params['days'] ?? 30;
         $cutoff = $this->resolveDateCutoff($days);
+        $insights = app(LinkInsights::class);
 
         $query = ErrorEncounter::query();
 
@@ -169,12 +195,27 @@ class AdminStatsService
         $count4xx = (clone $query)->whereBetween('http_code', [400, 499])->count();
         $count5xx = (clone $query)->whereBetween('http_code', [500, 599])->count();
 
-        // Daily timeline
+        // Daily timeline + 4xx/5xx split
         $dateRange = $this->generateDateRange($cutoff);
         $dailyQuery = (clone $query)->selectRaw('DATE(created_at) as date, count(*) as count')
             ->groupBy('date')
             ->pluck('count', 'date');
         $timeline = $this->mergeTimeline($dateRange, $dailyQuery);
+
+        $daily4xx = (clone $query)->whereBetween('http_code', [400, 499])
+            ->selectRaw('DATE(created_at) as date, count(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date');
+        $timeline4xx = $this->mergeTimeline($dateRange, $daily4xx);
+
+        $daily5xx = (clone $query)->whereBetween('http_code', [500, 599])
+            ->selectRaw('DATE(created_at) as date, count(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date');
+        $timeline5xx = $this->mergeTimeline($dateRange, $daily5xx);
+
+        // Filtered 7x24 Weekday x Hour heatmap
+        $heatmap = $insights->weekdayHourGrid(clone $query);
 
         // Group by HTTP code
         $byCode = (clone $query)->selectRaw('http_code, count(*) as count')
@@ -228,6 +269,9 @@ class AdminStatsService
             'count_4xx' => $count4xx,
             'count_5xx' => $count5xx,
             'timeline' => $timeline,
+            'timeline_4xx' => $timeline4xx,
+            'timeline_5xx' => $timeline5xx,
+            'heatmap' => $heatmap,
             'by_code' => $byCode,
             'by_host' => $byHost,
             'top_paths' => $topPaths,
@@ -243,6 +287,7 @@ class AdminStatsService
     {
         $days = $params['days'] ?? 30;
         $cutoff = $this->resolveDateCutoff($days);
+        $insights = app(LinkInsights::class);
 
         $query = ActivityLog::query();
 
@@ -277,6 +322,9 @@ class AdminStatsService
             ->groupBy('date')
             ->pluck('count', 'date');
         $timeline = $this->mergeTimeline($dateRange, $dailyQuery);
+
+        // Filtered 7x24 Weekday x Hour heatmap
+        $heatmap = $insights->weekdayHourGrid(clone $query);
 
         // Group by Action
         $byAction = (clone $query)->selectRaw('action, count(*) as count')
@@ -321,6 +369,7 @@ class AdminStatsService
             'activities_today' => $activitiesToday,
             'unique_actors' => $uniqueActors,
             'timeline' => $timeline,
+            'heatmap' => $heatmap,
             'by_action' => $byAction,
             'categories' => $categories,
             'top_users' => $topUsers,
@@ -335,6 +384,7 @@ class AdminStatsService
     {
         $days = $params['days'] ?? 30;
         $cutoff = $this->resolveDateCutoff($days);
+        $insights = app(LinkInsights::class);
 
         $query = Link::query();
 
@@ -384,6 +434,9 @@ class AdminStatsService
             ->pluck('count', 'date');
         $timeline = $this->mergeTimeline($dateRange, $dailyQuery);
 
+        // Filtered 7x24 Weekday x Hour heatmap
+        $heatmap = $insights->weekdayHourGrid(clone $query);
+
         // Group by Domain
         $byDomain = (clone $query)->selectRaw('domain_id, count(*) as count')
             ->groupBy('domain_id')
@@ -410,6 +463,7 @@ class AdminStatsService
             'tracking_count' => $trackingCount,
             'with_tags_count' => $withTagsCount,
             'timeline' => $timeline,
+            'heatmap' => $heatmap,
             'by_domain' => $byDomain,
             'top_links' => $topLinks,
             'domains' => $domains,
@@ -423,6 +477,7 @@ class AdminStatsService
     {
         $days = $params['days'] ?? 30;
         $cutoff = $this->resolveDateCutoff($days);
+        $insights = app(LinkInsights::class);
 
         $query = Click::query();
 
@@ -436,6 +491,8 @@ class AdminStatsService
                 $query->where(fn ($q) => $q->where('user_agent', 'like', '%mobile%')->orWhere('user_agent', 'like', '%iphone%')->orWhere('user_agent', 'like', '%android%'));
             } elseif ($dev === 'tablet') {
                 $query->where(fn ($q) => $q->where('user_agent', 'like', '%tablet%')->orWhere('user_agent', 'like', '%ipad%'));
+            } elseif ($dev === 'bot') {
+                $query->where(fn ($q) => $q->where('user_agent', 'like', '%bot%')->orWhere('user_agent', 'like', '%crawl%')->orWhere('user_agent', 'like', '%spider%')->orWhere('user_agent', 'like', '%curl%'));
             } elseif ($dev === 'desktop') {
                 $query->where(fn ($q) => $q->where('user_agent', 'not like', '%mobile%')->where('user_agent', 'not like', '%iphone%')->where('user_agent', 'not like', '%tablet%')->where('user_agent', 'not like', '%ipad%'));
             }
@@ -449,7 +506,7 @@ class AdminStatsService
             $query->where('country_code', strtoupper((string) $params['country']));
         }
 
-        if (! empty($params['has_params'])) {
+        if (isset($params['has_params']) && $params['has_params'] !== '') {
             if ($params['has_params'] == '1') {
                 $query->whereNotNull('query_params');
             } else {
@@ -457,7 +514,7 @@ class AdminStatsService
             }
         }
 
-        if (! empty($params['has_tags'])) {
+        if (isset($params['has_tags']) && $params['has_tags'] !== '') {
             if ($params['has_tags'] == '1') {
                 $query->whereNotNull('tags');
             } else {
@@ -479,6 +536,9 @@ class AdminStatsService
             ->groupBy('date')
             ->pluck('count', 'date');
         $timeline = $this->mergeTimeline($dateRange, $dailyQuery);
+
+        // Filtered 7x24 Weekday x Hour heatmap
+        $heatmap = $insights->weekdayHourGrid(clone $query);
 
         // Device breakdown via user agent inspection
         $mobileCount = (clone $query)->where(fn ($q) => $q->where('user_agent', 'like', '%mobile%')->orWhere('user_agent', 'like', '%iphone%')->orWhere('user_agent', 'like', '%android%'))->count();
@@ -538,6 +598,7 @@ class AdminStatsService
             'with_tags' => $withTags,
             'unique_users' => $uniqueUsers,
             'timeline' => $timeline,
+            'heatmap' => $heatmap,
             'by_device' => $byDevice,
             'by_referer' => $byReferer,
             'by_country' => $byCountry,
@@ -553,6 +614,7 @@ class AdminStatsService
     {
         $days = $params['days'] ?? 30;
         $cutoff = $this->resolveDateCutoff($days);
+        $insights = app(LinkInsights::class);
 
         $linksQuery = Link::query();
         $clicksQuery = Click::query();
@@ -564,7 +626,7 @@ class AdminStatsService
 
         if (! empty($params['domain_id'])) {
             $linksQuery->where('domain_id', $params['domain_id']);
-            $clicksQuery->where('domain_id', $params['domain_id']);
+            $clicksQuery->whereHas('link', fn ($q) => $q->where('domain_id', $params['domain_id']));
         }
 
         $totalLinks = (clone $linksQuery)->count();
@@ -575,6 +637,21 @@ class AdminStatsService
         $activeClickedLinks = (clone $linksQuery)->where('click_count', '>', 0)->count();
         $dormantLinks = $totalLinks - $activeClickedLinks;
         $activeRatioPercent = $totalLinks > 0 ? round(($activeClickedLinks / $totalLinks) * 100, 1) : 0;
+
+        // Daily clicks vs links timelines
+        $dateRange = $this->generateDateRange($cutoff);
+        $clicksTimeline = $this->mergeTimeline(
+            $dateRange,
+            (clone $clicksQuery)->selectRaw('DATE(created_at) as date, count(*) as count')->groupBy('date')->pluck('count', 'date')
+        );
+        $linksTimeline = $this->mergeTimeline(
+            $dateRange,
+            (clone $linksQuery)->selectRaw('DATE(created_at) as date, count(*) as count')->groupBy('date')->pluck('count', 'date')
+        );
+
+        // 7x24 Weekday x Hour heatmaps (clicks engagement vs link creations)
+        $clicksHeatmap = $insights->weekdayHourGrid(clone $clicksQuery);
+        $linksHeatmap = $insights->weekdayHourGrid(clone $linksQuery);
 
         // Volume distribution tiers
         $tiers = [
@@ -618,6 +695,10 @@ class AdminStatsService
             'active_clicked_links' => $activeClickedLinks,
             'dormant_links' => $dormantLinks,
             'active_ratio_percent' => $activeRatioPercent,
+            'clicks_timeline' => $clicksTimeline,
+            'links_timeline' => $linksTimeline,
+            'heatmap' => $clicksHeatmap,
+            'links_heatmap' => $linksHeatmap,
             'tiers' => $tiers,
             'domain_ratios' => $domainRatios,
             'top_links' => $topLinks,
@@ -626,28 +707,37 @@ class AdminStatsService
     }
 
     /**
-     * System-wide insights: 7x24 heatmap, peak hours, hourly profile,
-     * expiry calendar across all links, and geo/referrer telemetry.
+     * System-wide insights: 7x24 heatmap, daily calendar heatmap, peak hours,
+     * hourly profile, expiry calendar across all links, and geo/referrer telemetry.
      */
     public function getInsightsStats(array $params = []): array
     {
-        $days = (int) ($params['days'] ?? 90);
-        $days = in_array($days, [7, 14, 30, 90], true) ? $days : 90;
+        $rawDays = $params['days'] ?? 90;
+        $isAll = $rawDays === 'all';
+        $days = $isAll ? 365 : (in_array((int) $rawDays, [7, 14, 30, 90, 365], true) ? (int) $rawDays : 90);
 
         $links = Link::notRemoved();
         $insights = app(LinkInsights::class);
 
         $heatmap = $insights->clickHeatmap($links, $days);
-        $bestTimes = $insights->bestTimes($links, $days);
-        $hourlyProfile = $insights->hourlyProfile($links, $days);
+        $bestTimes = LinkInsights::topSlotsFromGrid($heatmap, 5);
+        $hourlyProfile = LinkInsights::hourlyProfileFromGrid($heatmap);
         $expiryCalendar = $insights->expiryCalendar($links, 60);
         $topReferrers = $insights->topReferrers($links, $days, 10);
         $topCountries = $insights->topCountries($links, $days, 10);
 
         $cutoff = now()->subDays($days)->startOfDay();
-        $totalClicksInWindow = Click::where('created_at', '>=', $cutoff)
-            ->where('is_direct_url', false)
-            ->count();
+        $clicksBase = Click::where('created_at', '>=', $cutoff)
+            ->where('is_direct_url', false);
+
+        $totalClicksInWindow = (clone $clicksBase)->count();
+
+        $calendarRange = $this->generateDateRange($cutoff);
+        $dailyClicks = (clone $clicksBase)
+            ->selectRaw('DATE(created_at) as date, count(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date');
+        $clicksCalendar = $this->mergeTimeline($calendarRange, $dailyClicks);
 
         $topLinks = (clone $links)->with(['domain', 'user:id,name,email'])
             ->orderByDesc('click_count')
@@ -655,9 +745,11 @@ class AdminStatsService
             ->get();
 
         return [
-            'days' => $days,
+            'days' => $isAll ? 'all' : $days,
+            'window_days' => $days,
             'filters' => $params,
             'heatmap' => $heatmap,
+            'clicks_calendar' => $clicksCalendar,
             'best_times' => $bestTimes,
             'hourly_profile' => $hourlyProfile,
             'expiry_calendar' => $expiryCalendar,

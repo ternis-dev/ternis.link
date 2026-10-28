@@ -1,7 +1,7 @@
 <x-layouts.admin title="Link/Clicks Ratio — admin.ternis.link">
     @include('admin.stats._header', [
         'title' => 'Link / Clicks Ratio &amp; Engagement Telemetry',
-        'subtitle' => 'System-wide conversion efficiency, clicks-per-link distribution tiers, and domain-level performance.',
+        'subtitle' => 'System-wide conversion efficiency, engagement heatmaps, clicks-per-link distribution tiers, and domain-level performance.',
         'section' => 'ratio',
         'params' => $params,
     ])
@@ -63,27 +63,110 @@
         </div>
     </div>
 
-    {{-- Click Distribution Tiers --}}
+    {{-- Daily Clicks vs Links Created Comparison Chart --}}
+    <div class="mb-8">
+        @include('admin.stats._timeline-chart', [
+            'labels' => array_keys($stats['clicks_timeline'] ?? []),
+            'datasets' => [
+                [
+                    'label' => 'Clicks',
+                    'values' => array_values($stats['clicks_timeline'] ?? []),
+                    'color' => 'amber',
+                    'unit' => 'click',
+                ],
+                [
+                    'label' => 'Links Created',
+                    'values' => array_values($stats['links_timeline'] ?? []),
+                    'color' => 'blue',
+                    'unit' => 'link',
+                ],
+            ],
+            'title' => 'Daily Clicks vs. Links Created Volume',
+            'subtitle' => 'Compare daily audience click demand against new short link supply.',
+            'unit' => 'event',
+        ])
+    </div>
+
+    {{-- Engagement vs Creation Heatmap --}}
+    <section
+        x-data="{ layer: 'clicks' }"
+        class="mb-8 rounded-2xl border border-neutral-200/90 bg-white p-5 sm:p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+    >
+        <div class="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-neutral-100 pb-4 dark:border-neutral-800">
+            <div>
+                <h2 class="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-white">Engagement vs. Creation Heatmap (7&times;24 Weekday &amp; Hour)</h2>
+                <p class="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">Contrast when audiences click links against when creators publish them.</p>
+            </div>
+            <div class="inline-flex items-center rounded-lg border border-neutral-200 bg-neutral-50 p-0.5 text-xs dark:border-neutral-800 dark:bg-neutral-950" role="tablist" aria-label="Engagement heatmap layer">
+                <button
+                    type="button"
+                    role="tab"
+                    @click="layer = 'clicks'"
+                    :aria-selected="(layer === 'clicks').toString()"
+                    :class="layer === 'clicks'
+                        ? 'bg-white font-semibold text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
+                        : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'"
+                    class="cursor-pointer rounded-md px-3 py-1.5 transition-all"
+                >
+                    Click Engagement
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    @click="layer = 'links'"
+                    :aria-selected="(layer === 'links').toString()"
+                    :class="layer === 'links'
+                        ? 'bg-white font-semibold text-neutral-900 shadow-xs dark:bg-neutral-800 dark:text-white'
+                        : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'"
+                    class="cursor-pointer rounded-md px-3 py-1.5 transition-all"
+                >
+                    Link Creations
+                </button>
+            </div>
+        </div>
+
+        <div x-show="layer === 'clicks'">
+            <x-ui.heatmap :heatmap="$stats['heatmap']" color="amber" unit="click" :wrapped="false" />
+        </div>
+        <div x-show="layer === 'links'" x-cloak>
+            <x-ui.heatmap :heatmap="$stats['links_heatmap']" color="blue" unit="link" :wrapped="false" />
+        </div>
+    </section>
+
+    {{-- Click Distribution Tiers with Chart --}}
     <x-ui.card title="Clicks-per-Link Volume Distribution Tiers" class="mb-8">
         <p class="mb-4 text-xs text-neutral-500">Distribution of short links by the total volume of clicks they have accumulated.</p>
-        <div class="space-y-4">
-            @foreach ($stats['tiers'] as $tierName => $tierCount)
-                @php
-                $pct = $stats['total_links'] > 0 ? round(($tierCount / $stats['total_links']) * 100, 1) : 0;
-                @endphp
-                <div>
-                    <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="font-medium text-neutral-800 dark:text-neutral-200">{{ $tierName }}</span>
-                        <div class="flex items-center gap-3">
-                            <span class="font-bold text-neutral-900 dark:text-white">{{ number_format($tierCount) }} links</span>
-                            <span class="w-12 text-right text-neutral-400">({{ $pct }}%)</span>
+        <div class="grid gap-6 lg:grid-cols-2 items-center">
+            @if (array_sum($stats['tiers']) > 0)
+                <div class="relative h-56 w-full" role="img" aria-label="Clicks per link distribution tiers">
+                    <canvas
+                        data-chart="horizontal-bar"
+                        data-chart-palette="amber"
+                        data-chart-unit="link"
+                        data-chart-labels='@json(array_keys($stats["tiers"]))'
+                        data-chart-values='@json(array_values($stats["tiers"]))'
+                    ></canvas>
+                </div>
+            @endif
+            <div class="space-y-4">
+                @foreach ($stats['tiers'] as $tierName => $tierCount)
+                    @php
+                    $pct = $stats['total_links'] > 0 ? round(($tierCount / $stats['total_links']) * 100, 1) : 0;
+                    @endphp
+                    <div>
+                        <div class="flex items-center justify-between text-xs mb-1">
+                            <span class="font-medium text-neutral-800 dark:text-neutral-200">{{ $tierName }}</span>
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-neutral-900 dark:text-white">{{ number_format($tierCount) }} links</span>
+                                <span class="w-12 text-right text-neutral-400">({{ $pct }}%)</span>
+                            </div>
+                        </div>
+                        <div class="h-2 w-full rounded-full bg-neutral-100 overflow-hidden dark:bg-neutral-800">
+                            <div style="width: {{ $pct }}%" class="h-full rounded-full bg-amber-500"></div>
                         </div>
                     </div>
-                    <div class="h-2 w-full rounded-full bg-neutral-100 overflow-hidden dark:bg-neutral-800">
-                        <div style="width: {{ $pct }}%" class="h-full rounded-full bg-amber-500"></div>
-                    </div>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
         </div>
     </x-ui.card>
 
@@ -91,6 +174,17 @@
     <div class="grid gap-6 lg:grid-cols-2 mb-8">
         {{-- Domain Ratio Leaderboard --}}
         <x-ui.card title="Domain-Level Click Conversion Ratio">
+            @if ($stats['domain_ratios']->sum('clicks_count') > 0)
+                <div class="relative mb-5 h-48 w-full" role="img" aria-label="Clicks per link ratio by domain">
+                    <canvas
+                        data-chart="horizontal-bar"
+                        data-chart-color="emerald"
+                        data-chart-suffix="x"
+                        data-chart-labels='@json($stats["domain_ratios"]->take(8)->pluck("hostname")->values())'
+                        data-chart-values='@json($stats["domain_ratios"]->take(8)->pluck("ratio")->values())'
+                    ></canvas>
+                </div>
+            @endif
             <x-ui.table>
                 <thead>
                     <tr>

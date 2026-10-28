@@ -1,7 +1,7 @@
 <x-layouts.admin title="Clicks Stats — admin.ternis.link">
     @include('admin.stats._header', [
         'title' => 'Link Clicks Traffic Telemetry',
-        'subtitle' => 'Traffic volume per day, device types, referrer channels, geographic origins, and query parameters.',
+        'subtitle' => 'Traffic volume per day, 7×24 click heatmap, device types, referrer channels, geographic origins, and query parameters.',
         'section' => 'clicks',
         'params' => $params,
     ])
@@ -110,14 +110,46 @@
         ])
     </div>
 
+    {{-- Filtered 7x24 Click Traffic Heatmap --}}
+    <div class="mb-8">
+        <x-ui.heatmap
+            :heatmap="$stats['heatmap']"
+            title="Click Traffic Heatmap (7×24 Weekday & Hour)"
+            subtitle="Hourly click velocity matching your active device, domain, country, and parameter filters."
+            color="amber"
+            unit="click"
+        />
+    </div>
+
     {{-- Breakdown Grid --}}
     <div class="grid gap-6 lg:grid-cols-3 mb-8">
-        {{-- Device Breakdown --}}
+        {{-- Device Breakdown Doughnut + Legend --}}
         <x-ui.card title="Device Breakdown">
-            <div class="space-y-3">
-                @forelse ($stats['by_device'] as $dev)
+            @php
+                $deviceTotal = array_sum(array_column($stats['by_device'], 'count'));
+                $deviceLabels = array_map(fn ($d) => ucfirst($d['device']), $stats['by_device']);
+                $deviceValues = array_column($stats['by_device'], 'count');
+            @endphp
+            @if ($deviceTotal > 0)
+                <div class="mb-4 flex items-center justify-center">
+                    <div class="relative h-36 w-36" role="img" aria-label="Clicks by device type">
+                        <canvas
+                            id="admin-clicks-devices"
+                            data-chart="doughnut"
+                            data-chart-palette="admin"
+                            data-chart-labels='@json($deviceLabels)'
+                            data-chart-values='@json($deviceValues)'
+                        ></canvas>
+                    </div>
+                </div>
+            @endif
+            <div class="space-y-3" data-chart-legend="admin-clicks-devices">
+                @forelse ($stats['by_device'] as $idx => $dev)
                     <div class="flex items-center justify-between text-xs">
-                        <span class="font-medium capitalize text-neutral-800 dark:text-neutral-200">{{ $dev['device'] }}</span>
+                        <div class="flex items-center gap-2">
+                            <span data-swatch="{{ $idx }}" class="h-2.5 w-2.5 shrink-0 rounded-xs bg-amber-500"></span>
+                            <span class="font-medium capitalize text-neutral-800 dark:text-neutral-200">{{ $dev['device'] }}</span>
+                        </div>
                         <div class="flex items-center gap-3">
                             <span class="font-bold text-neutral-900 dark:text-white">{{ number_format($dev['count']) }}</span>
                             <span class="w-12 text-right text-neutral-400">({{ $dev['percentage'] }}%)</span>
@@ -175,7 +207,7 @@
 
     {{-- Recent Clicks Stream with Fully Visible User-Agents for Admins --}}
     @if (!empty($stats['recent_clicks']) && count($stats['recent_clicks']) > 0)
-        <x-ui.card title="Recent Click Stream &amp; Full User-Agent Telemetry">
+        <x-ui.card title="Recent Click Stream & Full User-Agent Telemetry">
             <p class="mb-4 text-xs text-neutral-500 dark:text-neutral-400">Live click telemetry stream. User-agent strings are shown completely without truncation for full diagnostic inspection.</p>
             <x-ui.table>
                 <thead>

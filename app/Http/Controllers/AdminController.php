@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\ApiKey;
 use App\Models\Click;
 use App\Models\Domain;
@@ -9,14 +10,16 @@ use App\Models\ErrorEncounter;
 use App\Models\Link;
 use App\Models\QrGeneration;
 use App\Models\User;
+use App\Services\AdminStatsService;
+use App\Services\LinkInsights;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
     /**
-     * System overview — totals, today, top links.
+     * System overview — totals, today, 30d charts & heatmaps, top links.
      */
-    public function index(Request $request)
+    public function index(Request $request, AdminStatsService $statsService)
     {
         $stats = [
             'total_users' => User::count(),
@@ -26,12 +29,14 @@ class AdminController extends Controller
             'total_clicks' => Click::count(),
             'clicks_today' => Click::where('created_at', '>=', now()->startOfDay())->count(),
             'links_today' => Link::where('created_at', '>=', now()->startOfDay())->count(),
-            'direct_url_clicks' => Click::where('is_direct_url', true)->count(),
+            'direct_url_clicks' => Click::count() > 0 ? Click::where('is_direct_url', true)->count() : 0,
             'total_domains' => Domain::count(),
             'active_api_keys' => ApiKey::whereNull('revoked_at')->count(),
             'qr_codes' => QrGeneration::count(),
             'errors_today' => ErrorEncounter::where('created_at', '>=', now()->startOfDay())->count(),
         ];
+
+        $telemetry = $statsService->getOverviewStats(['days' => 30]);
 
         $topLinks = Link::notRemoved()
             ->with(['domain', 'user'])
@@ -45,7 +50,7 @@ class AdminController extends Controller
             ->limit(5)
             ->get();
 
-        return view('admin.index', compact('stats', 'topLinks', 'recentLinks'));
+        return view('admin.index', compact('stats', 'telemetry', 'topLinks', 'recentLinks'));
     }
 
     /**
@@ -59,17 +64,25 @@ class AdminController extends Controller
     /**
      * Link moderation page (Livewire: Admin\LinkModeration).
      */
-    public function links()
+    public function links(LinkInsights $insights)
     {
-        return view('admin.links');
+        $heatmap = $insights->weekdayHourGrid(
+            Link::query()->where('created_at', '>=', now()->subDays(30)->startOfDay())
+        );
+
+        return view('admin.links', compact('heatmap'));
     }
 
     /**
      * User management page (Livewire: Admin\UserTable).
      */
-    public function users()
+    public function users(LinkInsights $insights)
     {
-        return view('admin.users');
+        $heatmap = $insights->weekdayHourGrid(
+            User::query()->where('created_at', '>=', now()->subDays(30)->startOfDay())
+        );
+
+        return view('admin.users', compact('heatmap'));
     }
 
     /**
@@ -83,9 +96,13 @@ class AdminController extends Controller
     /**
      * Audit log page (Livewire: Admin\ActivityLogTable).
      */
-    public function activity()
+    public function activity(LinkInsights $insights)
     {
-        return view('admin.activity');
+        $heatmap = $insights->weekdayHourGrid(
+            ActivityLog::query()->where('created_at', '>=', now()->subDays(30)->startOfDay())
+        );
+
+        return view('admin.activity', compact('heatmap'));
     }
 
     /**
@@ -99,8 +116,12 @@ class AdminController extends Controller
     /**
      * Error encounters page (Livewire: Admin\ErrorEncounterTable).
      */
-    public function errors()
+    public function errors(LinkInsights $insights)
     {
-        return view('admin.errors');
+        $heatmap = $insights->weekdayHourGrid(
+            ErrorEncounter::query()->where('created_at', '>=', now()->subDays(30)->startOfDay())
+        );
+
+        return view('admin.errors', compact('heatmap'));
     }
 }

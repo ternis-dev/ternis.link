@@ -1,7 +1,7 @@
 <x-layouts.admin title="System Insights — admin.ternis.link">
     @include("admin.stats._header", [
         "title" => "System-wide Traffic & Behavioral Insights",
-        "subtitle" => "Traffic heatmaps, peak activity hours, 24-hour distribution profiles, and expiration calendars.",
+        "subtitle" => "Traffic heatmaps, daily contribution calendar, peak activity hours, 24-hour distribution profiles, and expiration calendars.",
         "section" => "insights",
         "params" => $params,
     ])
@@ -11,7 +11,7 @@
         <div class="rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500">Clicks in Window</span>
             <p class="mt-2 text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">{{ number_format($stats["total_clicks_in_window"]) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">across the last {{ $stats["days"] }} days</p>
+            <p class="mt-1 text-xs text-neutral-500">across the last {{ $stats["window_days"] ?? $stats["days"] }} days</p>
         </div>
 
         <div class="rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -44,58 +44,21 @@
         </div>
     </div>
 
-    {{-- Heatmap & Peak Hours Grid --}}
+    {{-- 7x24 Heatmap & Peak Hours Grid --}}
     <div class="mb-8 grid gap-6 xl:grid-cols-3">
-        <section class="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 xl:col-span-2">
-            <div class="mb-4">
-                <h2 class="font-display text-lg font-semibold tracking-tight">Activity Heatmap (7x24 Weekday & Hour)</h2>
-                <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">System-wide click intensity per weekday and hour. Darker amber cells indicate higher traffic volume.</p>
-            </div>
-            @php
-                $heatmap = $stats["heatmap"];
-                $maxCell = max(1, max(array_map(fn (array $row) => max($row), $heatmap)));
-                $weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-            @endphp
-            <div class="overflow-x-auto">
-                <div class="min-w-[560px]">
-                    <div class="mb-1.5 grid grid-cols-[44px_repeat(24,minmax(0,1fr))] gap-1 text-center text-[10px] font-bold text-neutral-400">
-                        <span></span>
-                        @for ($hour = 0; $hour < 24; $hour++)
-                            <span>{{ $hour % 3 === 0 ? str_pad((string) $hour, 2, "0", STR_PAD_LEFT) : "" }}</span>
-                        @endfor
-                    </div>
-                    @foreach ($heatmap as $weekday => $hours)
-                        <div class="grid grid-cols-[44px_repeat(24,minmax(0,1fr))] gap-1 mb-1">
-                            <span class="flex items-center text-[11px] font-bold text-neutral-500 dark:text-neutral-400">{{ $weekdayLabels[$weekday] }}</span>
-                            @foreach ($hours as $hour => $count)
-                                @php
-                                    $intensity = $count === 0 ? 0 : max(15, (int) round($count / $maxCell * 100));
-                                    $alpha = max(0.2, $intensity / 100);
-                                @endphp
-                                <span
-                                    class="aspect-square rounded-[3px] transition-transform hover:scale-125 hover:z-10 cursor-pointer {{ $intensity === 0 ? "bg-neutral-100 dark:bg-neutral-800" : "" }}"
-                                    style="{{ $intensity > 0 ? "background-color: rgba(245, 158, 11, {$alpha});" : "" }}"
-                                    title="{{ $weekdayLabels[$weekday] }} {{ str_pad((string) $hour, 2, "0", STR_PAD_LEFT) }}:00 — {{ number_format($count) }} click{{ $count === 1 ? "" : "s" }}"
-                                ></span>
-                            @endforeach
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            <div class="mt-4 flex items-center justify-end gap-2 text-[10px] text-neutral-400">
-                <span>Less</span>
-                <span class="h-2.5 w-2.5 rounded-[2px] bg-neutral-100 dark:bg-neutral-800"></span>
-                <span class="h-2.5 w-2.5 rounded-[2px]" style="background-color: rgba(245, 158, 11, 0.3);"></span>
-                <span class="h-2.5 w-2.5 rounded-[2px]" style="background-color: rgba(245, 158, 11, 0.65);"></span>
-                <span class="h-2.5 w-2.5 rounded-[2px]" style="background-color: rgba(245, 158, 11, 1);"></span>
-                <span>More clicks</span>
-            </div>
-        </section>
+        <x-ui.heatmap
+            :heatmap="$stats['heatmap']"
+            title="Activity Heatmap (7x24 Weekday & Hour)"
+            subtitle="System-wide click intensity per weekday and UTC hour."
+            color="amber"
+            unit="click"
+            class="xl:col-span-2"
+        />
 
-        <section class="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+        <section class="rounded-2xl border border-neutral-200/90 bg-white p-5 sm:p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div class="mb-4">
-                <h2 class="font-display text-lg font-semibold tracking-tight">Peak Traffic Hours</h2>
-                <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">The most active hourly slots across the platform.</p>
+                <h2 class="font-display text-base font-semibold tracking-tight text-neutral-900 dark:text-white">Peak Traffic Hours</h2>
+                <p class="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">The most active hourly slots across the platform.</p>
             </div>
             @if (empty($stats["best_times"]))
                 <p class="text-xs text-neutral-500">No clicks recorded in this period.</p>
@@ -113,6 +76,17 @@
                 </ul>
             @endif
         </section>
+    </div>
+
+    {{-- Daily Clicks Calendar Heatmap --}}
+    <div class="mb-8">
+        <x-ui.calendar-heatmap
+            :days="$stats['clicks_calendar'] ?? []"
+            title="Daily Clicks Contribution Calendar"
+            subtitle="Day-by-day redirect volume across the selected window."
+            color="amber"
+            unit="click"
+        />
     </div>
 
     {{-- Hourly 24h Profile Line Graph --}}
@@ -133,7 +107,7 @@
     </div>
 
     {{-- Top Performing Links (Highest Clicks) --}}
-    <section class="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900 mb-8">
+    <section class="rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 mb-8">
         <div class="mb-4">
             <h2 class="font-display text-lg font-semibold tracking-tight">Top Platform Links by Clicks</h2>
             <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Platform short links with highest recorded click volumes.</p>
@@ -175,10 +149,26 @@
     {{-- Referrers, Geo & Expiry Grid --}}
     <div class="grid gap-6 lg:grid-cols-3 mb-8">
         {{-- Top Referrers --}}
-        <section class="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+        <section class="rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div class="mb-4">
                 <h2 class="font-display text-lg font-semibold tracking-tight">Top Referrers</h2>
             </div>
+            @if (!empty($stats["top_referrers"]))
+                @php
+                    $topRefSlice = array_slice($stats["top_referrers"], 0, 5);
+                    $topRefLabels = array_map(fn ($r) => parse_url($r["referrer"], PHP_URL_HOST) ?: $r["referrer"], $topRefSlice);
+                    $topRefValues = array_column($topRefSlice, "count");
+                @endphp
+                <div class="relative mb-4 h-40 w-full" role="img" aria-label="Top referrers">
+                    <canvas
+                        data-chart="horizontal-bar"
+                        data-chart-color="blue"
+                        data-chart-unit="click"
+                        data-chart-labels='@json($topRefLabels)'
+                        data-chart-values='@json($topRefValues)'
+                    ></canvas>
+                </div>
+            @endif
             <div class="space-y-3">
                 @forelse ($stats["top_referrers"] as $ref)
                     <div class="flex items-center justify-between text-xs">
@@ -198,10 +188,26 @@
         </section>
 
         {{-- Top Countries --}}
-        <section class="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+        <section class="rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div class="mb-4">
                 <h2 class="font-display text-lg font-semibold tracking-tight">Top Countries</h2>
             </div>
+            @if (!empty($stats["top_countries"]))
+                @php
+                    $topCountrySlice = array_slice($stats["top_countries"], 0, 5);
+                    $topCountryLabels = array_column($topCountrySlice, "country");
+                    $topCountryValues = array_column($topCountrySlice, "count");
+                @endphp
+                <div class="relative mb-4 h-40 w-full" role="img" aria-label="Top countries">
+                    <canvas
+                        data-chart="horizontal-bar"
+                        data-chart-color="emerald"
+                        data-chart-unit="click"
+                        data-chart-labels='@json($topCountryLabels)'
+                        data-chart-values='@json($topCountryValues)'
+                    ></canvas>
+                </div>
+            @endif
             <div class="space-y-3">
                 @forelse ($stats["top_countries"] as $c)
                     <div class="flex items-center justify-between text-xs">
@@ -221,7 +227,7 @@
         </section>
 
         {{-- Expiry Calendar --}}
-        <section class="rounded-xl border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
+        <section class="rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div class="mb-4">
                 <h2 class="font-display text-lg font-semibold tracking-tight">Expiring Links (Next 60 Days)</h2>
             </div>
