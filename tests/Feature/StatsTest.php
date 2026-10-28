@@ -82,9 +82,19 @@ class StatsTest extends TestCase
             ->assertSee('Network Stats', escape: false)
             ->assertSee('Links Created (All Time)', escape: false)
             ->assertSee('Links Created Per Day', escape: false)
-            ->assertSee('Network Activity Heatmap', escape: false)
+            ->assertSee('Network Activity Heatmaps', escape: false)
+            ->assertSee('90-Day Rhythm Profile', escape: false)
+            ->assertSee('52-Week Clicks Calendar', escape: false)
+            ->assertSee('data-stats-heatmaps', escape: false)
             ->assertSee('data-calendar-heatmap', escape: false)
             ->assertSee('data-heatmap', escape: false)
+            ->assertSeeInOrder([
+                'Links Created (All Time)',
+                'Links Created Per Day (last 30 days)',
+                'Clicks Per Day (last 30 days)',
+                'QR Codes Per Day (last 30 days)',
+                'Network Activity Heatmaps',
+            ], escape: false)
             ->assertSee('Bar Graph', escape: false)
             ->assertSee('Graph', escape: false)
             ->assertSee('data-chart="multi"', escape: false)
@@ -116,7 +126,14 @@ class StatsTest extends TestCase
 
         $this->get('http://ternis.link/pages/stats.md')
             ->assertStatus(200)
-            ->assertSee('## Network Activity Heatmap — Clicks (Weekday × UTC Hour, last 90 days)', escape: false)
+            ->assertSeeInOrder([
+                '## Links Created Per Day (last 30 days)',
+                '## Clicks Per Day (last 30 days)',
+                '## QR Codes Per Day (last 30 days)',
+                '## Network Activity Heatmap — Clicks (Weekday × UTC Hour, last 90 days)',
+                '## Network Activity Heatmap — Links Created (Weekday × UTC Hour, last 90 days)',
+                '## Network Activity Heatmap — QR Codes (Weekday × UTC Hour, last 90 days)',
+            ], escape: false)
             ->assertSee('| Mon |', escape: false)
             ->assertDontSee($this->user->email, escape: false)
             ->assertDontSee('secret.example', escape: false);

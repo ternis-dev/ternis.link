@@ -180,6 +180,42 @@ body,
         @apply min-w-[2px] flex-1 rounded-t bg-gradient-to-b from-neutral-700 to-neutral-300 dark:from-neutral-100 dark:to-neutral-700;
     }
 
+    /* Activity heatmap cells (shared by 7x24 and 52-week calendar grids). */
+    .tl-heat-cell {
+        @apply relative block w-full transition-transform duration-150 hover:z-20 hover:scale-120 focus-visible:z-20 focus-visible:scale-120 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-current;
+    }
+
+    .tl-heat-cell[data-tip]:hover::after,
+    .tl-heat-cell[data-tip]:focus-visible::after {
+        content: attr(data-tip);
+        @apply pointer-events-none absolute z-30 whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white shadow-lg dark:bg-neutral-100 dark:text-neutral-900;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 0.375rem;
+    }
+
+    .tl-heat-cell--down[data-tip]:hover::after,
+    .tl-heat-cell--down[data-tip]:focus-visible::after {
+        bottom: auto;
+        top: 100%;
+        margin-bottom: 0;
+        margin-top: 0.375rem;
+    }
+
+    .tl-heat-cell--left[data-tip]:hover::after,
+    .tl-heat-cell--left[data-tip]:focus-visible::after {
+        left: 0;
+        transform: none;
+    }
+
+    .tl-heat-cell--right[data-tip]:hover::after,
+    .tl-heat-cell--right[data-tip]:focus-visible::after {
+        left: auto;
+        right: 0;
+        transform: none;
+    }
+
     /* Sensitive PII (emails) — blurred until hovered/focused. */
     .tl-sensitive {
         @apply blur-[5px] transition-[filter] duration-150 select-none;
