@@ -61,7 +61,7 @@ Illustrative creation response (IDs and timestamps vary; additional link fields 
 
 ## V2 endpoint reference
 
-All paths below are relative to `https://links.t-api.de`. Only `GET /v2/` is public. All other listed endpoints require Bearer authentication.
+All paths below are relative to `https://links.t-api.de`. Only `GET /v2/` and `GET /v2/stats*` are public. All other listed endpoints require Bearer authentication.
 
 | Method | Path | Purpose | Success |
 | --- | --- | --- | --- |
@@ -75,6 +75,10 @@ All paths below are relative to `https://links.t-api.de`. Only `GET /v2/` is pub
 | DELETE | `/v2/links/{link}` | Deactivate; preserve record and analytics | 200 |
 | GET | `/v2/links/{link}/clicks` | Paginated click records | 200 |
 | GET | `/v2/links/{link}/clicks/summary` | Aggregated click statistics | 200 |
+| GET | `/v2/stats` | Public network totals (links, clicks, QR codes; all-time and today) | 200 |
+| GET | `/v2/stats/heatmaps` | Public weekday/hour and calendar heatmaps | 200 |
+| GET | `/v2/stats/domains` | Public links and clicks per platform domain | 200 |
+| GET | `/v2/stats/creations`, `/clicks`, `/qr` | Public daily `{date, count}` series, last 30 days | 200 |
 
 Deletion responds with `{"data":null,"error":null,"meta":{...}}`. It stops redirects; it does not permanently erase the link. Link reads, updates, deletes, and analytics require ownership or an admin account. Removed links return 404. Administrators list all links by default; use `scope=mine` when listing only the authenticated account's links.
 

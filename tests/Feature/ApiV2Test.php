@@ -170,4 +170,25 @@ class ApiV2Test extends TestCase
             'destination_url' => 'https://example.com', 'domain_id' => $foreign->id,
         ], $this->headers)->assertUnprocessable()->assertJsonStructure(['error' => ['fields' => ['domain_id']]]);
     }
+
+    public function test_v2_stats_are_public_and_aggregate_only(): void
+    {
+        Cache::flush();
+        Domain::create(['hostname' => 'foreign.example.com', 'user_id' => $this->user->id,
+            'type' => 'public', 'is_active' => true, 'verified_at' => now()]);
+
+        $this->getJson('http://links.t-api.de/v2/stats')->assertOk()
+            ->assertJsonStructure(['data' => ['total_links', 'total_clicks', 'clicks_today', 'qr_codes']]);
+        $this->getJson('http://links.t-api.de/v2/stats/heatmaps')->assertOk()
+            ->assertJsonStructure(['data' => ['hourly', 'calendar']]);
+        $hosts = array_column($this->getJson('http://links.t-api.de/v2/stats/domains')->assertOk()->json('data'), 'hostname');
+        $this->assertContains('href.nz', $hosts);
+        $this->assertNotContains('foreign.example.com', $hosts);
+
+        foreach (['creations', 'clicks', 'qr'] as $series) {
+            $rows = $this->getJson("http://links.t-api.de/v2/stats/{$series}")->assertOk()->json('data');
+            $this->assertCount(30, $rows);
+            $this->assertSame(['date', 'count'], array_keys($rows[0]));
+        }
+    }
 }

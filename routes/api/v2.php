@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\ClickController;
 use App\Http\Controllers\Api\V2\DiscoveryController;
 use App\Http\Controllers\Api\V2\LinkController;
+use App\Http\Controllers\Api\V2\StatsController;
 use App\Http\Middleware\ApiV2Response;
 use App\Http\Middleware\AuthenticateApi;
 use App\Http\Middleware\LogApiRequest;
@@ -12,6 +13,16 @@ use Illuminate\Support\Facades\Route;
 // Existing clients and the broader dashboard API remain supported on v1.
 Route::middleware(['ensure.domain:api', ApiV2Response::class, 'ensure.api-version:2', LogApiRequest::class])->name('api.v2.')->group(function () {
     Route::get('/', [DiscoveryController::class, 'show'])->middleware('throttle:api');
+
+    // Public aggregate network stats (no personal data).
+    Route::middleware('throttle:api')->prefix('stats')->group(function () {
+        Route::get('/', [StatsController::class, 'index']);
+        Route::get('heatmaps', [StatsController::class, 'heatmaps']);
+        Route::get('domains', [StatsController::class, 'domains']);
+        Route::get('creations', [StatsController::class, 'creations']);
+        Route::get('clicks', [StatsController::class, 'clicks']);
+        Route::get('qr', [StatsController::class, 'qr']);
+    });
 
     Route::middleware([AuthenticateApi::class, 'throttle:api'])->group(function () {
         Route::get('me', [DiscoveryController::class, 'me']);

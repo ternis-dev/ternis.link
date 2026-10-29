@@ -24,6 +24,7 @@ class DiscoveryController extends Controller
                 'links' => '/v2/links',
                 'clicks' => '/v2/links/{link}/clicks',
                 'click_summary' => '/v2/links/{link}/clicks/summary',
+                'stats' => '/v2/stats',
             ],
         ]);
     }
