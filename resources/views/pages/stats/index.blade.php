@@ -32,6 +32,8 @@
         <x-ui.stat :value="number_format($stats['direct_url_clicks_today'])" label="Direct-URL Redirects Today" />
         <x-ui.stat :value="number_format($stats['qr_codes'])" label="QR Codes Generated (All Time)" />
         <x-ui.stat :value="number_format($stats['qr_codes_today'])" label="QR Codes Today" />
+        <x-ui.stat :value="number_format($stats['threat_evaluations'])" label="AI Security Threat Scans" />
+        <x-ui.stat :value="number_format($stats['threats_quarantined'])" label="Threats Quarantined" />
     </div>
 
     <x-ui.card

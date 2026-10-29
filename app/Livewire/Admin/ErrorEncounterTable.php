@@ -20,7 +20,8 @@ class ErrorEncounterTable extends Component
 
     public string $codeFilter = 'all';
 
-    public function updatingSearch(): void\n    {
+    public function updatingSearch(): void\n
+    {
         $this->resetPage();
     }
 

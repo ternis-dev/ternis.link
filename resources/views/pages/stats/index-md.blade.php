@@ -13,6 +13,8 @@
 - Direct-URL Redirects Today: {{ number_format($stats['direct_url_clicks_today']) }}
 - QR Codes Generated (All Time): {{ number_format($stats['qr_codes']) }}
 - QR Codes Today: {{ number_format($stats['qr_codes_today']) }}
+- AI Security Threat Scans: {{ number_format($stats['threat_evaluations']) }}
+- Threats Quarantined: {{ number_format($stats['threats_quarantined']) }}
 
 ## Links Created Per Day (last 30 days)
 

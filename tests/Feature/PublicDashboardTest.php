@@ -67,7 +67,7 @@ class PublicDashboardTest extends TestCase
             ->assertViewHas('stats', fn ($stats) => $stats['total_links'] === 3)
             ->assertSee('Total links', escape: false)
             ->assertSee('Links by domain', escape: false)
-            ->assertDontSee("\\n", escape: false);
+            ->assertDontSee('\\n', escape: false);
     }
 
     public function test_links_table_partitions_public_and_personal(): void

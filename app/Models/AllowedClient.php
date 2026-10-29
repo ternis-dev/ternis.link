@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -67,7 +68,7 @@ class AllowedClient extends Model
             return false;
         }
 
-        /** @var \Illuminate\Database\Eloquent\Collection<int, static> $rules */
+        /** @var Collection<int, static> $rules */
         $rules = Cache::remember(self::CACHE_KEY, 300, function () {
             return static::where('is_active', true)->get();
         });

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\DailyLinkLimitException;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
+use App\Jobs\EvaluateLinkThreatJob;
 use App\Models\AllowedClient;
 use App\Models\ApiKey;
 use App\Models\BioPage;
@@ -194,7 +195,10 @@ class LinkService
         private JunkUrlDetector $junkUrls,
         private UnsafeUrlValidator $unsafeUrls,
         private SocialPreviewValidator $socialPreview,
-    ) {}
+        private ?AiThreatDetectionService $threatDetection = null,
+    ) {
+        $this->threatDetection ??= app(AiThreatDetectionService::class);
+    }
 
     /**
      * Create a new short link.
@@ -397,6 +401,13 @@ class LinkService
 
         if ($user) {
             RateLimiter::hit($this->rateLimitKey($user), 60);
+        }
+
+        if ($this->threatDetection->shouldEvaluateLink($link)) {
+            EvaluateLinkThreatJob::dispatch($link->id, [
+                'creator_ip_hash' => $creatorIpHash,
+                'user_agent' => request()?->userAgent(),
+            ]);
         }
 
         return $link;

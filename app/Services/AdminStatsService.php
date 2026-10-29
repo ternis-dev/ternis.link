@@ -7,6 +7,7 @@ use App\Models\Click;
 use App\Models\Domain;
 use App\Models\ErrorEncounter;
 use App\Models\Link;
+use App\Models\ThreatEvaluation;
 use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -145,6 +146,9 @@ class AdminStatsService
             'clicks_in_window' => $clicksInWindow,
             'errors_in_window' => $errorsInWindow,
             'activities_in_window' => $activitiesInWindow,
+            'threat_evaluations_in_window' => ThreatEvaluation::when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))->count(),
+            'threats_quarantined_in_window' => ThreatEvaluation::when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))->where('action_taken', 'quarantined')->count(),
+            'threats_bot_protected_in_window' => ThreatEvaluation::when($cutoff, fn ($q) => $q->where('created_at', '>=', $cutoff))->where('action_taken', 'bot_protected')->count(),
             'overall_ratio' => $overallRatio,
             'window_ratio' => $windowRatio,
             'clicks_timeline' => $clicksTimeline,

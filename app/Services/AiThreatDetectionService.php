@@ -1,0 +1,316 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Link;
+use App\Models\ThreatEvaluation;
+use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use TypeSafeAI\SystemOneClient;
+use TypeSafeAI\SystemOneRequest;
+use TypeSafeAI\TypeSafeClient;
+
+class AiThreatDetectionService
+{
+    public function __construct(
+        private ?SystemOneClient $client = null,
+    ) {
+        if ($this->client === null && app()->bound(SystemOneClient::class)) {
+            $this->client = app(SystemOneClient::class);
+        }
+    }
+
+    public function isEnabled(): bool
+    {
+        return (bool) config('ai_security.enabled', true);
+    }
+
+    public function getClient(): ?SystemOneClient
+    {
+        if ($this->client !== null) {
+            return $this->client;
+        }
+
+        $apiKey = config('ai_security.api_key');
+        if (empty($apiKey)) {
+            return null;
+        }
+
+        $clientOptions = [];
+        if ($baseUrl = config('ai_security.base_url')) {
+            $clientOptions['base_uri'] = $baseUrl;
+        }
+
+        try {
+            $this->client = TypeSafeClient::createInstance(
+                apiKey: $apiKey,
+                clientOptions: $clientOptions,
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Failed to initialize TypeSafeClient: '.$e->getMessage());
+
+            return null;
+        }
+
+        return $this->client;
+    }
+
+    public function setClient(?SystemOneClient $client): self
+    {
+        $this->client = $client;
+
+        return $this;
+    }
+
+    public function shouldEvaluateLink(Link $link): bool
+    {
+        if (! $this->isEnabled()) {
+            return false;
+        }
+
+        // Guest links (no user assigned)
+        if ($link->user_id === null) {
+            return (bool) config('ai_security.evaluate_guests', true);
+        }
+
+        $user = $link->relationLoaded('user') ? $link->user : User::find($link->user_id);
+        if (! $user) {
+            return false;
+        }
+
+        // Evaluate links created by accounts newer than threshold
+        $newDays = (int) config('ai_security.evaluate_new_users_days', 7);
+        if ($user->created_at && $user->created_at->greaterThanOrEqualTo(now()->subDays($newDays))) {
+            return true;
+        }
+
+        // Evaluate accounts with very few lifetime links created
+        $maxLinks = (int) config('ai_security.evaluate_max_lifetime_links', 5);
+        if ($user->links()->count() <= $maxLinks) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function evaluateLink(Link $link, array $context = []): ?ThreatEvaluation
+    {
+        if (! $this->isEnabled()) {
+            return null;
+        }
+
+        $destinationUrl = (string) $link->destination_url;
+        $destinationHost = (string) parse_url($destinationUrl, PHP_URL_HOST);
+        $creatorIpHash = (string) ($link->creator_ip_hash ?? $context['creator_ip_hash'] ?? '');
+        $userAgent = $context['user_agent'] ?? null;
+
+        // Check for burst attack velocity first
+        if ($creatorIpHash !== '') {
+            $burstVerdict = $this->checkBurstVelocity($creatorIpHash, $link);
+            if ($burstVerdict !== null) {
+                return $burstVerdict;
+            }
+        }
+
+        $client = $this->getClient();
+
+        if ($client === null) {
+            Log::debug('TypeSafe AI evaluation skipped: No API key or client available.');
+
+            return null;
+        }
+
+        $creatorContext = $link->user_id === null
+            ? 'Guest anonymous creator'
+            : sprintf(
+                'User account #%s registered at %s (lifetime links: %d)',
+                $link->user_id,
+                $link->user?->created_at?->toIso8601String() ?? 'unknown',
+                $link->user?->links()->count() ?? 1
+            );
+
+        $state = implode("\n", [
+            'Destination URL: '.$destinationUrl,
+            'Host: '.$destinationHost,
+            'Title: '.($link->og_title ?? $link->description ?? 'None'),
+            'Description: '.($link->og_description ?? 'None'),
+            'Account Context: '.$creatorContext,
+            'User-Agent: '.($userAgent ?? 'Unknown'),
+        ]);
+
+        $model = config('ai_security.model', 'jev');
+
+        try {
+            $request = SystemOneRequest::build($state, $model)
+                ->choice('verdict', 'Analyze the destination URL and metadata for spam, phishing, deception, or malicious behavior.', [
+                    'safe' => 'Benign, legitimate website or service',
+                    'spam' => 'Low-quality affiliate spam, SEO link farming, deceptive marketing, junk redirects',
+                    'phishing' => 'Credential harvesting, brand impersonation, deceptive login portal, fake verification',
+                    'malware' => 'Drive-by download, trojan/exploit payload distribution, suspicious binary bundle',
+                ])
+                ->score('threat_score', 'Threat probability score from 0 (benign) to 100 (critical malicious)', [
+                    'Benign, legitimate website',
+                    'Mildly suspicious or low reputation',
+                    'Borderline or suspected promotional spam',
+                    'High probability of phishing or scam',
+                    'Critical confirmed malware or credential harvester',
+                ]);
+
+            $result = $client->systemOne($request);
+
+            $verdictAnswer = $result->choice('verdict');
+            $scoreAnswer = $result->score('threat_score');
+
+            $verdict = $verdictAnswer->choice ?? 'safe';
+            $confidence = $verdictAnswer->confidence ?? 1.0;
+
+            // ScoreAnswer::score is 0.0 .. (count(legend) - 1). Normalize to 0 .. 100.
+            $maxLevel = max(1, count($scoreAnswer->legend ?? []) - 1);
+            $rawScore = $scoreAnswer->score ?? 0.0;
+            $threatScore = (int) round(min(100, max(0, ($rawScore / $maxLevel) * 100)));
+
+            $quarantineThreshold = (int) config('ai_security.quarantine_threshold', 80);
+            $botProtectThreshold = (int) config('ai_security.bot_protect_threshold', 60);
+
+            $actionTaken = 'cleared';
+
+            if ($threatScore >= $quarantineThreshold && in_array($verdict, ['phishing', 'malware'])) {
+                $actionTaken = 'quarantined';
+                $tags = is_array($link->tags) ? $link->tags : [];
+                if (! in_array('quarantine', $tags, true)) {
+                    $tags[] = 'quarantine';
+                }
+                if (! in_array($verdict, $tags, true)) {
+                    $tags[] = $verdict;
+                }
+                $link->update([
+                    'is_active' => false,
+                    'tags' => $tags,
+                ]);
+                Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+            } elseif ($threatScore >= $botProtectThreshold && in_array($verdict, ['spam', 'phishing', 'malware'])) {
+                $actionTaken = 'bot_protected';
+                if (! $link->bot_protection) {
+                    $link->update(['bot_protection' => true]);
+                    Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+                }
+            }
+
+            return ThreatEvaluation::create([
+                'link_id' => $link->id,
+                'user_id' => $link->user_id,
+                'creator_ip_hash' => $creatorIpHash,
+                'destination_url' => $destinationUrl,
+                'destination_host' => $destinationHost,
+                'user_agent' => $userAgent,
+                'evaluation_type' => 'link_creation',
+                'verdict' => $verdict,
+                'threat_score' => $threatScore,
+                'confidence' => $confidence,
+                'action_taken' => $actionTaken,
+                'reasoning' => sprintf('Verdict %s with score %d/100 (action: %s)', $verdict, $threatScore, $actionTaken),
+                'metadata' => [
+                    'probabilities' => $verdictAnswer->probabilities ?? [],
+                    'score_probabilities' => $scoreAnswer->probabilities ?? [],
+                    'raw_score' => $rawScore,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('TypeSafe AI threat evaluation failed: '.$e->getMessage(), [
+                'link_id' => $link->id,
+                'exception' => $e,
+            ]);
+
+            return null;
+        }
+    }
+
+    public function checkBurstVelocity(string $ipHash, Link $link): ?ThreatEvaluation
+    {
+        $burstKey = 'threat:burst:'.$ipHash;
+        $burstLimit = (int) config('ai_security.burst_limit_per_minute', 10);
+
+        RateLimiter::hit($burstKey, 60);
+
+        if (RateLimiter::attempts($burstKey) > $burstLimit) {
+            $link->update(['is_active' => false]);
+            Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+
+            return ThreatEvaluation::create([
+                'link_id' => $link->id,
+                'user_id' => $link->user_id,
+                'creator_ip_hash' => $ipHash,
+                'destination_url' => (string) $link->destination_url,
+                'destination_host' => (string) parse_url($link->destination_url, PHP_URL_HOST),
+                'user_agent' => null,
+                'evaluation_type' => 'spam_burst',
+                'verdict' => 'spam',
+                'threat_score' => 95,
+                'confidence' => 0.990,
+                'action_taken' => 'quarantined',
+                'reasoning' => sprintf('High-velocity burst detected: exceeded %d creations in 60s from IP hash %s', $burstLimit, substr($ipHash, 0, 10)),
+                'metadata' => [
+                    'attempts' => RateLimiter::attempts($burstKey),
+                    'limit' => $burstLimit,
+                ],
+            ]);
+        }
+
+        return null;
+    }
+
+    public function evaluateUserAgent(string $userAgent, ?string $path = null): array
+    {
+        $client = $this->getClient();
+        if ($client === null) {
+            return [
+                'verdict' => 'unverified',
+                'score' => 0,
+                'confidence' => 0.0,
+            ];
+        }
+
+        $state = sprintf("User-Agent: %s\nPath: %s", $userAgent, $path ?? '/');
+
+        try {
+            $request = SystemOneRequest::build($state, config('ai_security.model', 'jev'))
+                ->choice('client_type', 'Classify this client signature', [
+                    'legitimate_browser' => 'Standard user browsing from consumer browser or webview',
+                    'verified_crawler' => 'Known benign search engine or social media unfurler',
+                    'benign_tool' => 'Legitimate developer tool, API client or curl testing',
+                    'aggressive_scraper' => 'Automated content scraper or link harvester',
+                    'exploit_scanner' => 'Vulnerability probe, credential stuffer, exploit script',
+                ])
+                ->score('bot_confidence', 'Probability that this is an automated non-human agent (0-100)', [
+                    'Definitely human browser',
+                    'Likely browser',
+                    'Automated tool or crawler',
+                    'Aggressive bot or scraper',
+                    'Hostile scanner or exploit bot',
+                ]);
+
+            $result = $client->systemOne($request);
+            $choice = $result->choice('client_type');
+            $score = $result->score('bot_confidence');
+
+            $maxLevel = max(1, count($score->legend ?? []) - 1);
+            $botScore = (int) round(min(100, max(0, (($score->score ?? 0.0) / $maxLevel) * 100)));
+
+            return [
+                'verdict' => $choice->choice ?? 'legitimate_browser',
+                'score' => $botScore,
+                'confidence' => $choice->confidence ?? 1.0,
+                'probabilities' => $choice->probabilities ?? [],
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('TypeSafe AI UA evaluation error: '.$e->getMessage());
+
+            return [
+                'verdict' => 'error',
+                'score' => 0,
+                'confidence' => 0.0,
+            ];
+        }
+    }
+}

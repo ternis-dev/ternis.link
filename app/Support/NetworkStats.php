@@ -7,6 +7,7 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Models\LinkTombstone;
 use App\Models\QrGeneration;
+use App\Models\ThreatEvaluation;
 use App\Services\LinkInsights;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -110,6 +111,10 @@ class NetworkStats
                     ->where('created_at', '>=', now()->startOfDay())->count(),
                 'qr_codes' => QrGeneration::count(),
                 'qr_codes_today' => QrGeneration::where('created_at', '>=', now()->startOfDay())->count(),
+                'threat_evaluations' => ThreatEvaluation::count(),
+                'threat_evaluations_today' => ThreatEvaluation::where('created_at', '>=', now()->startOfDay())->count(),
+                'threats_quarantined' => ThreatEvaluation::where('action_taken', 'quarantined')->count(),
+                'threats_bot_protected' => ThreatEvaluation::where('action_taken', 'bot_protected')->count(),
             ];
         });
     }

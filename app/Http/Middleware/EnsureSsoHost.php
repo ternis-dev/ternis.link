@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\PublicDashboard;
 use App\Support\SsoHosts;
 use Closure;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ class EnsureSsoHost
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! SsoHosts::isAllowed($request->getHost()) && ! in_array($request->getHost(), \App\Support\PublicDashboard::hosts(), true)) {
+        if (! SsoHosts::isAllowed($request->getHost()) && ! in_array($request->getHost(), PublicDashboard::hosts(), true)) {
             abort(404);
         }
 

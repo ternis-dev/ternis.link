@@ -78,6 +78,11 @@ class Link extends Model
         return $this->hasMany(LinkTarget::class)->orderBy('sort_order');
     }
 
+    public function threatEvaluations(): HasMany
+    {
+        return $this->hasMany(ThreatEvaluation::class);
+    }
+
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(LinkGroup::class, 'link_group_items')
