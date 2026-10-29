@@ -94,19 +94,31 @@ $faqJsonLd = array_map(fn ($faq) => [
         {{-- Network & security telemetry markers --}}
         <div class="mt-12 grid w-full max-w-3xl grid-cols-2 gap-3 rounded-2xl border border-neutral-200/80 bg-neutral-50/50 p-4 text-center sm:grid-cols-4 dark:border-neutral-800/80 dark:bg-neutral-900/40">
             <div>
-                <p class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">⚡ &lt; 15ms</p>
+                <p class="inline-flex items-center justify-center gap-1.5 font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    <span>&lt; 15ms</span>
+                </p>
                 <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Edge Redirect Latency</p>
             </div>
             <div>
-                <p class="font-mono text-xs font-bold text-purple-600 dark:text-purple-400">🛡️ AI Shield</p>
+                <p class="inline-flex items-center justify-center gap-1.5 font-mono text-xs font-bold text-purple-600 dark:text-purple-400">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>AI Shield</span>
+                </p>
                 <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Real-Time Threat Triage</p>
             </div>
             <div>
-                <p class="font-mono text-xs font-bold text-neutral-900 dark:text-neutral-100">🔒 Hashed IP</p>
+                <p class="inline-flex items-center justify-center gap-1.5 font-mono text-xs font-bold text-neutral-900 dark:text-neutral-100">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Hashed IP</span>
+                </p>
                 <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Cookie-Free Privacy</p>
             </div>
             <div>
-                <p class="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">🌐 Edge-First</p>
+                <p class="inline-flex items-center justify-center gap-1.5 font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span>Edge-First</span>
+                </p>
                 <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Global DNS &amp; Routing</p>
             </div>
         </div>

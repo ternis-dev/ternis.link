@@ -20,7 +20,9 @@
     <div class="flex flex-col gap-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-                <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600 text-white text-xs font-bold">⚡</span>
+                <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-violet-600 text-white">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </span>
                 <span class="font-display text-sm font-bold tracking-tight text-neutral-900 dark:text-white">Quick Shorten</span>
                 <span class="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700 dark:bg-violet-400/20 dark:text-violet-300">Fast Mode</span>
             </div>

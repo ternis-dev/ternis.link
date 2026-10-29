@@ -82,7 +82,7 @@
         <x-ui.card title="Recent activity">
             @forelse ($recentEvents as $event)
                 <div class="flex items-center justify-between gap-3 border-b border-neutral-100 py-2 text-sm last:border-0 dark:border-neutral-800">
-                    <span class="truncate">{{ $event->kind === 'tap' ? '⤷' : '👁' }} {{ $event->button?->label ?? 'page view' }}</span>
+                    <span class="truncate">{{ $event->kind === 'tap' ? 'Tap:' : 'View:' }} {{ $event->button?->label ?? 'Page view' }}</span>
                     <span class="shrink-0 font-mono text-xs text-neutral-500">{{ $event->created_at?->diffForHumans() }}</span>
                 </div>
             @empty

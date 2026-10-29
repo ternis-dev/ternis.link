@@ -23,7 +23,7 @@
                 @csrf
                 <x-hnz.button type="submit" variant="secondary" size="sm">Duplicate</x-hnz.button>
             </form>
-            <x-hnz.button href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" variant="secondary" size="sm" target="_blank">Visit link ↗</x-hnz.button>
+            <x-hnz.button href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" variant="secondary" size="sm" target="_blank">Visit link</x-hnz.button>
             <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.qr', $link->id) }}" variant="primary" size="sm">Download QR</x-hnz.button>
         </x-slot:actions>
     </x-hnz.head>

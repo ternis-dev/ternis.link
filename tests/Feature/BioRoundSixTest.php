@@ -81,7 +81,7 @@ class BioRoundSixTest extends TestCase
             ->call('selectPage', $page->id)
             ->call('checkLinks')
             ->assertHasNoErrors()
-            ->assertSee('✅', escape: false);
+            ->assertSee('text-emerald-600', escape: false);
     }
 
     public function test_duplicate_button_in_both_builders(): void

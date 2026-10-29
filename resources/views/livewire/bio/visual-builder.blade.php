@@ -228,17 +228,17 @@
                         <form wire:submit="addButton" class="space-y-4">
                             <div class="grid gap-3 sm:grid-cols-3">
                                 <x-ui.select label="Block kind" name="newKind" wire:model.live="newKind">
-                                    <option value="link">🔗 Link</option>
-                                    <option value="social">📱 Social Icon</option>
-                                    <option value="header">🏷️ Section Header</option>
-                                    <option value="divider">➖ Divider</option>
-                                    <option value="video">▶️ Video Embed</option>
-                                    <option value="image">🖼️ Image Card</option>
-                                    <option value="contact">🪪 Contact Card</option>
-                                    <option value="countdown">⏳ Countdown</option>
-                                    <option value="quote">💬 Quote</option>
-                                    <option value="coupon">🎟️ Coupon Code</option>
-                                    <option value="rsvp">✋ RSVP Headcount</option>
+                                    <option value="link">Link</option>
+                                    <option value="social">Social Icon</option>
+                                    <option value="header">Section Header</option>
+                                    <option value="divider">Divider</option>
+                                    <option value="video">Video Embed</option>
+                                    <option value="image">Image Card</option>
+                                    <option value="contact">Contact Card</option>
+                                    <option value="countdown">Countdown</option>
+                                    <option value="quote">Quote</option>
+                                    <option value="coupon">Coupon Code</option>
+                                    <option value="rsvp">RSVP Headcount</option>
                                 </x-ui.select>
 
                                 @if (!in_array($newKind, ['divider', 'header', 'countdown', 'quote', 'rsvp'], true))
@@ -346,7 +346,13 @@
                                 @foreach ($linkHealth as $result)
                                     <li class="flex items-center justify-between gap-2 rounded-lg bg-neutral-50 px-3 py-1.5 text-xs dark:bg-neutral-800/60">
                                         <span class="flex items-center gap-2 truncate">
-                                            <span aria-hidden="true">{{ $result['ok'] ? '✅' : '❌' }}</span>
+                                            <span aria-hidden="true" class="shrink-0">
+                                                @if ($result['ok'])
+                                                    <svg class="h-3 w-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                                                @else
+                                                    <svg class="h-3 w-3 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                                @endif
+                                            </span>
                                             <span class="font-medium text-neutral-800 dark:text-neutral-200 truncate">{{ $result['label'] }}</span>
                                         </span>
                                         <span class="shrink-0 font-mono text-[11px] text-neutral-500">{{ $result['status'] ?? 'unreachable' }}</span>
@@ -742,7 +748,7 @@
 
                     <x-ui.card title="Announcement Banner">
                         <div class="space-y-3">
-                            <x-ui.input label="Announcement Headline" name="announcement_text" type="text" wire:model="announcement_text" placeholder="🎉 Tickets for our Europe Tour are now on sale!" maxlength="140" />
+                            <x-ui.input label="Announcement Headline" name="announcement_text" type="text" wire:model="announcement_text" placeholder="Tickets for our Europe Tour are now on sale!" maxlength="140" />
                             <x-ui.input label="Announcement Link (optional)" name="announcement_url" type="url" wire:model="announcement_url" placeholder="https://tickets.example.com" maxlength="2048" hint="When set, visitors tapping the announcement pill are redirected here." />
                         </div>
                     </x-ui.card>

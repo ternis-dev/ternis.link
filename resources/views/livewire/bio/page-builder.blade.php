@@ -157,7 +157,13 @@
                 <ul class="mt-3 space-y-1 text-sm">
                     @foreach ($linkHealth as $result)
                         <li class="flex items-center gap-2">
-                            <span aria-hidden="true">{{ $result['ok'] ? '✅' : '❌' }}</span>
+                            <span aria-hidden="true" class="shrink-0">
+                                @if ($result['ok'])
+                                    <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                                @else
+                                    <svg class="h-3.5 w-3.5 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                @endif
+                            </span>
                             <span class="truncate">{{ $result['label'] }}</span>
                             <span class="shrink-0 font-mono text-xs text-neutral-500">{{ $result['status'] ?? 'unreachable' }}</span>
                         </li>
@@ -280,7 +286,7 @@
                             <strong>{{ $b->kind }}</strong>@if(in_array($b->kind, ['link', 'social'], true))<span class="text-neutral-500"> · {{ $b->action }}</span>@endif — {{ $b->label }}
                             <span class="text-neutral-500">({{ number_format($b->tap_count) }} taps)</span>
                             @unless ($b->is_active)<span class="ml-1 rounded bg-neutral-200 px-1.5 py-0.5 text-[11px] font-semibold dark:bg-neutral-700">paused</span>@endunless
-                            @if ($b->starts_at || $b->ends_at)<span class="ml-1 text-xs text-neutral-500">⏱ {{ $b->starts_at?->format('M j') ?? '…' }} → {{ $b->ends_at?->format('M j') ?? '…' }}</span>@endif
+                            @if ($b->starts_at || $b->ends_at)<span class="ml-1 text-xs text-neutral-500">Scheduled: {{ $b->starts_at?->format('M j') ?? '…' }} → {{ $b->ends_at?->format('M j') ?? '…' }}</span>@endif
                         </span>
                         <span class="flex shrink-0 items-center gap-1 text-xs">
                             <button type="button" wire:click="startEditButton('{{ $b->id }}')" class="min-h-[24px] cursor-pointer px-0.5 hover:underline">Edit</button>

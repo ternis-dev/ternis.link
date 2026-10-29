@@ -146,7 +146,7 @@
                             <strong>{{ $isDe ? 'Ergebnis-Bewertung:' : 'Assessment Summary:' }}</strong>
                             {{ $result['reasoning'] ?? '' }}
                             @if ($result['cached'] ?? false)
-                                <span class="ml-1 text-[11px] text-neutral-400 dark:text-neutral-500">({{ $isDe ? 'Zwischengespeichert ⚡' : 'Cached lookup ⚡' }})</span>
+                                <span class="ml-1 text-[11px] text-neutral-400 dark:text-neutral-500">({{ $isDe ? 'Zwischengespeichert' : 'Cached lookup' }})</span>
                             @endif
                         </div>
 

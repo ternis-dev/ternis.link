@@ -71,7 +71,7 @@ class BioRoundFiveTest extends TestCase
         ], $this->user);
 
         $html = $this->get('http://bio.example.com/')->getContent();
-        $this->assertStringContainsString('📍', $html);
+        $this->assertStringContainsString('viewBox="0 0 24 24"', $html);
         $this->assertStringContainsString('123 Main St', $html);
 
         $linked = $page->fresh()->buttons()->where('label', 'Studio')->firstOrFail();

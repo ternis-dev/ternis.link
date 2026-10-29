@@ -23,7 +23,13 @@
             <ul class="space-y-1 text-sm">
                 @foreach ($results as $result)
                     <li class="flex items-start gap-2">
-                        <span aria-hidden="true">{{ $result['ok'] ? '✅' : '❌' }}</span>
+                        <span aria-hidden="true" class="shrink-0 mt-0.5">
+                            @if ($result['ok'])
+                                <svg class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                            @else
+                                <svg class="h-4 w-4 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            @endif
+                        </span>
                         <span class="shrink-0 font-mono text-xs text-neutral-500">row {{ $result['row'] }}</span>
                         <span>{{ $result['message'] }}</span>
                     </li>

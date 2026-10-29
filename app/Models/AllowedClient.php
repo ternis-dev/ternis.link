@@ -68,15 +68,35 @@ class AllowedClient extends Model
             return false;
         }
 
-        /** @var Collection<int, static> $rules */
-        $rules = Cache::remember(self::CACHE_KEY, 300, function () {
-            return static::where('is_active', true)->get();
-        });
+        try {
+            /** @var Collection<int, static>|mixed $rules */
+            $rules = Cache::remember(self::CACHE_KEY, 300, function () {
+                return static::where('is_active', true)->get();
+            });
 
-        foreach ($rules as $rule) {
-            if ($rule->matchesPair($ip, $userAgent)) {
-                return true;
+            if (! is_iterable($rules)) {
+                static::clearCache();
+                $rules = static::where('is_active', true)->get();
             }
+
+            foreach ($rules as $rule) {
+                if ($rule instanceof self) {
+                    if ($rule->matchesPair($ip, $userAgent)) {
+                        return true;
+                    }
+                } elseif (is_array($rule)) {
+                    $instance = new static($rule);
+                    $instance->exists = true;
+                    if ($instance->matchesPair($ip, $userAgent)) {
+                        return true;
+                    }
+                } else {
+                    // Invalid cache entry detected (e.g. string) — purge corrupted cache
+                    static::clearCache();
+                }
+            }
+        } catch (\Throwable) {
+            static::clearCache();
         }
 
         return false;

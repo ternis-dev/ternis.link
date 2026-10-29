@@ -306,4 +306,13 @@ class AllowedClientTest extends TestCase
             'is_active' => true,
         ]);
     }
+
+    public function test_is_allowed_pair_handles_corrupted_string_cache_gracefully(): void
+    {
+        Cache::put(AllowedClient::CACHE_KEY, 'corrupted_string_from_legacy_cache', 300);
+
+        $result = AllowedClient::isAllowedPair('Mozilla/5.0', '127.0.0.1');
+
+        $this->assertFalse($result);
+    }
 }

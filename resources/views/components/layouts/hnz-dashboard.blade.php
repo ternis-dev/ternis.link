@@ -264,7 +264,9 @@
             class="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-2xl bg-neutral-900/90 px-4 py-3 text-sm font-semibold text-white shadow-2xl backdrop-blur-xl ring-1 ring-white/10 dark:bg-neutral-800/95"
             role="status"
         >
-            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-neutral-900 text-xs font-bold">✓</span>
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-neutral-900">
+                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+            </span>
             <span x-text="toast.message"></span>
         </div>
 
@@ -282,7 +284,9 @@
             >
                 <div class="flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-white/10">
                     <h3 class="font-display text-lg font-bold">Keyboard Shortcuts</h3>
-                    <button type="button" @click="shortcutsOpen = false" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white">✕</button>
+                    <button type="button" @click="shortcutsOpen = false" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white" aria-label="Close shortcuts modal">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
                 </div>
                 <div class="mt-4 space-y-3 text-sm">
                     <div class="flex items-center justify-between">

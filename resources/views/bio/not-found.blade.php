@@ -15,7 +15,9 @@ code{font-family:monospace;background:#f0f0f0;padding:2px 6px;border-radius:6px}
 </head>
 <body>
 <div class="wrap">
-<p style="font-size:44px;margin:0">🧭</p>
+<div style="display:flex;justify-content:center;margin-bottom:12px">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+</div>
 <h1 style="font-size:22px">Nothing here — yet.</h1>
 <p class="muted"><code>{{ $slug }}</code> isn't a page on {{ $domain }}.</p>
 <a class="home" href="/">← {{ $page->title }}</a>

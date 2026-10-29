@@ -23,13 +23,13 @@ $icons = [
 <div class="announce" role="note">@if($page->announcement_url)<a href="{{ $preview ? '#' : $page->announcement_url }}" @unless($preview) target="_blank" rel="noopener" @endunless>{{ $page->announcement_text }} →</a>@else{{ $page->announcement_text }}@endif</div>
 @endif
 @if(!$preview && request()->query('rsvpd') === '1')
-<div class="announce" role="status">✓ You're on the list!</div>
+<div class="announce" role="status">You're on the list!</div>
 @endif
 @if($page->cover_url)<img src="{{ $page->cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;height:140px;border-radius:16px;object-fit:cover">@endif
 @if($page->avatar_url)<img class="avatar" src="{{ $page->avatar_url }}" alt="" loading="lazy" referrerpolicy="no-referrer"@if($page->cover_url) style="margin-top:-44px;border:4px solid #fff"@endif>@endif
 <h1 style="margin:12px 0 4px;font-size:24px">{{ $page->title }}</h1>
 @if($page->bio)<p class="muted">{{ $page->bio }}</p>@endif
-@if(!empty($page->show_stats))<p class="muted" style="font-size:13px">👁 {{ number_format($page->view_count) }} views</p>@endif
+@if(!empty($page->show_stats))<p class="muted" style="font-size:13px">{{ number_format($page->view_count) }} views</p>@endif
 @if(($page->parent_id ?? null) !== null && isset($root) && $root)
 <a href="{{ $preview ? '#' : '/' }}" aria-label="Back to {{ $root->title }}" style="display:inline-block;margin-top:10px;font-size:13px;padding:6px 14px;border-radius:9999px;border:1px solid #d4d4d4;text-decoration:none;color:inherit">← {{ $root->title }}</a>
 @endif
@@ -52,8 +52,8 @@ $icons = [
 @elseif($button->kind === 'countdown' && $button->event_at)<div class="countdown" data-countdown="{{ $button->event_at->toIso8601String() }}" style="margin:12px 0;padding:14px;border-radius:14px;border:1px dashed #a3a3a3;grid-column:1/-1"><div style="font-weight:700">{{ $button->label }}</div><div class="muted" data-countdown-label>…</div></div>
 @elseif($button->kind === 'image' && $button->thumbnail_url)<figure style="margin:12px 0;grid-column:1/-1"><img src="{{ $button->thumbnail_url }}" alt="{{ $button->label }}" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block;@unless($preview)cursor:zoom-in;@endunless" @unless($preview) data-lightbox="{{ $button->thumbnail_url }}" data-lightbox-alt="{{ $button->label }}" tabindex="0" role="button" aria-label="Enlarge image: {{ $button->label }}"@endunless>@if($button->label)<figcaption class="muted" style="margin-top:6px;font-size:13px">{{ $button->label }}</figcaption>@endif</figure>
 @elseif($button->kind === 'location')
-@if($button->destination_url)<a class="btn" style="{{ ltrim($btnExtra, ';') }};text-align:left" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>@else<div class="btn" style="{{ ltrim($btnExtra, ';') }};text-align:left;cursor:default">@endif<span style="font-size:18px;vertical-align:middle">📍 </span><span style="vertical-align:middle">{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span>@if($button->destination_url)</a>@else</div>@endif
-@elseif($button->kind === 'audio' && $button->destination_url)<div style="margin:12px 0;padding:12px 14px;border-radius:14px;border:1px solid #d4d4d4;text-align:left;grid-column:1/-1"><div style="font-weight:600">🎧 {{ $button->label }}</div><audio controls preload="none" src="{{ $button->destination_url }}" data-audio-bid="{{ $button->id }}" style="width:100%;margin-top:8px"></audio></div>
+@if($button->destination_url)<a class="btn" style="{{ ltrim($btnExtra, ';') }};text-align:left" href="{{ $preview ? '#' : '/t/' . $button->id }}" @unless($preview) rel="noopener" @endunless>@else<div class="btn" style="{{ ltrim($btnExtra, ';') }};text-align:left;cursor:default">@endif<svg style="display:inline-block;vertical-align:middle;margin-right:6px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span style="vertical-align:middle">{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif</span>@if($button->destination_url)</a>@else</div>@endif
+@elseif($button->kind === 'audio' && $button->destination_url)<div style="margin:12px 0;padding:12px 14px;border-radius:14px;border:1px solid #d4d4d4;text-align:left;grid-column:1/-1"><div style="font-weight:600;display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg> {{ $button->label }}</div><audio controls preload="none" src="{{ $button->destination_url }}" data-audio-bid="{{ $button->id }}" style="width:100%;margin-top:8px"></audio></div>
 @elseif($button->kind === 'rsvp')
 @php($mine = in_array($button->id, $rsvpd ?? [], true))
 <div style="margin:12px 0;padding:14px;border-radius:14px;border:1px solid #d4d4d4;text-align:center;grid-column:1/-1">
@@ -63,9 +63,9 @@ $icons = [
 @if($preview)
 <span class="muted" style="font-size:12px">RSVP button preview</span>
 @elseif($mine)
-<span style="font-size:13px;font-weight:600">✓ You're in</span>
+<span style="font-size:13px;font-weight:600">You're in</span>
 @else
-<a class="btn" style="margin:8px 0 0" href="/t/{{ $button->id }}/rsvp">✓ I'm in</a>
+<a class="btn" style="margin:8px 0 0" href="/t/{{ $button->id }}/rsvp">I'm in</a>
 @endif
 </div>
 @elseif($button->kind === 'quote')<blockquote style="grid-column:1/-1;margin:12px 0;padding:12px 16px;border-left:3px solid #a3a3a3;text-align:left;font-style:italic">“{{ $button->label }}”@if($button->sublabel)<footer class="muted" style="margin-top:4px;font-size:13px;font-style:normal">— {{ $button->sublabel }}</footer>@endif</blockquote>
@@ -73,7 +73,7 @@ $icons = [
 @elseif($button->kind === 'video' && ($embed = \App\Support\BioVideo::embed((string) $button->destination_url)))
 <div class="videofacade" style="grid-column:1/-1" data-video="{{ $button->id }}" data-src="{{ $embed['embed'] }}" data-bio-button="{{ $button->id }}" role="button" tabindex="0" aria-label="Play video: {{ $button->label }}" @unless($preview) style="grid-column:1/-1;cursor:pointer" @endunless>
 @if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;display:block">@endif
-<div style="padding:10px 4px 2px;font-weight:600">▶ {{ $button->label }}</div>
+<div style="padding:10px 4px 2px;font-weight:600">{{ $button->label }}</div>
 </div>
 @elseif(($button->action ?? 'url') === 'modal')
 <button type="button" class="btn" style="width:100%;cursor:pointer{{ $btnExtra }}" data-bio-modal="m-{{ $button->id }}" data-bio-button="{{ $button->id }}">@if($button->thumbnail_url)<img src="{{ $button->thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:44px;height:44px;border-radius:10px;object-fit:cover;vertical-align:middle;margin-right:10px">@endif{{ $button->label }}@if($button->sublabel)<div class="muted">{{ $button->sublabel }}</div>@endif<span class="muted" style="font-size:11px">⧉ pop-up</span></button>

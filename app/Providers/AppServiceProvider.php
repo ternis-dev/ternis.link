@@ -73,5 +73,12 @@ class AppServiceProvider extends ServiceProvider
             resource_path('views/hnz-dashboard'),
             'hnz-dashboard'
         );
+
+        // Modularized view namespaces ('blog', 'stats', 'dash', 'admin', 'my')
+        View::addNamespace('blog', resource_path('views/content'));
+        View::addNamespace('stats', resource_path('views/pages/stats'));
+        View::addNamespace('dash', resource_path('views/dashboard'));
+        View::addNamespace('admin', resource_path('views/admin'));
+        View::addNamespace('my', resource_path('views/hnz-dashboard'));
     }
 }

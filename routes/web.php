@@ -1,14 +1,10 @@
 <?php
 
-use App\Http\Controllers\AdminAppealController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Api\V1\PublicQrCodeController;
 use App\Http\Controllers\Auth\AuthApiController;
 use App\Http\Controllers\Auth\SsoHandoffController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\BioPageController;
-use App\Http\Controllers\ContentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\ExtensionController;
@@ -16,25 +12,18 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\ProtectedGatewayController;
-use App\Http\Controllers\PublicDashboardController;
-use App\Http\Controllers\PublicGroupController;
 use App\Http\Controllers\QrController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\ScanUiController;
 use App\Http\Controllers\SiteFilesController;
-use App\Http\Controllers\SpamAppealController;
-use App\Http\Controllers\StatsController;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\EnsureCorsOrigin;
 use App\Http\Middleware\EnsureSsoHost;
-use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
 use App\Models\Domain;
-use App\Support\ContentCollection;
 use App\Support\DomainUrls;
 use App\Support\NetworkStats;
-use App\Support\PublicDashboard;
 use App\Support\PublicHost;
 use App\Support\SsoHosts;
 use Illuminate\Http\Request;
@@ -182,66 +171,11 @@ if (app()->environment('local', 'testing')) {
 }
 
 /*
-|----------------------------------------------------------------------
-| Public dashboard (my.href.nz) — the new UI for
-| href.nz, meinlink.at and href.yt links. Same strict partition and
-| feature set as legacy (overview, links, import/export, QR, per-key
-| pages) plus the account sections (API keys, domains, settings).
-| Users with the legacy opt-in bounce to /_legacy from the home page.
-|
-| Both hosts serve the very same app, session and data — only the
-| generated URLs and the brand in the header differ. The route group
-| is therefore registered once per host; the canonical host keeps the
-| historical "public-dashboard.*" names, the alias host uses
-| "public-dashboard-alt.*". Build URLs through
-| App\Support\PublicDashboard::route() so they point at the host the
-| visitor is actually on.
-|----------------------------------------------------------------------
+|--------------------------------------------------------------------------
+| Public Dashboard / My Module (my.href.nz)
+|--------------------------------------------------------------------------
 */
-$publicDashboardRoutes = function (string $prefix): void {
-    Route::get('/', [PublicDashboardController::class, 'index'])->name(rtrim($prefix, '.'));
-    Route::get('/new', [PublicDashboardController::class, 'createLink'])->name($prefix.'new');
-    Route::get('/links', [PublicDashboardController::class, 'links'])->name($prefix.'links');
-    Route::get('/links/create', [PublicDashboardController::class, 'createLink'])->name($prefix.'links.create');
-    Route::get('/links/import', [PublicDashboardController::class, 'importLinks'])->name($prefix.'links.import');
-    Route::get('/links/export', [PublicDashboardController::class, 'exportLinks'])->name($prefix.'links.export-all');
-    Route::get('/links/qr-zip', [PublicDashboardController::class, 'qrZip'])->name($prefix.'links.qr-zip');
-    Route::get('/links/{link}', [PublicDashboardController::class, 'showLink'])->name($prefix.'links.show');
-    Route::get('/links/{link}/edit', [PublicDashboardController::class, 'editLink'])->name($prefix.'links.edit');
-    Route::get('/links/{link}/export', [PublicDashboardController::class, 'exportClicks'])->name($prefix.'links.export');
-    Route::get('/links/{link}/qr', [PublicDashboardController::class, 'qrCode'])->name($prefix.'links.qr');
-    Route::post('/links/{link}/duplicate', [PublicDashboardController::class, 'duplicate'])->name($prefix.'links.duplicate');
-    Route::get('/appeals/create', [SpamAppealController::class, 'create'])->name($prefix.'appeals.create');
-    Route::post('/appeals', [SpamAppealController::class, 'store'])->name($prefix.'appeals.store');
-
-    // Account sections — also reachable from my.ternis.link.
-    Route::get('/api-keys', [PublicDashboardController::class, 'apiKeys'])->name($prefix.'api-keys');
-    Route::get('/api-keys/{key}', [PublicDashboardController::class, 'showApiKey'])->name($prefix.'api-keys.show');
-    Route::get('/domains', [PublicDashboardController::class, 'domains'])->name($prefix.'domains');
-    Route::get('/settings', [PublicDashboardController::class, 'settings'])->name($prefix.'settings');
-    Route::get('/notifications', [PublicDashboardController::class, 'notifications'])->name($prefix.'notifications');
-    Route::post('/notifications/read', [PublicDashboardController::class, 'markAllNotificationsRead'])->name($prefix.'notifications.read-all');
-    Route::post('/notifications/{id}/read', [PublicDashboardController::class, 'markNotificationRead'])->name($prefix.'notifications.read');
-
-    // Link groups — the public dashboard groups its own shortener
-    // links; the groups themselves are the same as on dash.
-    Route::get('/insights', [PublicDashboardController::class, 'insights'])->name($prefix.'insights');
-    Route::get('/groups', [PublicGroupController::class, 'groups'])->name($prefix.'groups');
-    Route::get('/groups/create', [PublicGroupController::class, 'createGroup'])->name($prefix.'groups.create');
-    Route::post('/groups', [PublicGroupController::class, 'storeGroup'])->name($prefix.'groups.store');
-    Route::get('/groups/{group}', [PublicGroupController::class, 'showGroup'])->name($prefix.'groups.show');
-    Route::get('/groups/{group}/edit', [PublicGroupController::class, 'editGroup'])->name($prefix.'groups.edit');
-    Route::put('/groups/{group}', [PublicGroupController::class, 'updateGroup'])->name($prefix.'groups.update');
-    Route::delete('/groups/{group}', [PublicGroupController::class, 'deleteGroup'])->name($prefix.'groups.delete');
-    Route::post('/groups/{group}/links', [PublicGroupController::class, 'addGroupLink'])->name($prefix.'groups.links.add');
-    Route::delete('/groups/{group}/links/{link}', [PublicGroupController::class, 'removeGroupLink'])->name($prefix.'groups.links.remove');
-    Route::post('/groups/{group}/subgroups', [PublicGroupController::class, 'storeSubgroup'])->name($prefix.'groups.subgroups.store');
-    Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name($prefix.'settings.export-download');
-};
-
-Route::domain(PublicDashboard::canonicalHost())
-    ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
-    ->group(fn () => $publicDashboardRoutes('public-dashboard.'));
+require __DIR__.'/modules/my.php';
 
 /*
 |----------------------------------------------------------------------
@@ -283,234 +217,25 @@ Route::middleware([EnsureSsoHost::class, EnsureCorsOrigin::class])
     });
 
 /*
-|----------------------------------------------------------------------
-| Dashboard routes (dash.ternis.link ONLY) — require SSO login.
-| Served at the domain root (no /dashboard prefix): the hostname
-| already says dashboard. ensure.domain runs before auth so the wrong
-| host 404s instead of redirecting to login (fail fast, don't leak
-| route existence). The admin host has its own console below and
-| never serves these routes.
-|----------------------------------------------------------------------
+|--------------------------------------------------------------------------
+| Dashboard Module (dash.ternis.link)
+|--------------------------------------------------------------------------
 */
-/*
-|----------------------------------------------------------------------
-| /dashboard handling — host branching:
-| - On local dev (localhost, 127.0.0.1, ::1, testserver), serves the
-|   dashboard home (requiring auth).
-| - On the dashboard host (dash.ternis.link): legacy 301 redirect to
-|   the root URLs.
-| - On ternis short-link hosts (ternis.link): 302 redirects to the
-|   dashboard host (dash.ternis.link).
-| - Elsewhere (admin host, href.nz, api host): 404 to avoid leaking
-|   or swallowing short link slugs.
-|----------------------------------------------------------------------
-*/
-Route::get('/dashboard', function () {
-    $host = request()->getHost();
-    $type = request()->attributes->get('domain_type');
-    $dashHost = (string) config('domains.dashboard_host', 'dash.ternis.link');
-
-    if (in_array($host, ['localhost', '127.0.0.1', '::1', 'testserver'], true)) {
-        if (! auth()->check()) {
-            return redirect('/login');
-        }
-
-        return app(DashboardController::class)->index(request());
-    }
-
-    if ($type === 'dashboard') {
-        return redirect('/', 301);
-    }
-
-    if ($type === 'public-dashboard') {
-        return redirect('/', 301);
-    }
-
-    if ($host === 'ternis.link' || $type === 'ternis') {
-        $target = request()->getScheme().'://'.$dashHost;
-
-        return redirect()->away($target, 302);
-    }
-
-    abort(404);
-});
-
-Route::get('/dashboard/{any}', function (string $any) {
-    $host = request()->getHost();
-    $type = request()->attributes->get('domain_type');
-    $dashHost = (string) config('domains.dashboard_host', 'dash.ternis.link');
-    $query = request()->getQueryString();
-    $qs = $query ? '?'.$query : '';
-
-    if ($type === 'dashboard') {
-        return redirect('/'.$any.$qs, 301);
-    }
-
-    if ($type === 'public-dashboard') {
-        return redirect('/'.$any.$qs, 301);
-    }
-
-    if ($host === 'ternis.link' || $type === 'ternis') {
-        $target = request()->getScheme().'://'.$dashHost.'/'.$any.$qs;
-
-        return redirect()->away($target, 302);
-    }
-
-    abort(404);
-})->where('any', '.*');
-
-Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])->group(function () {
-
-    // /admin on the dashboard host belongs to the admin host. Pinned
-    // to the dashboard host; strips the legacy prefix so
-    // dash.ternis.link/admin/users → admin.ternis.link/users.
-    Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))->get('/admin{any?}', function () {
-        $adminHost = (string) config('domains.admin_host', 'admin.ternis.link');
-        $suffix = substr(request()->getRequestUri(), strlen('/admin'));
-
-        return redirect()->away(request()->getScheme().'://'.$adminHost.$suffix, 302);
-    })->where('any', '.*');
-
-    // Dashboard home. Pinned to the dashboard host: a second host-blind
-    // GET / would collide with the landing home route in the collection
-    // (same method+URI evicts it) and swallow the public landing.
-    Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
-        ->get('/', [DashboardController::class, 'index'])->name('dashboard');
-
-    // /new is host-pinned like / above: the public /new route below
-    // shares the same method+URI and would otherwise evict this
-    // definition from the collection. Localhost dev never matches a
-    // pinned host, so the public closure serves the dashboard branch
-    // there (ResolveDomain maps localhost/new to the dashboard type).
-    Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
-        ->get('/new', [DashboardController::class, 'createLink'])->name('dashboard.new');
-    // /links is host-pinned like /new above: it would otherwise match
-    // first on the docs host (registered before docs /{slug}) and
-    // bounce guests to a /login that 404s there. Localhost dev falls
-    // through to the docs route's dashboard branch below.
-    Route::domain((string) config('domains.dashboard_host', 'dash.ternis.link'))
-        ->get('/links', [DashboardController::class, 'links'])->name('dashboard.links');
-    Route::get('/links/create', [DashboardController::class, 'createLink'])->name('dashboard.links.create');
-    Route::get('/links/import', [DashboardController::class, 'importLinks'])->name('dashboard.links.import');
-    Route::get('/links/export', [DashboardController::class, 'exportLinks'])->name('dashboard.links.export-all');
-    Route::get('/links/qr-zip', [DashboardController::class, 'qrZip'])->name('dashboard.links.qr-zip');
-    Route::get('/links/{link}', [DashboardController::class, 'showLink'])->name('dashboard.links.show');
-    Route::get('/links/{link}/edit', [DashboardController::class, 'editLink'])->name('dashboard.links.edit');
-    Route::get('/links/{link}/export', [DashboardController::class, 'exportClicks'])->name('dashboard.links.export');
-    Route::get('/links/{link}/qr', [DashboardController::class, 'qrCode'])->name('dashboard.links.qr');
-    Route::post('/links/{link}/duplicate', [DashboardController::class, 'duplicate'])->name('dashboard.links.duplicate');
-    Route::get('/appeals/create', [SpamAppealController::class, 'create'])->name('dashboard.appeals.create');
-    Route::post('/appeals', [SpamAppealController::class, 'store'])->name('dashboard.appeals.store');
-
-    // Link Groups
-    Route::get('/groups', [DashboardController::class, 'groups'])->name('dashboard.groups');
-    Route::get('/groups/create', [DashboardController::class, 'createGroup'])->name('dashboard.groups.create');
-    Route::post('/groups', [DashboardController::class, 'storeGroup'])->name('dashboard.groups.store');
-    Route::get('/groups/{group}', [DashboardController::class, 'showGroup'])->name('dashboard.groups.show');
-    Route::get('/groups/{group}/edit', [DashboardController::class, 'editGroup'])->name('dashboard.groups.edit');
-    Route::put('/groups/{group}', [DashboardController::class, 'updateGroup'])->name('dashboard.groups.update');
-    Route::delete('/groups/{group}', [DashboardController::class, 'deleteGroup'])->name('dashboard.groups.delete');
-    Route::post('/groups/{group}/links', [DashboardController::class, 'addGroupLink'])->name('dashboard.groups.links.add');
-    Route::delete('/groups/{group}/links/{link}', [DashboardController::class, 'removeGroupLink'])->name('dashboard.groups.links.remove');
-    Route::post('/groups/{group}/subgroups', [DashboardController::class, 'storeSubgroup'])->name('dashboard.groups.subgroups.store');
-
-    Route::get('/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
-    Route::get('/api-keys/{key}', [DashboardController::class, 'showApiKey'])->name('dashboard.api-keys.show');
-    Route::get('/bio', [DashboardController::class, 'bio'])->name('dashboard.bio');
-    Route::get('/bio/{page}', [DashboardController::class, 'showBio'])->name('dashboard.bio.show');
-    Route::get('/bio/{page}/build', [DashboardController::class, 'buildBio'])->name('dashboard.bio.build');
-    Route::get('/bio/{page}/qr', [DashboardController::class, 'bioQr'])->name('dashboard.bio.qr');
-    Route::get('/domains', [DashboardController::class, 'domains'])->name('dashboard.domains');
-    Route::get('/notifications', [DashboardController::class, 'notifications'])->name('dashboard.notifications');
-    Route::post('/notifications/read', [DashboardController::class, 'markAllNotificationsRead'])->name('dashboard.notifications.read-all');
-    Route::post('/notifications/{id}/read', [DashboardController::class, 'markNotificationRead'])->name('dashboard.notifications.read');
-    Route::get('/activity', [DashboardController::class, 'activity'])->name('dashboard.activity');
-    Route::get('/settings', [DashboardController::class, 'settings'])->name('dashboard.settings');
-    Route::get('/settings/export/{export}/download', [DashboardController::class, 'downloadExport'])->name('dashboard.settings.export-download');
-});
+require __DIR__.'/modules/dash.php';
 
 /*
-|----------------------------------------------------------------------
-| Admin console (admin.ternis.link ONLY) — require admin role.
-| Served at the domain root: / → overview, /links, /users, /domains,
-| /activity. ensure.domain 404s on any other host; EnforceDomainAccess
-| then 403s authenticated non-admins and redirects guests to login.
-| Legacy /admin/* URLs 301 to the root equivalents below.
-|----------------------------------------------------------------------
+|--------------------------------------------------------------------------
+| Admin Module (admin.ternis.link)
+|--------------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
-    ->domain((string) config('domains.admin_host', 'admin.ternis.link'))
-    ->name('admin.')
-    ->group(function () {
-        Route::get('/', [AdminController::class, 'index'])->name('dashboard');
-        Route::get('/stats', [AdminStatsController::class, 'index'])->name('stats');
-        Route::get('/stats/{section}', [AdminStatsController::class, 'show'])->name('stats.show');
-        Route::get('/insights', [AdminController::class, 'insights'])->name('insights');
-        Route::get('/threats', [AdminController::class, 'threats'])->name('threats');
-        Route::post('/threats/test', [AdminController::class, 'testThreatAi'])->name('threats.test');
-        Route::get('/appeals', [AdminAppealController::class, 'index'])->name('appeals');
-        Route::post('/appeals/{appeal}/approve', [AdminAppealController::class, 'approve'])->name('appeals.approve');
-        Route::post('/appeals/{appeal}/reject', [AdminAppealController::class, 'reject'])->name('appeals.reject');
-        Route::get('/links', [AdminController::class, 'links'])->name('links');
-        Route::get('/bio', [AdminController::class, 'bio'])->name('bio');
-        Route::get('/users', [AdminController::class, 'users'])->name('users');
-        Route::get('/domains', [AdminController::class, 'domains'])->name('domains');
-        Route::get('/activity', [AdminController::class, 'activity'])->name('activity');
-        Route::get('/errors', [AdminController::class, 'errors'])->name('errors');
-        Route::get('/allowed-clients', [AdminController::class, 'allowedClients'])->name('allowed-clients');
-    });
-
-// Legacy /admin/* on the admin host → root equivalents (permanent).
-// Runs without auth so bookmarks keep working for signed-in admins;
-// guests still land on the canonical URL and hit the auth redirect.
-Route::middleware(['ensure.domain:admin'])->domain((string) config('domains.admin_host', 'admin.ternis.link'))->get('/admin{any?}', function () {
-    $suffix = substr(request()->getPathInfo(), strlen('/admin'));
-    $query = request()->getQueryString();
-    $qs = $query ? '?'.$query : '';
-
-    return redirect('/'.ltrim($suffix, '/').$qs, 301);
-})->where('any', '.*');
+require __DIR__.'/modules/admin.php';
 
 /*
-|----------------------------------------------------------------------
-| Public network stats (ternis.link/pages/stats) — aggregate counts
-| only, no personal data, so no login needed and nothing is
-| exportable. The /pages/ namespace keeps app pages from ever
-| colliding with single-segment shortlink slugs. Ternis host only;
-| every other host 404s here. Removed links stay counted (nothing
-| is deleted). Legacy /stats/* URLs 301 to the new home.
-|----------------------------------------------------------------------
+|--------------------------------------------------------------------------
+| Network Stats Module (pages/stats)
+|--------------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:ternis'])->prefix('pages/stats')->name('pages.stats.')->group(function () {
-    Route::get('/', [StatsController::class, 'index'])->name('index');
-    Route::get('/domains', [StatsController::class, 'domains'])->name('domains');
-});
-
-/*
-|----------------------------------------------------------------------
-| Markdown twins of the stats pages (text/markdown, same aggregates,
-| no chrome). Same ternis-only pinning as the HTML originals.
-|----------------------------------------------------------------------
-*/
-Route::middleware(['ensure.domain:ternis'])->group(function () {
-    Route::get('/pages/stats.md', [StatsController::class, 'indexMd'])->name('pages.stats.index-md');
-    Route::get('/pages/stats/domains.md', [StatsController::class, 'domainsMd'])->name('pages.stats.domains-md');
-});
-
-Route::middleware(['ensure.domain:ternis'])->get('/stats{any?}', function () {
-    $suffix = substr(request()->getPathInfo(), strlen('/stats'));
-    $query = request()->getQueryString();
-    $qs = $query ? '?'.$query : '';
-
-    // The public Top Links page was removed (per-link leaderboards
-    // distort the analytics members rely on) — old bookmarks land on
-    // the overview instead of a 404.
-    if (rtrim($suffix, '/') === '/links') {
-        return redirect('/pages/stats'.$qs, 301);
-    }
-
-    return redirect('/pages/stats'.rtrim($suffix, '/').$qs, 301);
-})->where('any', '.*');
+require __DIR__.'/modules/stats.php';
 
 /*
 |----------------------------------------------------------------------
@@ -568,41 +293,6 @@ Route::get('/extension{any?}', function () {
 
 /*
 |----------------------------------------------------------------------
-| Short memorable URLs for the blog (ternis.link/blog, /blogs) —
-| 301 to the canonical /pages/blog home, preserving entry subpaths
-| (/blogs/{slug}, /blogs/{slug}.md) and query strings. Same single-
-| definition pattern as /extension above: ternis → redirect,
-| everywhere else → 404. The `any` constraint keeps bare slugs like
-| `blogroll` on the short-link catch-all below. Registered above it
-| so `blog` is never mistaken for a link slug.
-|----------------------------------------------------------------------
-*/
-foreach (['/blogs', '/blog'] as $shortcut) {
-    Route::get($shortcut.'{any?}', function () use ($shortcut) {
-        if (request()->attributes->get('domain_type') !== 'ternis') {
-            abort(404);
-        }
-
-        $suffix = substr(request()->getPathInfo(), strlen($shortcut));
-        $query = request()->getQueryString();
-        $qs = $query ? '?'.$query : '';
-
-        // Entry shortcuts resolve straight to the canonical dated URL
-        // (single 301, no chain through the undated slug).
-        if (preg_match('#^/([a-z0-9-]+)(\.md)?$#', $suffix, $m)) {
-            $entry = ContentCollection::entry('blog', $m[1]);
-
-            if ($entry !== null) {
-                return redirect('/pages/blog/'.$entry['canonical'].($m[2] ?? '').$qs, 301);
-            }
-        }
-
-        return redirect('/pages/blog'.rtrim($suffix, '/').$qs, 301);
-    })->where('any', '(/.*)?');
-}
-
-/*
-|----------------------------------------------------------------------
 | Legal pages — Markdown from resources/legal/*.md, allowlisted slugs.
 | Canonical home is ternis.link/pages/legal/{slug}: the route below
 | serves there; the legacy /legal/* route 301s (same host or
@@ -621,40 +311,11 @@ Route::middleware(['ensure.domain:ternis'])->get('/pages/legal/{slug}.md', [Page
     ->name('pages.legal-md');
 
 /*
-|----------------------------------------------------------------------
-| File-driven collections (changelog, news, blog) — index + entries,
-| HTML with text/markdown twins. Auto-discovered from
-| resources/content/{collection}/*.md. The {collection} constraint
-| doubles as the allowlist: unknown collections match no route (404).
-| Ternis host only, same pinning as the other /pages/* content.
-|----------------------------------------------------------------------
+|--------------------------------------------------------------------------
+| Blog & Content Module
+|--------------------------------------------------------------------------
 */
-Route::middleware(['ensure.domain:ternis'])
-    ->where(['collection' => 'changelog|news|blog'])
-    ->name('pages.collection.')
-    ->group(function () {
-        Route::get('/pages/{collection}', [ContentController::class, 'index'])->name('index');
-        Route::get('/pages/{collection}.md', [ContentController::class, 'indexMd'])->name('index-md');
-        Route::get('/pages/{collection}.xml', [ContentController::class, 'rss'])->name('xml');
-        Route::get('/pages/{collection}.rss', [ContentController::class, 'rss'])->name('rss');
-        Route::get('/pages/{collection}/feed.xml', [ContentController::class, 'rss']);
-        Route::get('/pages/{collection}/rss.xml', [ContentController::class, 'rss']);
-        Route::get('/pages/{collection}/{slug}', [ContentController::class, 'show'])
-            ->where('slug', '[a-z0-9-]+')
-            ->name('show');
-        Route::get('/pages/{collection}/{slug}.md', [ContentController::class, 'showMd'])
-            ->where('slug', '[a-z0-9-]+')
-            ->name('show-md');
-    });
-
-Route::middleware(['ensure.domain:ternis'])->group(function () {
-    Route::get('/pages/feed.xml', fn () => redirect('/pages/blog.xml', 301))->name('pages.feed');
-    Route::get('/pages/rss.xml', fn () => redirect('/pages/blog.rss', 301));
-    Route::get('/feed.xml', fn () => redirect('/pages/blog.xml', 301))->name('feed');
-    Route::get('/rss.xml', fn () => redirect('/pages/blog.rss', 301));
-    Route::get('/blog.xml', fn () => redirect('/pages/blog.xml', 301));
-    Route::get('/blog.rss', fn () => redirect('/pages/blog.rss', 301));
-});
+require __DIR__.'/modules/blog.php';
 
 Route::get('/legal/{any}', function (string $any) {
     $type = request()->attributes->get('domain_type');

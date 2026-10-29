@@ -17,7 +17,9 @@ code{font-family:monospace;background:#f0f0f0;padding:2px 6px;border-radius:6px}
 </head>
 <body>
 <div class="wrap">
-<p style="font-size:44px;margin:0">🔒</p>
+<div style="display:flex;justify-content:center;margin-bottom:12px">
+    <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+</div>
 <h1 style="font-size:22px">This link is password-protected.</h1>
 <p class="muted"><code>{{ $domain }}/{{ $slug }}</code></p>
 <form method="POST" action="/{{ $slug }}/unlock">

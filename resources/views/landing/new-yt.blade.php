@@ -70,9 +70,9 @@
             <div class="yt-presets-bar" style="margin-bottom: 1.25rem;">
                 <span class="yt-presets-label">Quick fill:</span>
                 <div class="yt-presets-list">
-                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtube.com/watch?v=dQw4w9WgXcQ">📺 YouTube</button>
-                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtube.com/@creator?sub_confirmation=1">🔔 Subscribe</button>
-                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtu.be/dQw4w9WgXcQ?t=1m30s">⏱ Timestamp</button>
+                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtube.com/watch?v=dQw4w9WgXcQ">YouTube</button>
+                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtube.com/@creator?sub_confirmation=1">Subscribe</button>
+                    <button type="button" class="yt-preset-btn" data-preset-url="https://youtu.be/dQw4w9WgXcQ?t=1m30s">Timestamp</button>
                 </div>
             </div>
 

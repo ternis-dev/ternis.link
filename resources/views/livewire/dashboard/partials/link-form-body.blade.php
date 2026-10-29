@@ -91,16 +91,16 @@
                 ])>
                     @switch($slugStatus)
                         @case('free')
-                            ✓ This slug is free on the selected domain.
+                            This slug is free on the selected domain.
                             @break
                         @case('taken')
-                            ✕ This slug is already taken on the selected domain.
+                            This slug is already taken on the selected domain.
                             @break
                         @case('invalid')
-                            ✕ Only letters, numbers, dashes and underscores are allowed.
+                            Only letters, numbers, dashes and underscores are allowed.
                             @break
                         @case('too_short')
-                            ⚠ Too short for your plan — {{ auth()->user()->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH }} characters minimum.
+                            Too short for your plan — {{ auth()->user()->plan?->min_slug_length ?? \App\Services\LinkService::AUTHENTICATED_DEFAULT_SLUG_LENGTH }} characters minimum.
                             @break
                     @endswitch
                 </span>
