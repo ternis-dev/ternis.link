@@ -4,12 +4,12 @@
         subtitle="href.nz, meinlink.at and href.yt — everything else lives on dash.ternis.link."
     >
         <x-slot:actions>
-            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.import') }}" variant="secondary" size="sm">Import CSV</x-pd.button>
-            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.export-all') }}" variant="secondary" size="sm">Export CSV</x-pd.button>
-            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.qr-zip') }}" variant="secondary" size="sm">QR ZIP</x-pd.button>
-            <x-hnz.button variant="primary" size="sm" x-data @click="$dispatch('open-link-creator')">+ New link</x-pd.button>
+            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.import') }}" variant="secondary" size="sm">Import CSV</x-hnz.button>
+            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.export-all') }}" variant="secondary" size="sm">Export CSV</x-hnz.button>
+            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.qr-zip') }}" variant="secondary" size="sm">QR ZIP</x-hnz.button>
+            <x-hnz.button variant="primary" size="sm" x-data @click="$dispatch('open-link-creator')">+ New link</x-hnz.button>
         </x-slot:actions>
-    </x-pd.head>
+    </x-hnz.head>
 
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-500 dark:text-neutral-400">
         <p>{{ auth()->user()->name }} · {{ auth()->user()->plan?->name ?? 'free' }} plan</p>

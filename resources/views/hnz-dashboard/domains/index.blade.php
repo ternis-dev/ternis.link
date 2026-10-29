@@ -4,9 +4,9 @@
         subtitle="Use the built-in href.nz, meinlink.at and href.yt hostnames, or claim your own hostname and verify it via DNS."
     >
         <x-slot:actions>
-            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links') }}" variant="secondary" size="sm">Back to links</x-pd.button>
+            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links') }}" variant="secondary" size="sm">Back to links</x-hnz.button>
         </x-slot:actions>
-    </x-pd.head>
+    </x-hnz.head>
 
     <livewire:dashboard.domain-manager theme="public" />
 </x-layouts.hnz-dashboard>

@@ -105,4 +105,38 @@ class HnzDashboardTest extends TestCase
             ->call('checkSlugAvailability')
             ->assertSet('slugStatus', 'taken');
     }
+
+    public function test_my_href_nz_is_fully_separated_from_ternis_dash_layout(): void
+    {
+        $html = $this->actingAs($this->user)
+            ->get('http://my.href.nz/')
+            ->assertOk()
+            ->getContent();
+
+        // Independent HTML document, not wrapped in components.layouts.app
+        $this->assertStringContainsString('<!DOCTYPE html>', $html);
+        $this->assertStringContainsString('Dashboard Navigation', $html);
+        $this->assertStringContainsString('Public Links', $html);
+        $this->assertStringContainsString('Quick Shorten', $html);
+        $this->assertStringContainsString('Keyboard Shortcuts', $html);
+
+        // Does NOT contain ternary ternis-only controls or chrome
+        $this->assertStringNotContainsString('Internal Gateway', $html);
+        $this->assertStringNotContainsString('Take the tour</button>', $html);
+        $this->assertStringNotContainsString('x-ui.logo', $html);
+    }
+
+    public function test_quick_shorten_dock_is_present_and_configurable(): void
+    {
+        $html = $this->actingAs($this->user)
+            ->get('http://my.href.nz/')
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('Quick Shorten', $html);
+        $this->assertStringContainsString('Paste a long destination URL here', $html);
+        $this->assertStringContainsString('href.nz', $html);
+        $this->assertStringContainsString('meinlink.at', $html);
+        $this->assertStringContainsString('href.yt', $html);
+    }
 }

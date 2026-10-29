@@ -6,6 +6,7 @@ use App\Models\AllowedClient;
 use App\Support\CommitVersion;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -61,6 +62,16 @@ class AppServiceProvider extends ServiceProvider
         View::getFinder()->prependNamespace(
             'livewire',
             resource_path('views/vendor/livewire')
+        );
+
+        // Dedicated component set for my.href.nz public dashboard
+        Blade::anonymousComponentPath(
+            resource_path('views/hnz-dashboard/components'),
+            'hnz'
+        );
+        Blade::anonymousComponentPath(
+            resource_path('views/hnz-dashboard'),
+            'hnz-dashboard'
         );
     }
 }

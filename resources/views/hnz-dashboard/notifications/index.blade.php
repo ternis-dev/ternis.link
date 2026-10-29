@@ -7,11 +7,11 @@
             <x-slot:actions>
                 <form method="POST" action="{{ \App\Support\PublicDashboard::route('notifications.read-all') }}">
                     @csrf
-                    <x-hnz.button type="submit" variant="secondary" size="sm">Mark all as read</x-pd.button>
+                    <x-hnz.button type="submit" variant="secondary" size="sm">Mark all as read</x-hnz.button>
                 </form>
             </x-slot:actions>
         @endif
-    </x-pd.head>
+    </x-hnz.head>
 
     <div class="space-y-3">
         @forelse ($notifications as $notification)
@@ -33,21 +33,21 @@
                         @if (! empty($notification->data['action_url']))
                             <form method="POST" action="{{ \App\Support\PublicDashboard::route('notifications.read', $notification->id) }}">
                                 @csrf
-                                <x-hnz.button type="submit" variant="secondary" size="sm">{{ $notification->data['action_label'] ?? 'Open' }}</x-pd.button>
+                                <x-hnz.button type="submit" variant="secondary" size="sm">{{ $notification->data['action_label'] ?? 'Open' }}</x-hnz.button>
                             </form>
                         @elseif ($notification->read_at === null)
                             <form method="POST" action="{{ \App\Support\PublicDashboard::route('notifications.read', $notification->id) }}">
                                 @csrf
-                                <x-hnz.button type="submit" variant="ghost" size="sm">Mark as read</x-pd.button>
+                                <x-hnz.button type="submit" variant="ghost" size="sm">Mark as read</x-hnz.button>
                             </form>
                         @endif
                     </div>
                 </div>
-            </x-pd.card>
+            </x-hnz.card>
         @empty
             <x-hnz.card>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400">No notifications yet. Security events and moderation decisions will appear here.</p>
-            </x-pd.card>
+            </x-hnz.card>
         @endforelse
     </div>
 

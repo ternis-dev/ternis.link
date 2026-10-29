@@ -18,15 +18,15 @@
             @endif
         </x-slot:subtitle>
         <x-slot:actions>
-            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.edit', $link->id) }}" variant="secondary" size="sm">Edit link</x-pd.button>
+            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.edit', $link->id) }}" variant="secondary" size="sm">Edit link</x-hnz.button>
             <form method="POST" action="{{ \App\Support\PublicDashboard::route('links.duplicate', $link->id) }}" class="inline">
                 @csrf
-                <x-hnz.button type="submit" variant="secondary" size="sm">Duplicate</x-pd.button>
+                <x-hnz.button type="submit" variant="secondary" size="sm">Duplicate</x-hnz.button>
             </form>
-            <x-hnz.button href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" variant="secondary" size="sm" target="_blank">Visit link ↗</x-pd.button>
-            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.qr', $link->id) }}" variant="primary" size="sm">Download QR</x-pd.button>
+            <x-hnz.button href="https://{{ $link->domain->hostname ?? 'href.nz' }}/{{ $link->slug }}" variant="secondary" size="sm" target="_blank">Visit link ↗</x-hnz.button>
+            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.qr', $link->id) }}" variant="primary" size="sm">Download QR</x-hnz.button>
         </x-slot:actions>
-    </x-pd.head>
+    </x-hnz.head>
 
     <x-hnz.card title="QR Code" class="mb-6">
         <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
@@ -35,12 +35,12 @@
                 <p class="text-sm font-medium">Scan to open <code class="rounded bg-emerald-50 px-1 py-0.5 text-xs text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">https://{{ ($link->domain->hostname ?? 'href.nz').'/'.$link->slug }}</code></p>
                 <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">PNG download, 600×600 — print-ready for flyers and stickers.</p>
                 <div class="mt-3 flex gap-2">
-                    <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.qr', $link->id) }}" size="sm" variant="primary">Download PNG</x-pd.button>
-                    <x-hnz.button size="sm" variant="secondary" data-copy="{{ $link->short_url }}" title="Copy short link">Copy link</x-pd.button>
+                    <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links.qr', $link->id) }}" size="sm" variant="primary">Download PNG</x-hnz.button>
+                    <x-hnz.button size="sm" variant="secondary" data-copy="{{ $link->short_url }}" title="Copy short link">Copy link</x-hnz.button>
                 </div>
             </div>
         </div>
-    </x-pd.card>
+    </x-hnz.card>
 
     <livewire:dashboard.link-analytics :link="$link" theme="public" />
 </x-layouts.hnz-dashboard>

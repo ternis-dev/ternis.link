@@ -6,9 +6,9 @@
         backLabel="Back to Links"
     >
         <x-slot:actions>
-            <x-hnz.chip>{{ $apiKey->key_prefix }}…</x-pd.chip>
+            <x-hnz.chip>{{ $apiKey->key_prefix }}…</x-hnz.chip>
         </x-slot:actions>
-    </x-pd.head>
+    </x-hnz.head>
 
     <div class="mb-6 grid grid-cols-2 gap-4">
         <x-hnz.stat :value="number_format($stats['total_links'])" label="Key links" />

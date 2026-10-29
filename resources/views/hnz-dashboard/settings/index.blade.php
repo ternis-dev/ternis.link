@@ -4,9 +4,9 @@
         subtitle="Your account, your theme and your notification preferences. Changes apply everywhere."
     >
         <x-slot:actions>
-            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links') }}" variant="secondary" size="sm">Back to links</x-pd.button>
+            <x-hnz.button href="{{ \App\Support\PublicDashboard::route('links') }}" variant="secondary" size="sm">Back to links</x-hnz.button>
         </x-slot:actions>
-    </x-pd.head>
+    </x-hnz.head>
 
     <livewire:dashboard.settings-form surface="public" />
 

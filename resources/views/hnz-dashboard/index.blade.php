@@ -43,6 +43,9 @@
         </dl>
     </section>
 
+    {{-- Frontend-Heavy Quick Shorten Bar --}}
+    <x-hnz.quick-shorten />
+
     <div class="grid gap-6 xl:grid-cols-3">
         {{-- Main column --}}
         <div class="xl:col-span-2">
