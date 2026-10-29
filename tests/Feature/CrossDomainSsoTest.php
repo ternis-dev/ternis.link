@@ -119,16 +119,13 @@ class CrossDomainSsoTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_landing_probe_for_guests_but_not_bots_or_probed_browsers(): void
+    public function test_landing_pages_do_not_redirect_guests_to_sso_silent(): void
     {
-        config(['domains.sso_silent_check' => true]);
         $headers = ['Accept' => 'text/html', 'User-Agent' => 'Mozilla/5.0 Firefox'];
 
-        $this->withHeaders($headers)->get('http://href.nz/')
-            ->assertRedirect('http://href.nz/auth/sso/start?to=%2F&silent=1');
-        $this->withHeaders(['Accept' => 'text/html', 'User-Agent' => 'Googlebot/2.1'])->get('http://href.nz/')
-            ->assertOk();
-        $this->withHeaders($headers)->withUnencryptedCookie('sso_probe', '1')->get('http://href.nz/')
-            ->assertOk();
+        // Guests on href.nz, href.re, meinlink.at must see the landing page, not be bounced to sso
+        $this->withHeaders($headers)->get('http://href.nz/')->assertOk();
+        $this->withHeaders($headers)->get('http://href.re/')->assertOk();
+        $this->withHeaders($headers)->get('http://meinlink.at/')->assertOk();
     }
 }

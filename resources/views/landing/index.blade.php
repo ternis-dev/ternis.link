@@ -91,170 +91,23 @@ $faqJsonLd = array_map(fn ($faq) => [
             <a href="#faq" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">FAQ</a>
         </p>
 
-        {{-- Interactive Live Subdomain & Short Link Simulator --}}
-        <div
-            x-data="{
-                subdomain: 'sarah',
-                slug: 'launch',
-                copied: false,
-                showQr: false,
-                get fullUrl() {
-                    const s = (this.subdomain || '').trim().replace(/[^a-zA-Z0-9-]/g, '') || 'name';
-                    const p = (this.slug || '').trim().replace(/[^a-zA-Z0-9_-]/g, '') || 'link';
-                    return `https://${s}.ternis.link/${p}`;
-                },
-                copyLink() {
-                    if (navigator.clipboard) {
-                        navigator.clipboard.writeText(this.fullUrl).then(() => {
-                            this.copied = true;
-                            setTimeout(() => { this.copied = false; }, 2000);
-                        });
-                    }
-                }
-            }"
-            class="mt-12 w-full max-w-3xl overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-xl dark:border-neutral-800/90 dark:bg-neutral-900/90"
-        >
-            {{-- Top browser frame header --}}
-            <div class="flex items-center justify-between border-b border-neutral-200/80 bg-neutral-50/90 px-4 py-2.5 text-xs text-neutral-500 dark:border-neutral-800/80 dark:bg-neutral-950/70 dark:text-neutral-400">
-                <div class="flex items-center gap-2">
-                    <span class="h-2.5 w-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
-                    <span class="h-2.5 w-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
-                    <span class="h-2.5 w-2.5 rounded-full bg-neutral-300 dark:bg-neutral-700"></span>
-                    <span class="ml-2 font-mono text-[11px] font-medium tracking-wide">Interactive Subdomain Simulator</span>
-                </div>
-                <div class="flex items-center gap-1.5 font-mono text-[11px]">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Zero DNS Setup</span>
-                </div>
+        {{-- Network & security telemetry markers --}}
+        <div class="mt-12 grid w-full max-w-3xl grid-cols-2 gap-3 rounded-2xl border border-neutral-200/80 bg-neutral-50/50 p-4 text-center sm:grid-cols-4 dark:border-neutral-800/80 dark:bg-neutral-900/40">
+            <div>
+                <p class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">⚡ &lt; 15ms</p>
+                <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Edge Redirect Latency</p>
             </div>
-
-            {{-- Simulator controls --}}
-            <div class="p-5 text-left sm:p-6">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Personal Subdomain</label>
-                        <div class="mt-1.5 flex rounded-lg border border-neutral-300 bg-white shadow-xs focus-within:border-neutral-900 focus-within:ring-1 focus-within:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-950 dark:focus-within:border-neutral-100 dark:focus-within:ring-neutral-100">
-                            <input
-                                type="text"
-                                x-model="subdomain"
-                                maxlength="24"
-                                placeholder="sarah"
-                                class="w-full min-w-0 border-0 bg-transparent px-3 py-2 font-mono text-sm font-medium text-neutral-900 focus:outline-none dark:text-white"
-                            >
-                            <span class="flex items-center pr-3 font-mono text-xs text-neutral-400 dark:text-neutral-500">.ternis.link</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Custom Slug</label>
-                        <div class="mt-1.5 flex rounded-lg border border-neutral-300 bg-white shadow-xs focus-within:border-neutral-900 focus-within:ring-1 focus-within:ring-neutral-900 dark:border-neutral-700 dark:bg-neutral-950 dark:focus-within:border-neutral-100 dark:focus-within:ring-neutral-100">
-                            <span class="flex items-center pl-3 font-mono text-xs text-neutral-400 dark:text-neutral-500">/</span>
-                            <input
-                                type="text"
-                                x-model="slug"
-                                maxlength="32"
-                                placeholder="launch"
-                                class="w-full min-w-0 border-0 bg-transparent px-2 py-2 font-mono text-sm font-medium text-neutral-900 focus:outline-none dark:text-white"
-                            >
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Live rendered short link card --}}
-                <div class="mt-5 flex flex-col gap-3 rounded-xl border border-neutral-200/90 bg-neutral-50/80 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800/90 dark:bg-neutral-950/60">
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-2">
-                            <span class="inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                            <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400">Generated Branded URL</span>
-                        </div>
-                        <div class="mt-1 truncate font-mono text-base font-bold text-neutral-900 dark:text-neutral-100" x-text="fullUrl"></div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button
-                            type="button"
-                            @click="copyLink()"
-                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 shadow-xs transition hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:bg-neutral-800"
-                            aria-label="Copy generated URL"
-                        >
-                            <template x-if="!copied">
-                                <span class="flex items-center gap-1.5">
-                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                                    <span>Copy</span>
-                                </span>
-                            </template>
-                            <template x-if="copied">
-                                <span class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                                    <span>Copied!</span>
-                                </span>
-                            </template>
-                        </button>
-                        <button
-                            type="button"
-                            @click="showQr = !showQr"
-                            :class="showQr ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-white text-neutral-800 dark:bg-neutral-900 dark:text-neutral-200'"
-                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium shadow-xs transition hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
-                            aria-label="Toggle QR code"
-                        >
-                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
-                            <span x-text="showQr ? 'Hide QR' : 'QR Code'"></span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- QR code preview drawer --}}
-                <div
-                    x-show="showQr"
-                    x-cloak
-                    x-transition
-                    class="mt-4 flex flex-col items-center justify-center rounded-xl border border-neutral-200 bg-white p-5 text-center dark:border-neutral-800 dark:bg-neutral-900"
-                >
-                    <div class="relative rounded-lg border border-neutral-200 bg-white p-3 shadow-xs dark:border-neutral-700">
-                        <svg class="h-28 w-28 text-neutral-900 dark:text-neutral-100" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true">
-                            <rect x="5" y="5" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-                            <rect x="13" y="13" width="12" height="12" rx="2"/>
-                            <rect x="67" y="5" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-                            <rect x="75" y="13" width="12" height="12" rx="2"/>
-                            <rect x="5" y="67" width="28" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="6"/>
-                            <rect x="13" y="75" width="12" height="12" rx="2"/>
-                            <rect x="42" y="10" width="8" height="8" rx="1"/>
-                            <rect x="52" y="18" width="6" height="6" rx="1"/>
-                            <rect x="42" y="26" width="8" height="8" rx="1"/>
-                            <rect x="12" y="44" width="8" height="8" rx="1"/>
-                            <rect x="24" y="52" width="6" height="6" rx="1"/>
-                            <rect x="44" y="44" width="12" height="12" rx="2"/>
-                            <rect x="66" y="44" width="8" height="8" rx="1"/>
-                            <rect x="78" y="52" width="8" height="8" rx="1"/>
-                            <rect x="66" y="66" width="8" height="8" rx="1"/>
-                            <rect x="80" y="72" width="10" height="8" rx="1"/>
-                            <rect x="44" y="72" width="10" height="8" rx="1"/>
-                            <rect x="56" y="82" width="8" height="8" rx="1"/>
-                            <rect x="70" y="84" width="8" height="8" rx="1"/>
-                        </svg>
-                    </div>
-                    <p class="mt-2.5 font-mono text-xs text-neutral-500 dark:text-neutral-400">
-                        Vector QR code ready for print and screen for <span class="font-bold text-neutral-800 dark:text-neutral-200" x-text="fullUrl"></span>
-                    </p>
-                </div>
-
-                {{-- Performance telemetry markers --}}
-                <div class="mt-4 grid grid-cols-2 gap-2 border-t border-neutral-100 pt-3 text-center sm:grid-cols-4 dark:border-neutral-800/80">
-                    <div>
-                        <p class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">⚡ &lt; 15ms</p>
-                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Edge Redirect Latency</p>
-                    </div>
-                    <div>
-                        <p class="font-mono text-xs font-bold text-purple-600 dark:text-purple-400">🛡️ AI Shield</p>
-                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Real-Time Threat Triage</p>
-                    </div>
-                    <div>
-                        <p class="font-mono text-xs font-bold text-neutral-900 dark:text-neutral-100">🔒 Hashed IP</p>
-                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Cookie-Free Privacy</p>
-                    </div>
-                    <div>
-                        <p class="font-mono text-xs font-bold text-neutral-900 dark:text-neutral-100">📊 Live Per-Day</p>
-                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Referrer Analytics</p>
-                    </div>
-                </div>
+            <div>
+                <p class="font-mono text-xs font-bold text-purple-600 dark:text-purple-400">🛡️ AI Shield</p>
+                <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Real-Time Threat Triage</p>
+            </div>
+            <div>
+                <p class="font-mono text-xs font-bold text-neutral-900 dark:text-neutral-100">🔒 Hashed IP</p>
+                <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Cookie-Free Privacy</p>
+            </div>
+            <div>
+                <p class="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">🌐 Edge-First</p>
+                <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Global DNS &amp; Routing</p>
             </div>
         </div>
 

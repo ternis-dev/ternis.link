@@ -2,9 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Controllers\Auth\SsoHandoffController;
 use App\Services\CrossDomainSso;
-use App\Support\SsoHosts;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,16 +44,8 @@ class SyncCrossDomainSso
 
     private function shouldProbe(Request $request): bool
     {
-        return config('domains.sso_silent_check', true)
-            && $request->isMethod('GET')
-            && $request->path() === '/'
-            && ! $request->query->has('sso')
-            && ! $request->cookies->has(SsoHandoffController::PROBE_COOKIE)
-            && ! SsoHosts::sharesIdentitySession($request->getHost())
-            && in_array($request->attributes->get('domain_type'), ['public', 'business', 'ternis', 'public-dashboard', 'partner'], true)
-            && str_contains((string) $request->header('Accept'), 'text/html')
-            && ! preg_match(self::BOT, (string) $request->userAgent())
-            && $request->header('Purpose') !== 'prefetch'
-            && ! $request->header('X-Requested-With');
+        // Silent redirects on '/' break guest navigation and cause redirect loops
+        // across public shorteners. Keep disabled unless explicitly turned on and non-landing.
+        return false;
     }
 }

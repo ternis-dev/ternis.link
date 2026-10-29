@@ -27,9 +27,9 @@
 <body class="flex min-h-screen flex-col items-center justify-center bg-neutral-100 px-4 py-8 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
     <div class="w-full max-w-md rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-xl sm:p-8 dark:border-neutral-800 dark:bg-neutral-900">
         <div class="flex items-center justify-between gap-3 border-b border-neutral-100 pb-4 dark:border-neutral-800">
-            <div class="flex items-center gap-2">
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-sm">
-                    🛡️
+            <div class="flex items-center gap-2.5">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30">
+                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
                 </span>
                 <span class="font-display text-lg font-bold tracking-tight">protected<span>.ternis.link</span></span>
             </div>
@@ -41,8 +41,9 @@
             <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
                 This short link is protected against automated bots. Please complete the quick check to continue to your destination.
             </p>
-            <div class="mt-3 inline-block rounded-lg bg-neutral-100 px-3 py-1 font-mono text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-                {{ $link->domain->hostname ?? 'link' }}/{{ $link->slug }}
+            <div class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-neutral-100 px-3 py-1 font-mono text-xs font-semibold text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                <svg class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>{{ $link->domain->hostname ?? 'link' }}/{{ $link->slug }}</span>
             </div>
         </div>
 
@@ -94,9 +95,10 @@
 
             <button
                 type="submit"
-                class="w-full rounded-xl bg-neutral-900 py-3 text-sm font-semibold text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 cursor-pointer transition-all"
+                class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-neutral-900 py-3 text-sm font-semibold text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 transition-all active:scale-[0.99]"
             >
-                Continue to Destination &rarr;
+                <span>Continue to Destination</span>
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </button>
         </form>
 

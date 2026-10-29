@@ -15,6 +15,8 @@
 - QR Codes Today: {{ number_format($stats['qr_codes_today']) }}
 - AI Security Threat Scans: {{ number_format($stats['threat_evaluations']) }}
 - Threats Quarantined: {{ number_format($stats['threats_quarantined']) }}
+- Bot Challenges Dispatched: {{ number_format($stats['threats_bot_protected']) }}
+- Security Scans Today: {{ number_format($stats['threat_evaluations_today']) }}
 
 ## Links Created Per Day (last 30 days)
 

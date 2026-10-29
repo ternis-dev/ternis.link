@@ -36,6 +36,36 @@
         <x-ui.stat :value="number_format($stats['threats_quarantined'])" label="Threats Quarantined" />
     </div>
 
+    {{-- Link Protection & Threat Prevention Stats --}}
+    <x-ui.card
+        title="AI Link Protection & Threat Prevention"
+        description="Continuous, real-time threat detection powered by TypeSafe AI. Malicious binaries, phishing portals, and high-velocity spam attacks are isolated before redirecting."
+        class="mb-6"
+    >
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div class="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-900/50">
+                <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">AI Security Scans</p>
+                <p class="mt-1 font-display text-2xl font-bold text-neutral-900 dark:text-white tabular-nums">{{ number_format($stats['threat_evaluations']) }}</p>
+                <p class="mt-1 text-xs text-neutral-400">Total URLs inspected</p>
+            </div>
+            <div class="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-900/50">
+                <p class="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Quarantined Threats</p>
+                <p class="mt-1 font-display text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums">{{ number_format($stats['threats_quarantined']) }}</p>
+                <p class="mt-1 text-xs text-neutral-400">Malware &amp; Phishing neutralized</p>
+            </div>
+            <div class="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-900/50">
+                <p class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Bot Mitigation Challenges</p>
+                <p class="mt-1 font-display text-2xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">{{ number_format($stats['threats_bot_protected']) }}</p>
+                <p class="mt-1 text-xs text-neutral-400">Turnstile challenges dispatched</p>
+            </div>
+            <div class="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-900/50">
+                <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Scans Today</p>
+                <p class="mt-1 font-display text-2xl font-bold text-neutral-900 dark:text-white tabular-nums">{{ number_format($stats['threat_evaluations_today']) }}</p>
+                <p class="mt-1 text-xs text-neutral-400">Evaluated in last 24h</p>
+            </div>
+        </div>
+    </x-ui.card>
+
     <x-ui.card
         title="Links Created Per Day (last 30 days)"
         description="Daily short links created across the network, color-coded by domain (deleted links remain counted via tombstones)."

@@ -93,10 +93,10 @@ return [
     */
 
     /**
-     * Guests on a landing page of a linked host get one silent
-     * "already signed in on ternis.link?" check (bots excluded).
+     * Silent cross-domain SSO check on landing pages. Disabled by default
+     * so guests visiting public shortener homepages never get redirected away from '/'.
      */
-    'sso_silent_check' => env('SSO_SILENT_CHECK', true),
+    'sso_silent_check' => env('SSO_SILENT_CHECK', false),
 
     'dashboard_host' => env('DOMAIN_DASHBOARD', 'dash.ternis.link'),
 

@@ -24,8 +24,8 @@
     <header class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div class="mx-auto flex h-16 max-w-4xl items-center justify-between gap-3 px-4 sm:px-6">
             <div class="flex items-center gap-2.5">
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 font-mono font-bold text-sm">
-                    🔒
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30">
+                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </span>
                 <span class="font-display text-xl font-bold tracking-tight">protected<span>.ternis.link</span></span>
             </div>

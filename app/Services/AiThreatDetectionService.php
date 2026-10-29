@@ -64,10 +64,34 @@ class AiThreatDetectionService
         return $this;
     }
 
+    public function isSuspiciousUrl(string $url): bool
+    {
+        $path = strtolower((string) parse_url($url, PHP_URL_PATH));
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        $dangerousExtensions = ['.exe', '.scr', '.bat', '.vbs', '.msi', '.cmd', '.pif', '.ps1', '.apk', '.dmg', '.iso', '.jar', '.dll'];
+        foreach ($dangerousExtensions as $ext) {
+            if (str_ends_with($path, $ext)) {
+                return true;
+            }
+        }
+
+        if (preg_match('/(not-a-scam|free-crypto|free-nitro|phish|account-verify|security-update|billing-update|download-crack)/i', $host.$path)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function shouldEvaluateLink(Link $link): bool
     {
         if (! $this->isEnabled()) {
             return false;
+        }
+
+        // Suspicious binaries, exploits, or scam domain patterns are always evaluated
+        if ($this->isSuspiciousUrl((string) $link->destination_url)) {
+            return true;
         }
 
         // Guest links (no user assigned)
@@ -176,7 +200,12 @@ class AiThreatDetectionService
 
             $actionTaken = 'cleared';
 
-            if ($threatScore >= $quarantineThreshold && in_array($verdict, ['phishing', 'malware'])) {
+            $isMalwareVerdict = $verdict === 'malware';
+            $isHighThreatPhishing = $verdict === 'phishing' && $threatScore >= 65;
+            $isSuspiciousPayload = $this->isSuspiciousUrl($destinationUrl) && in_array($verdict, ['malware', 'phishing', 'spam'], true);
+            $isOverQuarantineScore = $threatScore >= $quarantineThreshold && in_array($verdict, ['phishing', 'malware'], true);
+
+            if ($isMalwareVerdict || $isHighThreatPhishing || $isSuspiciousPayload || $isOverQuarantineScore) {
                 $actionTaken = 'quarantined';
                 $tags = is_array($link->tags) ? $link->tags : [];
                 if (! in_array('quarantine', $tags, true)) {
@@ -212,9 +241,12 @@ class AiThreatDetectionService
                 'action_taken' => $actionTaken,
                 'reasoning' => sprintf('Verdict %s with score %d/100 (action: %s)', $verdict, $threatScore, $actionTaken),
                 'metadata' => [
+                    'model' => $model,
                     'probabilities' => $verdictAnswer->probabilities ?? [],
                     'score_probabilities' => $scoreAnswer->probabilities ?? [],
                     'raw_score' => $rawScore,
+                    'prompt_state' => $state,
+                    'evaluated_at' => now()->toIso8601String(),
                 ],
             ]);
         } catch (\Throwable $e) {
