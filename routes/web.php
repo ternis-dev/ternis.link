@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Api\V1\PublicQrCodeController;
 use App\Http\Controllers\Auth\AuthApiController;
+use App\Http\Controllers\Auth\SsoHandoffController;
 use App\Http\Controllers\Auth\TernisAuthController;
 use App\Http\Controllers\BioPageController;
 use App\Http\Controllers\ContentController;
@@ -28,11 +29,10 @@ use App\Models\ApiVersion;
 use App\Models\Domain;
 use App\Support\ContentCollection;
 use App\Support\DomainUrls;
-use App\Support\SsoHosts;
-use App\Http\Controllers\Auth\SsoHandoffController;
 use App\Support\NetworkStats;
 use App\Support\PublicDashboard;
 use App\Support\PublicHost;
+use App\Support\SsoHosts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -232,7 +232,6 @@ $publicDashboardRoutes = function (string $prefix): void {
     Route::post('/groups/{group}/subgroups', [PublicGroupController::class, 'storeSubgroup'])->name($prefix.'groups.subgroups.store');
     Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name($prefix.'settings.export-download');
 };
-
 
 Route::domain(PublicDashboard::canonicalHost())
     ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
@@ -714,7 +713,7 @@ Route::get('/', function () {
         return redirect("/v{$latest}/", 302);
     }
     if ($type === 'business') {
-        return view('landing.business', ['stats' => NetworkStats::overview()]);
+        return view('landing.business');
     }
     if ($type === 'public') {
         // qr.href.nz is the dedicated interactive QR code studio & generator
@@ -870,7 +869,7 @@ if (app()->environment('local', 'testing')) {
     // host check so the theme can be screenshotted without DNS).
     // Never available in production.
     Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
-    Route::get('/_preview/re', fn () => view('landing.business', ['stats' => NetworkStats::overview()]))->name('preview.re');
+    Route::get('/_preview/re', fn () => view('landing.business'))->name('preview.re');
     Route::get('/_preview/int', fn () => view('landing.internal'))->name('preview.int');
     Route::get('/_preview/yt', fn () => view('landing.yt', ['stats' => NetworkStats::overview()]))->name('preview.yt');
     Route::get('/_preview/yt-new', fn () => view('landing.new-yt'))->name('preview.yt-new');

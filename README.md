@@ -14,7 +14,7 @@ A Laravel PHP-powered link-shortening and insights service by **ternis-edv.de** 
   - `my.ternis.link`: Public-links dashboard — your `href.nz`, `meinlink.at` and `href.yt` links, plus API keys, domains, settings, link groups and notifications.
   - `my.href.nz`: The public dashboard under its own brand AND its own design system — a violet-to-blue "elevated" theme with a persistent sidebar, its own component set (`x-hnz.*`) and its own stylesheet. Same app, same session, same data; only the frontend differs.
   - `meinlink.at` / `*.meinlink.at`: German-language public shortener with its own Amt-style theme (`landing-meinlink.css`, Inter grotesk + BEWILLIGT stamp). Same type/rules as `href.nz`; German form via `ShortenForm(locale=de, theme=board)`.
-  - `href.re` / `*.href.re`: Reserved for official business links with its own landing page (`landing.business`, `public/css/landing-business.css`, no guest form).
+  - `href.re` / `*.href.re`: Reserved for official business links with its own simplified landing page (`landing.business`, no guest form).
   - `ternis.link` / `*.ternis.link`: Reserved for family members, relatives, and partners (generic `landing.index` fallback).
   - `links.thosted.de`, `short.thosted.de`, `go.thosted.de`: Internal infrastructure redirects.
   - `go.ternis.net`, `go.ternis.dev`, `go.ternis.org`, `go.ternis.eu`: Go-style vanity redirects.

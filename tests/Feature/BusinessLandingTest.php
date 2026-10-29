@@ -42,30 +42,16 @@ class BusinessLandingTest extends TestCase
         // Does NOT have guest creation form
         $response->assertDontSee('Shorten a link', escape: false);
 
-        // Key sections in minimalist grayscale theme
-        $response->assertSee('Core principles', escape: false);
+        // Key principles in minimalist grayscale theme
         $response->assertSee('Business only', escape: false);
         $response->assertSee('Trusted by default', escape: false);
         $response->assertSee('Measured', escape: false);
-        $response->assertSee('Custom slugs', escape: false);
-        $response->assertSee('API access', escape: false);
-        $response->assertSee('Lifecycle governance', escape: false);
 
-        // How it works
-        $response->assertSee('How it works', escape: false);
-        $response->assertSee('Authenticated provisioning', escape: false);
-        $response->assertSee('Audited redirect setup', escape: false);
-
-        // Telemetry
-        $response->assertSee('Live from the network', escape: false);
-        $response->assertSee('short links created', escape: false);
-        $response->assertSee('redirects counted', escape: false);
-
-        // FAQ & Structured data
-        $response->assertSee('Frequently asked questions', escape: false);
-        $response->assertSee('Why does Ternis maintain href.re separately', escape: false);
-        $response->assertSee('application/ld+json', escape: false);
-        $response->assertSee('FAQPage', escape: false);
+        // Fully simplified: does not contain heavy legacy bloat (FAQ, how-it-works, telemetry counters)
+        $response->assertDontSee('Frequently asked questions', escape: false);
+        $response->assertDontSee('How it works', escape: false);
+        $response->assertDontSee('Live from the network', escape: false);
+        $response->assertDontSee('FAQPage', escape: false);
     }
 
     public function test_href_re_local_preview_route_is_accessible(): void
@@ -114,13 +100,13 @@ class BusinessLandingTest extends TestCase
         $response->assertSee('Return to href.re', escape: false);
     }
 
-    public function test_business_header_and_stats_wrap_on_mobile(): void
+    public function test_business_header_and_cards_wrap_on_mobile(): void
     {
         $response = $this->get('http://href.re/');
 
         $response->assertStatus(200);
-        // Wrapping header row + stacked stats (no 98px clipped columns).
+        // Wrapping header row + responsive cards grid
         $response->assertSee('max-sm:flex-wrap', escape: false);
-        $response->assertSee('grid-cols-1 gap-4 text-center sm:grid-cols-3', escape: false);
+        $response->assertSee('grid-cols-1 gap-4 sm:grid-cols-3', escape: false);
     }
 }
