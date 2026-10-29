@@ -65,6 +65,7 @@
                     'Individuelle Link-Länge (5 bis 9 Zeichen)',
                     'Wählbare Domain (meinlink.at, href.nz oder href.yt)',
                     'Frei einstellbares Ablaufdatum',
+                    'KI-gestützte Spam- und Phishing-Prüfung (TypeSafe AI)',
                     'DSGVO-konform ohne Tracking-Cookies',
                 ],
             ],
@@ -86,6 +87,14 @@
                         'acceptedAnswer' => [
                             '@type' => 'Answer',
                             'text' => 'Ja, als Gast kannst du bis zu 50 Links pro Tag völlig kostenlos und ohne Angabe von E-Mail-Adresse oder Passwort kürzen.',
+                        ],
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => 'Wie schützt meinlink.at vor Phishing und Spam-Attacken?',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => 'TypeSafe AI prüft neu erstellte Kurzlinks asynchron im Hintergrund auf betrügerische Phishing-Muster und Malware. Bösartige Links werden automatisch unter Quarantäne gestellt, ohne die Weiterleitungsgeschwindigkeit legitimer Links zu beeinträchtigen.',
                         ],
                     ],
                     [
@@ -234,7 +243,7 @@
                         <rect y="5" width="20" height="5" fill="#DC2626"/>
                         <rect y="10" width="20" height="5" fill="#F59E0B"/>
                     </svg>
-                    <span>Moderne &amp; sichere Kurzlinks aus Deutschland</span>
+                    <span>Moderne &amp; sichere Kurzlinks mit KI-Spamschutz</span>
                     <svg class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" viewBox="0 0 16 16" fill="currentColor">
                         <path fill-rule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm3.354-9.354a.5.5 0 0 0-.708 0L7 9.293 5.354 7.646a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l4-4a.5.5 0 0 0 0-.708z"/>
                     </svg>
@@ -268,7 +277,7 @@
                     </p>
                 </div>
 
-                <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {{-- Card 1 --}}
                     <div class="group animate-fade-in-up [animation-delay:100ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <div class="flex items-center gap-3">
@@ -301,7 +310,23 @@
                         </p>
                     </div>
 
-                    {{-- Card 3 --}}
+                    {{-- Card 3 (AI Threat & Spam Protection) --}}
+                    <div class="group animate-fade-in-up [animation-delay:250ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                        <div class="flex items-center gap-3">
+                            <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/10 to-purple-500/20 text-violet-600 ring-1 ring-violet-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-violet-950/60 dark:to-purple-900/40 dark:text-violet-400 dark:ring-violet-500/30">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                    <path d="m9 12 2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">KI-Spam- &amp; Phishingschutz</h3>
+                        </div>
+                        <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            Powered by TypeSafe AI. Destinationen werden automatisch auf Phishing und Schadcode analysiert.
+                        </p>
+                    </div>
+
+                    {{-- Card 4 --}}
                     <div class="group animate-fade-in-up [animation-delay:300ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <div class="flex items-center gap-3">
                             <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500/10 to-blue-500/20 text-sky-600 ring-1 ring-sky-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-sky-950/60 dark:to-blue-900/40 dark:text-sky-400 dark:ring-sky-500/30">
@@ -325,7 +350,7 @@
                         </p>
                     </div>
 
-                    {{-- Card 4 --}}
+                    {{-- Card 5 --}}
                     <div class="group animate-fade-in-up [animation-delay:400ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
                         <div class="flex items-center gap-3">
                             <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/10 to-indigo-500/20 text-purple-600 ring-1 ring-purple-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-purple-950/60 dark:to-indigo-900/40 dark:text-purple-400 dark:ring-purple-500/30">
@@ -340,6 +365,21 @@
                         </div>
                         <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
                             Angemeldete Mitglieder können eigene Wunschkürzel wählen und Klick-Statistiken einsehen.
+                        </p>
+                    </div>
+
+                    {{-- Card 6 --}}
+                    <div class="group animate-fade-in-up [animation-delay:450ms] rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                        <div class="flex items-center gap-3">
+                            <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/20 text-amber-600 ring-1 ring-amber-500/20 shadow-xs transition duration-200 group-hover:scale-105 group-hover:shadow-md dark:from-amber-950/60 dark:to-orange-900/40 dark:text-amber-400 dark:ring-amber-500/30">
+                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+                                </svg>
+                            </div>
+                            <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">Blitzschnelle Edge-Router</h3>
+                        </div>
+                        <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                            Weiterleitungen in unter 15ms. Deine Besucher landen ohne Verzögerung am Ziel.
                         </p>
                     </div>
                 </div>
@@ -446,6 +486,24 @@
                         <div x-show="active === 5" x-transition x-cloak>
                             <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                                 Registrierte Mitglieder können eigene Wunschkürzel vergeben, detaillierte Klick-Statistiken in Echtzeit abrufen und höhere Tageslimits nutzen. Die Anmeldung erfolgt schnell und sicher über Ternis Auth SSO.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                        <button @click="active = active === 6 ? null : 6" type="button" class="group flex w-full items-center justify-between text-left">
+                            <h3 class="font-semibold text-zinc-900 transition group-hover:text-red-600 dark:text-zinc-100 dark:group-hover:text-red-400">
+                                Wie schützt meinlink.at vor Phishing und Spam-Attacken?
+                            </h3>
+                            <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 transition-all duration-200 group-hover:bg-red-50 group-hover:text-red-600 dark:bg-zinc-800 dark:text-zinc-400 dark:group-hover:bg-red-950/60 dark:group-hover:text-red-400">
+                                <svg :class="active === 6 ? 'rotate-180 text-red-600 dark:text-red-400' : ''" class="h-4 w-4 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
+                        </button>
+                        <div x-show="active === 6" x-transition x-cloak>
+                            <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                                TypeSafe AI prüft neu erstellte Kurzlinks asynchron im Hintergrund auf betrügerische Phishing-Muster und Malware. Bösartige Links werden automatisch unter Quarantäne gestellt und verdächtige Bots mit Cloudflare Turnstile blockiert — ohne die Weiterleitungsgeschwindigkeit legitimer Links zu beeinträchtigen.
                             </p>
                         </div>
                     </div>

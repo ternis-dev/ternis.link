@@ -40,6 +40,8 @@ class MeinlinkTest extends TestCase
             ->assertSee('Lange URLs einfach', escape: false)
             ->assertSee('kurz gemacht', escape: false)
             ->assertSee('Kürzen', escape: false)
+            ->assertSee('KI-Spamschutz', escape: false)
+            ->assertSee('KI-Spam- &amp; Phishingschutz', escape: false)
             ->assertDontSee('Österreich', escape: false)
             ->assertDontSee('Amt für kurze Links', escape: false)
             ->assertDontSee('ml-board', escape: false)
