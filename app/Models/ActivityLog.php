@@ -65,6 +65,12 @@ class ActivityLog extends Model
 
     public const ADMIN_USER_PLAN_CHANGED = 'admin.user.plan_changed';
 
+    public const ADMIN_ALLOWED_CLIENT_CREATED = 'admin.allowed_client.created';
+
+    public const ADMIN_ALLOWED_CLIENT_UPDATED = 'admin.allowed_client.updated';
+
+    public const ADMIN_ALLOWED_CLIENT_DELETED = 'admin.allowed_client.deleted';
+
     public const SYSTEM_EXPIRED_LINKS_DEACTIVATED = 'system.expired_links_deactivated';
 
     public const SYSTEM_JUNK_LINKS_PURGED = 'system.junk_links_purged';
@@ -125,14 +131,59 @@ class ActivityLog extends Model
         return $query->where('action', $action);
     }
 
-    /**
-     * Everything visible to a user: actions they performed plus
-     * actions others (admins) performed on their stuff.
-     */
-    public function scopeVisibleTo($query, string $userId)
+    public function isViaApi(): bool
     {
-        return $query->where(
-            fn ($q) => $q->where('actor_id', $userId)->orWhere('subject_owner_id', $userId)
-        );
+        return ($this->metadata['via'] ?? null) === 'api'
+            || ! empty($this->metadata['api_key_id'])
+            || in_array($this->metadata['auth_via'] ?? null, ['api-key', 'session-token'], true);
+    }
+
+    public function tokenLabel(): ?string
+    {
+        if (! empty($this->metadata['api_key_name'])) {
+            $prefix = ! empty($this->metadata['api_key_prefix']) ? " ({$this->metadata['api_key_prefix']}…)" : '';
+
+            return $this->metadata['api_key_name'].$prefix;
+        }
+
+        if (! empty($this->metadata['api_key_prefix'])) {
+            return "API Key ({$this->metadata['api_key_prefix']}…)";
+        }
+
+        if (($this->metadata['auth_via'] ?? null) === 'api-key') {
+            return 'API Key';
+        }
+
+        if (! empty($this->metadata['session_token_prefix'])) {
+            return "Session Token ({$this->metadata['session_token_prefix']}…)";
+        }
+
+        if (($this->metadata['auth_via'] ?? null) === 'session-token') {
+            return 'Session Token';
+        }
+
+        if (($this->metadata['via'] ?? null) === 'api') {
+            return 'API Token';
+        }
+
+        return null;
+    }
+
+    /**
+     * Everything visible to a user: actions they performed, actions
+     * performed by their API tokens, plus actions others (admins)
+     * performed on their stuff.
+     */
+    public function scopeVisibleTo($query, string|User $user)
+    {
+        $userId = $user instanceof User ? $user->id : $user;
+
+        return $query->where(function ($q) use ($userId) {
+            $q->where('actor_id', $userId)
+                ->orWhere('subject_owner_id', $userId)
+                ->orWhereIn('metadata->api_key_id', function ($sub) use ($userId) {
+                    $sub->select('id')->from('api_keys')->where('user_id', $userId);
+                });
+        });
     }
 }

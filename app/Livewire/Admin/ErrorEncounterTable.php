@@ -3,7 +3,11 @@
 namespace App\Livewire\Admin;
 
 use App\Livewire\Concerns\WithTableColumns;
+use App\Models\ActivityLog;
+use App\Models\AllowedClient;
 use App\Models\ErrorEncounter;
+use App\Support\Activity;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -16,8 +20,7 @@ class ErrorEncounterTable extends Component
 
     public string $codeFilter = 'all';
 
-    public function updatingSearch(): void
-    {
+    public function updatingSearch(): void\n    {
         $this->resetPage();
     }
 
@@ -31,6 +34,45 @@ class ErrorEncounterTable extends Component
         $this->ensureAdmin();
 
         ErrorEncounter::findOrFail($encounterId)->delete();
+    }
+
+    public function allowClient(string $encounterId): void
+    {
+        $this->ensureAdmin();
+
+        $encounter = ErrorEncounter::findOrFail($encounterId);
+        if (empty($encounter->user_agent)) {
+            $this->dispatch('notify', message: 'No User-Agent associated with this error encounter.', type: 'error');
+
+            return;
+        }
+
+        $ua = trim($encounter->user_agent);
+
+        $existing = AllowedClient::where('user_agent', $ua)
+            ->whereNull('ip_address')
+            ->first();
+
+        if ($existing) {
+            $this->dispatch('notify', message: "Rule for User-Agent '{$ua}' already exists.", type: 'info');
+
+            return;
+        }
+
+        $client = AllowedClient::create([
+            'name' => 'From error: '.Str::limit($ua, 40),
+            'user_agent' => $ua,
+            'created_by' => auth()->id(),
+            'is_active' => true,
+            'notes' => "Added from error encounter #{$encounter->id} ({$encounter->method} {$encounter->path})",
+        ]);
+
+        Activity::record(ActivityLog::ADMIN_ALLOWED_CLIENT_CREATED, auth()->user(), $client, [
+            'user_agent' => $ua,
+            'source' => 'error_encounter',
+        ]);
+
+        $this->dispatch('notify', message: "Created allowed rule for User-Agent '{$ua}'.", type: 'success');
     }
 
     public function render()

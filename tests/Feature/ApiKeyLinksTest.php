@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Dashboard\ActivityTable;
 use App\Livewire\Dashboard\ApiKeyManager;
 use App\Livewire\Dashboard\LinkTable;
 use App\Models\ActivityLog;
@@ -72,6 +73,19 @@ class ApiKeyLinksTest extends TestCase
         $this->assertEquals('api', $entry->metadata['via']);
         $this->assertEquals('Test Key', $entry->metadata['api_key_name']);
         $this->assertEquals($this->apiKey->key_prefix, $entry->metadata['api_key_prefix']);
+        $this->assertSame($this->user->id, $entry->actor_id);
+        $this->assertStringNotContainsString($this->rawApiKey, json_encode($entry->toArray()));
+
+        // The audit label survives revocation and renaming of the key.
+        $this->apiKey->update(['name' => 'Renamed Key', 'revoked_at' => now()]);
+        Livewire::actingAs($this->user)
+            ->test(ActivityTable::class)
+            ->set('sourceFilter', 'api')
+            ->set('keyFilter', $this->apiKey->id)
+            ->assertSee('keyattr1')
+            ->assertSee('Test Key')
+            ->set('sourceFilter', 'web')
+            ->assertDontSee('keyattr1');
     }
 
     public function test_every_api_request_is_logged(): void

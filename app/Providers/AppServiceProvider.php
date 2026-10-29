@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\AllowedClient;
 use App\Support\CommitVersion;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -27,7 +28,20 @@ class AppServiceProvider extends ServiceProvider
     {
         // HTTP-layer guard for API v1 (per-plan quotas live in LinkService).
         RateLimiter::for('api', function (Request $request) {
+            if (AllowedClient::isAllowed($request)) {
+                return Limit::none();
+            }
+
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // Anonymous public link creation throttle (bypassable for allowed clients / pairs).
+        RateLimiter::for('public-links', function (Request $request) {
+            if (AllowedClient::isAllowed($request)) {
+                return Limit::none();
+            }
+
+            return Limit::perMinute(10)->by($request->ip());
         });
 
         // Stamp built stylesheets with the short commit id

@@ -8,6 +8,7 @@
             class="max-w-xs"
         />
         <div class="flex items-center gap-2">
+            <x-ui.button :href="route('admin.allowed-clients')" variant="ghost" size="sm">Allowed Pairs &rarr;</x-ui.button>
             @include('livewire.partials.column-customizer')
             <x-ui.select name="code-filter" wire:model.live="codeFilter" class="w-auto">
                 <option value="all">All codes</option>
@@ -63,8 +64,13 @@
                             <td class="font-mono text-xs break-all text-neutral-700 dark:text-neutral-300 select-all max-w-sm">{{ $entry->user_agent ?: '—' }}</td>
                         @endif
                     @endforeach
-                    <td>
-                        <x-ui.button wire:click="delete('{{ $entry->id }}')" wire:confirm="Delete this error record?" size="sm" variant="danger">Delete</x-ui.button>
+                    <td class="whitespace-nowrap">
+                        <div class="flex items-center gap-1.5">
+                            @if ($entry->user_agent)
+                                <x-ui.button wire:click="allowClient('{{ $entry->id }}')" wire:confirm="Allow this user-agent to bypass rate limits?" size="sm" variant="secondary" title="Allow this user agent">Allow UA</x-ui.button>
+                            @endif
+                            <x-ui.button wire:click="delete('{{ $entry->id }}')" wire:confirm="Delete this error record?" size="sm" variant="danger">Delete</x-ui.button>
+                        </div>
                     </td>
                 </tr>
             @empty

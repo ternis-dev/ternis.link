@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\DailyLinkLimitException;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
+use App\Models\AllowedClient;
 use App\Models\ApiKey;
 use App\Models\BioPage;
 use App\Models\Domain;
@@ -353,7 +354,9 @@ class LinkService
             $this->ensureWithinDailyQuota($user);
             $this->ensureWithinRateLimit($user);
         } elseif ($creatorIpHash !== null) {
-            $this->ensureAnonymousWithinDailyQuota($creatorIpHash);
+            if (! AllowedClient::isAllowedPair($creatorIp, request()?->userAgent())) {
+                $this->ensureAnonymousWithinDailyQuota($creatorIpHash);
+            }
         }
 
         if ($customSlug !== null) {

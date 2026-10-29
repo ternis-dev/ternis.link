@@ -61,6 +61,7 @@ class AuthenticateApi
             if ($sessionToken && $sessionToken->verifyToken($token) && $sessionToken->isValid()) {
                 $sessionToken->touchLastUsed();
 
+                $request->attributes->set('session_token', $sessionToken);
                 $request->attributes->set('auth_via', 'session-token');
                 $request->setUserResolver(fn () => $sessionToken->user);
                 auth()->setUser($sessionToken->user);

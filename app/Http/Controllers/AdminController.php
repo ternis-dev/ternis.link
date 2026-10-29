@@ -124,4 +124,12 @@ class AdminController extends Controller
 
         return view('admin.errors', compact('heatmap'));
     }
+
+    /**
+     * Allowed pairs and rate limit allowlist (Livewire: Admin\AllowedClientModeration).
+     */
+    public function allowedClients()
+    {
+        return view('admin.allowed-clients');
+    }
 }

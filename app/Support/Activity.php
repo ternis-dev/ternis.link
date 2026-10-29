@@ -38,7 +38,32 @@ final class Activity
                 $owner = $ownerId ? User::find($ownerId) : null;
             }
 
-            $request = app()->runningInConsole() ? null : request();
+            // HTTP requests also run in console mode during feature tests.
+            $request = app()->bound('request') ? request() : null;
+
+            if ($request) {
+                if ($request->attributes->has('api_key') && ! isset($metadata['api_key_id'])) {
+                    $apiKey = $request->attributes->get('api_key');
+                    if ($apiKey instanceof ApiKey) {
+                        $metadata['via'] ??= 'api';
+                        $metadata['auth_via'] ??= 'api-key';
+                        $metadata['api_key_id'] = $apiKey->getKey();
+                        $metadata['api_key_name'] = $apiKey->name;
+                        $metadata['api_key_prefix'] = $apiKey->key_prefix;
+                    }
+                } elseif ($request->attributes->has('session_token') && ! isset($metadata['session_token_id'])) {
+                    $sessionToken = $request->attributes->get('session_token');
+                    if ($sessionToken instanceof ApiSessionToken) {
+                        $metadata['via'] ??= 'api';
+                        $metadata['auth_via'] ??= 'session-token';
+                        $metadata['session_token_id'] = $sessionToken->getKey();
+                        $metadata['session_token_prefix'] = $sessionToken->token_prefix;
+                    }
+                } elseif ($request->attributes->get('auth_via') === 'session-token' && ! isset($metadata['auth_via'])) {
+                    $metadata['via'] ??= 'api';
+                    $metadata['auth_via'] = 'session-token';
+                }
+            }
 
             ActivityLog::create([
                 'actor_id' => $actor?->id,
