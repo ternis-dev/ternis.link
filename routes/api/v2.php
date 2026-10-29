@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\ClickController;
 use App\Http\Controllers\Api\V2\DiscoveryController;
 use App\Http\Controllers\Api\V2\LinkController;
+use App\Http\Controllers\Api\V2\SecurityScanController;
 use App\Http\Controllers\Api\V2\StatsController;
 use App\Http\Middleware\ApiV2Response;
 use App\Http\Middleware\AuthenticateApi;
@@ -13,6 +14,9 @@ use Illuminate\Support\Facades\Route;
 // Existing clients and the broader dashboard API remain supported on v1.
 Route::middleware(['ensure.domain:api', ApiV2Response::class, 'ensure.api-version:2', LogApiRequest::class])->name('api.v2.')->group(function () {
     Route::get('/', [DiscoveryController::class, 'show'])->middleware('throttle:api');
+
+    // Public link security & threat inspection (TypeSafe AI evaluation).
+    Route::match(['get', 'post'], 'scan', [SecurityScanController::class, 'scan'])->middleware('throttle:api');
 
     // Public aggregate network stats (no personal data).
     Route::middleware('throttle:api')->prefix('stats')->group(function () {

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Link;
 use App\Models\ThreatEvaluation;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use TypeSafeAI\SystemOneClient;
@@ -310,6 +311,169 @@ class AiThreatDetectionService
                 'verdict' => 'error',
                 'score' => 0,
                 'confidence' => 0.0,
+            ];
+        }
+    }
+
+    public function scanUrl(string $url, array $options = []): array
+    {
+        $url = trim($url);
+
+        if ($url === '' || filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return [
+                'url' => $url,
+                'host' => null,
+                'is_valid' => false,
+                'is_safe' => false,
+                'category' => 'invalid',
+                'threat_score' => 100,
+                'confidence' => 1.0,
+                'action_recommended' => 'reject',
+                'reasoning' => 'The provided destination is not a valid URL.',
+                'cached' => false,
+                'scanned_at' => now()->toIso8601String(),
+            ];
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        if (! in_array($scheme, ['http', 'https'], true)) {
+            return [
+                'url' => $url,
+                'host' => (string) parse_url($url, PHP_URL_HOST),
+                'is_valid' => false,
+                'is_safe' => false,
+                'category' => 'invalid_scheme',
+                'threat_score' => 100,
+                'confidence' => 1.0,
+                'action_recommended' => 'reject',
+                'reasoning' => 'Only HTTP and HTTPS destination URLs are supported.',
+                'cached' => false,
+                'scanned_at' => now()->toIso8601String(),
+            ];
+        }
+
+        $host = (string) parse_url($url, PHP_URL_HOST);
+
+        // Check cache (1 hour)
+        $cacheKey = 'url:scan:'.hash('sha256', strtolower($url));
+        if (empty($options['fresh']) && Cache::has($cacheKey)) {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached)) {
+                $cached['cached'] = true;
+
+                return $cached;
+            }
+        }
+
+        // Structural safety check
+        try {
+            app(UnsafeUrlValidator::class)->rejectIfUnsafe($url);
+        } catch (\Throwable $e) {
+            $result = [
+                'url' => $url,
+                'host' => $host,
+                'is_valid' => true,
+                'is_safe' => false,
+                'category' => 'intranet_blocked',
+                'threat_score' => 95,
+                'confidence' => 0.99,
+                'action_recommended' => 'quarantine',
+                'reasoning' => 'Destination points to a private intranet, loopback, or non-routable address.',
+                'cached' => false,
+                'scanned_at' => now()->toIso8601String(),
+            ];
+
+            Cache::put($cacheKey, $result, 3600);
+
+            return $result;
+        }
+
+        $client = $this->getClient();
+        if ($client === null) {
+            return [
+                'url' => $url,
+                'host' => $host,
+                'is_valid' => true,
+                'is_safe' => true,
+                'category' => 'unverified',
+                'threat_score' => 0,
+                'confidence' => 0.0,
+                'action_recommended' => 'allow',
+                'reasoning' => 'TypeSafe AI scanner unavailable (operating in fail-open mode).',
+                'cached' => false,
+                'scanned_at' => now()->toIso8601String(),
+            ];
+        }
+
+        $state = "URL: {$url}\nHost: {$host}";
+
+        try {
+            $request = SystemOneRequest::build($state, config('ai_security.model', 'jev-latest'))
+                ->choice('category', 'Classify URL destination threat risk', [
+                    'safe' => 'Benign, legitimate website, public service or utility',
+                    'spam' => 'Low-quality affiliate marketing, link farm, deceptive ads',
+                    'phishing' => 'Credential harvester, brand impersonation, fraudulent login portal',
+                    'malware' => 'Drive-by download, trojan/exploit payload distribution',
+                ])
+                ->score('threat_score', 'Threat probability score from 0 to 100', [
+                    'Benign, legitimate website',
+                    'Mildly suspicious or unknown new domain',
+                    'Borderline or suspected promotional spam',
+                    'High probability of phishing or scam',
+                    'Critical confirmed malware or credential harvester',
+                ]);
+
+            $response = $client->systemOne($request);
+            $choice = $response->choice('category');
+            $score = $response->score('threat_score');
+
+            $category = $choice->choice ?? 'safe';
+            $confidence = $choice->confidence ?? 1.0;
+            $maxLevel = max(1, count($score->legend ?? []) - 1);
+            $threatScore = (int) round(min(100, max(0, (($score->score ?? 0.0) / $maxLevel) * 100)));
+
+            $quarantineThreshold = (int) config('ai_security.quarantine_threshold', 80);
+            $botProtectThreshold = (int) config('ai_security.bot_protect_threshold', 60);
+
+            $isSafe = $threatScore < $botProtectThreshold && $category === 'safe';
+            $action = match (true) {
+                $threatScore >= $quarantineThreshold && in_array($category, ['phishing', 'malware']) => 'quarantine',
+                $threatScore >= $botProtectThreshold => 'bot_protect',
+                default => 'allow',
+            };
+
+            $result = [
+                'url' => $url,
+                'host' => $host,
+                'is_valid' => true,
+                'is_safe' => $isSafe,
+                'category' => $category,
+                'threat_score' => $threatScore,
+                'confidence' => $confidence,
+                'action_recommended' => $action,
+                'reasoning' => sprintf('Category %s with threat score %d/100 (recommended action: %s)', $category, $threatScore, $action),
+                'cached' => false,
+                'scanned_at' => now()->toIso8601String(),
+            ];
+
+            Cache::put($cacheKey, $result, 3600);
+
+            return $result;
+        } catch (\Throwable $e) {
+            Log::warning('TypeSafe AI scanUrl failed: '.$e->getMessage(), ['url' => $url]);
+
+            return [
+                'url' => $url,
+                'host' => $host,
+                'is_valid' => true,
+                'is_safe' => true,
+                'category' => 'unverified',
+                'threat_score' => 0,
+                'confidence' => 0.0,
+                'action_recommended' => 'allow',
+                'reasoning' => 'TypeSafe AI scanner error (failing open).',
+                'cached' => false,
+                'scanned_at' => now()->toIso8601String(),
             ];
         }
     }

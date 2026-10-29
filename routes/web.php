@@ -19,6 +19,7 @@ use App\Http\Controllers\PublicDashboardController;
 use App\Http\Controllers\PublicGroupController;
 use App\Http\Controllers\QrController;
 use App\Http\Controllers\RedirectController;
+use App\Http\Controllers\ScanUiController;
 use App\Http\Controllers\SiteFilesController;
 use App\Http\Controllers\StatsController;
 use App\Http\Middleware\EnforceDomainAccess;
@@ -975,6 +976,11 @@ Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(funct
     Route::get('/preview/{input}', [PreviewController::class, 'show'])
         ->where('input', '.*')
         ->name('redirect.preview');
+
+    // Link Threat & Security Inspector UI (href.nz, meinlink.at, and ternis.link only)
+    Route::match(['get', 'post'], '/scan', [ScanUiController::class, 'show'])
+        ->middleware('throttle:10,1')
+        ->name('scan.ui');
 
     // Pretty QR codes (public hosts only, throttled like /v1/qr):
     // /qr/{url} (PNG default), /qr/{url}/{mime}, /{slug}/qr[.mime]

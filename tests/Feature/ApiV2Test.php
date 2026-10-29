@@ -191,4 +191,41 @@ class ApiV2Test extends TestCase
             $this->assertSame(['date', 'count'], array_keys($rows[0]));
         }
     }
+
+    public function test_v2_discovery_lists_scan_endpoint(): void
+    {
+        $this->getJson('http://links.t-api.de/v2/')
+            ->assertOk()
+            ->assertJsonPath('data.endpoints.scan', '/v2/scan');
+    }
+
+    public function test_v2_scan_requires_url(): void
+    {
+        $this->postJson('http://links.t-api.de/v2/scan', [])
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'validation_failed')
+            ->assertJsonStructure(['error' => ['fields' => ['url']]]);
+
+        $this->getJson('http://links.t-api.de/v2/scan')
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'validation_failed');
+    }
+
+    public function test_v2_scan_inspects_url_safely(): void
+    {
+        $response = $this->postJson('http://links.t-api.de/v2/scan', [
+            'url' => 'https://example.com/safe-page',
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.url', 'https://example.com/safe-page')
+            ->assertJsonPath('data.host', 'example.com')
+            ->assertJsonPath('data.is_valid', true)
+            ->assertJsonStructure(['data' => ['category', 'threat_score', 'confidence', 'action_recommended']]);
+
+        // GET query works identically
+        $getResponse = $this->getJson('http://links.t-api.de/v2/scan?url='.urlencode('https://example.com/safe-page'));
+        $getResponse->assertOk()
+            ->assertJsonPath('data.cached', true);
+    }
 }
