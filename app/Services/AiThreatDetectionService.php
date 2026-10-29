@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Link;
 use App\Models\ThreatEvaluation;
 use App\Models\User;
+use App\Support\DomainUrls;
+use App\Support\Notifier;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -219,11 +221,53 @@ class AiThreatDetectionService
                     'tags' => $tags,
                 ]);
                 Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+
+                if ($link->user_id !== null) {
+                    $owner = $link->relationLoaded('user') ? $link->user : User::find($link->user_id);
+                    if ($owner) {
+                        $appealUrl = DomainUrls::hasPublicDashboard($link->domain?->hostname ?? '')
+                            ? DomainUrls::publicDashboard('/appeals/create?link='.$link->id)
+                            : DomainUrls::dashboard('/appeals/create?link='.$link->id);
+
+                        Notifier::security(
+                            $owner,
+                            '⚠️ Security Alert: Link Quarantined as '.ucfirst($verdict),
+                            [
+                                "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as {$verdict} (threat score: {$threatScore}/100).",
+                                'To protect visitors, this link has been automatically quarantined and deactivated.',
+                                'If you believe this is a false positive, you can submit a spam appeal for review.',
+                            ],
+                            $appealUrl,
+                            'Submit Spam Appeal'
+                        );
+                    }
+                }
             } elseif ($threatScore >= $botProtectThreshold && in_array($verdict, ['spam', 'phishing', 'malware'])) {
                 $actionTaken = 'bot_protected';
                 if (! $link->bot_protection) {
                     $link->update(['bot_protection' => true]);
                     Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+                }
+
+                if ($link->user_id !== null) {
+                    $owner = $link->relationLoaded('user') ? $link->user : User::find($link->user_id);
+                    if ($owner) {
+                        $appealUrl = DomainUrls::hasPublicDashboard($link->domain?->hostname ?? '')
+                            ? DomainUrls::publicDashboard('/appeals/create?link='.$link->id)
+                            : DomainUrls::dashboard('/appeals/create?link='.$link->id);
+
+                        Notifier::security(
+                            $owner,
+                            '⚠️ Security Warning: AI Spam Triage Triggered',
+                            [
+                                "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as suspected {$verdict} (threat score: {$threatScore}/100).",
+                                'Automated bot protection was enabled to challenge suspicious visitors.',
+                                'You can adjust link protection settings or submit a spam appeal if this is a false positive.',
+                            ],
+                            $appealUrl,
+                            'Submit Spam Appeal'
+                        );
+                    }
                 }
             }
 

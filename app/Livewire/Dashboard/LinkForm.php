@@ -96,6 +96,8 @@ class LinkForm extends Component
 
     public bool $bot_protection = false;
 
+    public bool $allow_bots = false;
+
     public bool $user_tracking_enabled = false;
 
     public ?string $expires_at = null;
@@ -143,6 +145,7 @@ class LinkForm extends Component
             'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'string', 'max:255'],
             'bot_protection' => ['boolean'],
+            'allow_bots' => ['boolean'],
             'user_tracking_enabled' => ['boolean'],
         ];
 
@@ -285,6 +288,7 @@ class LinkForm extends Component
                 ],
                 userTrackingEnabled: $this->user_tracking_enabled,
                 botProtection: $this->bot_protection,
+                allowBots: $this->allow_bots,
             );
         } catch (ValidationException $e) {
             // Service-level rejections (scanner junk, slug races) land
@@ -330,6 +334,8 @@ class LinkForm extends Component
         $this->utm_campaign = null;
         $this->tags = null;
         $this->user_tracking_enabled = false;
+        $this->bot_protection = false;
+        $this->allow_bots = false;
         $this->expires_at = null;
     }
 

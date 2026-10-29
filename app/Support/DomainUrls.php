@@ -44,6 +44,11 @@ class DomainUrls
         ])));
     }
 
+    public static function hasPublicDashboard(string $host): bool
+    {
+        return in_array(strtolower(trim($host)), static::publicDashboardHostnames(), true);
+    }
+
     /**
      * Absolute URL on the admin host (moderation links in admin
      * notifications).

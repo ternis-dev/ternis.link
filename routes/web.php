@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminAppealController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Api\V1\PublicQrCodeController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\QrController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\ScanUiController;
 use App\Http\Controllers\SiteFilesController;
+use App\Http\Controllers\SpamAppealController;
 use App\Http\Controllers\StatsController;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\EnsureCorsOrigin;
@@ -209,6 +211,8 @@ $publicDashboardRoutes = function (string $prefix): void {
     Route::get('/links/{link}/export', [PublicDashboardController::class, 'exportClicks'])->name($prefix.'links.export');
     Route::get('/links/{link}/qr', [PublicDashboardController::class, 'qrCode'])->name($prefix.'links.qr');
     Route::post('/links/{link}/duplicate', [PublicDashboardController::class, 'duplicate'])->name($prefix.'links.duplicate');
+    Route::get('/appeals/create', [SpamAppealController::class, 'create'])->name($prefix.'appeals.create');
+    Route::post('/appeals', [SpamAppealController::class, 'store'])->name($prefix.'appeals.store');
 
     // Account sections — also reachable from my.ternis.link.
     Route::get('/api-keys', [PublicDashboardController::class, 'apiKeys'])->name($prefix.'api-keys');
@@ -395,6 +399,8 @@ Route::middleware(['ensure.domain:dashboard', 'auth', RefreshSsoToken::class, En
     Route::get('/links/{link}/export', [DashboardController::class, 'exportClicks'])->name('dashboard.links.export');
     Route::get('/links/{link}/qr', [DashboardController::class, 'qrCode'])->name('dashboard.links.qr');
     Route::post('/links/{link}/duplicate', [DashboardController::class, 'duplicate'])->name('dashboard.links.duplicate');
+    Route::get('/appeals/create', [SpamAppealController::class, 'create'])->name('dashboard.appeals.create');
+    Route::post('/appeals', [SpamAppealController::class, 'store'])->name('dashboard.appeals.store');
 
     // Link Groups
     Route::get('/groups', [DashboardController::class, 'groups'])->name('dashboard.groups');
@@ -442,6 +448,9 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
         Route::get('/insights', [AdminController::class, 'insights'])->name('insights');
         Route::get('/threats', [AdminController::class, 'threats'])->name('threats');
         Route::post('/threats/test', [AdminController::class, 'testThreatAi'])->name('threats.test');
+        Route::get('/appeals', [AdminAppealController::class, 'index'])->name('appeals');
+        Route::post('/appeals/{appeal}/approve', [AdminAppealController::class, 'approve'])->name('appeals.approve');
+        Route::post('/appeals/{appeal}/reject', [AdminAppealController::class, 'reject'])->name('appeals.reject');
         Route::get('/links', [AdminController::class, 'links'])->name('links');
         Route::get('/bio', [AdminController::class, 'bio'])->name('bio');
         Route::get('/users', [AdminController::class, 'users'])->name('users');

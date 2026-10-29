@@ -6,6 +6,7 @@ $nav = [
     ['route' => 'admin.stats', 'match' => 'admin.stats*', 'label' => 'Stats & Analytics', 'icon' => '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>'],
     ['route' => 'admin.insights', 'match' => 'admin.insights*', 'label' => 'Insights', 'icon' => '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'],
     ['route' => 'admin.threats', 'match' => 'admin.threats*', 'label' => 'AI Threat Scanner', 'icon' => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'],
+    ['route' => 'admin.appeals', 'match' => 'admin.appeals*', 'label' => 'Spam Appeals', 'icon' => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'],
     ['route' => 'admin.links', 'match' => 'admin.links*', 'label' => 'Links', 'icon' => '<path d="M10 13a5 5 0 0 0 7.54.54l2.1-2.1a5 5 0 0 0-7.07-7.07l-1.06 1.06M14 11a5 5 0 0 0-7.54-.54l-2.1 2.1a5 5 0 0 0 7.07 7.07l1.06-1.06"/>'],
     ['route' => 'admin.bio', 'match' => 'admin.bio*', 'label' => 'Bio Pages', 'icon' => '<path d="M4 5h16v14H4zM4 10h16M9 10v9"/>'],
     ['route' => 'admin.users', 'match' => 'admin.users*', 'label' => 'Users', 'icon' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>'],

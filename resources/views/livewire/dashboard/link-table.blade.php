@@ -169,6 +169,11 @@
                                         🛡️ Shielded
                                     </span>
                                 @endif
+                                @if ($link->allow_bots)
+                                    <span class="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" title="Unrestricted: automated bots and crawlers allowed">
+                                        🤖 Bots Allowed
+                                    </span>
+                                @endif
                                 @if ($link->password_hash)
                                     <span class="inline-flex items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300" title="Password protected">
                                         🔒 Locked
@@ -209,7 +214,11 @@
                             <td class="font-bold">{{ number_format($link->click_count) }}</td>
                         @elseif ($column === 'status')
                             <td>
-                                @if ($link->is_active && !$link->isExpired())
+                                @if (in_array('quarantine', $link->tags ?? [], true))
+                                    <span class="inline-flex items-center gap-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-400" title="Quarantined by AI threat detection">
+                                        🚨 Quarantined
+                                    </span>
+                                @elseif ($link->is_active && !$link->isExpired())
                                     <x-ui.status state="active" />
                                 @elseif ($link->isExpired())
                                     <x-ui.status state="expired" />
@@ -228,6 +237,9 @@
                             <x-ui.button href="{{ $linkShowUrl }}" size="sm">{{ $isOwnLink ? 'Analytics' : 'Moderate' }}</x-ui.button>
                             @if ($linkEditUrl)
                                 <x-ui.button href="{{ $linkEditUrl }}" size="sm">Edit</x-ui.button>
+                            @endif
+                            @if (in_array('quarantine', $link->tags ?? [], true))
+                                <x-ui.button href="{{ route($rp.'appeals.create', ['link' => $link->id]) }}" size="sm" variant="danger">Appeal</x-ui.button>
                             @endif
                             @if ($link->is_active)
                                 <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" wire:loading.attr="disabled" wire:target="deactivate" size="sm" variant="danger">Deactivate</x-ui.button>

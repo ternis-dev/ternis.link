@@ -30,6 +30,7 @@ class Link extends Model
         'creator_ip_encrypted',
         'password_hash',
         'bot_protection',
+        'allow_bots',
         'utm_source',
         'utm_medium',
         'utm_campaign',
@@ -47,6 +48,7 @@ class Link extends Model
         'user_tracking_enabled' => 'boolean',
         'creator_ip_encrypted' => 'encrypted',
         'bot_protection' => 'boolean',
+        'allow_bots' => 'boolean',
         'is_active' => 'boolean',
         'is_removed' => 'boolean',
         'expires_at' => 'datetime',
@@ -98,6 +100,16 @@ class Link extends Model
     public function hasBotProtection(): bool
     {
         return (bool) $this->bot_protection;
+    }
+
+    public function allowsBots(): bool
+    {
+        return (bool) $this->allow_bots;
+    }
+
+    public function spamAppeals(): HasMany
+    {
+        return $this->hasMany(SpamAppeal::class);
     }
 
     /**

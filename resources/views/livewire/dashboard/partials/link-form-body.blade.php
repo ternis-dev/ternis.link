@@ -213,6 +213,12 @@
                 label="Enable bot protection"
                 description="Verify visitors with Cloudflare Turnstile before redirecting, shielding destinations from automated crawlers and scrapers."
             />
+            <x-ui.checkbox
+                wire:model="allow_bots"
+                name="allow_bots"
+                label="Allow automated bots & crawlers (unrestricted)"
+                description="Let ANYONE click this link immediately without human verification challenges — including automated bots, scrapers, cURL, webhooks, and crawlers."
+            />
         </div>
     </details>
 

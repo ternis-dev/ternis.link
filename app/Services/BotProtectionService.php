@@ -30,6 +30,11 @@ class BotProtectionService
             return false;
         }
 
+        // Link configured to let ANYONE click it (unrestricted automated access, crawlers, bots)
+        if ($link->allowsBots()) {
+            return false;
+        }
+
         // If visitor has already verified as human recently, bypass challenges.
         if ($this->isHumanVerified($request)) {
             return false;
@@ -103,11 +108,13 @@ class BotProtectionService
             }
         }
 
-        $sessionVerifiedAt = $request->session()->get('tl_human_verified_at');
-        if (is_int($sessionVerifiedAt)) {
-            $maxAge = ((int) config('bot_protection.remember_duration_minutes', 120)) * 60;
-            if ((time() - $sessionVerifiedAt) <= $maxAge) {
-                return true;
+        if ($request->hasSession()) {
+            $sessionVerifiedAt = $request->session()->get('tl_human_verified_at');
+            if (is_int($sessionVerifiedAt)) {
+                $maxAge = ((int) config('bot_protection.remember_duration_minutes', 120)) * 60;
+                if ((time() - $sessionVerifiedAt) <= $maxAge) {
+                    return true;
+                }
             }
         }
 
