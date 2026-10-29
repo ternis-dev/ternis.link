@@ -1,6 +1,6 @@
 # Auth API (cross-origin clients)
 
-The public dashboard ([my.ternis.link](https://my.ternis.link), [my.href.nz](https://my.href.nz)) exposes a small, CORS-protected auth API. It exists for one reason: **a web app on another origin cannot read your session cookie.**
+Every linked host (my.href.nz, href.nz, meinlink.at, clicked.at, href.yt, ternis.link, dash.ternis.link, … — all hosts in `config/domains.php`) exposes a small, CORS-protected auth API. It exists for one reason: **a web app on another origin cannot read your session cookie.**
 
 If you build a companion site, a browser extension, or an embed that should act on behalf of the signed-in user, you cannot simply call the REST API — the browser will not attach the dashboard session cookie to a cross-origin request, and the REST API authenticates with bearer tokens anyway.
 
@@ -9,7 +9,7 @@ This API closes that gap in two steps:
 1. `GET /auth/api/session` — ask whether the visitor is signed in, and who they are.
 2. `POST /auth/api/token` — exchange that session for a **short-lived bearer token** you can use against the regular REST API.
 
-Both endpoints live on the public dashboard host and are reachable from `my.ternis.link` and `my.href.nz` alike.
+Both endpoints are served on every linked host. A login on ternis.link is handed to the other hosts through `/auth/sso/start` → `/auth/sso/issue` → `/auth/sso/consume` (one-time, host-bound token), so each host has its own session; signing out anywhere signs out everywhere. `my.ternis.link` 301-redirects to `my.href.nz`.
 
 ## CORS: the allowlist is the gate
 

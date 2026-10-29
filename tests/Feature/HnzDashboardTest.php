@@ -15,7 +15,7 @@ use Tests\TestCase;
 /**
  * my.href.nz has its own design system: its own component set
  * (x-hnz.*), its own layout (sidebar instead of the top bar) and its
- * own stylesheet. my.ternis.link keeps the flat emerald one.
+ * own stylesheet. It is the only public dashboard; my.ternis.link 301s here.
  */
 class HnzDashboardTest extends TestCase
 {
@@ -31,7 +31,7 @@ class HnzDashboardTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    public function test_alias_host_serves_the_hnz_layout(): void
+    public function test_host_serves_the_hnz_layout(): void
     {
         $html = $this->actingAs($this->user)
             ->get('http://my.href.nz/')
@@ -52,42 +52,17 @@ class HnzDashboardTest extends TestCase
         );
     }
 
-    public function test_canonical_host_keeps_the_emerald_design(): void
-    {
-        $html = $this->actingAs($this->user)
-            ->get('http://my.ternis.link/')
-            ->assertOk()
-            ->getContent();
-
-        $this->assertStringContainsString('nd-root', $html);
-        $this->assertStringNotContainsString('hnz-root', $html);
-
-        $this->assertStringContainsString(
-            'public-dashboard.css',
-            file_get_contents(resource_path('views/components/layouts/public-dashboard.blade.php'))
-        );
-    }
-
-    public function test_both_hosts_render_the_same_sections(): void
+    public function test_all_sections_render(): void
     {
         foreach (['/', '/links', '/groups', '/insights', '/api-keys', '/domains', '/settings', '/notifications'] as $path) {
             $this->actingAs($this->user)->get("http://my.href.nz{$path}")->assertOk();
-            $this->actingAs($this->user)->get("http://my.ternis.link{$path}")->assertOk();
         }
     }
 
-    public function test_the_alias_host_has_no_legacy_dashboard(): void
+    public function test_retired_hosts_redirect_permanently_to_my_href_nz(): void
     {
-        // The my.href.nz host has its own design, so the previous
-        // indigo UI is not offered there.
-        $this->actingAs($this->user)
-            ->get('http://my.href.nz/_legacy')
-            ->assertRedirect('http://my.href.nz');
-
-        // The canonical host still has it.
-        $this->actingAs($this->user)
-            ->get('http://my.ternis.link/_legacy')
-            ->assertOk();
+        $this->get('http://my.ternis.link/links?x=1')->assertStatus(301)->assertRedirect('http://my.href.nz/links?x=1');
+        $this->get('http://my.href.yt/')->assertStatus(301)->assertRedirect('http://my.href.nz/');
     }
 
     public function test_the_alias_host_uses_its_own_components(): void

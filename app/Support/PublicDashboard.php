@@ -3,32 +3,21 @@
 namespace App\Support;
 
 /**
- * Host helpers for the public dashboard (my.ternis.link and its alias
- * host my.href.nz).
+ * Host helpers for the public dashboard (my.href.nz).
  *
- * Both hosts serve the same app, same session and same data. Only the
- * generated URLs and the brand shown in the header differ, so every
+ * my.href.nz is the single public-dashboard host. The former hosts
+ * (my.ternis.link, my.href.yt) 301 to it, see ResolveDomain. Every
  * public-dashboard URL is built through this class instead of a plain
- * route() call — a hard-coded route name would always point at the
- * canonical host.
+ * route() call so the host stays configurable (DOMAIN_PUBLIC_DASHBOARD).
  */
 class PublicDashboard
 {
     /**
-     * Canonical host (my.ternis.link).
+     * The public dashboard host (my.href.nz).
      */
     public static function canonicalHost(): string
     {
-        return (string) config('domains.public_dashboard_host', 'my.ternis.link');
-    }
-
-    /**
-     * Second host serving the same app (my.href.nz). Empty when the
-     * alias is disabled.
-     */
-    public static function aliasHost(): string
-    {
-        return (string) config('domains.public_dashboard_alias_host', 'my.href.nz');
+        return (string) config('domains.public_dashboard_host', 'my.href.nz');
     }
 
     /**
@@ -38,10 +27,7 @@ class PublicDashboard
      */
     public static function hosts(): array
     {
-        return array_values(array_unique(array_filter([
-            self::canonicalHost(),
-            self::aliasHost(),
-        ])));
+        return array_values(array_filter([self::canonicalHost()]));
     }
 
     /**
@@ -60,7 +46,7 @@ class PublicDashboard
     }
 
     /**
-     * Host label shown in the header: "my.ternis.link" or "my.href.nz".
+     * Host label shown in the header ("my.href.nz").
      */
     public static function label(): string
     {
@@ -68,67 +54,46 @@ class PublicDashboard
     }
 
     /**
-     * View namespace of the dashboard for the host being served.
-     *
-     * my.ternis.link uses "public-dashboard" (flat emerald), the
-     * my.href.nz alias host uses "hnz-dashboard" (its own violet-blue
-     * design system with a sidebar).
+     * View namespace of the dashboard UI.
      */
     public static function viewNamespace(): string
     {
-        return self::currentHost() === self::aliasHost() ? 'hnz-dashboard' : 'public-dashboard';
+        return 'hnz-dashboard';
     }
 
     /**
-     * True when the host still offers the previous indigo dashboard.
-     * The my.href.nz host has its own design instead.
-     */
-    public static function hasLegacyUi(): bool
-    {
-        return self::currentHost() !== self::aliasHost();
-    }
-
-    /**
-     * Route name prefix for the current host. The canonical host keeps
-     * the historical "public-dashboard." names; the alias host uses
-     * "public-dashboard-alt.".
+     * Route name prefix of the public dashboard.
      */
     public static function routePrefix(): string
     {
-        return self::currentHost() === self::canonicalHost()
-            ? 'public-dashboard.'
-            : 'public-dashboard-alt.';
+        return 'public-dashboard.';
     }
 
     /**
      * Route name prefix for a dashboard theme.
      *
      * The shared Livewire components (link table, link form, analytics)
-     * render on three surfaces: the dash, the public dashboard and the
-     * legacy public dashboard. Each needs its own route prefix —
-     * pointing the legacy UI at the new one would throw users out of
-     * the UI they opted into.
+     * render on two surfaces: the dash and the public dashboard.
      */
     public static function routePrefixFor(?string $theme = null): string
     {
         return match ($theme) {
-            'legacy' => self::legacyRoutePrefix(),
             'public' => self::routePrefix(),
             default => 'dashboard.',
         };
     }
 
     /**
-     * True when the theme renders the public-links surface (new UI or
-     * the legacy one) rather than the dash.
+     * True when the theme renders the public-links surface rather than
+     * the dash.
      */
     public static function isPublicTheme(?string $theme = null): bool
     {
-        return in_array($theme, ['public', 'legacy'], true);
+        return $theme === 'public';
     }
 
     /**
-     * Build a public-dashboard URL for the current host.
+     * Build a public-dashboard URL.
      *
      * @param  mixed  $parameters  Route parameters (array or single value).
      */
@@ -144,27 +109,10 @@ class PublicDashboard
     }
 
     /**
-     * URL of the public dashboard home on the current host.
+     * URL of the public dashboard home.
      */
     public static function homeUrl(): string
     {
         return route(rtrim(self::routePrefix(), '.'));
-    }
-
-    /**
-     * Route name prefix of the legacy public dashboard on the current
-     * host ("public-dashboard.legacy." / "public-dashboard-alt.legacy.").
-     */
-    public static function legacyRoutePrefix(): string
-    {
-        return self::routePrefix().'legacy.';
-    }
-
-    /**
-     * URL of the legacy public dashboard home on the current host.
-     */
-    public static function legacyHomeUrl(): string
-    {
-        return route(rtrim(self::legacyRoutePrefix(), '.'));
     }
 }

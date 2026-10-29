@@ -18,19 +18,17 @@ class DomainUrls
     }
 
     /**
-     * Absolute URL on the public dashboard host (my.ternis.link), preserving
+     * Absolute URL on the public dashboard host (my.href.nz), preserving
      * the current scheme. Used for public-link dashboard links rendered
      * on short-link hosts.
      */
     public static function publicDashboard(string $path = '/'): string
     {
-        // Follow the host the visitor is actually on (my.ternis.link or
-        // the my.href.nz alias) so links stay on the branded host.
         return static::onHost(PublicDashboard::currentHost(), $path);
     }
 
     /**
-     * Hostnames managed on the public dashboard (my.ternis.link): the
+     * Hostnames managed on the public dashboard (my.href.nz): the
      * no-account shorteners href.nz + meinlink.at + href.yt (+ the QR
      * studio host). clicked.at stays on dash.ternis.link by design.
      *

@@ -34,7 +34,7 @@ class LinkInsightsTest extends TestCase
 
     public function test_insights_page_renders_on_both_hosts(): void
     {
-        foreach (['my.ternis.link', 'my.href.nz'] as $host) {
+        foreach (['my.href.nz', 'my.href.nz'] as $host) {
             $this->actingAs($this->user)
                 ->get("http://{$host}/insights")
                 ->assertOk()
@@ -52,7 +52,7 @@ class LinkInsightsTest extends TestCase
         $this->makeClick($link, '2026-10-22 09:00:00');
 
         $response = $this->actingAs($this->user)
-            ->get('http://my.ternis.link/insights')
+            ->get('http://my.href.nz/insights')
             ->assertOk();
 
         $heatmap = $response->viewData('heatmap');
@@ -74,7 +74,7 @@ class LinkInsightsTest extends TestCase
         $this->makeClick($personal, '2026-10-21 15:00:00');
 
         $response = $this->actingAs($this->user)
-            ->get('http://my.ternis.link/insights')
+            ->get('http://my.href.nz/insights')
             ->assertOk();
 
         $heatmap = $response->viewData('heatmap');
@@ -90,7 +90,7 @@ class LinkInsightsTest extends TestCase
         $this->makeClick($link, '2026-10-21 14:00:00', direct: true);
 
         $response = $this->actingAs($this->user)
-            ->get('http://my.ternis.link/insights')
+            ->get('http://my.href.nz/insights')
             ->assertOk();
 
         $this->assertSame(0, $response->viewData('heatmap')[2][14]);
@@ -102,7 +102,7 @@ class LinkInsightsTest extends TestCase
         $link->update(['expires_at' => now()->addDays(3)]);
 
         $response = $this->actingAs($this->user)
-            ->get('http://my.ternis.link/insights')
+            ->get('http://my.href.nz/insights')
             ->assertOk();
 
         $calendar = $response->viewData('expiryCalendar');
@@ -120,7 +120,7 @@ class LinkInsightsTest extends TestCase
         $this->makeClick($link, '2026-10-21 16:00:00', referrer: 'https://blog.example', country: 'DE');
 
         $response = $this->actingAs($this->user)
-            ->get('http://my.ternis.link/insights')
+            ->get('http://my.href.nz/insights')
             ->assertOk();
 
         $referrers = $response->viewData('topReferrers');
@@ -158,14 +158,14 @@ class LinkInsightsTest extends TestCase
     public function test_insights_window_is_configurable(): void
     {
         $response = $this->actingAs($this->user)
-            ->get('http://my.ternis.link/insights?days=30')
+            ->get('http://my.href.nz/insights?days=30')
             ->assertOk();
 
         $this->assertSame(30, $response->viewData('days'));
 
         // An unknown window falls back to the default.
         $response = $this->actingAs($this->user)
-            ->get('http://my.ternis.link/insights?days=7')
+            ->get('http://my.href.nz/insights?days=7')
             ->assertOk();
 
         $this->assertSame(90, $response->viewData('days'));

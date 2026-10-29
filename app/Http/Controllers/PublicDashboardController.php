@@ -58,12 +58,6 @@ class PublicDashboardController extends Controller
      */
     public function index(Request $request)
     {
-        // The legacy indigo UI only exists on the canonical host; the
-        // my.href.nz alias host has its own design instead.
-        if ($request->user()->public_dashboard_legacy && PublicDashboard::hasLegacyUi()) {
-            return redirect()->route($this->routePrefix().'legacy');
-        }
-
         return view($this->viewNamespace().'.index', $this->overview($request->user()));
     }
 
@@ -118,16 +112,6 @@ class PublicDashboardController extends Controller
             ->get();
 
         return compact('stats', 'byDomain', 'expiringSoon', 'topLinks', 'recentClicks');
-    }
-
-    /**
-     * Opt into the legacy dashboard and land on its home.
-     */
-    public function switchToLegacy(Request $request)
-    {
-        $request->user()->update(['public_dashboard_legacy' => true]);
-
-        return redirect()->route($this->routePrefix().'legacy');
     }
 
     /**

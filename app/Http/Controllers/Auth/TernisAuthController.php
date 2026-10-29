@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Plan;
 use App\Models\User;
+use App\Services\CrossDomainSso;
 use App\Services\TernisAuthService;
 use App\Support\Activity;
 use App\Support\PublicDashboard;
@@ -193,7 +194,7 @@ class TernisAuthController extends Controller
     }
 
     /**
-     * Home URL for the current host: my.ternis.link guests land back on the
+     * Home URL for the current host: my.href.nz guests land back on the
      * public dashboard, admin guests on the admin console, everyone
      * else on dash.ternis.link.
      */
@@ -370,6 +371,8 @@ class TernisAuthController extends Controller
 
         if ($user) {
             Activity::record(ActivityLog::AUTH_LOGOUT, $user, $user);
+            // Signing out anywhere signs the user out on every linked host.
+            app(CrossDomainSso::class)->markLoggedOut($user);
         }
 
         auth()->logout();

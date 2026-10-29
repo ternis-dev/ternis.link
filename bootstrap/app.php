@@ -10,6 +10,7 @@ use App\Http\Middleware\LogApiRequest;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Http\Middleware\StartResilientSession;
+use App\Http\Middleware\SyncCrossDomainSso;
 use App\Models\ErrorEncounter;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -44,6 +45,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(replace: [
             StartSession::class => StartResilientSession::class,
         ]);
+        // Linked hosts follow the ternis.link login (silent probe on
+        // landing pages) and its logout.
+        $middleware->web(append: [SyncCrossDomainSso::class]);
         // Keep host/version checks and response formatting outside auth,
         // throttling and route bindings, so errors use the same API contract.
         $before = ThrottleRequests::class;

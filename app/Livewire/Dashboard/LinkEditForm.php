@@ -44,7 +44,7 @@ class LinkEditForm extends Component
     public bool $saved = false;
 
     /**
-     * Presentation theme: 'dashboard' (neutral) or 'public' (my.ternis.link
+     * Presentation theme: 'dashboard' (neutral) or 'public' (my.href.nz
      * fresh-minimal theme + public-dashboard route names). Logic is
      * identical; only route prefixing and styling hooks change.
      */

@@ -72,15 +72,15 @@ class ResolveDomain
             }
         }
 
-        // Retired public-dashboard hosts 302 to the canonical host.
-        // Temporary (302, not 301) while the move settles.
-        $publicDash = (string) config('domains.public_dashboard_host', 'my.ternis.link');
+        // Retired public-dashboard hosts (my.ternis.link, my.href.yt) 301 to
+        // the canonical host, keeping path and query.
+        $publicDash = (string) config('domains.public_dashboard_host', 'my.href.nz');
         $legacyDashHosts = (array) config('domains.public_dashboard_legacy_hosts', ['my.href.yt']);
         if (in_array($hostname, $legacyDashHosts, true)) {
-            return redirect()->away($request->getScheme().'://'.$publicDash.$request->getRequestUri(), 302);
+            return redirect()->away($request->getScheme().'://'.$publicDash.$request->getRequestUri(), 301);
         }
 
-        // The configured public-dashboard hosts (canonical + alias) are
+        // The configured public-dashboard hosts (canonical) are
         // public dashboards even when they are not in the static map —
         // self-hosted deployments and local dev (where the public
         // dashboard host is "localhost") rely on this.

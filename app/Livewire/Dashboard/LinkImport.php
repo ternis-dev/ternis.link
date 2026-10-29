@@ -103,7 +103,7 @@ class LinkImport extends Component
                 continue;
             }
 
-            // Enforce the public dashboard split: my.ternis.link only accepts
+            // Enforce the public dashboard split: my.href.nz only accepts
             // public hostnames; dash.ternis.link accepts all usable domains.
             $publicHosts = DomainUrls::publicDashboardHostnames();
             $isPublicHost = in_array($domain->hostname, $publicHosts, true);

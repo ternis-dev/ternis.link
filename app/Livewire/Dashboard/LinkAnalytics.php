@@ -29,7 +29,7 @@ class LinkAnalytics extends Component
     public const CHART_TYPES = ['bar', 'line'];
 
     /**
-     * Presentation theme: 'dashboard' (neutral) or 'public' (my.ternis.link
+     * Presentation theme: 'dashboard' (neutral) or 'public' (my.href.nz
      * fresh-minimal theme + public-dashboard route names). Logic is
      * identical; only route prefixing and styling hooks change.
      */

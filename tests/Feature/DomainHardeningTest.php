@@ -109,7 +109,7 @@ class DomainHardeningTest extends TestCase
     public function test_login_and_auth_redirect_to_dashboard_host_from_public_host(): void
     {
         // OAuth must start+finish on the dashboard host (session + PKCE),
-        // so short-link hosts 302 there instead of 404ing — except
+        // so short-link hosts hand off through /auth/sso/start (the login returns to the same host) — except
         // href.nz/login, which serves its own sketch-styled card that
         // links over to the dashboard SSO start.
         $this->get('http://href.nz/login')
@@ -118,7 +118,7 @@ class DomainHardeningTest extends TestCase
             ->assertSee('Log in with Ternis Auth', escape: false)
             ->assertSee('https://dash.ternis.link/login', escape: false)
             ->assertSee('noindex, nofollow', escape: false);
-        $this->get('http://href.nz/auth/redirect')->assertStatus(302)->assertRedirect('http://dash.ternis.link/auth/redirect');
+        $this->get('http://href.nz/auth/redirect')->assertStatus(302)->assertRedirect('http://href.nz/auth/sso/start?to=%2F');
         $this->get('http://ternis.link/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');
         $this->get('http://href.re/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');
         $this->get('http://dash.ternis.link/login')->assertStatus(200);

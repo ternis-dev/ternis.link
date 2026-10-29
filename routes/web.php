@@ -11,7 +11,6 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocsController;
 use App\Http\Controllers\ExtensionController;
 use App\Http\Controllers\HealthController;
-use App\Http\Controllers\LegacyPublicDashboardController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\PublicDashboardController;
@@ -22,12 +21,15 @@ use App\Http\Controllers\SiteFilesController;
 use App\Http\Controllers\StatsController;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\EnsureCorsOrigin;
+use App\Http\Middleware\EnsureSsoHost;
 use App\Http\Middleware\RefreshSsoToken;
 use App\Http\Middleware\ResolveDomain;
 use App\Models\ApiVersion;
 use App\Models\Domain;
 use App\Support\ContentCollection;
 use App\Support\DomainUrls;
+use App\Support\SsoHosts;
+use App\Http\Controllers\Auth\SsoHandoffController;
 use App\Support\NetworkStats;
 use App\Support\PublicDashboard;
 use App\Support\PublicHost;
@@ -99,6 +101,19 @@ $redirectToDashboard = function () {
 $serveOrRedirect = function (string $method) use ($redirectToDashboard) {
     $type = request()->attributes->get('domain_type');
 
+    // Hosts outside the ternis.link session cookie (href.nz, meinlink.at,
+    // my.href.nz, …) never run OAuth themselves: the identity host signs
+    // the user in and hands the login back (see SsoHandoffController).
+    if (in_array($method, ['redirect', 'silent'], true)
+        && ! in_array($type, ['dashboard', 'admin'], true)
+        && ! SsoHosts::sharesIdentitySession(request()->getHost())
+        && SsoHosts::isAllowed(request()->getHost())) {
+        return redirect('/auth/sso/start?'.http_build_query(array_filter([
+            'to' => SsoHosts::safePath(request()->query('to')),
+            'silent' => $method === 'silent' ? 1 : null,
+        ])));
+    }
+
     // Dash, admin, and public dashboards share one ternis.link session
     // (SESSION_DOMAIN), so every host runs its own SSO flow straight
     // against the single registered dash callback — no handoff needed.
@@ -126,10 +141,16 @@ Route::middleware('throttle:10,1')->group(function () use ($serveOrRedirect) {
     Route::get('/auth/silent', fn () => $serveOrRedirect('silent'))->name('auth.silent');
     Route::get('/auth/callback', fn () => $serveOrRedirect('callback'))->name('auth.callback');
 });
+Route::middleware('throttle:30,1')->prefix('auth/sso')->group(function () {
+    Route::get('start', [SsoHandoffController::class, 'start'])->name('auth.sso.start');
+    Route::get('issue', [SsoHandoffController::class, 'issue'])->name('auth.sso.issue');
+    Route::get('consume', [SsoHandoffController::class, 'consume'])->name('auth.sso.consume');
+});
 Route::post('/logout', function () use ($redirectToDashboard) {
     $type = request()->attributes->get('domain_type');
 
-    if (in_array($type, ['dashboard', 'admin', 'public-dashboard'], true)) {
+    if (in_array($type, ['dashboard', 'admin', 'public-dashboard'], true)
+        || (SsoHosts::isAllowed(request()->getHost()) && $type !== 'api')) {
         return app(TernisAuthController::class)->logout(request());
     }
 
@@ -158,7 +179,7 @@ if (app()->environment('local', 'testing')) {
 
 /*
 |----------------------------------------------------------------------
-| Public dashboard (my.ternis.link + my.href.nz) — the new UI for
+| Public dashboard (my.href.nz) — the new UI for
 | href.nz, meinlink.at and href.yt links. Same strict partition and
 | feature set as legacy (overview, links, import/export, QR, per-key
 | pages) plus the account sections (API keys, domains, settings).
@@ -210,59 +231,16 @@ $publicDashboardRoutes = function (string $prefix): void {
     Route::delete('/groups/{group}/links/{link}', [PublicGroupController::class, 'removeGroupLink'])->name($prefix.'groups.links.remove');
     Route::post('/groups/{group}/subgroups', [PublicGroupController::class, 'storeSubgroup'])->name($prefix.'groups.subgroups.store');
     Route::get('/settings/export/{export}/download', [PublicDashboardController::class, 'downloadExport'])->name($prefix.'settings.export-download');
-
-    Route::post('/switch-to-legacy', [PublicDashboardController::class, 'switchToLegacy'])->name($prefix.'switch-legacy');
 };
+
+
+Route::domain(PublicDashboard::canonicalHost())
+    ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
+    ->group(fn () => $publicDashboardRoutes('public-dashboard.'));
 
 /*
 |----------------------------------------------------------------------
-| Legacy public dashboard (my.ternis.link/_legacy/* ONLY) — the previous
-| indigo UI for href.nz, meinlink.at and href.yt links. Same strict
-| hostname partition as the new dashboard; account-level sections stay
-| single-homed on dash. Users opt in per account and switch back any
-| time; new users land on the new dashboard at the domain root.
-|
-| Registered BEFORE the dash group: every route is pinned to a public
-| dashboard host, so dash/localhost requests skip them and fall
-| through to the dash versions below. (Host-blind routes below would
-| otherwise shadow these — Laravel matches the FIRST route per URI.)
-|----------------------------------------------------------------------
-*/
-$legacyPublicDashboardRoutes = function (string $prefix): void {
-    Route::get('/_legacy', [LegacyPublicDashboardController::class, 'index'])->name($prefix.'legacy');
-    Route::get('/_legacy/new', [LegacyPublicDashboardController::class, 'createLink'])->name($prefix.'legacy.new');
-    Route::get('/_legacy/links', [LegacyPublicDashboardController::class, 'links'])->name($prefix.'legacy.links');
-    Route::get('/_legacy/links/create', [LegacyPublicDashboardController::class, 'createLink'])->name($prefix.'legacy.links.create');
-    Route::get('/_legacy/links/import', [LegacyPublicDashboardController::class, 'importLinks'])->name($prefix.'legacy.links.import');
-    Route::get('/_legacy/links/export', [LegacyPublicDashboardController::class, 'exportLinks'])->name($prefix.'legacy.links.export-all');
-    Route::get('/_legacy/links/qr-zip', [LegacyPublicDashboardController::class, 'qrZip'])->name($prefix.'legacy.links.qr-zip');
-    Route::get('/_legacy/links/{link}', [LegacyPublicDashboardController::class, 'showLink'])->name($prefix.'legacy.links.show');
-    Route::get('/_legacy/links/{link}/edit', [LegacyPublicDashboardController::class, 'editLink'])->name($prefix.'legacy.links.edit');
-    Route::get('/_legacy/links/{link}/export', [LegacyPublicDashboardController::class, 'exportClicks'])->name($prefix.'legacy.links.export');
-    Route::get('/_legacy/links/{link}/qr', [LegacyPublicDashboardController::class, 'qrCode'])->name($prefix.'legacy.links.qr');
-    Route::post('/_legacy/links/{link}/duplicate', [LegacyPublicDashboardController::class, 'duplicate'])->name($prefix.'legacy.links.duplicate');
-    Route::get('/_legacy/api-keys/{key}', [LegacyPublicDashboardController::class, 'showApiKey'])->name($prefix.'legacy.api-keys.show');
-    Route::get('/_legacy/settings/export/{export}/download', [LegacyPublicDashboardController::class, 'downloadExport'])->name($prefix.'legacy.settings.export-download');
-    Route::post('/_legacy/use-new', [LegacyPublicDashboardController::class, 'switchToNew'])->name($prefix.'legacy.switch-new');
-};
-
-foreach (PublicDashboard::hosts() as $publicDashboardHost) {
-    $prefix = $publicDashboardHost === PublicDashboard::canonicalHost()
-        ? 'public-dashboard.'
-        : 'public-dashboard-alt.';
-
-    Route::domain($publicDashboardHost)
-        ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
-        ->group(fn () => $legacyPublicDashboardRoutes($prefix));
-
-    Route::domain($publicDashboardHost)
-        ->middleware(['ensure.domain:public-dashboard', 'auth', RefreshSsoToken::class, EnforceDomainAccess::class])
-        ->group(fn () => $publicDashboardRoutes($prefix));
-}
-
-/*
-|----------------------------------------------------------------------
-| Auth API (my.ternis.link + my.href.nz) — CORS-protected handshake
+| Auth API (every linked host) — CORS-protected handshake
 | for cross-origin clients.
 |
 | A web app on another origin cannot read the session cookie, so it
@@ -277,31 +255,27 @@ foreach (PublicDashboard::hosts() as $publicDashboardHost) {
 | no CSRF token — and are protected by the origin allowlist instead.
 |----------------------------------------------------------------------
 */
-foreach (PublicDashboard::hosts() as $publicDashboardHost) {
-    $prefix = $publicDashboardHost === PublicDashboard::canonicalHost()
-        ? 'public-dashboard.'
-        : 'public-dashboard-alt.';
+// Served on EVERY linked host (all hosts of config/domains.php): thanks to
+// the cross-domain SSO handoff each one holds a local session, so each can
+// answer the session/token questions for its own visitors.
+Route::middleware([EnsureSsoHost::class, EnsureCorsOrigin::class])
+    ->prefix('auth/api')
+    ->group(function () {
+        // One throttle per route: stacking two on the same path
+        // makes them share a limiter key, which halves the budget.
+        Route::get('session', [AuthApiController::class, 'session'])
+            ->middleware('throttle:60,1')
+            ->name('auth.api.session');
 
-    Route::domain($publicDashboardHost)
-        ->middleware(['ensure.domain:public-dashboard', EnsureCorsOrigin::class])
-        ->prefix('auth/api')
-        ->group(function () use ($prefix) {
-            // One throttle per route: stacking two on the same path
-            // makes them share a limiter key, which halves the budget.
-            Route::get('session', [AuthApiController::class, 'session'])
-                ->middleware('throttle:60,1')
-                ->name($prefix.'auth.session');
+        // Minting writes a row, so it gets a tighter budget.
+        Route::post('token', [AuthApiController::class, 'token'])
+            ->middleware('throttle:10,1')
+            ->name('auth.api.token');
 
-            // Minting writes a row, so it gets a tighter budget.
-            Route::post('token', [AuthApiController::class, 'token'])
-                ->middleware('throttle:10,1')
-                ->name($prefix.'auth.token');
-
-            Route::delete('token', [AuthApiController::class, 'revoke'])
-                ->middleware('throttle:30,1')
-                ->name($prefix.'auth.token.revoke');
-        });
-}
+        Route::delete('token', [AuthApiController::class, 'revoke'])
+            ->middleware('throttle:30,1')
+            ->name('auth.api.token.revoke');
+    });
 
 /*
 |----------------------------------------------------------------------

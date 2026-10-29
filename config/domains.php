@@ -20,9 +20,7 @@ return [
         'href.yt' => 'public',
         // Dedicated QR code generator utility
         'qr.href.nz' => 'public',
-        // Public dashboard (canonical my.ternis.link; my.href.nz serves
-        // the same app under its own brand — see ResolveDomain)
-        'my.ternis.link' => 'public-dashboard',
+        // Public dashboard (canonical my.href.nz; my.ternis.link 301s to it)
         'my.href.nz' => 'public-dashboard',
         // Official QR API
         'qr.t-api.de' => 'api',
@@ -80,7 +78,6 @@ return [
         'clicked.at',
         'href.re',
         'href.yt',
-        'my.ternis.link',
     ],
 
     /*
@@ -93,22 +90,21 @@ return [
     | local/testing (http) and production (https) both work.
     */
 
+    /**
+     * Guests on a landing page of a linked host get one silent
+     * "already signed in on ternis.link?" check (bots excluded).
+     */
+    'sso_silent_check' => env('SSO_SILENT_CHECK', true),
+
     'dashboard_host' => env('DOMAIN_DASHBOARD', 'dash.ternis.link'),
 
-    'public_dashboard_host' => env('DOMAIN_PUBLIC_DASHBOARD', 'my.ternis.link'),
+    'public_dashboard_host' => env('DOMAIN_PUBLIC_DASHBOARD', 'my.href.nz'),
 
     /**
-     * Second host of the public dashboard. It serves the very same app
-     * (routes, session, data) under its own brand — only the generated
-     * URLs and the header label differ. Set to an empty string to
-     * disable it.
+     * Retired public-dashboard hosts, 301d (path preserved) to the
+     * canonical host.
      */
-    'public_dashboard_alias_host' => env('DOMAIN_PUBLIC_DASHBOARD_ALIAS', 'my.href.nz'),
-
-    /**
-     * Retired public-dashboard hosts, 302d to the canonical host.
-     */
-    'public_dashboard_legacy_hosts' => ['my.href.yt'],
+    'public_dashboard_legacy_hosts' => ['my.ternis.link', 'my.href.yt'],
 
     'admin_host' => env('DOMAIN_ADMIN', 'admin.ternis.link'),
 

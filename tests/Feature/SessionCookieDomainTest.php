@@ -20,7 +20,7 @@ class SessionCookieDomainTest extends TestCase
             'domain prefix lookalike' => ['ternis.link.example.com', null],
             'apex' => ['ternis.link', '.ternis.link'],
             'dashboard' => ['dash.ternis.link', '.ternis.link'],
-            'public dashboard' => ['my.ternis.link', '.ternis.link'],
+            'public dashboard' => ['my.href.nz', null],
         ];
     }
 

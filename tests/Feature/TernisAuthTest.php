@@ -58,7 +58,7 @@ class TernisAuthTest extends TestCase
     {
         // Every dashboard host starts SSO directly against the single
         // registered dash callback (shared ternis.link session).
-        foreach (['http://dash.ternis.link', 'http://admin.ternis.link', 'http://my.ternis.link'] as $origin) {
+        foreach (['http://dash.ternis.link', 'http://admin.ternis.link'] as $origin) {
             $response = $this->get("{$origin}/auth/redirect");
 
             $response->assertStatus(302);
@@ -68,9 +68,14 @@ class TernisAuthTest extends TestCase
         }
     }
 
+    public function test_foreign_domain_hosts_start_the_cross_domain_handoff(): void
+    {
+        $this->get('http://my.href.nz/auth/redirect')->assertRedirect('/auth/sso/start?to=%2F');
+    }
+
     public function test_auth_consume_route_is_gone(): void
     {
-        $this->get('http://my.ternis.link/auth/consume?ticket=x')->assertNotFound();
+        $this->get('http://my.href.nz/auth/consume?ticket=x')->assertNotFound();
         $this->get('http://admin.ternis.link/auth/consume?ticket=x')->assertNotFound();
     }
 
@@ -90,15 +95,15 @@ class TernisAuthTest extends TestCase
             ]),
         ]);
 
-        // Guest was intercepted on my.ternis.link (intended set there,
+        // Guest was intercepted on my.href.nz (intended set there,
         // same shared session), flow completes on dash, lands back.
         $response = $this->withSession([
-            'url.intended' => 'http://my.ternis.link/links',
+            'url.intended' => 'http://my.href.nz/links',
             'oauth_state' => 'crosshost_state',
             'oauth_code_verifier' => 'test_code_verifier_1234567890123456789012345678901234567890',
         ])->get('http://dash.ternis.link/auth/callback?code=mock_code&state=crosshost_state');
 
-        $response->assertRedirect('http://my.ternis.link/links');
+        $response->assertRedirect('http://my.href.nz/links');
         $this->assertAuthenticated();
     }
 

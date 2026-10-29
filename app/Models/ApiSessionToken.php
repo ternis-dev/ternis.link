@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Short-lived access token minted by the CORS-protected auth API of the
- * public dashboard (my.ternis.link / my.href.nz).
+ * public dashboard (my.href.nz).
  *
  * A cross-origin client exchanges its session for one of these tokens
  * and then talks to the regular REST API with it. Only the SHA-256

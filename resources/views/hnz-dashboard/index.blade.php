@@ -131,4 +131,15 @@
             @endif
         </div>
     </div>
+
+    <script type="application/json" id="tl-tour-steps">
+        {!! json_encode([
+            'id' => 'public',
+            'autostart' => ($stats['total_links'] ?? 0) === 0,
+            'theme' => 'public-new',
+            'steps' => [
+                ['target' => null, 'title' => 'Welcome to '.\App\Support\PublicDashboard::label(), 'body' => 'Your href.nz, meinlink.at and href.yt links live here. Create your first link, then come back for stats, API keys and domains.'],
+            ],
+        ]) !!}
+    </script>
 </x-layouts.hnz-dashboard>

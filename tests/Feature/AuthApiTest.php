@@ -33,11 +33,11 @@ class AuthApiTest extends TestCase
 
     public function test_session_reports_anonymous_visitors(): void
     {
-        $this->getJson('http://my.ternis.link/auth/api/session')
+        $this->getJson('http://my.href.nz/auth/api/session')
             ->assertOk()
             ->assertJson([
                 'authenticated' => false,
-                'host' => 'my.ternis.link',
+                'host' => 'my.href.nz',
                 'user' => null,
             ]);
     }
@@ -45,7 +45,7 @@ class AuthApiTest extends TestCase
     public function test_session_reports_the_signed_in_user(): void
     {
         $this->actingAs($this->user)
-            ->getJson('http://my.ternis.link/auth/api/session')
+            ->getJson('http://my.href.nz/auth/api/session')
             ->assertOk()
             ->assertJsonPath('authenticated', true)
             ->assertJsonPath('user.id', $this->user->id)
@@ -63,7 +63,7 @@ class AuthApiTest extends TestCase
 
     public function test_token_requires_a_session(): void
     {
-        $this->postJson('http://my.ternis.link/auth/api/token')
+        $this->postJson('http://my.href.nz/auth/api/token')
             ->assertUnauthorized();
 
         $this->assertDatabaseCount('api_session_tokens', 0);
@@ -72,7 +72,7 @@ class AuthApiTest extends TestCase
     public function test_token_is_minted_for_a_signed_in_user(): void
     {
         $response = $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertCreated()
             ->assertJsonPath('token_type', 'Bearer');
 
@@ -92,13 +92,13 @@ class AuthApiTest extends TestCase
     public function test_token_lifetime_is_clamped(): void
     {
         $response = $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token', ['ttl' => 999999])
+            ->postJson('http://my.href.nz/auth/api/token', ['ttl' => 999999])
             ->assertCreated();
 
         $this->assertSame(3600, $response->json('expires_in'));
 
         $response = $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token', ['ttl' => -5])
+            ->postJson('http://my.href.nz/auth/api/token', ['ttl' => -5])
             ->assertCreated();
 
         $this->assertSame(900, $response->json('expires_in'));
@@ -107,7 +107,7 @@ class AuthApiTest extends TestCase
     public function test_token_authenticates_the_rest_api(): void
     {
         $raw = $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertCreated()
             ->json('token');
 
@@ -123,12 +123,12 @@ class AuthApiTest extends TestCase
     public function test_revoked_token_stops_working(): void
     {
         $raw = $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertCreated()
             ->json('token');
 
         $this->actingAs($this->user)
-            ->deleteJson('http://my.ternis.link/auth/api/token', [], [
+            ->deleteJson('http://my.href.nz/auth/api/token', [], [
                 'Authorization' => "Bearer {$raw}",
             ])->assertNoContent();
 
@@ -140,7 +140,7 @@ class AuthApiTest extends TestCase
     public function test_expired_token_stops_working(): void
     {
         $raw = $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertCreated()
             ->json('token');
 
@@ -153,14 +153,14 @@ class AuthApiTest extends TestCase
 
     public function test_disallowed_origin_is_rejected(): void
     {
-        $this->getJson('http://my.ternis.link/auth/api/session', [
+        $this->getJson('http://my.href.nz/auth/api/session', [
             'Origin' => 'https://evil.example',
         ])->assertForbidden();
     }
 
     public function test_allowed_origin_gets_cors_headers(): void
     {
-        $response = $this->get('http://my.ternis.link/auth/api/session', [
+        $response = $this->get('http://my.href.nz/auth/api/session', [
             'Origin' => 'https://app.example.com',
         ]);
 
@@ -176,7 +176,7 @@ class AuthApiTest extends TestCase
 
     public function test_preflight_is_answered_for_allowed_origins(): void
     {
-        $response = $this->call('OPTIONS', 'http://my.ternis.link/auth/api/token', [], [], [], [
+        $response = $this->call('OPTIONS', 'http://my.href.nz/auth/api/token', [], [], [], [
             'HTTP_ORIGIN' => 'https://app.example.com',
             'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'POST',
         ]);
@@ -191,7 +191,7 @@ class AuthApiTest extends TestCase
 
     public function test_disallowed_origin_gets_no_cors_grant_on_a_real_request(): void
     {
-        $response = $this->get('http://my.ternis.link/auth/api/session', [
+        $response = $this->get('http://my.href.nz/auth/api/session', [
             'Origin' => 'https://evil.example',
         ]);
 
@@ -210,18 +210,18 @@ class AuthApiTest extends TestCase
         // Minting writes a row, so it carries its own budget.
         for ($i = 0; $i < 10; $i++) {
             $this->actingAs($this->user)
-                ->postJson('http://my.ternis.link/auth/api/token')
+                ->postJson('http://my.href.nz/auth/api/token')
                 ->assertCreated();
         }
 
         $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertStatus(429);
     }
 
     public function test_preflight_never_grants_an_unknown_origin(): void
     {
-        $response = $this->call('OPTIONS', 'http://my.ternis.link/auth/api/token', [], [], [], [
+        $response = $this->call('OPTIONS', 'http://my.href.nz/auth/api/token', [], [], [], [
             'HTTP_ORIGIN' => 'https://evil.example',
             'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'POST',
         ]);
@@ -233,9 +233,12 @@ class AuthApiTest extends TestCase
         $this->assertNotSame('https://evil.example', $response->headers->get('Access-Control-Allow-Origin'));
     }
 
-    public function test_auth_api_is_not_available_on_other_hosts(): void
+    public function test_auth_api_is_available_on_every_linked_host_but_not_elsewhere(): void
     {
-        $this->getJson('http://dash.ternis.link/auth/api/session')->assertNotFound();
+        foreach (['dash.ternis.link', 'href.nz', 'meinlink.at', 'ternis.link'] as $host) {
+            $this->getJson("http://{$host}/auth/api/session")->assertOk()->assertJsonPath('authenticated', false);
+        }
+        $this->getJson('http://evil.example.com/auth/api/session')->assertNotFound();
         $this->getJson('http://links.t-api.de/auth/api/session')->assertNotFound();
     }
 
@@ -245,7 +248,7 @@ class AuthApiTest extends TestCase
 
         for ($i = 0; $i < 6; $i++) {
             $this->actingAs($this->user)
-                ->postJson('http://my.ternis.link/auth/api/token')
+                ->postJson('http://my.href.nz/auth/api/token')
                 ->assertCreated();
         }
 
@@ -259,7 +262,7 @@ class AuthApiTest extends TestCase
     public function test_dead_tokens_are_removed_when_a_new_one_is_minted(): void
     {
         $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertCreated();
 
         // One dead row and one live row.
@@ -268,7 +271,7 @@ class AuthApiTest extends TestCase
             ->delete();
 
         $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertCreated();
 
         // The dead row is gone, the live ones remain.
@@ -279,7 +282,7 @@ class AuthApiTest extends TestCase
     public function test_expired_tokens_are_pruned_by_the_cleanup_command(): void
     {
         $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertCreated();
 
         ApiSessionToken::query()->update(['expires_at' => now()->subDays(90)]);
@@ -292,7 +295,7 @@ class AuthApiTest extends TestCase
     public function test_token_issuing_is_audited(): void
     {
         $this->actingAs($this->user)
-            ->postJson('http://my.ternis.link/auth/api/token')
+            ->postJson('http://my.href.nz/auth/api/token')
             ->assertCreated();
 
         $this->assertDatabaseHas('activity_logs', [
