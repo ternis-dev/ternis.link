@@ -116,7 +116,7 @@ class DomainHardeningTest extends TestCase
             ->assertStatus(200)
             ->assertSee('members', escape: false)
             ->assertSee('Log in with Ternis Auth', escape: false)
-            ->assertSee('https://dash.ternis.link/login', escape: false)
+            ->assertSee('/auth/redirect', escape: false)
             ->assertSee('noindex, nofollow', escape: false);
         $this->get('http://href.nz/auth/redirect')->assertStatus(302)->assertRedirect('http://href.nz/auth/sso/start?to=%2F');
         $this->get('http://ternis.link/login')->assertStatus(302)->assertRedirect('http://dash.ternis.link/login');

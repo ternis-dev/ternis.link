@@ -67,7 +67,7 @@
 
                 <div class="mt-6">
                     <a
-                        href="{{ \App\Support\DomainUrls::dashboard('/login') }}"
+                        href="{{ url('/auth/redirect') }}"
                         class="group flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 font-semibold text-white shadow-md transition hover:bg-red-500 active:scale-[0.98]"
                     >
                         <span>Mit Ternis Auth anmelden</span>

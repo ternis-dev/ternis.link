@@ -64,7 +64,7 @@
                 @endif
 
                 <p style="margin: 1.1rem 0 0;">
-                    <a class="sk-btn" style="text-decoration: none; display: inline-block;" href="{{ \App\Support\DomainUrls::dashboard('/login') }}">
+                    <a class="sk-btn" style="text-decoration: none; display: inline-block;" href="{{ url('/auth/redirect') }}">
                         Log in with Ternis Auth
                     </a>
                 </p>

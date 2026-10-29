@@ -15,7 +15,7 @@
             <h1 class="mt-3 text-3xl font-bold">{{ $locale === 'de' ? 'Anmelden' : 'Sign in' }}</h1>
             <p class="mt-3 text-sm text-zinc-500">{{ $locale === 'de' ? 'Ein Klick, kein Passwort. Die Anmeldung läuft über Ternis Auth.' : 'One click, no password. Sign-in runs through Ternis Auth.' }}</p>
             @if (session('error'))<p class="mt-5 rounded-xl bg-red-50 p-3 text-sm text-red-700" role="alert">{{ session('error') }}</p>@endif
-            <a href="{{ \App\Support\DomainUrls::dashboard('/login') }}" class="mt-7 inline-flex rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white hover:bg-violet-500">{{ $locale === 'de' ? 'Mit Ternis Auth anmelden' : 'Sign in with Ternis Auth' }}</a>
+            <a href="{{ url('/auth/redirect') }}" class="mt-7 inline-flex rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white hover:bg-violet-500">{{ $locale === 'de' ? 'Mit Ternis Auth anmelden' : 'Sign in with Ternis Auth' }}</a>
             <p class="mt-6 text-xs text-zinc-500"><a href="/" class="text-violet-600">← {{ $locale === 'de' ? 'Zurück zu clicked.at' : 'Back to clicked.at' }}</a></p>
         </section>
     </main>

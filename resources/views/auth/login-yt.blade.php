@@ -66,7 +66,7 @@
                 @endif
 
                 <div style="margin: 1.5rem 0 1rem; text-align: center;">
-                    <a class="yt-play-cta" href="{{ \App\Support\DomainUrls::dashboard('/login') }}" style="width: 100%; justify-content: center;">
+                    <a class="yt-play-cta" href="{{ url('/auth/redirect') }}" style="width: 100%; justify-content: center;">
                         <span>Log in with Ternis Auth</span>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </a>
