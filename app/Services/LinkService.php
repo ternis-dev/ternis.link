@@ -263,6 +263,7 @@ class LinkService
         ?string $password = null,
         ?array $utm = null,
         bool $userTrackingEnabled = false,
+        bool $botProtection = false,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -391,6 +392,7 @@ class LinkService
             'user_tracking_enabled' => $userTrackingEnabled,
             'expires_at' => $expiresAt,
             'password_hash' => $password !== null ? Hash::make($password) : null,
+            'bot_protection' => $botProtection,
         ]);
 
         if ($user) {

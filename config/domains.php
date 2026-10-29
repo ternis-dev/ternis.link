@@ -44,6 +44,8 @@ return [
         'int.ternis.link' => 'ternis',
         // Developer documentation
         'docs.ternis.link' => 'docs',
+        // Protected link gateway & bot verification
+        'protected.ternis.link' => 'protected',
     ],
 
     /*
@@ -126,6 +128,8 @@ return [
 
     'internal_host' => env('DOMAIN_INTERNAL', 'int.ternis.link'),
 
+    'protected_host' => env('DOMAIN_PROTECTED', 'protected.ternis.link'),
+
     /*
     |--------------------------------------------------------------------------
     | Domain Type → Required Auth
@@ -136,6 +140,7 @@ return [
         'ternis' => true,   // family/partner auth required
         'business' => true,   // business auth required
         'public' => false,  // anyone can access
+        'protected' => false, // gateway verification accessible to all
         'public-dashboard' => true, // SSO login required (public links dashboard)
         'api' => false,  // per-route auth
         'dashboard' => true,   // SSO login required

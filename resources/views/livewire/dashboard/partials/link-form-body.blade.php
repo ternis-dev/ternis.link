@@ -207,6 +207,12 @@
                 label="Enable user tracking"
                 description="Captures user/subscriber identifiers passed in the URL (e.g. ?uid=, ?email=) following privacy best practices (raw emails are automatically pseudonymized with SHA-256). Respects Do Not Track."
             />
+            <x-ui.checkbox
+                wire:model="bot_protection"
+                name="bot_protection"
+                label="Enable bot protection"
+                description="Verify visitors with Cloudflare Turnstile before redirecting, shielding destinations from automated crawlers and scrapers."
+            />
         </div>
     </details>
 

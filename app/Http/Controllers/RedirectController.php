@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BioPage;
 use App\Models\Domain;
+use App\Services\BotProtectionService;
 use App\Services\ClickTrackerService;
 use App\Services\CrawlerDetector;
 use App\Services\JunkUrlDetector;
@@ -27,6 +28,7 @@ class RedirectController extends Controller
         private JunkUrlDetector $junkUrls,
         private CrawlerDetector $crawlers,
         private TargetSelector $targets,
+        private BotProtectionService $botProtection,
     ) {}
 
     /**
@@ -130,17 +132,6 @@ class RedirectController extends Controller
             return response()->view('redirect.not-found', ['slug' => $input, 'domain' => $domain->hostname], 404);
         }
 
-        // Password-protected links show an interstitial: slug and host
-        // only, no destination, no tracking, no indexing.
-        if ($link->password_hash !== null
-            && $request->session()->get(LinkService::sessionKey($link->id)) !== true) {
-            return response()->view('redirect.locked', [
-                'slug' => $link->slug,
-                'domain' => $domain->hostname,
-                'link' => $link->id,
-            ], 200, ['Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
-        }
-
         $isCrawler = $this->crawlers->isCrawler($request->userAgent());
         $debugOg = $request->query('debug') === 'og';
 
@@ -157,6 +148,27 @@ class RedirectController extends Controller
             if ($preview !== null) {
                 return $preview;
             }
+        }
+
+        // Bot protection challenge: redirect to protected.ternis.link
+        if ($this->botProtection->shouldChallenge($link, $request)) {
+            $isSuspiciousUa = $this->botProtection->isSuspiciousUserAgent($request->userAgent());
+            $challengeUrl = $isSuspiciousUa && $this->botProtection->shouldFilterUserAgents()
+                ? $this->botProtection->buildUserAgentChallengeUrl($link, $request)
+                : $this->botProtection->buildChallengeUrl($link, $request);
+
+            return redirect()->away($challengeUrl, 302);
+        }
+
+        // Password-protected links show an interstitial: slug and host
+        // only, no destination, no tracking, no indexing.
+        if ($link->password_hash !== null
+            && $request->session()->get(LinkService::sessionKey($link->id)) !== true) {
+            return response()->view('redirect.locked', [
+                'slug' => $link->slug,
+                'domain' => $domain->hostname,
+                'link' => $link->id,
+            ], 200, ['Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
         }
 
         $debugTarget = $request->query('target') === 'debug';

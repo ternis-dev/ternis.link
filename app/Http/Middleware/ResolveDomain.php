@@ -47,6 +47,15 @@ class ResolveDomain
             return $next($request);
         }
 
+        $protectedHost = (string) config('domains.protected_host', 'protected.ternis.link');
+        if ($hostname === $protectedHost) {
+            $request->attributes->set('domain_type', 'protected');
+            $request->attributes->set('domain_hostname', $hostname);
+            $request->attributes->set('domain_model', Domain::where('hostname', $hostname)->first());
+
+            return $next($request);
+        }
+
         // Redirect api.ternis.link to links.t-api.de
         if ($hostname === 'api.ternis.link') {
             return redirect()->away('https://links.t-api.de'.$request->getRequestUri(), 301);

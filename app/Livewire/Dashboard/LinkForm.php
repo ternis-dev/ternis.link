@@ -57,6 +57,7 @@ class LinkForm extends Component
         $this->utm_medium = null;
         $this->utm_campaign = null;
         $this->tags = null;
+        $this->bot_protection = false;
         $this->expires_at = null;
         $this->resetErrorBag();
     }
@@ -92,6 +93,8 @@ class LinkForm extends Component
     public ?string $utm_campaign = null;
 
     public ?string $tags = null;
+
+    public bool $bot_protection = false;
 
     public bool $user_tracking_enabled = false;
 
@@ -139,6 +142,7 @@ class LinkForm extends Component
             'utm_medium' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'string', 'max:255'],
+            'bot_protection' => ['boolean'],
             'user_tracking_enabled' => ['boolean'],
         ];
 
@@ -280,6 +284,7 @@ class LinkForm extends Component
                     'utm_campaign' => $this->utm_campaign,
                 ],
                 userTrackingEnabled: $this->user_tracking_enabled,
+                botProtection: $this->bot_protection,
             );
         } catch (ValidationException $e) {
             // Service-level rejections (scanner junk, slug races) land

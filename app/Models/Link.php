@@ -29,6 +29,7 @@ class Link extends Model
         'creator_ip_hash',
         'creator_ip_encrypted',
         'password_hash',
+        'bot_protection',
         'utm_source',
         'utm_medium',
         'utm_campaign',
@@ -45,6 +46,7 @@ class Link extends Model
         'tags' => 'array',
         'user_tracking_enabled' => 'boolean',
         'creator_ip_encrypted' => 'encrypted',
+        'bot_protection' => 'boolean',
         'is_active' => 'boolean',
         'is_removed' => 'boolean',
         'expires_at' => 'datetime',
@@ -86,6 +88,11 @@ class Link extends Model
     public function hasTargeting(): bool
     {
         return $this->targets()->where('is_active', true)->exists();
+    }
+
+    public function hasBotProtection(): bool
+    {
+        return (bool) $this->bot_protection;
     }
 
     /**

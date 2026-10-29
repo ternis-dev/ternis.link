@@ -59,14 +59,36 @@ class DomainUrls
     /**
      * Absolute URL on the docs host (docs.ternis.link).
      */
-    public static function docs(string $path = "/"): string
+    public static function docs(string $path = '/'): string
     {
-        return static::onHost(config("domains.docs_host", "docs.ternis.link"), $path);
+        return static::onHost(config('domains.docs_host', 'docs.ternis.link'), $path);
     }
 
     public static function internal(string $path = '/'): string
     {
         return static::onHost(config('domains.internal_host', 'int.ternis.link'), $path);
+    }
+
+    /**
+     * Absolute URL on the protected gateway host (protected.ternis.link).
+     */
+    public static function protected(string $path = '/'): string
+    {
+        return static::onHost(config('domains.protected_host', 'protected.ternis.link'), $path);
+    }
+
+    /**
+     * Check if the given (or current) host is the protected gateway host.
+     */
+    public static function isProtected(?string $host = null): bool
+    {
+        try {
+            $host ??= request()->getHost();
+        } catch (\Throwable) {
+            $host = null;
+        }
+
+        return $host === (string) config('domains.protected_host', 'protected.ternis.link');
     }
 
     /**

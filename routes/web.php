@@ -14,6 +14,7 @@ use App\Http\Controllers\ExtensionController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PreviewController;
+use App\Http\Controllers\ProtectedGatewayController;
 use App\Http\Controllers\PublicDashboardController;
 use App\Http\Controllers\PublicGroupController;
 use App\Http\Controllers\QrController;
@@ -715,6 +716,9 @@ Route::get('/', function () {
     if ($type === 'business') {
         return view('landing.business');
     }
+    if ($type === 'protected') {
+        return app(ProtectedGatewayController::class)->index();
+    }
     if ($type === 'public') {
         // qr.href.nz is the dedicated interactive QR code studio & generator
         if (PublicHost::isQr()) {
@@ -871,6 +875,7 @@ if (app()->environment('local', 'testing')) {
     Route::get('/_preview/at', fn () => view('landing.meinlink'))->name('preview.at');
     Route::get('/_preview/re', fn () => view('landing.business'))->name('preview.re');
     Route::get('/_preview/int', fn () => view('landing.internal'))->name('preview.int');
+    Route::get('/_preview/protected', [ProtectedGatewayController::class, 'index'])->name('preview.protected');
     Route::get('/_preview/yt', fn () => view('landing.yt', ['stats' => NetworkStats::overview()]))->name('preview.yt');
     Route::get('/_preview/yt-new', fn () => view('landing.new-yt'))->name('preview.yt-new');
     Route::get('/_preview/yt-login', fn () => view('auth.login-yt'))->name('preview.yt-login');
@@ -945,6 +950,14 @@ Route::domain((string) config('domains.qr_api_host', 'qr.t-api.de'))->group(func
 Route::domain((string) config('domains.qr_api_host', 'qr.t-api.de'))
     ->get('/', fn () => redirect('/v1/'))
     ->name('qr.api.home');
+
+Route::domain((string) config('domains.protected_host', 'protected.ternis.link'))->group(function () {
+    Route::get('/', [ProtectedGatewayController::class, 'index'])->name('protected.index');
+    Route::get('/challenge', [ProtectedGatewayController::class, 'challenge'])->name('protected.challenge');
+    Route::get('/user-agent', [ProtectedGatewayController::class, 'userAgent'])->name('protected.user-agent');
+    Route::post('/verify', [ProtectedGatewayController::class, 'verify'])->name('protected.verify');
+    Route::post('/unlock', [ProtectedGatewayController::class, 'unlock'])->name('protected.unlock');
+});
 
 Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(function () {
     // Direct URL redirects (preferred)
