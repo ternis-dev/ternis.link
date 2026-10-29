@@ -186,6 +186,11 @@
                 <svg width="14" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.5 12.5 10 18 19.5 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 50 / day fair use
             </li>
+            <li>
+                {{-- 21 · shield --}}
+                <svg width="14" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                AI spam &amp; threat shield
+            </li>
         </ul>
 
         <aside class="sk-notes" aria-label="Good to know">
@@ -204,8 +209,8 @@
                 {{-- 17 · lock --}}
                 <svg class="dk" style="top: 10px; right: 12px;" width="22" height="28" viewBox="0 0 24 30" fill="none" aria-hidden="true"><path d="M6.5 13.5 h11 v11 h-11 Z M9 13.5 V10 a3 3 0 0 1 6 0 v3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="18.5" r="1.2" fill="currentColor"/></svg>
                 <h2>fair &amp; private</h2>
-                <p>Fair use: 50 links a day per guest. Nothing of yours is kept but a hashed IP for counting.</p>
-                <p>Links stay active as long as they're legit — abuse gets removed.</p>
+                <p>Fair use: 50 links a day per guest. TypeSafe AI screens destinations to quarantine phishing and spam automatically.</p>
+                <p>Nothing of yours is kept but a hashed IP for counting.</p>
             </div>
             <div class="sk-note">
                 <span class="sk-pin" aria-hidden="true"></span>

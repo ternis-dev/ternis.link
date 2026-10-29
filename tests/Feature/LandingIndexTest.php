@@ -84,6 +84,8 @@ class LandingIndexTest extends TestCase
         $response->assertSee('Descriptions &amp; tags', escape: false);
         $response->assertSee('Click analytics', escape: false);
         $response->assertSee('API access', escape: false);
+        $response->assertSee('AI spam &amp; threat shield', escape: false);
+        $response->assertSee('AI Shield', escape: false);
         $response->assertSee('Custom domains', escape: false);
     }
 }

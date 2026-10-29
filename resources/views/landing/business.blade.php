@@ -58,6 +58,7 @@
             </div>
             <ul class="mt-8 flex flex-wrap justify-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
                 <li class="rounded-full bg-neutral-100 px-3 py-1 dark:bg-neutral-900">&check; Verified sender</li>
+                <li class="rounded-full bg-neutral-100 px-3 py-1 dark:bg-neutral-900">&check; AI threat &amp; spam shield</li>
                 <li class="rounded-full bg-neutral-100 px-3 py-1 dark:bg-neutral-900">&check; Click analytics</li>
                 <li class="rounded-full bg-neutral-100 px-3 py-1 dark:bg-neutral-900">&check; Abuse-monitored</li>
                 <li class="rounded-full bg-neutral-100 px-3 py-1 dark:bg-neutral-900">&check; Zero ad trackers</li>
@@ -77,7 +78,7 @@
                     <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
                     <div class="font-display text-base font-bold">Trusted by default</div>
                 </div>
-                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Recipients can trust href.re redirects &mdash; issued internally, access-controlled, and free of tracker walls or ads.</p>
+                <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Recipients can trust href.re redirects &mdash; issued internally, protected by TypeSafe AI threat scanning, and free of tracker walls or ads.</p>
             </x-ui.card>
             <x-ui.card>
                 <div class="flex items-center gap-2.5">

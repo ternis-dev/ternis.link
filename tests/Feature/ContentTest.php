@@ -225,4 +225,23 @@ class ContentTest extends TestCase
         $this->get('http://ternis.link/llms-full.txt')
             ->assertSee('https://ternis.link/pages/blog', escape: false);
     }
+
+    public function test_ai_spam_protection_blog_posts_are_published(): void
+    {
+        $this->get('http://ternis.link/pages/blog')
+            ->assertStatus(200)
+            ->assertSee('Inside Our AI Spam &amp; Phishing Shield', escape: false)
+            ->assertSee('Defending Against High-Velocity Link Attacks', escape: false);
+
+        $this->get('http://ternis.link/pages/blog/2026-10-29-ai-powered-spam-and-phishing-protection')
+            ->assertStatus(200)
+            ->assertSee('TypeSafe AI', escape: false)
+            ->assertSee('SystemOne', escape: false)
+            ->assertSee('Quarantine', escape: false);
+
+        $this->get('http://ternis.link/pages/blog/2026-10-29-detecting-high-velocity-spam-attacks-and-rogue-bots')
+            ->assertStatus(200)
+            ->assertSee('Sliding-Window Burst Velocity Defense', escape: false)
+            ->assertSee('protected.ternis.link', escape: false);
+    }
 }

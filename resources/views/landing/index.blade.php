@@ -17,6 +17,10 @@ $faqs = [
         'a' => 'There are no local passwords to leak, visitor IPs are stored only as one-way hashes, and pages set no ad trackers. Public forms carry a bot check; everything else is first-party.',
     ],
     [
+        'q' => 'How does the AI Spam and Threat Protection work?',
+        'a' => 'Every new link is evaluated asynchronously by TypeSafe AI against phishing deception, spam campaigns, and malware payloads. High-confidence threats are quarantined instantly, while suspicious traffic is challenged via Cloudflare Turnstile on <a href="https://protected.ternis.link" class="underline underline-offset-2">protected.ternis.link</a> — with zero latency added to clean redirects.',
+    ],
+    [
         'q' => 'What happens when I deactivate a link?',
         'a' => 'It stops resolving immediately, while its stats stay in your dashboard — totals and history are never rewritten.',
     ],
@@ -233,10 +237,14 @@ $faqJsonLd = array_map(fn ($faq) => [
                 </div>
 
                 {{-- Performance telemetry markers --}}
-                <div class="mt-4 grid grid-cols-3 gap-2 border-t border-neutral-100 pt-3 text-center dark:border-neutral-800/80">
+                <div class="mt-4 grid grid-cols-2 gap-2 border-t border-neutral-100 pt-3 text-center sm:grid-cols-4 dark:border-neutral-800/80">
                     <div>
                         <p class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">⚡ &lt; 15ms</p>
                         <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Edge Redirect Latency</p>
+                    </div>
+                    <div>
+                        <p class="font-mono text-xs font-bold text-purple-600 dark:text-purple-400">🛡️ AI Shield</p>
+                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500">Real-Time Threat Triage</p>
                     </div>
                     <div>
                         <p class="font-mono text-xs font-bold text-neutral-900 dark:text-neutral-100">🔒 Hashed IP</p>
@@ -300,6 +308,16 @@ $faqJsonLd = array_map(fn ($faq) => [
                     <div class="font-display text-lg font-bold">API access</div>
                 </div>
                 <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Create and manage links programmatically with scoped API keys and a versioned REST API.</p>
+            </x-ui.card>
+
+            <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-900 shadow-xs ring-1 ring-neutral-200/60 transition-colors group-hover:bg-neutral-900 group-hover:text-white dark:bg-neutral-800 dark:text-neutral-100 dark:ring-neutral-700/60 dark:group-hover:bg-white dark:group-hover:text-neutral-900">
+                        <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </div>
+                    <div class="font-display text-lg font-bold">AI spam &amp; threat shield</div>
+                </div>
+                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Powered by TypeSafe AI. Destination URLs are screened for phishing deception and malicious payloads, quarantining threats before harm occurs.</p>
             </x-ui.card>
 
             <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">
