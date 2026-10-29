@@ -11,6 +11,7 @@
         <meta name="twitter:title" content="{{ $meta['title'] }} — ternis.link">
         <meta name="twitter:description" content="{{ $meta['subtitle'] }}">
         <link rel="alternate" type="text/markdown" title="{{ $meta['title'] }} (Markdown)" href="{{ url('/pages/'.$collection.'.md') }}">
+        <link rel="alternate" type="application/rss+xml" title="{{ $meta['title'] }} (RSS)" href="{{ url('/pages/'.$collection.'.xml') }}">
     </x-slot:head>
 
     <div class="mx-auto max-w-5xl" x-data="{ search: '' }">
@@ -37,6 +38,14 @@
                 >
                     <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                     Markdown
+                </a>
+                <a
+                    href="{{ url('/pages/'.$collection.'.xml') }}"
+                    class="inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1.5 text-xs text-neutral-500 hover:text-neutral-900 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-white transition-colors"
+                    title="Subscribe via RSS feed"
+                >
+                    <svg class="h-3 w-3 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+                    RSS Feed
                 </a>
             </div>
 

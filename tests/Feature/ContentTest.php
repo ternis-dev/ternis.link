@@ -244,4 +244,72 @@ class ContentTest extends TestCase
             ->assertSee('Sliding-Window Burst Velocity Defense', escape: false)
             ->assertSee('protected.ternis.link', escape: false);
     }
+
+    public function test_blog_rss_feed_renders_valid_xml(): void
+    {
+        $response = $this->get('http://ternis.link/pages/blog.xml')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'application/rss+xml; charset=UTF-8');
+
+        $content = $response->getContent();
+
+        $this->assertStringContainsString('<?xml version="1.0" encoding="UTF-8"?>', $content);
+        $this->assertStringContainsString('<rss version="2.0"', $content);
+        $this->assertStringContainsString('<title>Blog — ternis.link</title>', $content);
+        $this->assertStringContainsString('<link>http://ternis.link/pages/blog</link>', $content);
+        $this->assertStringContainsString('<atom:link href="http://ternis.link/pages/blog.xml" rel="self" type="application/rss+xml"', $content);
+        $this->assertStringContainsString('<item>', $content);
+        $this->assertStringContainsString('<title><![CDATA[Why we self-host everything]]></title>', $content);
+        $this->assertStringContainsString('<content:encoded>', $content);
+        $this->assertStringContainsString('<pubDate>', $content);
+
+        // Also .rss and /feed.xml aliases
+        $this->get('http://ternis.link/pages/blog.rss')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'application/rss+xml; charset=UTF-8');
+
+        $this->get('http://ternis.link/pages/blog/feed.xml')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'application/rss+xml; charset=UTF-8');
+
+        $this->get('http://ternis.link/pages/blog/rss.xml')
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'application/rss+xml; charset=UTF-8');
+    }
+
+    public function test_feed_shortcuts_redirect(): void
+    {
+        $this->get('http://ternis.link/pages/feed.xml')
+            ->assertRedirect('http://ternis.link/pages/blog.xml');
+
+        $this->get('http://ternis.link/feed.xml')
+            ->assertRedirect('http://ternis.link/pages/blog.xml');
+
+        $this->get('http://ternis.link/blog.xml')
+            ->assertRedirect('http://ternis.link/pages/blog.xml');
+
+        $this->get('http://ternis.link/rss.xml')
+            ->assertRedirect('http://ternis.link/pages/blog.rss');
+
+        $this->get('http://ternis.link/blog.rss')
+            ->assertRedirect('http://ternis.link/pages/blog.rss');
+    }
+
+    public function test_rss_auto_discovery_tags_on_blog_pages(): void
+    {
+        $this->get('http://ternis.link/pages/blog')
+            ->assertStatus(200)
+            ->assertSee('<link rel="alternate" type="application/rss+xml" title="Blog (RSS)" href="http://ternis.link/pages/blog.xml">', escape: false)
+            ->assertSee('RSS Feed', escape: false);
+
+        $this->get('http://ternis.link/pages/blog/2026-09-26-why-we-self-host-everything')
+            ->assertStatus(200)
+            ->assertSee('<link rel="alternate" type="application/rss+xml" title="Blog (RSS)" href="http://ternis.link/pages/blog.xml">', escape: false);
+    }
+
+    public function test_rss_feeds_404_on_foreign_hosts(): void
+    {
+        $this->get('http://href.nz/pages/blog.xml')->assertNotFound();
+        $this->get('http://dash.ternis.link/pages/blog.xml')->assertNotFound();
+    }
 }

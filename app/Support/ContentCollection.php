@@ -47,9 +47,9 @@ class ContentCollection
     /**
      * All entries of a collection, newest first (stable by slug).
      *
-     * @return list<array{slug: string, title: string, date: string, description: string}>
+     * @return list<array{slug: string, canonical: string, title: string, date: string, description: string, body?: string}>
      */
-    public static function entries(string $collection): array
+    public static function entries(string $collection, bool $withBody = false): array
     {
         $dir = self::directory($collection);
 
@@ -70,7 +70,7 @@ class ContentCollection
                 continue;
             }
 
-            $entries[] = self::parse($collection, $slug, (string) file_get_contents($path), (int) filemtime($path));
+            $entries[] = self::parse($collection, $slug, (string) file_get_contents($path), (int) filemtime($path), $withBody);
         }
 
         usort($entries, fn ($a, $b) => [$b['date'], $b['slug']] <=> [$a['date'], $a['slug']]);

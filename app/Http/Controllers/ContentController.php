@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\ContentCollection;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -15,6 +16,8 @@ use Illuminate\Support\Str;
 class ContentController extends Controller
 {
     public const MARKDOWN = 'text/markdown; charset=UTF-8';
+
+    public const RSS = 'application/rss+xml; charset=UTF-8';
 
     public function index(string $collection)
     {
@@ -37,6 +40,33 @@ class ContentController extends Controller
             'meta' => $meta,
             'entries' => ContentCollection::entries($collection),
         ], 200, ['Content-Type' => self::MARKDOWN]);
+    }
+
+    public function rss(string $collection = 'blog')
+    {
+        $meta = $this->meta($collection);
+        $rawEntries = ContentCollection::entries($collection, withBody: true);
+
+        $entries = array_map(function ($entry) {
+            return [
+                ...$entry,
+                'pubDate' => Carbon::parse($entry['date'])->toRssString(),
+                'html' => isset($entry['body']) ? Str::markdown($entry['body']) : '',
+            ];
+        }, $rawEntries);
+
+        $lastBuildDate = ! empty($entries)
+            ? Carbon::parse($entries[0]['date'])->toRssString()
+            : now()->toRssString();
+
+        $content = view('content.rss', [
+            'collection' => $collection,
+            'meta' => $meta,
+            'entries' => $entries,
+            'lastBuildDate' => $lastBuildDate,
+        ])->render();
+
+        return response($content, 200, ['Content-Type' => self::RSS]);
     }
 
     public function show(string $collection, string $slug)

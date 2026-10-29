@@ -624,6 +624,10 @@ Route::middleware(['ensure.domain:ternis'])
     ->group(function () {
         Route::get('/pages/{collection}', [ContentController::class, 'index'])->name('index');
         Route::get('/pages/{collection}.md', [ContentController::class, 'indexMd'])->name('index-md');
+        Route::get('/pages/{collection}.xml', [ContentController::class, 'rss'])->name('xml');
+        Route::get('/pages/{collection}.rss', [ContentController::class, 'rss'])->name('rss');
+        Route::get('/pages/{collection}/feed.xml', [ContentController::class, 'rss']);
+        Route::get('/pages/{collection}/rss.xml', [ContentController::class, 'rss']);
         Route::get('/pages/{collection}/{slug}', [ContentController::class, 'show'])
             ->where('slug', '[a-z0-9-]+')
             ->name('show');
@@ -631,6 +635,15 @@ Route::middleware(['ensure.domain:ternis'])
             ->where('slug', '[a-z0-9-]+')
             ->name('show-md');
     });
+
+Route::middleware(['ensure.domain:ternis'])->group(function () {
+    Route::get('/pages/feed.xml', fn () => redirect('/pages/blog.xml', 301))->name('pages.feed');
+    Route::get('/pages/rss.xml', fn () => redirect('/pages/blog.rss', 301));
+    Route::get('/feed.xml', fn () => redirect('/pages/blog.xml', 301))->name('feed');
+    Route::get('/rss.xml', fn () => redirect('/pages/blog.rss', 301));
+    Route::get('/blog.xml', fn () => redirect('/pages/blog.xml', 301));
+    Route::get('/blog.rss', fn () => redirect('/pages/blog.rss', 301));
+});
 
 Route::get('/legal/{any}', function (string $any) {
     $type = request()->attributes->get('domain_type');
