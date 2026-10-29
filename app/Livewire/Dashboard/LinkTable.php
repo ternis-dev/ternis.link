@@ -358,6 +358,7 @@ class LinkTable extends Component
             ->when($this->statusFilter === 'disabled', fn ($q) => $q->where('is_active', false))
             ->when($this->statusFilter === 'expired', fn ($q) => $q->whereNotNull('expires_at')->where('expires_at', '<=', now()))
             ->when($this->statusFilter === 'password', fn ($q) => $q->whereNotNull('password_hash'))
+            ->when($this->statusFilter === 'bot_protected', fn ($q) => $q->where('bot_protection', true))
             ->when($this->clicksFilter === 'has_clicks', fn ($q) => $q->where('click_count', '>', 0))
             ->when($this->clicksFilter === '100_plus', fn ($q) => $q->where('click_count', '>=', 100))
             ->when($this->clicksFilter === '10_plus', fn ($q) => $q->where('click_count', '>=', 10))

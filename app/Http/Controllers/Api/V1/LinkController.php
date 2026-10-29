@@ -66,6 +66,9 @@ class LinkController extends Controller
             ->when($request->has('user_tracking_enabled'), function ($query) use ($request) {
                 $query->where('user_tracking_enabled', $request->boolean('user_tracking_enabled'));
             })
+            ->when($request->has('bot_protection'), function ($query) use ($request) {
+                $query->where('bot_protection', $request->boolean('bot_protection'));
+            })
             ->orderByDesc('created_at')
             ->paginate(25);
 
@@ -116,6 +119,7 @@ class LinkController extends Controller
                 'utm_campaign' => $request->validated('utm_campaign'),
             ],
             userTrackingEnabled: (bool) $request->validated('user_tracking_enabled', false),
+            botProtection: (bool) $request->validated('bot_protection', false),
         );
 
         Activity::record(ActivityLog::LINK_CREATED, $user, $link, array_filter([

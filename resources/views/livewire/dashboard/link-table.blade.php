@@ -40,6 +40,7 @@
                 <option value="disabled">Disabled</option>
                 <option value="expired">Expired</option>
                 <option value="password">Password protected</option>
+                <option value="bot_protected">Bot protected</option>
             </x-ui.select>
 
             {{-- Domain filter across all dashboard themes --}}
@@ -163,6 +164,16 @@
                                     {{ $link->slug }}
                                 </a>
                                 <button type="button" data-copy="{{ $link->short_url }}" title="Copy short link" aria-label="Copy short link {{ $link->slug }} to clipboard" class="ml-1 inline-flex cursor-pointer items-center rounded-full border border-neutral-300 px-1.5 py-px text-[11px] font-medium text-neutral-600 transition-colors hover:border-neutral-900 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white">Copy</button>
+                                @if ($link->bot_protection)
+                                    <span class="inline-flex items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300" title="Bot protection active">
+                                        🛡️ Shielded
+                                    </span>
+                                @endif
+                                @if ($link->password_hash)
+                                    <span class="inline-flex items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300" title="Password protected">
+                                        🔒 Locked
+                                    </span>
+                                @endif
                                 @if ($link->apiKey)
                                     <p class="mt-0.5 text-[11px] text-neutral-400 dark:text-neutral-600" title="Created with API key {{ $link->apiKey->name }}">via {{ $link->apiKey->name }}</p>
                                 @endif

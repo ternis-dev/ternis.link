@@ -19,6 +19,14 @@
                     @endforeach
                 </span>
             @endif
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                @if ($link->bot_protection)
+                    <x-ui.badge tone="solid">🛡️ Bot Protection Active</x-ui.badge>
+                @endif
+                @if ($link->password_hash)
+                    <x-ui.badge tone="solid">🔒 Password Protected</x-ui.badge>
+                @endif
+            </div>
         </x-slot:subtitle>
         <x-slot:actions>
             <x-ui.button href="{{ route('dashboard.links.edit', array_merge([$link->id], $query)) }}" size="sm">Edit Link</x-ui.button>

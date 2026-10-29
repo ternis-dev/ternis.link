@@ -101,12 +101,13 @@ Unknown fields are not persisted. Send the documented names exactly; there are n
 | `password` | string or null | 8–72 characters; stored as a hash, never returned |
 | `utm_source`, `utm_medium`, `utm_campaign` | string or null | Maximum 100 each; letters/digits/spaces/dots/dashes/underscores |
 | `user_tracking_enabled` | boolean or null | Default false; opt in to subscriber analytics |
+| `bot_protection` | boolean or null | Default false; requires Turnstile verification on protected.ternis.link before redirecting |
 
 Omit `slug` for automatic generation. Free-plan generated slugs have 5–9 characters. For eligible plans the selected length is bounded by the plan minimum (at least 3) and maximum (normally 64); administrators may choose 3–64.
 
 ### Update fields
 
-PATCH and PUT both update supplied fields; neither replaces the entire resource. Mutable fields are `destination_url`, `description`, `expires_at`, `tags`, `og_title`, `og_description`, `og_image_url`, `password`, the three UTM fields, and `user_tracking_enabled`, with the same validation as creation. Also supported: `is_active` (boolean), `remove_password` (boolean), and `targets` (up to 20 targeting rules; see the legacy contract for nested rule fields). Slug and domain cannot be changed through this API. Clearing semantics vary by field; use `remove_password: true` to remove a password.
+PATCH and PUT both update supplied fields; neither replaces the entire resource. Mutable fields are `destination_url`, `description`, `expires_at`, `tags`, `og_title`, `og_description`, `og_image_url`, `password`, `bot_protection`, the three UTM fields, and `user_tracking_enabled`, with the same validation as creation. Also supported: `is_active` (boolean), `remove_password` (boolean), and `targets` (up to 20 targeting rules; see the legacy contract for nested rule fields). Slug and domain cannot be changed through this API. Clearing semantics vary by field; use `remove_password: true` to remove a password.
 
 ```bash
 curl --fail-with-body -X PATCH "https://links.t-api.de/v2/links/$LINK_ID" \

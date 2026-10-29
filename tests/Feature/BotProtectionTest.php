@@ -2,6 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Dashboard\LinkEditForm;
+use App\Livewire\Dashboard\LinkForm;
+use App\Livewire\Dashboard\LinkTable;
+use App\Models\ApiKey;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\User;
@@ -12,6 +16,8 @@ use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class BotProtectionTest extends TestCase
@@ -257,5 +263,108 @@ class BotProtectionTest extends TestCase
         $response->assertSee('protected.ternis.link', escape: false);
         $response->assertSee('Zero-Trust', escape: false);
         $response->assertSee('Bot Protection', escape: false);
+    }
+
+    public function test_api_can_create_and_update_bot_protected_link(): void
+    {
+        $apiKeyRaw = 'tl_'.Str::random(48);
+        ApiKey::create([
+            'user_id' => $this->user->id,
+            'key_hash' => hash('sha256', $apiKeyRaw),
+            'key_prefix' => substr($apiKeyRaw, 0, 8),
+            'api_version' => 1,
+            'name' => 'Bot Test Key',
+        ]);
+
+        $headers = [
+            'Authorization' => "Bearer {$apiKeyRaw}",
+            'Accept' => 'application/json',
+        ];
+
+        // 1. Create with bot_protection = true
+        $storeResponse = $this->postJson('http://links.t-api.de/v1/links', [
+            'destination_url' => 'https://example.com/api-bot-target',
+            'domain_id' => $this->domain->id,
+            'slug' => 'apibotlink',
+            'bot_protection' => true,
+        ], $headers);
+
+        $storeResponse->assertStatus(201);
+        $storeResponse->assertJsonPath('bot_protection', true);
+
+        $linkId = $storeResponse->json('id');
+        $this->assertDatabaseHas('links', [
+            'id' => $linkId,
+            'bot_protection' => true,
+        ]);
+
+        // 2. Filter by bot_protection=1
+        $listResponse = $this->getJson('http://links.t-api.de/v1/links?bot_protection=1', $headers);
+        $listResponse->assertStatus(200);
+        $this->assertCount(1, $listResponse->json('data'));
+
+        // 3. Update to bot_protection = false
+        $updateResponse = $this->putJson("http://links.t-api.de/v1/links/{$linkId}", [
+            'bot_protection' => false,
+        ], $headers);
+
+        $updateResponse->assertStatus(200);
+        $updateResponse->assertJsonPath('bot_protection', false);
+        $this->assertDatabaseHas('links', [
+            'id' => $linkId,
+            'bot_protection' => false,
+        ]);
+    }
+
+    public function test_livewire_forms_support_bot_protection(): void
+    {
+        $this->actingAs($this->user);
+
+        // Test LinkForm
+        Livewire::test(LinkForm::class)
+            ->set('destination_url', 'https://example.com/livewire-bot-target')
+            ->set('domain_id', $this->domain->id)
+            ->set('slug', 'lwbotlink')
+            ->set('bot_protection', true)
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $link = Link::where('slug', 'lwbotlink')->firstOrFail();
+        $this->assertTrue($link->bot_protection);
+
+        // Test LinkEditForm
+        Livewire::test(LinkEditForm::class, ['link' => $link])
+            ->assertSet('bot_protection', true)
+            ->set('bot_protection', false)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertFalse($link->fresh()->bot_protection);
+    }
+
+    public function test_link_table_filters_by_bot_protected_status(): void
+    {
+        $this->actingAs($this->user);
+
+        $protectedLink = Link::create([
+            'slug' => 'protected-filter-link',
+            'destination_url' => 'https://example.com/target1',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'bot_protection' => true,
+        ]);
+
+        $normalLink = Link::create([
+            'slug' => 'normal-filter-link',
+            'destination_url' => 'https://example.com/target2',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'bot_protection' => false,
+        ]);
+
+        Livewire::test(LinkTable::class)
+            ->set('statusFilter', 'bot_protected')
+            ->assertSee('protected-filter-link')
+            ->assertDontSee('normal-filter-link');
     }
 }
