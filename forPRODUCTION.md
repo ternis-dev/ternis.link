@@ -1,46 +1,170 @@
-# Production rollout notes
+# Production Rollout Guide
 
-These notes cover the changes introduced from `3b4a6e5` onward. A Git push does not deploy the application: the repository currently defines CI checks, not an automatic production deployment. Production availability, DNS, certificates and provider settings have not been verified from this workspace.
+These rollout notes cover the changes introduced from commit `f65f3eb` through `7311887`.
 
-## Apply on the production server
+> [!IMPORTANT]
+> A Git push to `master` does not automatically deploy the application. Production deployments require running the deployment sequence on the production host, executing database migrations, recompiling Vite assets, clearing framework caches, and restarting queue workers and process supervisors.
 
-Use the existing deployment process from the application checkout:
+---
 
-```sh
+## 1. Production Deployment Procedure
+
+Execute the deployment script from the application root directory on the production server:
+
+```bash
 bash scripts/deploy.sh
 php artisan queue:restart
 ```
 
-The deploy script pulls `master`, installs Composer dependencies, runs `migrate --force` and `deploy:check`, installs Node dependencies, builds Vite assets, clears framework caches and rebuilds the configuration cache. Queue workers must be managed by a process supervisor so they restart after `queue:restart`. Reload PHP-FPM/OPcache if required by your deployment configuration. For staged releases, build and migrate before switching traffic using your existing release procedure.
+### What `scripts/deploy.sh` does:
+1. `git pull origin master`: Pulls the latest commits.
+2. `composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader`: Updates PHP packages.
+3. `php artisan migrate --force`: Applies pending database migrations.
+4. `php artisan deploy:check`: Verifies critical environment keys, storage symlinks, and writable paths.
+5. `npm ci && npm run build`: Compiles production assets (Vite manifest entries in `public/build/`).
+6. `php artisan optimize:clear`: Clears stale route, view, and config caches.
+7. `php artisan config:cache`: Rebuilds the configuration cache.
+8. `php artisan view:clear`: Flushes cached Blade views.
 
-Do not skip `npm run build`: `public/build` is ignored by Git. The new dashboard requires the `meinlink-dashboard.css` and `meinlink-dashboard.js` manifest entries. Deploy the committed SVG favicons too. Keep the existing APP_KEY; changing it invalidates encrypted data and credentials.
+> [!WARNING]
+> Never skip `npm run build`: `public/build` is deliberately `.gitignore`d. Stale or missing manifests will cause 500 errors on pages requesting the updated JavaScript bundles (`stats.js`, `app.js`) and stylesheets.
+>
+> Ensure queue workers (`php artisan queue:work`) are managed by Supervisor or systemd so `php artisan queue:restart` gracefully reloads worker processes with the new codebase.
 
-## Domains and configuration
+---
 
-- Route `dash.meinlink.at` to the application and provision valid HTTPS. The committed Caddy configuration already includes `meinlink.at, *.meinlink.at`; confirm the deployed proxy and DNS actually cover the new host. The web root must be `public/`.
-- `DOMAIN_MEINLINK_DASHBOARD=dash.meinlink.at` is now documented in `.env.example`; this is also the default. Keep `DOMAIN_MEINLINK=meinlink.at` configured. If overriding the dashboard host, include that host in the domain map/SSO allowlist as well; changing the environment value alone does not register an arbitrary SSO destination.
-- Keep `dash.ternis.link` working as the SSO identity host. The German dashboard uses the existing one-time cross-domain handoff. Do not change the shared session cookie to `.meinlink.at`: middleware uses a host-only cookie outside the identity domain. Verify the full login and logout round trip over HTTPS.
-- Ensure `protected.ternis.link` resolves to this application with valid HTTPS. Keep `DOMAIN_PROTECTED` consistent with that host.
-- Configure `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`; allow the actual guest-form and protected-gateway hostnames in the Cloudflare widget configuration. Browser verification depends on these settings and `BOT_PROTECTION_ENABLED`. Missing keys must not be mistaken for a working human-verification deployment.
-- Confirm `AI_SECURITY_ENABLED`, `TYPESAFE_API_KEY` and `TYPESAFE_MODEL` are set as intended. Use the existing secret-management process; never commit credentials.
-- Keep the Laravel scheduler running every minute through the existing cron/service configuration. Scheduled commands prune encrypted IPs and expired session-token records. Keep queue workers running for click recording and link threat evaluation.
+## 2. Database Migrations
 
-## Database and behavior changes
+Two additive, zero-downtime migrations must be applied (`php artisan migrate --force`):
 
-Run all pending migrations before serving the new code. This dashboard increment adds no migration, but an older production checkout may still need the bot-protection and threat-evaluation migrations from October 29. `deploy:check` is a required gate.
+1. **`2026_10_30_000001_add_bypass_ai_check_to_api_keys_table.php`**:
+   - Adds indexed boolean column `bypass_ai_check` (default `false`) to `api_keys`.
+   - Allows administrators to grant selected API keys an exemption from automated TypeSafe AI threat scanning.
 
-- URL scans from public forms, APIs and the admin sandbox now persist in `threat_evaluations`, including cache hits, invalid/blocked destinations and provider-unavailable/error outcomes. Link-evaluation failures are also recorded. Monitor database growth: these records currently have no automatic deletion schedule. Standalone scans use `action_taken=scanned`; their recommendations do not mean a link was quarantined.
-- Public quarantine totals now include legacy quarantine-tagged links without a matching recorded action. This cannot reconstruct links deleted before logging existed. Totals describe recorded actions plus unmatched tagged links, rather than unique currently blocked links. The overview uses a new cache key; other aggregates can remain cached for ten minutes.
-- Public stats now include Activity and Security pages with Markdown versions. Metric cards display counts beside labels. The protected gateway uses monochrome icons and updated verification guidance.
-- `dash.meinlink.at` has its own German UI, restricted to the signed-in user's meinlink.at links: create/edit, sorting/search, pause/reactivation, QR downloads, statistics for 7/30/90 days and aggregate CSV export. Passwords are hashed through the existing service. Empty password fields preserve existing passwords; removal is explicit. Quarantined links cannot be edited/reactivated here; expired paused links need their expiry changed before activation.
-- Terms and Privacy Policy now list configured domains and disclose AI checks, scan logging, verification cookies and attribution. HTML and Markdown read the same source files. Publish the required change notice through your normal process; verify the actual processor/transfer arrangements match the notices. Legal pages remain English and are labelled accordingly in the German UI.
+2. **`2026_10_30_000002_add_health_check_fields_to_links_table.php`**:
+   - Adds health monitoring fields to `links`:
+     - `health_check_enabled` (boolean, indexed, default `false`)
+     - `last_health_check_at` (timestamp, indexed, nullable)
+     - `health_status` (string `healthy` | `degraded` | `unreachable`, indexed, nullable)
+     - `health_status_code` (unsigned smallint, nullable)
+     - `health_response_time_ms` (unsigned integer, nullable)
+     - `health_error` (string 500 chars, nullable)
 
-## Smoke tests after rollout
+Both migrations are non-blocking on SQLite, PostgreSQL, and MySQL.
 
-1. Open `https://dash.meinlink.at/login`: German UI, styles and JavaScript load without manifest errors. Sign in through the identity host and confirm return to the German dashboard. Sign out and confirm access requires login again.
-2. Create a meinlink.at link, copy it, inspect its details, edit it and download a PNG QR code. Other accounts' links and links on other domains must remain inaccessible.
-3. Set a password, verify the destination requires it, then change/remove it. Enable browser verification and complete a real Turnstile check. Verify quarantined links stay blocked and expired links do not resume until expiry is fixed.
-4. Check statistics across date ranges and download the CSV; confirm only the account's meinlink.at traffic appears.
-5. Run a URL scan twice and inspect the admin threat log: both requests should have records, with the second marked cached where applicable. A recommendation must not increase quarantine-action totals. Confirm provider-unavailable results are clearly unverified.
-6. Open `/pages/stats`, `/pages/stats/activity`, `/pages/stats/security`, the legal pages and their `.md` versions on ternis.link. Check the protected gateway icon and verification flow.
-7. Inspect application/queue logs and failed jobs after rollout. Confirm scheduler and workers are alive. A successful Git push or CI build alone does not establish production health.
+---
+
+## 3. Scheduled Tasks (`routes/console.php`)
+
+Ensure the system cron daemon is actively invoking the Laravel scheduler every minute:
+```crontab
+* * * * * cd /path/to/ternis.link && php artisan schedule:run >> /dev/null 2>&1
+```
+
+The scheduler now manages:
+- **`security:scan-existing --unscanned-only --limit=25 --delay-ms=500`** (*Hourly*):
+  - Audits pre-existing links in small, rate-limited chunks against TypeSafe AI. Automatically activates when `config('ai_security.enabled')` is `true`.
+- **`links:check-health --limit=100 --delay-ms=100`** (*Every 6 hours*):
+  - Probes opted-in link destination URLs (`health_check_enabled = true`) to detect broken destinations and high latency.
+- Existing daily jobs: `links:deactivate-expired`, `bio:deactivate-expired`, `privacy:prune-ips`, `privacy:prune-session-tokens`, and Spatie database backups.
+
+---
+
+## 4. Key Architectural Changes & Features
+
+### A. Frontend Stats Caching & Web API Live Telemetry
+- Public stats pages (`/pages/stats`, `/pages/stats/activity`, `/pages/stats/security`, `/pages/stats/domains`) preload HTML views in the browser client and poll `GET /pages/stats/data` every ~45 seconds.
+- Uses HTTP conditional `ETag` / `304 Not Modified` headers to conserve server bandwidth.
+- Automatically pauses polling when the browser tab is hidden using the Page Visibility API.
+- Configured via [`config/stats.php`](file:///Users/fabianternis/Code/GitHub/ternis-dev/ternis.link/config/stats.php).
+
+### B. Safe Preview Trigger (`/{slug}+`)
+- Appending `+` to any active slug URL (e.g., `https://href.nz/demo+` or `https://clicked.at/launch+`) halts the automated redirect and presents a sandboxed safety preview card with target destination, safety breakdown, and AI threat triage score.
+- Route regex updated to allow the trailing `+` character without interfering with vanity slugs.
+
+### C. Optional Link Health Monitoring
+- Users can enable health checks per link in the dashboard link form, link edit modal, or via API v1/v2 (`health_check_enabled: true`).
+- Probes destination URLs with HTTP `HEAD` (falling back to `GET`), 5-second timeout, and max 3 redirects.
+- In-place "Test" and "Re-check" controls in the dashboard [`LinkTable`](file:///Users/fabianternis/Code/GitHub/ternis-dev/ternis.link/app/Livewire/Dashboard/LinkTable.php) provide real-time latency diagnostics.
+- Sends throttled security alert notifications to the link owner (maximum 1 notification per 12 hours) if destination URLs become unreachable.
+
+### D. Security Audit Log Export (Admin Threat Inspector)
+- Administrators can export filtered AI threat evaluations and security audit records in **CSV** or **JSON** format at `http://admin.ternis.link/threats/export?format=csv|json`.
+- Formula injection protection: all user-controlled text starting with `=`, `+`, `-`, `@`, `\t`, or `\r` is sanitized with a prepended apostrophe `'`.
+- IP Privacy Invariant: Exports contain only salted SHA-256 IP hashes (`creator_ip_hash`), preventing raw IP leakage.
+
+### E. Admin AI-Exempt API Keys & Threat Moderation
+- Administrators can assign `bypass_ai_check` to specific API keys to skip automated AI threat triage for automated internal workflows or trusted pipelines.
+- Threat Inspector (`admin.ternis.link/threats`) includes inline "Unquarantine" and "Rescan" actions.
+- Link Moderation Livewire component supports filtering by "Quarantined" status.
+
+---
+
+## 5. Environment & Service Configuration Checklist
+
+Verify the following environment variables in `.env`:
+
+```env
+# AI Security & Threat Detection (TypeSafe AI)
+AI_SECURITY_ENABLED=true
+TYPESAFE_API_KEY=your_typesafe_api_key
+TYPESAFE_MODEL=jev-latest
+
+# Bot Protection & Human Verification (Cloudflare Turnstile)
+BOT_PROTECTION_ENABLED=true
+TURNSTILE_SITE_KEY=your_turnstile_site_key
+TURNSTILE_SECRET_KEY=your_turnstile_secret_key
+
+# Host Pinning & Domains
+DOMAIN_ADMIN=admin.ternis.link
+DOMAIN_DASHBOARD=dash.ternis.link
+DOMAIN_MEINLINK_DASHBOARD=dash.meinlink.at
+DOMAIN_PROTECTED=protected.ternis.link
+DOMAIN_API_V1=links.t-api.de
+DOMAIN_PUBLIC=href.nz
+
+# Queue & Cache
+QUEUE_CONNECTION=database # or redis
+CACHE_STORE=database      # or redis
+```
+
+---
+
+## 6. Post-Deployment Smoke Tests
+
+Execute these verification checks immediately following deployment:
+
+1. **Database Schema**:
+   ```bash
+   php artisan migrate:status
+   ```
+   Confirm all migrations report `Ran: Yes`.
+
+2. **Vite Assets & Manifest**:
+   - Open `https://ternis.link/pages/stats` in a browser.
+   - Inspect network panel: verify `stats.js` loads, live stat counts animate, and polling requests to `/pages/stats/data` return `200` (or `304 Not Modified`).
+
+3. **Safe Preview Trigger**:
+   - Open `https://href.nz/<any-valid-slug>+` in a browser.
+   - Verify the safe preview card renders with destination URL and AI threat evaluation badge instead of redirecting.
+
+4. **Link Health**:
+   - Open the dashboard at `https://dash.ternis.link/links`.
+   - Toggle on the "Health" column in the table column selector.
+   - Click "Test" on an opted-in link; verify latency badge appears with green/amber dot and toast confirmation.
+   - Run artisan dry-run check:
+     ```bash
+     php artisan links:check-health --limit=5 --dry-run
+     ```
+
+5. **Security Audit Log Export**:
+   - Sign in as an administrator to `https://admin.ternis.link/threats`.
+   - Click the "CSV" and "JSON" export buttons in the filter bar.
+   - Confirm downloaded files contain correct headers, sanitized formula cells, and salted IP hashes.
+
+6. **Queue & Background Workers**:
+   - Check supervisor or queue status:
+     ```bash
+     php artisan queue:monitor default
+     ```
+   - Ensure jobs in `jobs` or `failed_jobs` are healthy and processing normally.
