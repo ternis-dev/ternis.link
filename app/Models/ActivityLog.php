@@ -75,6 +75,8 @@ class ActivityLog extends Model
 
     public const SYSTEM_JUNK_LINKS_PURGED = 'system.junk_links_purged';
 
+    public const SYSTEM_THREAT_SCAN_COMPLETED = 'system.threat_scan_completed';
+
     /**
      * Append-only audit rows: created_at is set by the database,
      * updated_at does not exist.

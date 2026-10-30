@@ -147,9 +147,11 @@ class AiThreatDetectionService
         $destinationHost = (string) parse_url($destinationUrl, PHP_URL_HOST);
         $creatorIpHash = (string) ($link->creator_ip_hash ?? $context['creator_ip_hash'] ?? '');
         $userAgent = $context['user_agent'] ?? null;
+        $dryRun = (bool) ($context['dry_run'] ?? false);
+        $evaluationType = (string) ($context['evaluation_type'] ?? 'link_creation');
 
         // Check for burst attack velocity first
-        if ($creatorIpHash !== '') {
+        if ($creatorIpHash !== '' && empty($context['skip_burst_check'])) {
             $burstVerdict = $this->checkBurstVelocity($creatorIpHash, $link);
             if ($burstVerdict !== null) {
                 return $burstVerdict;
@@ -226,90 +228,101 @@ class AiThreatDetectionService
 
             if ($isMalwareVerdict || $isHighThreatPhishing || $isSuspiciousPayload || $isOverQuarantineScore) {
                 $actionTaken = 'quarantined';
-                $tags = is_array($link->tags) ? $link->tags : [];
-                if (! in_array('quarantine', $tags, true)) {
-                    $tags[] = 'quarantine';
-                }
-                if (! in_array($verdict, $tags, true)) {
-                    $tags[] = $verdict;
-                }
-                $link->update([
-                    'is_active' => false,
-                    'tags' => $tags,
-                ]);
-                Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+                if (! $dryRun) {
+                    $tags = is_array($link->tags) ? $link->tags : [];
+                    if (! in_array('quarantine', $tags, true)) {
+                        $tags[] = 'quarantine';
+                    }
+                    if (! in_array($verdict, $tags, true)) {
+                        $tags[] = $verdict;
+                    }
+                    $link->update([
+                        'is_active' => false,
+                        'tags' => $tags,
+                    ]);
+                    Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
 
-                if ($link->user_id !== null) {
-                    $owner = $link->relationLoaded('user') ? $link->user : User::find($link->user_id);
-                    if ($owner) {
-                        $appealUrl = DomainUrls::hasPublicDashboard($link->domain?->hostname ?? '')
-                            ? DomainUrls::publicDashboard('/appeals/create?link='.$link->id)
-                            : DomainUrls::dashboard('/appeals/create?link='.$link->id);
+                    if ($link->user_id !== null) {
+                        $owner = $link->relationLoaded('user') ? $link->user : User::find($link->user_id);
+                        if ($owner) {
+                            $appealUrl = DomainUrls::hasPublicDashboard($link->domain?->hostname ?? '')
+                                ? DomainUrls::publicDashboard('/appeals/create?link='.$link->id)
+                                : DomainUrls::dashboard('/appeals/create?link='.$link->id);
 
-                        Notifier::security(
-                            $owner,
-                            '⚠️ Security Alert: Link Quarantined as '.ucfirst($verdict),
-                            [
-                                "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as {$verdict} (threat score: {$threatScore}/100).",
-                                'To protect visitors, this link has been automatically quarantined and deactivated.',
-                                'If you believe this is a false positive, you can submit a spam appeal for review.',
-                            ],
-                            $appealUrl,
-                            'Submit Spam Appeal'
-                        );
+                            Notifier::security(
+                                $owner,
+                                '⚠️ Security Alert: Link Quarantined as '.ucfirst($verdict),
+                                [
+                                    "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as {$verdict} (threat score: {$threatScore}/100).",
+                                    'To protect visitors, this link has been automatically quarantined and deactivated.',
+                                    'If you believe this is a false positive, you can submit a spam appeal for review.',
+                                ],
+                                $appealUrl,
+                                'Submit Spam Appeal'
+                            );
+                        }
                     }
                 }
             } elseif ($threatScore >= $botProtectThreshold && in_array($verdict, ['spam', 'phishing', 'malware'])) {
                 $actionTaken = 'bot_protected';
-                if (! $link->bot_protection) {
-                    $link->update(['bot_protection' => true]);
-                    Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
-                }
+                if (! $dryRun) {
+                    if (! $link->bot_protection) {
+                        $link->update(['bot_protection' => true]);
+                        Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+                    }
 
-                if ($link->user_id !== null) {
-                    $owner = $link->relationLoaded('user') ? $link->user : User::find($link->user_id);
-                    if ($owner) {
-                        $appealUrl = DomainUrls::hasPublicDashboard($link->domain?->hostname ?? '')
-                            ? DomainUrls::publicDashboard('/appeals/create?link='.$link->id)
-                            : DomainUrls::dashboard('/appeals/create?link='.$link->id);
+                    if ($link->user_id !== null) {
+                        $owner = $link->relationLoaded('user') ? $link->user : User::find($link->user_id);
+                        if ($owner) {
+                            $appealUrl = DomainUrls::hasPublicDashboard($link->domain?->hostname ?? '')
+                                ? DomainUrls::publicDashboard('/appeals/create?link='.$link->id)
+                                : DomainUrls::dashboard('/appeals/create?link='.$link->id);
 
-                        Notifier::security(
-                            $owner,
-                            '⚠️ Security Warning: AI Spam Triage Triggered',
-                            [
-                                "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as suspected {$verdict} (threat score: {$threatScore}/100).",
-                                'Automated bot protection was enabled to challenge suspicious visitors.',
-                                'You can adjust link protection settings or submit a spam appeal if this is a false positive.',
-                            ],
-                            $appealUrl,
-                            'Submit Spam Appeal'
-                        );
+                            Notifier::security(
+                                $owner,
+                                '⚠️ Security Warning: AI Spam Triage Triggered',
+                                [
+                                    "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as suspected {$verdict} (threat score: {$threatScore}/100).",
+                                    'Automated bot protection was enabled to challenge suspicious visitors.',
+                                    'You can adjust link protection settings or submit a spam appeal if this is a false positive.',
+                                ],
+                                $appealUrl,
+                                'Submit Spam Appeal'
+                            );
+                        }
                     }
                 }
             }
 
-            return ThreatEvaluation::create([
+            $evalAttributes = [
                 'link_id' => $link->id,
                 'user_id' => $link->user_id,
                 'creator_ip_hash' => $creatorIpHash,
                 'destination_url' => $destinationUrl,
                 'destination_host' => $destinationHost,
                 'user_agent' => $userAgent,
-                'evaluation_type' => 'link_creation',
+                'evaluation_type' => $evaluationType,
                 'verdict' => $verdict,
                 'threat_score' => $threatScore,
                 'confidence' => $confidence,
                 'action_taken' => $actionTaken,
-                'reasoning' => sprintf('Verdict %s with score %d/100 (action: %s)', $verdict, $threatScore, $actionTaken),
+                'reasoning' => sprintf('Verdict %s with score %d/100 (action: %s)%s', $verdict, $threatScore, $actionTaken, $dryRun ? ' [DRY RUN]' : ''),
                 'metadata' => [
                     'model' => $model,
                     'probabilities' => $verdictAnswer->probabilities ?? [],
                     'score_probabilities' => $scoreAnswer->probabilities ?? [],
                     'raw_score' => $rawScore,
                     'prompt_state' => $state,
+                    'dry_run' => $dryRun,
                     'evaluated_at' => now()->toIso8601String(),
                 ],
-            ]);
+            ];
+
+            if ($dryRun) {
+                return new ThreatEvaluation($evalAttributes);
+            }
+
+            return ThreatEvaluation::create($evalAttributes);
         } catch (\Throwable $e) {
             $this->recordLinkScanFailure($link, $context, 'error');
             Log::warning('TypeSafe AI threat evaluation failed: '.$e->getMessage(), [
@@ -323,6 +336,10 @@ class AiThreatDetectionService
 
     private function recordLinkScanFailure(Link $link, array $context, string $status): void
     {
+        if (! empty($context['dry_run'])) {
+            return;
+        }
+
         ThreatEvaluation::create([
             'link_id' => $link->id,
             'user_id' => $link->user_id,
@@ -330,7 +347,7 @@ class AiThreatDetectionService
             'destination_url' => $link->destination_url,
             'destination_host' => (string) parse_url($link->destination_url, PHP_URL_HOST),
             'user_agent' => $context['user_agent'] ?? null,
-            'evaluation_type' => 'link_creation',
+            'evaluation_type' => $context['evaluation_type'] ?? 'link_creation',
             'verdict' => 'unverified',
             'threat_score' => 0,
             'confidence' => 0,
