@@ -11,6 +11,7 @@ use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -192,6 +193,30 @@ class MeinlinkDashboardTest extends TestCase
         // error bags cannot be reused from a different in-memory session ID.
         $this->withCookie(config('session.cookie'), session()->getId())
             ->get('http://dash.meinlink.at/new')->assertOk()->assertSee('id="slug-error"', false);
+    }
+
+    public function test_link_protection_can_be_created_changed_and_removed(): void
+    {
+        $this->actingAs($this->user)->post('http://dash.meinlink.at/links', [
+            'destination_url' => 'https://example.com/protected',
+            'password' => 'initial-password', 'bot_protection' => '1',
+        ])->assertRedirect();
+        $link = $this->user->links()->firstOrFail();
+        $this->assertTrue(Hash::check('initial-password', $link->password_hash));
+        $this->assertTrue($link->bot_protection);
+        $this->get('http://dash.meinlink.at/links/'.$link->id.'/edit')->assertOk()->assertDontSee('initial-password')->assertDontSee($link->password_hash);
+        $this->put('http://dash.meinlink.at/links/'.$link->id, [
+            'destination_url' => $link->destination_url, 'password' => '', 'bot_protection' => '0',
+        ])->assertRedirect();
+        $this->assertNotNull($link->fresh()->password_hash);
+        $this->assertFalse($link->fresh()->bot_protection);
+        $this->put('http://dash.meinlink.at/links/'.$link->id, [
+            'destination_url' => $link->destination_url, 'remove_password' => '1',
+        ])->assertRedirect();
+        $this->assertNull($link->fresh()->password_hash);
+        $this->post('http://dash.meinlink.at/links', [
+            'destination_url' => 'https://example.com/invalid', 'password' => 'short',
+        ])->assertSessionHasErrors('password');
     }
 
     public function test_quarantined_links_cannot_be_edited_or_reactivated(): void

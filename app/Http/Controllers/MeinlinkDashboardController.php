@@ -72,9 +72,15 @@ class MeinlinkDashboardController extends Controller
         return $request->validate([
             'destination_url' => ['required', 'url:http,https', 'max:'.LinkService::PUBLIC_MAX_URL_LENGTH],
             'description' => ['nullable', 'string', 'max:255'],
+            'password' => ['nullable', 'string', 'min:8', 'max:128', 'prohibits:remove_password'],
+            'remove_password' => ['sometimes', 'boolean'],
+            'bot_protection' => ['sometimes', 'boolean'],
             'slug' => $create ? ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/'] : ['prohibited'],
             'expires_at' => ['nullable', 'date', 'after:now'],
         ], [
+            'password.min' => 'Das Passwort muss mindestens 8 Zeichen enthalten.',
+            'password.prohibits' => 'Bitte wähle entweder ein neues Passwort oder entferne das bestehende.',
+            'boolean' => 'Bitte wähle eine gültige Einstellung.',
             'required' => 'Bitte fülle dieses Feld aus.',
             'destination_url.url' => 'Bitte gib eine gültige Adresse mit https:// oder http:// ein.',
             'max' => 'Dieser Wert ist zu lang (maximal :max Zeichen).',
@@ -94,6 +100,8 @@ class MeinlinkDashboardController extends Controller
                 customSlug: $data['slug'] ?? null,
                 expiresAt: empty($data['expires_at']) ? null : new \DateTimeImmutable($data['expires_at']),
                 description: $data['description'] ?? null,
+                password: $data['password'] ?? null,
+                botProtection: (bool) ($data['bot_protection'] ?? false),
             );
         } catch (DailyLinkLimitException $e) {
             throw ValidationException::withMessages(['destination_url' => 'Dein tägliches Link-Kontingent ist aufgebraucht. Bitte versuche es nach dem nächsten Tageswechsel erneut.']);
