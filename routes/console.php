@@ -14,6 +14,11 @@ Schedule::command('privacy:prune-ips')->daily();
 Schedule::command('privacy:prune-session-tokens')->daily();
 Schedule::command('env:backup')->dailyAt('03:00');
 
+// Background rate-limited triage for unscanned links
+Schedule::command('security:scan-existing', ['--unscanned-only', '--limit=25', '--delay-ms=500'])
+    ->hourly()
+    ->when(fn () => (bool) config('ai_security.enabled', false));
+
 // Spatie backups
 Schedule::command('backup:clean')->dailyAt('01:00');
 Schedule::command('backup:run')->dailyAt('01:30');
