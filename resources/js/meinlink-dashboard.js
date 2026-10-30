@@ -26,3 +26,14 @@ document.addEventListener('click', async (event) => {
         input.select();
     }
 });
+
+for (const button of document.querySelectorAll('[data-password-toggle]')) {
+    button.hidden = false;
+    button.addEventListener('click', () => {
+        const input = document.getElementById(button.dataset.passwordToggle);
+        const visible = input.type === 'password';
+        input.type = visible ? 'text' : 'password';
+        button.setAttribute('aria-pressed', String(visible));
+        button.textContent = visible ? 'Passwort verbergen' : 'Passwort anzeigen';
+    });
+}
