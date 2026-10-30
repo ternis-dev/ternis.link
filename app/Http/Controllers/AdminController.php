@@ -14,6 +14,9 @@ use App\Models\User;
 use App\Services\AdminStatsService;
 use App\Services\AiThreatDetectionService;
 use App\Services\LinkInsights;
+use App\Support\Activity;
+use App\Support\DomainUrls;
+use App\Support\Notifier;
 use Illuminate\Http\Request;
 use TypeSafeAI\SystemOneRequest;
 
@@ -69,7 +72,7 @@ class AdminController extends Controller
      */
     public function threats(Request $request, AiThreatDetectionService $threatService)
     {
-        $query = ThreatEvaluation::query()->with(['link.domain', 'user']);
+        $query = ThreatEvaluation::query()->with(['link.domain', 'link.apiKey.user', 'user']);
 
         if ($verdict = $request->query('verdict')) {
             $query->where('verdict', $verdict);
@@ -77,6 +80,14 @@ class AdminController extends Controller
 
         if ($action = $request->query('action')) {
             $query->where('action_taken', $action);
+        }
+
+        if ($type = $request->query('type')) {
+            $query->where('evaluation_type', $type);
+        }
+
+        if ($request->boolean('bypassed')) {
+            $query->whereHas('link.apiKey', fn ($q) => $q->where('bypass_ai_check', true));
         }
 
         if ($search = $request->query('search')) {
@@ -97,9 +108,67 @@ class AdminController extends Controller
             'avg_score' => (int) round((float) ThreatEvaluation::avg('threat_score')),
             'model_name' => config('ai_security.model', 'jev-latest'),
             'ai_enabled' => $threatService->isEnabled() && $threatService->getClient() !== null,
+            'bypassed_admin_keys' => ApiKey::where('bypass_ai_check', true)->whereHas('user', fn ($q) => $q->where('role', 'admin'))->count(),
         ];
 
         return view('admin.threats', compact('evaluations', 'stats'));
+    }
+
+    /**
+     * Unquarantine and restore a flagged link directly from the threats inspector.
+     */
+    public function unquarantineLink(Link $link)
+    {
+        $tags = is_array($link->tags) ? $link->tags : [];
+        $tags = array_values(array_diff($tags, ['quarantine', 'malware', 'phishing', 'spam']));
+        if (! in_array('admin_cleared', $tags, true)) {
+            $tags[] = 'admin_cleared';
+        }
+
+        $link->update([
+            'is_active' => true,
+            'tags' => $tags,
+        ]);
+
+        Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+
+        Activity::record(ActivityLog::ADMIN_LINK_REACTIVATED, auth()->user(), $link, [
+            'slug' => $link->slug,
+            'reason' => 'Threat quarantine cleared by admin inspector',
+        ]);
+
+        if ($link->user) {
+            Notifier::security(
+                $link->user,
+                'Security Status Updated: Link Restored',
+                [
+                    "Your link \"/{$link->slug}\" pointing to \"{$link->destination_url}\" has been reviewed by an administrator and restored.",
+                    'The quarantine status has been removed and the link is active again.',
+                ],
+                DomainUrls::dashboard('/links/'.$link->id),
+                'View Link'
+            );
+        }
+
+        return back()->with('success', "Link /{$link->slug} unquarantined and reactivated successfully.");
+    }
+
+    /**
+     * Re-evaluate a link on demand through TypeSafe AI.
+     */
+    public function rescanLink(Link $link, AiThreatDetectionService $threatService)
+    {
+        $evaluation = $threatService->evaluateLink($link, [
+            'force' => true,
+            'skip_burst_check' => true,
+            'evaluation_type' => 'admin_rescan',
+        ]);
+
+        if ($evaluation === null) {
+            return back()->with('error', "Could not rescan link /{$link->slug} (AI client unavailable or disabled).");
+        }
+
+        return back()->with('success', "Rescanned link /{$link->slug}: Verdict {$evaluation->verdict} (Score: {$evaluation->threat_score}/100, Action: {$evaluation->action_taken}).");
     }
 
     /**

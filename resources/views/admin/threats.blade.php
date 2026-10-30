@@ -8,8 +8,24 @@
                 <span class="h-2 w-2 rounded-full {{ $stats['ai_enabled'] ? 'bg-emerald-500' : 'bg-amber-500' }}"></span>
                 Model: <code class="font-mono text-violet-600 dark:text-violet-400">{{ $stats['model_name'] }}</code>
             </span>
+            <span class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold dark:border-neutral-800 dark:bg-neutral-900">
+                <span class="h-2 w-2 rounded-full {{ $stats['bypassed_admin_keys'] > 0 ? 'bg-violet-500' : 'bg-neutral-400' }}"></span>
+                AI-Exempt Keys: <strong class="text-neutral-900 dark:text-white">{{ $stats['bypassed_admin_keys'] }}</strong>
+            </span>
         </x-slot:actions>
     </x-ui.page-header>
+
+    {{-- Flash Notifications --}}
+    @if (session('success'))
+        <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
+            {{ session('error') }}
+        </div>
+    @endif
 
     {{-- Overview Stats --}}
     <div class="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -97,12 +113,13 @@
     {{-- Filter Bar --}}
     <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-2">
-            <a href="{{ route('admin.threats') }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ !request('verdict') && !request('action') ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400' }}">All</a>
+            <a href="{{ route('admin.threats') }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ !request('verdict') && !request('action') && !request('bypassed') ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400' }}">All</a>
             <a href="{{ route('admin.threats', ['verdict' => 'malware']) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ request('verdict') === 'malware' ? 'bg-rose-600 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400' }}">Malware</a>
             <a href="{{ route('admin.threats', ['verdict' => 'phishing']) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ request('verdict') === 'phishing' ? 'bg-orange-600 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400' }}">Phishing</a>
             <a href="{{ route('admin.threats', ['verdict' => 'spam']) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ request('verdict') === 'spam' ? 'bg-amber-600 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400' }}">Spam</a>
             <a href="{{ route('admin.threats', ['action' => 'quarantined']) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ request('action') === 'quarantined' ? 'bg-rose-700 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400' }}">Quarantined</a>
             <a href="{{ route('admin.threats', ['action' => 'bot_protected']) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ request('action') === 'bot_protected' ? 'bg-blue-600 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400' }}">Bot Protected</a>
+            <a href="{{ route('admin.threats', ['bypassed' => request('bypassed') ? null : 1]) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold transition {{ request('bypassed') ? 'bg-violet-600 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400' }}">Admin Key Exempt</a>
         </div>
 
         <form method="GET" action="{{ route('admin.threats') }}" class="flex items-center gap-2">
@@ -200,6 +217,51 @@
                                         <summary class="cursor-pointer text-violet-600 font-semibold dark:text-violet-400">View Full Raw Metadata JSON</summary>
                                         <pre class="mt-2 overflow-x-auto rounded bg-neutral-950 p-2.5 font-mono text-neutral-200">{!! json_encode($eval->metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) !!}</pre>
                                     </details>
+
+                                    @if ($eval->link)
+                                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+                                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                                                <span class="text-neutral-500">Short Link:</span>
+                                                <span class="font-mono font-semibold text-violet-600 dark:text-violet-400">/{{ $eval->link->slug }}</span>
+                                                <span @class([
+                                                    'rounded px-2 py-0.5 text-[10px] font-bold uppercase',
+                                                    'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300' => $eval->link->is_active,
+                                                    'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300' => ! $eval->link->is_active,
+                                                ])>
+                                                    {{ $eval->link->is_active ? 'Active' : 'Inactive / Quarantined' }}
+                                                </span>
+                                                @if ($eval->link->apiKey?->shouldBypassAi())
+                                                    <span class="rounded bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase text-violet-800 dark:bg-violet-900/40 dark:text-violet-300">
+                                                        Admin Key AI-Bypass
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <form method="POST" action="{{ route('admin.threats.rescan', $eval->link) }}" class="inline">
+                                                    @csrf
+                                                    <button
+                                                        type="submit"
+                                                        class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 transition-colors"
+                                                    >
+                                                        <svg class="h-3.5 w-3.5 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                                                        <span>Re-scan Link</span>
+                                                    </button>
+                                                </form>
+                                                @if (! $eval->link->is_active || in_array('quarantine', $eval->link->tags ?? []))
+                                                    <form method="POST" action="{{ route('admin.threats.unquarantine', $eval->link) }}" class="inline">
+                                                        @csrf
+                                                        <button
+                                                            type="submit"
+                                                            class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-500 shadow-sm transition-colors"
+                                                        >
+                                                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                                                            <span>Unquarantine &amp; Restore</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

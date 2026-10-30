@@ -22,6 +22,8 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
         Route::get('/insights', [AdminController::class, 'insights'])->name('insights');
         Route::get('/threats', [AdminController::class, 'threats'])->name('threats');
         Route::post('/threats/test', [AdminController::class, 'testThreatAi'])->name('threats.test');
+        Route::post('/threats/links/{link}/unquarantine', [AdminController::class, 'unquarantineLink'])->name('threats.unquarantine');
+        Route::post('/threats/links/{link}/rescan', [AdminController::class, 'rescanLink'])->name('threats.rescan');
         Route::get('/appeals', [AdminAppealController::class, 'index'])->name('appeals');
         Route::post('/appeals/{appeal}/approve', [AdminAppealController::class, 'approve'])->name('appeals.approve');
         Route::post('/appeals/{appeal}/reject', [AdminAppealController::class, 'reject'])->name('appeals.reject');

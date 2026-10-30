@@ -136,7 +136,7 @@ class AiThreatDetectionService
             return null;
         }
 
-        if ($link->api_key_id !== null) {
+        if ($link->api_key_id !== null && empty($context['force'])) {
             $apiKey = $link->relationLoaded('apiKey') ? $link->apiKey : $link->apiKey()->with('user')->first();
             if ($apiKey?->shouldBypassAi()) {
                 return null;
