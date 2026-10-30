@@ -91,6 +91,20 @@ class RedirectController extends Controller
             }
         }
 
+        // Trailing '+' or ?preview=1 triggers the safe preview sandbox on href.nz
+        if (str_ends_with($input, '+') || $request->has('preview')) {
+            $previewSlug = rtrim($input, '+');
+            if ($previewSlug !== '') {
+                $publicHost = (string) config('domains.public_host', 'href.nz');
+                $currentHost = explode(':', (string) $request->getHost())[0];
+                if ($currentHost === $publicHost) {
+                    return redirect()->route('redirect.preview', ['input' => $previewSlug]);
+                }
+
+                return redirect()->away("https://{$publicHost}/preview/{$previewSlug}");
+            }
+        }
+
         $type = $this->slugResolver->classify($input);
 
         if ($type === 'url') {

@@ -4,6 +4,16 @@
 - Threats Quarantined: {{ $stats['threats_quarantined'] }}
 - Bot protection enabled: {{ $stats['threats_bot_protected'] }}
 - Evaluations today: {{ $stats['threat_evaluations_today'] }}
+- Benign destinations: {{ $stats['threats_cleared'] ?? 0 }}
+- Average threat score: {{ ($stats['threats_avg_score'] ?? 0) }}/100
+
+@if (!empty($breakdown['categories']))
+## Threat classification breakdown
+
+@foreach ($breakdown['categories'] as $catKey => $cat)
+- {{ $cat['label'] }}: {{ $cat['percent'] }}% ({{ $cat['count'] }})
+@endforeach
+@endif
 
 ## Counting methodology
 

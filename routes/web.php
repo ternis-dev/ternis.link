@@ -721,7 +721,7 @@ Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(funct
     // this route to slug characters so href.nz/example.com cannot be
     // mistaken for an implicit direct URL.
     Route::middleware('ensure.domain:public,business,ternis,partner')->get('/{input}', [RedirectController::class, 'resolve'])
-        ->where('input', '^(?!v\d+$)[a-zA-Z0-9_-]+$')
+        ->where('input', '^(?!v\d+$)[a-zA-Z0-9_+-]+$')
         ->name('redirect.resolve');
 
     // Password unlock for protected slugs (POST only, throttled).

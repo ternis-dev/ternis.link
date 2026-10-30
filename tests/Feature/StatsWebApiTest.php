@@ -118,7 +118,7 @@ class StatsWebApiTest extends TestCase
 
         $this->get('http://ternis.link/pages/stats/data/security')
             ->assertOk()
-            ->assertJsonStructure(['overview', 'meta']);
+            ->assertJsonStructure(['overview', 'breakdown', 'meta']);
 
         $this->get('http://ternis.link/pages/stats/data/domains')
             ->assertOk()

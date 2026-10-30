@@ -118,6 +118,53 @@ class NetworkStats
                         ->whereNotIn('id', ThreatEvaluation::where('action_taken', 'quarantined')->whereNotNull('link_id')->select('link_id'))
                         ->count(),
                 'threats_bot_protected' => ThreatEvaluation::where('action_taken', 'bot_protected')->count(),
+                'threats_cleared' => ThreatEvaluation::where('action_taken', 'cleared')->count(),
+                'threats_avg_score' => (int) round((float) ThreatEvaluation::avg('threat_score')),
+            ];
+        });
+    }
+
+    /**
+     * Triage categories and distribution across TypeSafe AI evaluations.
+     *
+     * @return array{total: int, avg_score: int, categories: array<string, array{count: int, percent: float, label: string}>}
+     */
+    public static function securityBreakdown(): array
+    {
+        return Cache::remember('stats:security-breakdown:v1', (int) config('stats.overview_ttl', 45), function () {
+            $totalEvaluations = ThreatEvaluation::count();
+            $divisor = max(1, $totalEvaluations);
+
+            $malware = ThreatEvaluation::where('verdict', 'malware')->count();
+            $phishing = ThreatEvaluation::where('verdict', 'phishing')->count();
+            $spam = ThreatEvaluation::where('verdict', 'spam')->count();
+            $safe = ThreatEvaluation::where('verdict', 'safe')->count();
+
+            return [
+                'total' => $totalEvaluations,
+                'avg_score' => (int) round((float) ThreatEvaluation::avg('threat_score')),
+                'categories' => [
+                    'safe' => [
+                        'count' => $safe,
+                        'percent' => round(($safe / $divisor) * 100, 1),
+                        'label' => 'Safe / Benign',
+                    ],
+                    'spam' => [
+                        'count' => $spam,
+                        'percent' => round(($spam / $divisor) * 100, 1),
+                        'label' => 'Promotional Spam',
+                    ],
+                    'phishing' => [
+                        'count' => $phishing,
+                        'percent' => round(($phishing / $divisor) * 100, 1),
+                        'label' => 'Phishing / Deceptive',
+                    ],
+                    'malware' => [
+                        'count' => $malware,
+                        'percent' => round(($malware / $divisor) * 100, 1),
+                        'label' => 'Malware / Exploits',
+                    ],
+                ],
             ];
         });
     }

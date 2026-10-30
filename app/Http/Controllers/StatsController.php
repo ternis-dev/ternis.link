@@ -129,12 +129,18 @@ class StatsController extends Controller
             return $this->data($request, 'security');
         }
 
-        return view('pages.stats.security', ['stats' => NetworkStats::overview()]);
+        return view('pages.stats.security', [
+            'stats' => NetworkStats::overview(),
+            'breakdown' => NetworkStats::securityBreakdown(),
+        ]);
     }
 
     public function securityMd()
     {
-        return response()->view('pages.stats.security-md', ['stats' => NetworkStats::overview()], 200, ['Content-Type' => self::MARKDOWN]);
+        return response()->view('pages.stats.security-md', [
+            'stats' => NetworkStats::overview(),
+            'breakdown' => NetworkStats::securityBreakdown(),
+        ], 200, ['Content-Type' => self::MARKDOWN]);
     }
 
     /**
@@ -195,12 +201,17 @@ class StatsController extends Controller
             ],
             'security' => [
                 'overview' => $overview,
+                'breakdown' => NetworkStats::securityBreakdown(),
             ],
             'domains' => [
                 'domains' => $domainList,
             ],
             default => [
                 'overview' => $overview,
+                'security' => [
+                    'overview' => $overview,
+                    'breakdown' => NetworkStats::securityBreakdown(),
+                ],
                 'charts' => [
                     'creations' => $creations,
                     'clicks' => $clicks,

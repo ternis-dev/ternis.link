@@ -290,7 +290,7 @@ function updateNavActiveTab(activePath) {
  * Update a single stat KPI number with subtle pulse animation.
  */
 function updateStatValue(key, numericValue) {
-    const formatted = Number(numericValue).toLocaleString();
+    const formatted = key === 'threats_avg_score' ? `${numericValue}/100` : Number(numericValue).toLocaleString();
     const selectors = [
         `[data-stat-value="${key}"]`,
         `[data-stat-key="${key}"] [data-stat-value]`,
@@ -418,6 +418,26 @@ function applyStatsData(data) {
             const badge = document.querySelector(`[data-heatmap-tab-total="${mKey}"]`);
             if (badge && summary.calendarTotal !== undefined) {
                 badge.textContent = Number(summary.calendarTotal).toLocaleString();
+            }
+        }
+    }
+
+    // 6. Security Page Breakdown Bars & Triage KPIs
+    const securityBreakdown = data.security?.breakdown || data.breakdown;
+    if (securityBreakdown?.categories) {
+        for (const [catKey, cat] of Object.entries(securityBreakdown.categories)) {
+            const bar = document.querySelector(`[data-cat-bar="${catKey}"]`);
+            if (bar) {
+                bar.style.width = `${Math.max(1, cat.percent)}%`;
+                bar.title = `${cat.label}: ${cat.percent}% (${Number(cat.count).toLocaleString()})`;
+            }
+            const percentEl = document.querySelector(`[data-cat-percent="${catKey}"]`);
+            if (percentEl) {
+                percentEl.textContent = `${cat.percent}%`;
+            }
+            const countEl = document.querySelector(`[data-cat-count="${catKey}"]`);
+            if (countEl) {
+                countEl.textContent = Number(cat.count).toLocaleString();
             }
         }
     }

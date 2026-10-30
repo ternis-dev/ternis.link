@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\ThreatEvaluation;
 use App\Models\User;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
@@ -97,5 +98,82 @@ class PreviewTest extends TestCase
         $this->actingAs($user)
             ->get("http://ternis.link/preview/{$link->slug}")
             ->assertStatus(404);
+    }
+
+    public function test_trailing_plus_on_slug_redirects_to_safe_preview(): void
+    {
+        $link = Link::create([
+            'slug' => 'safety-check',
+            'destination_url' => 'https://example.com/some-page',
+            'domain_id' => $this->publicDomain->id,
+            'is_active' => true,
+        ]);
+
+        $this->get('http://href.nz/safety-check+')
+            ->assertRedirect('http://href.nz/preview/safety-check');
+
+        $this->get('http://href.nz/safety-check?preview=1')
+            ->assertRedirect('http://href.nz/preview/safety-check');
+    }
+
+    public function test_preview_shows_ai_verified_safe_badge(): void
+    {
+        $link = Link::create([
+            'slug' => 'safe-link',
+            'destination_url' => 'https://example.com/safe-page',
+            'domain_id' => $this->publicDomain->id,
+            'is_active' => true,
+        ]);
+
+        ThreatEvaluation::create([
+            'link_id' => $link->id,
+            'destination_url' => $link->destination_url,
+            'destination_host' => 'example.com',
+            'creator_ip_hash' => hash('sha256', '127.0.0.1'),
+            'evaluation_type' => 'link_creation',
+            'verdict' => 'safe',
+            'threat_score' => 0,
+            'confidence' => 0.99,
+            'action_taken' => 'cleared',
+        ]);
+
+        $response = $this->get('http://href.nz/preview/safe-link')
+            ->assertStatus(200);
+
+        $response->assertSee('TypeSafe AI Verified');
+        $response->assertSee('0/100');
+        $response->assertSee('Visit link');
+    }
+
+    public function test_preview_shows_quarantine_warning_and_disables_destination_visit(): void
+    {
+        $link = Link::create([
+            'slug' => 'malicious-link',
+            'destination_url' => 'https://example.com/phish-portal',
+            'domain_id' => $this->publicDomain->id,
+            'is_active' => false,
+            'tags' => ['quarantine', 'phishing'],
+        ]);
+
+        ThreatEvaluation::create([
+            'link_id' => $link->id,
+            'destination_url' => $link->destination_url,
+            'destination_host' => 'example.com',
+            'creator_ip_hash' => hash('sha256', '127.0.0.1'),
+            'evaluation_type' => 'link_creation',
+            'verdict' => 'phishing',
+            'threat_score' => 92,
+            'confidence' => 0.98,
+            'action_taken' => 'quarantined',
+            'reasoning' => 'Deceptive credential harvester login template detected.',
+        ]);
+
+        $response = $this->get('http://href.nz/preview/malicious-link')
+            ->assertStatus(200);
+
+        $response->assertSee('Security Alert: Malicious or Deceptive Destination');
+        $response->assertSee('92/100');
+        $response->assertSee('Destination Quarantined');
+        $response->assertDontSee('Visit link');
     }
 }

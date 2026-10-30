@@ -44,11 +44,46 @@
                 @endif
                 <div class="flex justify-between gap-4">
                     <dt class="text-neutral-500 dark:text-neutral-400">Safety check</dt>
-                    <dd class="text-right font-medium {{ $junkReasons !== [] ? 'text-red-600 dark:text-red-400' : '' }}">
-                        {{ $junkReasons !== [] ? 'Flagged — see below' : 'No known risk patterns' }}
+                    <dd class="text-right font-medium {{ ($threat && (in_array($threat->verdict, ['malware', 'phishing']) || $threat->action_taken === 'quarantined')) || $junkReasons !== [] ? 'text-red-600 dark:text-red-400 font-bold' : ($threat && $threat->verdict === 'spam' ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-emerald-600 dark:text-emerald-400') }}">
+                        @if ($threat)
+                            @if (in_array($threat->verdict, ['malware', 'phishing']) || $threat->action_taken === 'quarantined')
+                                High Risk: {{ ucfirst($threat->verdict) }} ({{ $threat->threat_score }}/100)
+                            @elseif ($threat->verdict === 'spam' || $threat->action_taken === 'bot_protected')
+                                Suspicious / Bot Challenge ({{ $threat->threat_score }}/100)
+                            @else
+                                Verified Safe ({{ $threat->threat_score }}/100)
+                            @endif
+                        @else
+                            {{ $junkReasons !== [] ? 'Flagged — see below' : 'No known risk patterns' }}
+                        @endif
                     </dd>
                 </div>
             </dl>
+
+            @if ($threat && (in_array($threat->verdict, ['malware', 'phishing']) || $threat->action_taken === 'quarantined'))
+                <div class="mt-4 rounded-xl border-2 border-rose-600 bg-rose-50/80 p-4 text-left text-sm text-rose-900 dark:border-rose-500 dark:bg-rose-950/40 dark:text-rose-200" role="alert">
+                    <div class="flex items-center gap-2 font-bold text-base">
+                        <svg class="h-5 w-5 text-rose-600 dark:text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <span>Security Alert: Malicious or Deceptive Destination</span>
+                    </div>
+                    <p class="mt-1 text-xs text-rose-800 dark:text-rose-300">
+                        This link was quarantined by automated AI security screening. It has been classified as <strong>{{ ucfirst($threat->verdict) }}</strong> with a critical threat score of <strong>{{ $threat->threat_score }}/100</strong>.
+                    </p>
+                    @if ($threat->reasoning)
+                        <p class="mt-2 rounded bg-rose-100/80 p-2 font-mono text-[11px] text-rose-900 dark:bg-rose-900/40 dark:text-rose-200">
+                            {{ $threat->reasoning }}
+                        </p>
+                    @endif
+                </div>
+            @elseif ($threat && $threat->verdict === 'safe')
+                <div class="mt-4 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 text-xs text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
+                    <div class="flex items-center gap-2">
+                        <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        <span><strong>TypeSafe AI Verified:</strong> No phishing, malware, or exploit payloads detected.</span>
+                    </div>
+                    <span class="font-mono font-bold">{{ $threat->threat_score }}/100</span>
+                </div>
+            @endif
 
             @if ($junkReasons !== [])
                 <div class="mt-4 rounded-lg border-2 border-red-600 px-4 py-3 text-sm text-red-700 dark:border-red-400 dark:text-red-300" role="alert">
@@ -63,7 +98,14 @@
             @endif
 
             <div class="mt-5 flex flex-wrap gap-2">
-                <x-ui.button href="{{ $destination }}" variant="primary" target="_blank" rel="noopener">Visit link</x-ui.button>
+                @if (($threat && (in_array($threat->verdict, ['malware', 'phishing']) || $threat->action_taken === 'quarantined')) || (!empty($link) && in_array('quarantine', $link->tags ?? [])))
+                    <span class="inline-flex items-center gap-1.5 rounded-xl bg-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-500 cursor-not-allowed dark:bg-neutral-800 dark:text-neutral-400" title="This link is quarantined and cannot be visited">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                        <span>Destination Quarantined</span>
+                    </span>
+                @else
+                    <x-ui.button href="{{ $destination }}" variant="primary" target="_blank" rel="noopener">Visit link</x-ui.button>
+                @endif
                 <x-ui.button
                     onclick="navigator.clipboard.writeText(@js($destination)).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy link', 2000); })"
                 >Copy link</x-ui.button>
@@ -72,4 +114,4 @@
 
         <x-ui.button href="https://href.nz/" class="mt-6" variant="ghost">Back to href.nz</x-ui.button>
     </div>
-</x-ui.layout>
+</x-layouts.app>
