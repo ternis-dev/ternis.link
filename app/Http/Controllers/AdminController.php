@@ -68,9 +68,9 @@ class AdminController extends Controller
     }
 
     /**
-     * TypeSafe AI Threat Inspections & Sandbox (Admin).
+     * Build the filtered threat evaluations query for inspection and export.
      */
-    public function threats(Request $request, AiThreatDetectionService $threatService)
+    protected function filteredThreatsQuery(Request $request)
     {
         $query = ThreatEvaluation::query()->with(['link.domain', 'link.apiKey.user', 'user']);
 
@@ -98,7 +98,15 @@ class AdminController extends Controller
             });
         }
 
-        $evaluations = $query->latest()->paginate(25)->withQueryString();
+        return $query;
+    }
+
+    /**
+     * TypeSafe AI Threat Inspections & Sandbox (Admin).
+     */
+    public function threats(Request $request, AiThreatDetectionService $threatService)
+    {
+        $evaluations = $this->filteredThreatsQuery($request)->latest()->paginate(25)->withQueryString();
 
         $stats = [
             'total_evaluations' => ThreatEvaluation::count(),
@@ -112,6 +120,119 @@ class AdminController extends Controller
         ];
 
         return view('admin.threats', compact('evaluations', 'stats'));
+    }
+
+    /**
+     * Export threat evaluations and security audit logs in CSV or JSON format.
+     */
+    public function exportThreats(Request $request)
+    {
+        $format = strtolower((string) $request->query('format', 'csv'));
+        $dateStr = now()->format('Y-m-d');
+        $query = $this->filteredThreatsQuery($request)->latest();
+
+        $escapeFormula = static function (mixed $value): string {
+            $str = (string) ($value ?? '');
+            if ($str !== '' && in_array($str[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+                return "'".$str;
+            }
+
+            return $str;
+        };
+
+        if ($format === 'json') {
+            $filename = "threat-security-audit-{$dateStr}.json";
+            $evaluations = $query->cursor();
+
+            return response()->streamDownload(function () use ($evaluations) {
+                $out = fopen('php://output', 'w');
+                fwrite($out, "[\n");
+                $first = true;
+
+                foreach ($evaluations as $eval) {
+                    if (! $first) {
+                        fwrite($out, ",\n");
+                    }
+                    $first = false;
+
+                    $record = [
+                        'id' => $eval->id,
+                        'timestamp' => $eval->created_at?->toIso8601String(),
+                        'destination_url' => $eval->destination_url,
+                        'destination_host' => $eval->destination_host,
+                        'evaluation_type' => $eval->evaluation_type,
+                        'verdict' => $eval->verdict,
+                        'threat_score' => $eval->threat_score,
+                        'confidence' => $eval->confidence,
+                        'action_taken' => $eval->action_taken,
+                        'reasoning' => $eval->reasoning,
+                        'link_id' => $eval->link_id,
+                        'link_slug' => $eval->link?->slug,
+                        'creator_ip_hash' => $eval->creator_ip_hash,
+                        'submitter' => $eval->user?->email ?? ($eval->link?->user?->email ?? 'Anonymous / Guest'),
+                        'api_key_bypassed' => (bool) $eval->link?->apiKey?->bypass_ai_check,
+                        'metadata' => $eval->metadata,
+                    ];
+
+                    fwrite($out, '  '.json_encode($record, JSON_UNESCAPED_SLASHES));
+                }
+
+                fwrite($out, "\n]\n");
+                fclose($out);
+            }, $filename, [
+                'Content-Type' => 'application/json',
+                'Cache-Control' => 'no-cache, private',
+            ]);
+        }
+
+        $filename = "threat-security-audit-{$dateStr}.csv";
+        $evaluations = $query->cursor();
+
+        return response()->streamDownload(function () use ($evaluations, $escapeFormula) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, [
+                'Evaluation ID',
+                'Timestamp',
+                'Destination URL',
+                'Destination Host',
+                'Evaluation Type',
+                'Verdict',
+                'Threat Score',
+                'Confidence',
+                'Action Taken',
+                'Reasoning',
+                'Link ID',
+                'Link Slug',
+                'Creator IP Hash',
+                'Submitter',
+                'API Key AI Bypassed',
+            ]);
+
+            foreach ($evaluations as $eval) {
+                fputcsv($out, [
+                    $escapeFormula($eval->id),
+                    $eval->created_at?->toIso8601String(),
+                    $escapeFormula($eval->destination_url),
+                    $escapeFormula($eval->destination_host),
+                    $escapeFormula($eval->evaluation_type),
+                    $escapeFormula($eval->verdict),
+                    $eval->threat_score,
+                    $eval->confidence,
+                    $escapeFormula($eval->action_taken),
+                    $escapeFormula($eval->reasoning),
+                    $escapeFormula($eval->link_id),
+                    $escapeFormula($eval->link?->slug),
+                    $eval->creator_ip_hash,
+                    $escapeFormula($eval->user?->email ?? ($eval->link?->user?->email ?? 'Anonymous / Guest')),
+                    $eval->link?->apiKey?->bypass_ai_check ? 'YES' : 'NO',
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'no-cache, private',
+        ]);
     }
 
     /**
