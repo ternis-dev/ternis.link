@@ -58,6 +58,8 @@ class LinkForm extends Component
         $this->utm_campaign = null;
         $this->tags = null;
         $this->bot_protection = false;
+        $this->allow_bots = false;
+        $this->health_check_enabled = false;
         $this->expires_at = null;
         $this->resetErrorBag();
     }
@@ -97,6 +99,8 @@ class LinkForm extends Component
     public bool $bot_protection = false;
 
     public bool $allow_bots = false;
+
+    public bool $health_check_enabled = false;
 
     public bool $user_tracking_enabled = false;
 
@@ -146,6 +150,7 @@ class LinkForm extends Component
             'tags' => ['nullable', 'string', 'max:255'],
             'bot_protection' => ['boolean'],
             'allow_bots' => ['boolean'],
+            'health_check_enabled' => ['boolean'],
             'user_tracking_enabled' => ['boolean'],
         ];
 
@@ -289,6 +294,7 @@ class LinkForm extends Component
                 userTrackingEnabled: $this->user_tracking_enabled,
                 botProtection: $this->bot_protection,
                 allowBots: $this->allow_bots,
+                healthCheckEnabled: $this->health_check_enabled,
             );
         } catch (ValidationException $e) {
             // Service-level rejections (scanner junk, slug races) land
@@ -336,6 +342,7 @@ class LinkForm extends Component
         $this->user_tracking_enabled = false;
         $this->bot_protection = false;
         $this->allow_bots = false;
+        $this->health_check_enabled = false;
         $this->expires_at = null;
     }
 

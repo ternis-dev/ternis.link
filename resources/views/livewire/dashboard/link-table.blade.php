@@ -215,6 +215,94 @@
                             </td>
                         @elseif ($column === 'clicks')
                             <td class="font-bold">{{ number_format($link->click_count) }}</td>
+                        @elseif ($column === 'health')
+                            <td>
+                                @if (! $link->health_check_enabled)
+                                    <div class="flex items-center gap-1.5 text-xs text-neutral-400">
+                                        <span>Off</span>
+                                        <button
+                                            type="button"
+                                            wire:click="checkHealth('{{ $link->id }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="checkHealth('{{ $link->id }}')"
+                                            title="Enable &amp; test health check now"
+                                            class="cursor-pointer font-medium text-neutral-500 hover:text-neutral-900 underline underline-offset-2 dark:text-neutral-400 dark:hover:text-white"
+                                        >
+                                            <span wire:loading.remove wire:target="checkHealth('{{ $link->id }}')">Test</span>
+                                            <span wire:loading wire:target="checkHealth('{{ $link->id }}')">Checking…</span>
+                                        </button>
+                                    </div>
+                                @elseif ($link->health_status === 'healthy')
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" title="{{ $link->health_status_code }} OK — {{ $link->health_response_time_ms }}ms (Last checked: {{ $link->last_health_check_at?->diffForHumans() }})">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>{{ $link->health_response_time_ms }}ms</span>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            wire:click="checkHealth('{{ $link->id }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="checkHealth('{{ $link->id }}')"
+                                            title="Re-check destination health now"
+                                            class="cursor-pointer text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                                        >
+                                            <svg wire:loading.remove wire:target="checkHealth('{{ $link->id }}')" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                                            <svg wire:loading wire:target="checkHealth('{{ $link->id }}')" class="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                                        </button>
+                                    </div>
+                                @elseif ($link->health_status === 'degraded')
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" title="Degraded: {{ $link->health_error }} ({{ $link->health_response_time_ms }}ms)">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                                            <span>{{ $link->health_status_code ?? 'Slow' }}</span>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            wire:click="checkHealth('{{ $link->id }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="checkHealth('{{ $link->id }}')"
+                                            title="Re-check destination health now"
+                                            class="cursor-pointer text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                                        >
+                                            <svg wire:loading.remove wire:target="checkHealth('{{ $link->id }}')" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                                            <svg wire:loading wire:target="checkHealth('{{ $link->id }}')" class="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                                        </button>
+                                    </div>
+                                @elseif ($link->health_status === 'unreachable')
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300" title="Unreachable: {{ $link->health_error }}">
+                                            <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                            <span>Down</span>
+                                        </span>
+                                        <button
+                                            type="button"
+                                            wire:click="checkHealth('{{ $link->id }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="checkHealth('{{ $link->id }}')"
+                                            title="Re-check destination health now"
+                                            class="cursor-pointer text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                                        >
+                                            <svg wire:loading.remove wire:target="checkHealth('{{ $link->id }}')" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                                            <svg wire:loading wire:target="checkHealth('{{ $link->id }}')" class="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                                        </button>
+                                    </div>
+                                @else
+                                    <div class="flex items-center gap-1.5 text-xs text-neutral-400">
+                                        <span>Pending</span>
+                                        <button
+                                            type="button"
+                                            wire:click="checkHealth('{{ $link->id }}')"
+                                            wire:loading.attr="disabled"
+                                            wire:target="checkHealth('{{ $link->id }}')"
+                                            title="Run health check now"
+                                            class="cursor-pointer font-medium text-neutral-500 hover:text-neutral-900 underline underline-offset-2 dark:text-neutral-400 dark:hover:text-white"
+                                        >
+                                            <span wire:loading.remove wire:target="checkHealth('{{ $link->id }}')">Check</span>
+                                            <span wire:loading wire:target="checkHealth('{{ $link->id }}')">Checking…</span>
+                                        </button>
+                                    </div>
+                                @endif
+                            </td>
                         @elseif ($column === 'status')
                             <td>
                                 @if (in_array('quarantine', $link->tags ?? [], true))

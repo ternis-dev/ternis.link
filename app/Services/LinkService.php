@@ -246,6 +246,7 @@ class LinkService
                 'utm_campaign' => $link->utm_campaign,
             ],
             userTrackingEnabled: (bool) $link->user_tracking_enabled,
+            healthCheckEnabled: (bool) $link->health_check_enabled,
         );
     }
 
@@ -269,6 +270,7 @@ class LinkService
         bool $userTrackingEnabled = false,
         bool $botProtection = false,
         bool $allowBots = false,
+        bool $healthCheckEnabled = false,
     ): Link {
         $destinationUrl = trim($destinationUrl);
 
@@ -399,6 +401,7 @@ class LinkService
             'password_hash' => $password !== null ? Hash::make($password) : null,
             'bot_protection' => $botProtection,
             'allow_bots' => $allowBots,
+            'health_check_enabled' => $healthCheckEnabled,
         ]);
 
         if ($user) {

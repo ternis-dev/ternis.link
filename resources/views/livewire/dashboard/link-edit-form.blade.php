@@ -136,6 +136,12 @@
                     label="Allow automated bots & crawlers (unrestricted)"
                     description="Let ANYONE click this link immediately without human verification challenges — including automated bots, scrapers, cURL, webhooks, and crawlers."
                 />
+                <x-ui.checkbox
+                    wire:model="health_check_enabled"
+                    name="health_check_enabled"
+                    label="Enable Link Health Monitoring"
+                    description="Periodically probe the destination URL to verify uptime and latency. Receive an alert if the destination becomes unreachable."
+                />
             </div>
         </details>
 

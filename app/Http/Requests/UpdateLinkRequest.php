@@ -30,6 +30,7 @@ class UpdateLinkRequest extends FormRequest
             'user_tracking_enabled' => ['nullable', 'boolean'],
             'bot_protection' => ['nullable', 'boolean'],
             'allow_bots' => ['nullable', 'boolean'],
+            'health_check_enabled' => ['nullable', 'boolean'],
             'is_active' => ['sometimes', 'boolean'],
             'expires_at' => ['nullable', 'date', 'after:now'],
             'targets' => ['nullable', 'array', 'max:20'],

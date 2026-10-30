@@ -39,6 +39,12 @@ class Link extends Model
         'is_active',
         'is_removed',
         'expires_at',
+        'health_check_enabled',
+        'last_health_check_at',
+        'health_status',
+        'health_status_code',
+        'health_response_time_ms',
+        'health_error',
     ];
 
     protected $hidden = ['password_hash', 'creator_ip_encrypted'];
@@ -53,6 +59,10 @@ class Link extends Model
         'is_removed' => 'boolean',
         'expires_at' => 'datetime',
         'click_count' => 'integer',
+        'health_check_enabled' => 'boolean',
+        'last_health_check_at' => 'datetime',
+        'health_status_code' => 'integer',
+        'health_response_time_ms' => 'integer',
     ];
 
     public function domain(): BelongsTo
@@ -156,6 +166,54 @@ class Link extends Model
     public function isAccessible(): bool
     {
         return $this->is_active && ! $this->is_removed && ! $this->isExpired();
+    }
+
+    public function isHealthCheckEnabled(): bool
+    {
+        return (bool) $this->health_check_enabled;
+    }
+
+    public function isHealthy(): bool
+    {
+        return $this->health_status === 'healthy';
+    }
+
+    public function isDegraded(): bool
+    {
+        return $this->health_status === 'degraded';
+    }
+
+    public function isUnreachable(): bool
+    {
+        return $this->health_status === 'unreachable';
+    }
+
+    public function healthBadgeClass(): string
+    {
+        return match ($this->health_status) {
+            'healthy' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300',
+            'degraded' => 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300',
+            'unreachable' => 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300',
+            default => 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
+        };
+    }
+
+    public function healthLabel(): string
+    {
+        if (! $this->health_check_enabled) {
+            return 'Disabled';
+        }
+
+        if ($this->health_status === null) {
+            return 'Pending check';
+        }
+
+        return match ($this->health_status) {
+            'healthy' => 'Healthy',
+            'degraded' => 'Degraded',
+            'unreachable' => 'Unreachable',
+            default => ucfirst((string) $this->health_status),
+        };
     }
 
     public function hasSocialPreview(): bool

@@ -54,6 +54,7 @@ class StoreLinkRequest extends FormRequest
             'user_tracking_enabled' => ['nullable', 'boolean'],
             'bot_protection' => ['nullable', 'boolean'],
             'allow_bots' => ['nullable', 'boolean'],
+            'health_check_enabled' => ['nullable', 'boolean'],
         ];
 
         // Same semantics as the dashboard form: the picker is only

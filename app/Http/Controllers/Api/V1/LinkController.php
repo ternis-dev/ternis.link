@@ -121,6 +121,7 @@ class LinkController extends Controller
             userTrackingEnabled: (bool) $request->validated('user_tracking_enabled', false),
             botProtection: (bool) $request->validated('bot_protection', false),
             allowBots: (bool) $request->validated('allow_bots', false),
+            healthCheckEnabled: (bool) $request->validated('health_check_enabled', false),
         );
 
         Activity::record(ActivityLog::LINK_CREATED, $user, $link, array_filter([

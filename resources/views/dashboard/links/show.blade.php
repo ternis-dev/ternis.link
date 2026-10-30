@@ -32,6 +32,17 @@
                 @if (in_array('quarantine', $link->tags ?? [], true))
                     <x-ui.badge tone="danger">Quarantined by AI</x-ui.badge>
                 @endif
+                @if ($link->health_check_enabled)
+                    @if ($link->health_status === 'healthy')
+                        <x-ui.badge tone="success">Health: Online ({{ $link->health_response_time_ms }}ms)</x-ui.badge>
+                    @elseif ($link->health_status === 'degraded')
+                        <x-ui.badge tone="warning">Health: Degraded ({{ $link->health_status_code ?? 'Slow' }})</x-ui.badge>
+                    @elseif ($link->health_status === 'unreachable')
+                        <x-ui.badge tone="danger">Health: Destination Down</x-ui.badge>
+                    @else
+                        <x-ui.badge tone="neutral">Health: Pending Check</x-ui.badge>
+                    @endif
+                @endif
             </div>
         </x-slot:subtitle>
         <x-slot:actions>

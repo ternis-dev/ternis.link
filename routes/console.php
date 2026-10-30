@@ -19,6 +19,10 @@ Schedule::command('security:scan-existing', ['--unscanned-only', '--limit=25', '
     ->hourly()
     ->when(fn () => (bool) config('ai_security.enabled', false));
 
+// Periodic health probe for opted-in link destinations
+Schedule::command('links:check-health', ['--limit=100', '--delay-ms=100'])
+    ->everySixHours();
+
 // Spatie backups
 Schedule::command('backup:clean')->dailyAt('01:00');
 Schedule::command('backup:run')->dailyAt('01:30');

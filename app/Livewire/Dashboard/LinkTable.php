@@ -123,6 +123,7 @@ class LinkTable extends Component
         }
 
         $cols['clicks'] = 'Clicks';
+        $cols['health'] = 'Health';
         $cols['status'] = 'Status';
         $cols['created'] = 'Created';
 
@@ -262,6 +263,29 @@ class LinkTable extends Component
         ]);
 
         $this->dispatch('notify', message: "Deactivated {$link->slug}.", type: 'info');
+    }
+
+    public function checkHealth(string $linkId, \App\Services\LinkHealthService $healthService): void
+    {
+        $user = auth()->user();
+        $link = ($user && $user->isAdmin() && $this->adminScope === 'all')
+            ? Link::notRemoved()->findOrFail($linkId)
+            : $user->links()->notRemoved()->findOrFail($linkId);
+
+        if (! $link->health_check_enabled) {
+            $link->update(['health_check_enabled' => true]);
+        }
+
+        $result = $healthService->check($link, notify: false);
+
+        $type = match ($result['status']) {
+            'healthy' => 'success',
+            'degraded' => 'warning',
+            default => 'danger',
+        };
+
+        $codeText = $result['status_code'] ? " (HTTP {$result['status_code']})" : '';
+        $this->dispatch('notify', message: "Health check for /{$link->slug}: ".strtoupper($result['status'])."{$codeText} in {$result['response_time_ms']}ms.", type: $type);
     }
 
     public function toggleSelectAll(bool $select): void

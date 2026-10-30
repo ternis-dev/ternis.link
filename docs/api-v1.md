@@ -69,6 +69,15 @@ curl -X DELETE https://links.t-api.de/v1/links/<ulid> -H "Authorization: Bearer 
 
 Social previews (members only): `og_title` (≤120), `og_description` (≤300), `og_image_url` (https image). Crawlers get a 200 HTML stub with OG tags (`?debug=og` forces it for testing); humans keep the 302 and crawler hits are not counted. Password protection (members only): `password` (min 8 chars, bcrypt-hashed; `remove_password` clears) — locked links show an interstitial, count nothing until unlock, and unlock attempts are throttled. Guests get 422 `prohibited` for any `og_*` or `password` field.
 
+### Link Health Monitoring (Optional)
+Links can opt in to automated uptime and latency monitoring:
+- `health_check_enabled`: boolean (default `false`). When `true`, background workers probe the destination URL periodically (HTTP HEAD/GET with timeout 5s, max 3 redirects).
+- `health_status`: `healthy` (2xx/3xx), `degraded` (429, 5xx), `unreachable` (404, DNS failure, connection timeout), or `null` (pending check).
+- `health_status_code`: HTTP response status code (integer).
+- `health_response_time_ms`: Round-trip response time in milliseconds.
+- `last_health_check_at`: ISO-8601 timestamp of last health probe.
+If a link destination becomes unreachable, the link owner receives an automated health alert notification (throttled to at most once per 12 hours).
+
 No account and just scripting something quick? `POST /v1/links/public` creates guest links when no Authorization header is supplied. A supplied Bearer token is validated and creates an owned link using the authenticated creation rules; invalid credentials return 401. Without credentials, this endpoint creates guest links — auto-generated slugs, fair-use limits, public system domains only:
 
 ```bash
