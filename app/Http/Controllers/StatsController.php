@@ -93,6 +93,31 @@ class StatsController extends Controller
      * is request-specific, so this filters outside the shared cached
      * query in NetworkStats::domains().
      */
+    public function activity()
+    {
+        return view('pages.stats.activity', $this->activityData());
+    }
+
+    public function activityMd()
+    {
+        return response()->view('pages.stats.activity-md', $this->activityData(), 200, ['Content-Type' => self::MARKDOWN]);
+    }
+
+    private function activityData(): array
+    {
+        return ['links' => NetworkStats::creationsByDay(), 'clicks' => NetworkStats::clicksByDay(), 'qr' => NetworkStats::qrByDay()];
+    }
+
+    public function security()
+    {
+        return view('pages.stats.security', ['stats' => NetworkStats::overview()]);
+    }
+
+    public function securityMd()
+    {
+        return response()->view('pages.stats.security-md', ['stats' => NetworkStats::overview()], 200, ['Content-Type' => self::MARKDOWN]);
+    }
+
     private function visibleDomains()
     {
         $userId = auth()->id();

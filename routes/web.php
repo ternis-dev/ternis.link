@@ -175,6 +175,7 @@ if (app()->environment('local', 'testing')) {
 | Public Dashboard / My Module (my.href.nz)
 |--------------------------------------------------------------------------
 */
+require __DIR__.'/modules/meinlink-dashboard.php';
 require __DIR__.'/modules/my.php';
 
 /*

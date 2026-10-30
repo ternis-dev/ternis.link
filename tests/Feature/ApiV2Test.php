@@ -199,6 +199,18 @@ class ApiV2Test extends TestCase
             ->assertJsonPath('data.endpoints.scan', '/v2/scan');
     }
 
+    public function test_v2_scan_persists_a_database_evaluation(): void
+    {
+        $this->postJson('http://links.t-api.de/v2/scan', ['url' => 'http://127.0.0.1/audit'])
+            ->assertOk();
+        $this->assertDatabaseHas('threat_evaluations', [
+            'destination_url' => 'http://127.0.0.1/audit',
+            'evaluation_type' => 'url_scan',
+            'verdict' => 'intranet_blocked',
+            'action_taken' => 'scanned',
+        ]);
+    }
+
     public function test_v2_scan_requires_url(): void
     {
         $this->postJson('http://links.t-api.de/v2/scan', [])

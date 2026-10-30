@@ -65,6 +65,11 @@ class ScanUiTest extends TestCase
             ->assertSee('Threat Probability Score', escape: false)
             ->assertSee('Scanned Destination', escape: false);
 
+        $this->assertDatabaseHas('threat_evaluations', [
+            'destination_url' => 'https://example.com/login',
+            'evaluation_type' => 'url_scan',
+        ]);
+
         // Invalid URL displays helpful validation alert
         $invalidResponse = $this->get('http://href.nz/scan?url=not-a-valid-url');
         $invalidResponse->assertOk()

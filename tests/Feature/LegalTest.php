@@ -37,6 +37,22 @@ class LegalTest extends TestCase
             ->assertSee('without prior notice', escape: false);
     }
 
+    public function test_policies_cover_all_configured_hosts_and_current_security_features(): void
+    {
+        foreach (['privacy', 'terms'] as $slug) {
+            $response = $this->get("http://ternis.link/pages/legal/{$slug}.md")->assertOk();
+            foreach (array_keys(config('domains.map')) as $host) {
+                $response->assertSee($host, escape: false);
+            }
+            $response->assertSee('TypeSafe AI', escape: false)
+                ->assertSee('2026-10-30', escape: false);
+        }
+        $this->get('http://ternis.link/pages/legal/privacy.md')
+            ->assertDontSee('not on individual request', escape: false)
+            ->assertSee('human-verification cookie', escape: false)
+            ->assertSee('query-parameter values', escape: false);
+    }
+
     public function test_imprint_redirects_to_central_legal_page(): void
     {
         $this->get('http://ternis.link/pages/legal/imprint')

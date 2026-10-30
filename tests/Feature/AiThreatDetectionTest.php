@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Jobs\EvaluateLinkThreatJob;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\ThreatEvaluation;
 use App\Models\User;
 use App\Services\AiThreatDetectionService;
 use App\Services\LinkService;
@@ -33,6 +34,72 @@ class AiThreatDetectionTest extends TestCase
         $this->seed([PlanSeeder::class, DomainSeeder::class, ApiVersionSeeder::class]);
 
         $this->domain = Domain::where('hostname', 'href.nz')->firstOrFail();
+    }
+
+    public function test_standalone_scans_log_fresh_and_cached_results_without_enforcing_quarantine(): void
+    {
+        $service = new AiThreatDetectionService($this->makeMockClient('malware', 4));
+        $url = 'https://example.com/standalone-scan';
+        $service->scanUrl($url, ['fresh' => true]);
+        $service->scanUrl($url);
+
+        $rows = ThreatEvaluation::where('evaluation_type', 'url_scan')->get();
+        $this->assertCount(2, $rows);
+        $this->assertSame([false, true], $rows->pluck('metadata.cached')->all());
+        foreach ($rows as $row) {
+            $this->assertSame('malware', $row->verdict);
+            $this->assertSame(100, $row->threat_score);
+            $this->assertSame('scanned', $row->action_taken);
+            $this->assertSame('quarantine', $row->metadata['action_recommended']);
+            $this->assertNull($row->link_id);
+        }
+    }
+
+    public function test_admin_sandbox_logs_success_and_provider_errors(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $service = new AiThreatDetectionService($this->makeMockClient('safe', 0));
+        $this->app->instance(AiThreatDetectionService::class, $service);
+        $this->actingAs($admin)->post('http://admin.ternis.link/threats/test', [
+            'test_url' => 'https://example.com/admin-success',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('threat_evaluations', [
+            'evaluation_type' => 'admin_url_scan', 'verdict' => 'safe', 'user_id' => $admin->id,
+        ]);
+
+        $client = \Mockery::mock(SystemOneClient::class);
+        $client->shouldReceive('systemOne')->once()->andThrow(new \RuntimeException('Provider failed'));
+        $service->setClient($client);
+        $this->post('http://admin.ternis.link/threats/test', [
+            'test_url' => 'https://example.com/admin-error',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('threat_evaluations', [
+            'evaluation_type' => 'admin_url_scan', 'verdict' => 'unverified',
+            'destination_url' => 'https://example.com/admin-error',
+        ]);
+        $this->assertSame(2, ThreatEvaluation::count());
+    }
+
+    public function test_invalid_blocked_and_unavailable_scans_are_logged(): void
+    {
+        config(['ai_security.api_key' => null]);
+        $service = new AiThreatDetectionService;
+        foreach (['not-a-url', 'ftp://example.com/file', 'http://127.0.0.1/test', 'https://example.com/unavailable'] as $url) {
+            $service->scanUrl($url, ['fresh' => true]);
+        }
+        $this->assertSame(
+            ['invalid', 'invalid_scheme', 'intranet_blocked', 'unverified'],
+            ThreatEvaluation::orderBy('id')->pluck('verdict')->all(),
+        );
+    }
+
+    public function test_provider_errors_are_logged_as_unverified(): void
+    {
+        $client = \Mockery::mock(SystemOneClient::class);
+        $client->shouldReceive('systemOne')->once()->andThrow(new \RuntimeException('Provider failed'));
+        $result = (new AiThreatDetectionService($client))->scanUrl('https://example.com/provider-error', ['fresh' => true]);
+        $this->assertSame('unverified', $result['category']);
+        $this->assertDatabaseHas('threat_evaluations', ['evaluation_type' => 'url_scan', 'verdict' => 'unverified', 'action_taken' => 'scanned']);
     }
 
     private function createLink(array $overrides = []): Link
@@ -71,6 +138,7 @@ class AiThreatDetectionTest extends TestCase
 
         $result->answers = [
             'verdict' => $choice,
+            'category' => $choice,
             'threat_score' => $scoreAnswer,
             'client_type' => $choice,
             'bot_confidence' => $scoreAnswer,
@@ -301,6 +369,9 @@ class AiThreatDetectionTest extends TestCase
 
         $evaluation = $service->evaluateLink($link);
         $this->assertNull($evaluation);
+        $this->assertDatabaseHas('threat_evaluations', [
+            'link_id' => $link->id, 'verdict' => 'unverified', 'action_taken' => 'scanned',
+        ]);
 
         $link->refresh();
         $this->assertTrue($link->is_active);

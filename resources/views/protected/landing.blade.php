@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>protected.ternis.link — Zero-Trust Link & Bot Protection</title>
     <meta name="description" content="Dedicated verification gateway for the Ternis link network: automated bot protection, edge rate-limiting, and Turnstile security checks.">
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" href="{{ asset('favicon-protected.svg') }}">
     <script>
         try {
             const stored = localStorage.getItem('tl-theme');
@@ -24,10 +24,10 @@
     <header class="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
         <div class="mx-auto flex h-16 max-w-4xl items-center justify-between gap-3 px-4 sm:px-6">
             <div class="flex items-center gap-2.5">
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/30">
+                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">
                     <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </span>
-                <span class="font-display text-xl font-bold tracking-tight">protected<span>.ternis.link</span></span>
+                <span class="font-display text-sm font-bold tracking-tight sm:text-xl">protected<span>.ternis.link</span></span>
             </div>
             <div class="flex items-center gap-3">
                 <button
@@ -101,5 +101,6 @@
             <a href="https://ternis.link/pages/legal/terms" class="underline underline-offset-2 hover:text-neutral-900 dark:hover:text-white">terms</a>
         </p>
     </footer>
+    <p class="mt-6 text-center text-xs text-neutral-500"><a href="/" class="underline underline-offset-4">About this security check</a> · <a href="https://ternis.link/pages/legal/privacy" class="underline underline-offset-4">Privacy</a></p>
 </body>
 </html>

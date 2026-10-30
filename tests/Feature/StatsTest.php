@@ -8,6 +8,7 @@ use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Models\QrGeneration;
+use App\Models\ThreatEvaluation;
 use App\Models\User;
 use App\Support\NetworkStats;
 use Database\Seeders\ApiVersionSeeder;
@@ -43,6 +44,41 @@ class StatsTest extends TestCase
             'click_count' => 5,
         ]);
         Click::create(['link_id' => $link->id, 'is_direct_url' => false, 'referrer' => 'https://secret.example/', 'user_agent' => 'SecretAgent/1.0']);
+    }
+
+    public function test_quarantine_total_includes_legacy_tags_without_counting_logged_links_twice(): void
+    {
+        $link = Link::where('slug', 'statlink1')->firstOrFail();
+        $link->update(['tags' => ['quarantine'], 'is_active' => false]);
+        NetworkStats::flush();
+        $this->assertSame(1, NetworkStats::overview()['threats_quarantined']);
+
+        ThreatEvaluation::create([
+            'link_id' => $link->id,
+            'creator_ip_hash' => str_repeat('a', 64),
+            'destination_url' => $link->destination_url,
+            'destination_host' => 'example.com',
+            'evaluation_type' => 'link_creation',
+            'verdict' => 'malware',
+            'threat_score' => 99,
+            'confidence' => 0.99,
+            'action_taken' => 'quarantined',
+        ]);
+        NetworkStats::flush();
+        $this->assertSame(1, NetworkStats::overview()['threats_quarantined']);
+    }
+
+    public function test_activity_and_security_pages_have_public_markdown_twins(): void
+    {
+        foreach (['activity', 'security'] as $page) {
+            foreach (['', '.md'] as $suffix) {
+                $this->get('http://ternis.link/pages/stats/'.$page.$suffix)
+                    ->assertOk()
+                    ->assertDontSee($this->user->email)
+                    ->assertDontSee('SecretAgent');
+                $this->get('http://href.nz/pages/stats/'.$page.$suffix)->assertNotFound();
+            }
+        }
     }
 
     public function test_overview_is_public_on_ternis_host(): void

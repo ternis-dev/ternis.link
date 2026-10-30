@@ -22,6 +22,7 @@ return [
         'qr.href.nz' => 'public',
         // Public dashboard (canonical my.href.nz; my.ternis.link 301s to it)
         'my.href.nz' => 'public-dashboard',
+        'dash.meinlink.at' => 'public-dashboard',
         // Official QR API
         'qr.t-api.de' => 'api',
         // Business (ternis official)
@@ -113,6 +114,8 @@ return [
     'docs_host' => env('DOMAIN_DOCS', 'docs.ternis.link'),
 
     'public_host' => env('DOMAIN_PUBLIC', 'href.nz'),
+
+    'meinlink_dashboard_host' => env('DOMAIN_MEINLINK_DASHBOARD', 'dash.meinlink.at'),
 
     'meinlink_host' => env('DOMAIN_MEINLINK', 'meinlink.at'),
 

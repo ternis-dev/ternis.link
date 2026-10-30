@@ -47,6 +47,14 @@ class ResolveDomain
             return $next($request);
         }
 
+        if ($hostname === config('domains.meinlink_dashboard_host')) {
+            $request->attributes->set('domain_type', 'public-dashboard');
+            $request->attributes->set('domain_hostname', $hostname);
+            app()->setLocale('de');
+
+            return $next($request);
+        }
+
         $protectedHost = (string) config('domains.protected_host', 'protected.ternis.link');
         if ($hostname === $protectedHost) {
             $request->attributes->set('domain_type', 'protected');

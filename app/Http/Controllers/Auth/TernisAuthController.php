@@ -37,6 +37,10 @@ class TernisAuthController extends Controller
             return $this->homeRedirect($request);
         }
 
+        if ($request->getHost() === config('domains.meinlink_dashboard_host')) {
+            return view('meinlink-dashboard.login');
+        }
+
         if ($request->attributes->get('domain_type') === 'public-dashboard') {
             return view('auth.login-public-dashboard');
         }
@@ -200,6 +204,10 @@ class TernisAuthController extends Controller
      */
     private function homeUrl(Request $request): string
     {
+        if ($request->getHost() === config('domains.meinlink_dashboard_host')) {
+            return route('meinlink-dashboard.index');
+        }
+
         if ($request->attributes->get('domain_type') === 'public-dashboard') {
             return PublicDashboard::homeUrl();
         }

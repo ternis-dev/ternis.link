@@ -82,6 +82,21 @@ class AdminThreatUiTest extends TestCase
         $response->assertSee('95/100');
     }
 
+    public function test_admin_sandbox_logs_scans_even_when_provider_is_unavailable(): void
+    {
+        config(['ai_security.api_key' => null]);
+        $this->actingAs($this->admin)->post('http://admin.ternis.link/threats/test', [
+            'test_url' => 'https://example.com/admin-scan',
+        ])->assertRedirect();
+        $this->assertDatabaseHas('threat_evaluations', [
+            'evaluation_type' => 'admin_url_scan',
+            'destination_url' => 'https://example.com/admin-scan',
+            'user_id' => $this->admin->id,
+            'verdict' => 'unverified',
+            'action_taken' => 'scanned',
+        ]);
+    }
+
     public function test_suspicious_exe_url_is_always_evaluated_and_quarantined(): void
     {
         $threatService = app(AiThreatDetectionService::class);

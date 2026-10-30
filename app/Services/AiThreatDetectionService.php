@@ -6,6 +6,7 @@ use App\Models\Link;
 use App\Models\ThreatEvaluation;
 use App\Models\User;
 use App\Support\DomainUrls;
+use App\Support\IpHash;
 use App\Support\Notifier;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -144,6 +145,7 @@ class AiThreatDetectionService
 
         if ($client === null) {
             Log::debug('TypeSafe AI evaluation skipped: No API key or client available.');
+            $this->recordLinkScanFailure($link, $context, 'unavailable');
 
             return null;
         }
@@ -294,6 +296,7 @@ class AiThreatDetectionService
                 ],
             ]);
         } catch (\Throwable $e) {
+            $this->recordLinkScanFailure($link, $context, 'error');
             Log::warning('TypeSafe AI threat evaluation failed: '.$e->getMessage(), [
                 'link_id' => $link->id,
                 'exception' => $e,
@@ -301,6 +304,25 @@ class AiThreatDetectionService
 
             return null;
         }
+    }
+
+    private function recordLinkScanFailure(Link $link, array $context, string $status): void
+    {
+        ThreatEvaluation::create([
+            'link_id' => $link->id,
+            'user_id' => $link->user_id,
+            'creator_ip_hash' => $link->creator_ip_hash ?? $context['creator_ip_hash'] ?? '',
+            'destination_url' => $link->destination_url,
+            'destination_host' => (string) parse_url($link->destination_url, PHP_URL_HOST),
+            'user_agent' => $context['user_agent'] ?? null,
+            'evaluation_type' => 'link_creation',
+            'verdict' => 'unverified',
+            'threat_score' => 0,
+            'confidence' => 0,
+            'action_taken' => 'scanned',
+            'reasoning' => 'Link threat scanner '.$status.'.',
+            'metadata' => ['status' => $status, 'model' => config('ai_security.model')],
+        ]);
     }
 
     public function checkBurstVelocity(string $ipHash, Link $link): ?ThreatEvaluation
@@ -391,7 +413,47 @@ class AiThreatDetectionService
         }
     }
 
+    /** Log every request, including cached, invalid and unavailable results. */
     public function scanUrl(string $url, array $options = []): array
+    {
+        $result = $this->performUrlScan($url, $options);
+        $this->recordUrlScan($result);
+
+        return $result;
+    }
+
+    public function recordUrlScan(array $result, string $type = 'url_scan'): ThreatEvaluation
+    {
+        $request = app()->bound('request') ? request() : null;
+
+        // A recommendation is not an enforcement action: standalone scans never
+        // quarantine links and must not inflate quarantine/protection counters.
+        return ThreatEvaluation::create([
+            'user_id' => $request?->user()?->id,
+            'creator_ip_hash' => $request ? IpHash::make($request->ip()) : '',
+            'destination_url' => $result['url'],
+            'destination_host' => $result['host'] ?? '',
+            'user_agent' => $request?->userAgent(),
+            'evaluation_type' => $type,
+            'verdict' => $result['category'],
+            'threat_score' => $result['threat_score'],
+            'confidence' => $result['confidence'],
+            'action_taken' => 'scanned',
+            'reasoning' => $result['reasoning'],
+            'metadata' => [
+                'cached' => $result['cached'] ?? false,
+                'is_valid' => $result['is_valid'] ?? true,
+                'is_safe' => $result['is_safe'] ?? false,
+                'action_recommended' => $result['action_recommended'] ?? null,
+                'scanned_at' => $result['scanned_at'] ?? now()->toIso8601String(),
+                'model' => config('ai_security.model', 'jev-latest'),
+                'request_host' => $request?->getHost(),
+                'request_path' => $request?->path(),
+            ],
+        ]);
+    }
+
+    private function performUrlScan(string $url, array $options = []): array
     {
         $url = trim($url);
 

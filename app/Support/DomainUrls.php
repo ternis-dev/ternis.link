@@ -24,6 +24,10 @@ class DomainUrls
      */
     public static function publicDashboard(string $path = '/'): string
     {
+        if (in_array(request()->getHost(), [config('domains.meinlink_host'), config('domains.meinlink_dashboard_host')], true)) {
+            return static::onHost(config('domains.meinlink_dashboard_host'), $path);
+        }
+
         return static::onHost(PublicDashboard::currentHost(), $path);
     }
 

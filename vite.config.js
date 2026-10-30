@@ -9,6 +9,8 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/landing-public.css',
                 'resources/css/meinlink.css',
+                'resources/css/meinlink-dashboard.css',
+                'resources/js/meinlink-dashboard.js',
                 'resources/css/clicked.css',
                 'resources/css/yt.css',
                 'resources/css/public-dashboard.css',

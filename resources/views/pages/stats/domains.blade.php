@@ -19,6 +19,8 @@
         backLabel="Back to Stats Overview"
     />
 
+    <x-stats.nav />
+
     <p class="mb-6 text-sm text-neutral-500 dark:text-neutral-400">Platform domains are listed for everyone; your own custom domains appear here once you're signed in. Other users' hostnames are never shown. System traffic is included in the totals on the overview.</p>
 
     @if ($domains->isNotEmpty())

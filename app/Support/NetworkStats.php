@@ -94,7 +94,7 @@ class NetworkStats
      */
     public static function overview(): array
     {
-        return Cache::remember('stats:overview', 600, function () {
+        return Cache::remember('stats:overview:v2', 600, function () {
             $today = now()->startOfDay()->format('Y-m-d');
 
             return [
@@ -113,7 +113,10 @@ class NetworkStats
                 'qr_codes_today' => QrGeneration::where('created_at', '>=', now()->startOfDay())->count(),
                 'threat_evaluations' => ThreatEvaluation::count(),
                 'threat_evaluations_today' => ThreatEvaluation::where('created_at', '>=', now()->startOfDay())->count(),
-                'threats_quarantined' => ThreatEvaluation::where('action_taken', 'quarantined')->count(),
+                'threats_quarantined' => ThreatEvaluation::where('action_taken', 'quarantined')->count()
+                    + Link::whereJsonContains('tags', 'quarantine')
+                        ->whereNotIn('id', ThreatEvaluation::where('action_taken', 'quarantined')->whereNotNull('link_id')->select('link_id'))
+                        ->count(),
                 'threats_bot_protected' => ThreatEvaluation::where('action_taken', 'bot_protected')->count(),
             ];
         });
@@ -600,7 +603,7 @@ class NetworkStats
     public static function flush(): void
     {
         foreach ([
-            'stats:overview',
+            'stats:overview:v2',
             'stats:creations-30d',
             'stats:creations-domains-30d',
             'stats:clicks-30d',

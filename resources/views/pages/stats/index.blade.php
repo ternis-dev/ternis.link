@@ -21,6 +21,8 @@
         </x-slot:actions>
     </x-ui.page-header>
 
+    <x-stats.nav />
+
     <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <x-ui.stat :value="number_format($stats['total_links'])" label="Links Created (All Time)" />
         <x-ui.stat :value="number_format($stats['active_links'])" label="Active Links" />
@@ -42,28 +44,13 @@
         description="Continuous, real-time threat detection powered by TypeSafe AI. Malicious binaries, phishing portals, and high-velocity spam attacks are isolated before redirecting."
         class="mb-6"
     >
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <div class="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-900/50">
-                <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">AI Security Scans</p>
-                <p class="mt-1 font-display text-2xl font-bold text-neutral-900 dark:text-white tabular-nums">{{ number_format($stats['threat_evaluations']) }}</p>
-                <p class="mt-1 text-xs text-neutral-400">Total URLs inspected</p>
-            </div>
-            <div class="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-900/50">
-                <p class="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Quarantined Threats</p>
-                <p class="mt-1 font-display text-2xl font-bold text-rose-600 dark:text-rose-400 tabular-nums">{{ number_format($stats['threats_quarantined']) }}</p>
-                <p class="mt-1 text-xs text-neutral-400">Malware &amp; Phishing neutralized</p>
-            </div>
-            <div class="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-900/50">
-                <p class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">Bot Mitigation Challenges</p>
-                <p class="mt-1 font-display text-2xl font-bold text-blue-600 dark:text-blue-400 tabular-nums">{{ number_format($stats['threats_bot_protected']) }}</p>
-                <p class="mt-1 text-xs text-neutral-400">Turnstile challenges dispatched</p>
-            </div>
-            <div class="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-neutral-800 dark:bg-neutral-900/50">
-                <p class="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Scans Today</p>
-                <p class="mt-1 font-display text-2xl font-bold text-neutral-900 dark:text-white tabular-nums">{{ number_format($stats['threat_evaluations_today']) }}</p>
-                <p class="mt-1 text-xs text-neutral-400">Evaluated in last 24h</p>
-            </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+            <x-ui.stat :value="number_format($stats['threat_evaluations'])" label="AI Security Scans" description="Recorded evaluations, including repeat scans" />
+            <x-ui.stat :value="number_format($stats['threats_quarantined'])" label="Quarantined Threats" description="Recorded quarantine actions plus legacy tagged links" />
+            <x-ui.stat :value="number_format($stats['threats_bot_protected'])" label="Bot Protection Enabled" description="Protection actions, not visitor challenges" />
+            <x-ui.stat :value="number_format($stats['threat_evaluations_today'])" label="Scans Today" description="Since midnight, application timezone" />
         </div>
+        <a href="{{ route('pages.stats.security') }}" class="mt-4 inline-block text-sm font-semibold underline underline-offset-4">Explore security stats &amp; counting methodology →</a>
     </x-ui.card>
 
     <x-ui.card

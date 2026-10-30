@@ -114,9 +114,16 @@ class AdminController extends Controller
         $url = (string) $request->input('test_url');
         $host = (string) parse_url($url, PHP_URL_HOST);
 
+        $audit = [
+            'url' => $url, 'host' => $host, 'category' => 'unverified',
+            'threat_score' => 0, 'confidence' => 0,
+            'reasoning' => 'TypeSafe AI client unavailable.',
+        ];
         $client = $threatService->getClient();
 
         if ($client === null) {
+            $threatService->recordUrlScan($audit, 'admin_url_scan');
+
             return back()->with('test_result', [
                 'error' => 'TypeSafe AI client is not configured or disabled.',
             ]);
@@ -157,6 +164,13 @@ class AdminController extends Controller
             $rawScore = $scoreAnswer->score ?? 0.0;
             $threatScore = (int) round(min(100, max(0, ($rawScore / $maxLevel) * 100)));
 
+            $audit = array_merge($audit, [
+                'category' => $verdictAnswer->choice ?? 'safe',
+                'threat_score' => $threatScore,
+                'confidence' => $verdictAnswer->confidence ?? 1.0,
+                'reasoning' => 'Manual admin URL threat inspection.',
+            ]);
+
             return back()->with('test_result', [
                 'url' => $url,
                 'host' => $host,
@@ -171,9 +185,13 @@ class AdminController extends Controller
                 'prompt_state' => $state,
             ]);
         } catch (\Throwable $e) {
+            $audit['reasoning'] = 'TypeSafe AI scanner error.';
+
             return back()->with('test_result', [
                 'error' => 'TypeSafe AI error: '.$e->getMessage(),
             ]);
+        } finally {
+            $threatService->recordUrlScan($audit, 'admin_url_scan');
         }
     }
 
