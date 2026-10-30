@@ -41,10 +41,12 @@ class ApiKeyController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'show_on_dashboard' => ['sometimes', 'boolean'],
+            'bypass_ai_check' => ['sometimes', 'boolean'],
             'api_version' => ['sometimes', 'integer', 'exists:api_versions,version'],
             'expires_at' => ['sometimes', 'nullable', 'date'],
         ]);
 
+        $bypassAi = $request->user()->isAdmin() && (bool) ($validated['bypass_ai_check'] ?? false);
         $rawKey = 'tl_'.Str::random(48);
 
         $key = ApiKey::create([
@@ -54,6 +56,7 @@ class ApiKeyController extends Controller
             'api_version' => $validated['api_version'] ?? ApiVersion::latestVersion(),
             'name' => $validated['name'],
             'show_on_dashboard' => $validated['show_on_dashboard'] ?? true,
+            'bypass_ai_check' => $bypassAi,
             'expires_at' => $validated['expires_at'] ?? null,
         ]);
 
@@ -61,6 +64,7 @@ class ApiKeyController extends Controller
             'name' => $key->name,
             'key_prefix' => $key->key_prefix,
             'show_on_dashboard' => $key->show_on_dashboard,
+            'bypass_ai_check' => $key->bypass_ai_check,
             'api_version' => $key->api_version,
             'expires_at' => $key->expires_at?->toIso8601String(),
             'via' => 'api',
@@ -107,9 +111,14 @@ class ApiKeyController extends Controller
         $validated = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'show_on_dashboard' => ['sometimes', 'required', 'boolean'],
+            'bypass_ai_check' => ['sometimes', 'required', 'boolean'],
             'api_version' => ['sometimes', 'required', 'integer', 'exists:api_versions,version'],
             'expires_at' => ['sometimes', 'nullable', 'date'],
         ]);
+
+        if (array_key_exists('bypass_ai_check', $validated) && ! $request->user()->isAdmin()) {
+            unset($validated['bypass_ai_check']);
+        }
 
         if ($validated === []) {
             return response()->json($apiKey, 200);
@@ -121,6 +130,7 @@ class ApiKeyController extends Controller
             'name' => $apiKey->name,
             'key_prefix' => $apiKey->key_prefix,
             'show_on_dashboard' => $apiKey->show_on_dashboard,
+            'bypass_ai_check' => $apiKey->bypass_ai_check,
             'api_version' => $apiKey->api_version,
             'expires_at' => $apiKey->expires_at?->toIso8601String(),
             'via' => 'api',

@@ -32,7 +32,7 @@ class ApiKeyManager extends Component
 
     protected function availableColumns(): array
     {
-        return [
+        $cols = [
             'name' => 'Name',
             'prefix' => 'Prefix',
             'version' => 'API Version',
@@ -42,6 +42,12 @@ class ApiKeyManager extends Component
             'dashboard' => 'Dashboard',
             'status' => 'Status',
         ];
+
+        if (auth()->user()?->isAdmin()) {
+            $cols['bypass_ai'] = 'Bypass AI';
+        }
+
+        return $cols;
     }
 
     public string $keyName = '';
@@ -53,6 +59,8 @@ class ApiKeyManager extends Component
     public ?string $customExpiresAt = null;
 
     public bool $newKeyShowOnDashboard = true;
+
+    public bool $newKeyBypassAi = false;
 
     public ?string $newlyCreatedKey = null;
 
@@ -66,6 +74,8 @@ class ApiKeyManager extends Component
     public int $settingsApiVersion = 2;
 
     public bool $settingsShowOnDashboard = true;
+
+    public bool $settingsBypassAi = false;
 
     public ?string $settingsExpiresAt = null;
 
@@ -104,6 +114,8 @@ class ApiKeyManager extends Component
         // $newlyCreatedKey and is rendered ONCE in the success alert.
         $rawKey = 'tl_'.Str::random(48);
 
+        $bypassAi = auth()->user()?->isAdmin() && $this->newKeyBypassAi;
+
         $key = ApiKey::create([
             'user_id' => auth()->id(),
             'key_hash' => ApiKey::hashToken($rawKey),
@@ -111,6 +123,7 @@ class ApiKeyManager extends Component
             'api_version' => $this->apiVersion ?: ApiVersion::latestVersion(),
             'name' => $this->keyName,
             'show_on_dashboard' => $this->newKeyShowOnDashboard,
+            'bypass_ai_check' => $bypassAi,
             'expires_at' => $expiresAt,
         ]);
 
@@ -119,6 +132,7 @@ class ApiKeyManager extends Component
             'key_prefix' => $key->key_prefix,
             'api_version' => $key->api_version,
             'show_on_dashboard' => $key->show_on_dashboard,
+            'bypass_ai_check' => $key->bypass_ai_check,
             'expires_at' => $key->expires_at?->toIso8601String(),
         ]);
 
@@ -137,6 +151,7 @@ class ApiKeyManager extends Component
         $this->expirationChoice = 'never';
         $this->customExpiresAt = null;
         $this->newKeyShowOnDashboard = true;
+        $this->newKeyBypassAi = false;
 
         $this->dispatch('notify', message: "API key “{$key->name}” created — copy it now, it won't be shown again.", type: 'success');
     }
@@ -151,6 +166,7 @@ class ApiKeyManager extends Component
         $this->settingsName = $key->name;
         $this->settingsApiVersion = $key->api_version;
         $this->settingsShowOnDashboard = (bool) $key->show_on_dashboard;
+        $this->settingsBypassAi = (bool) $key->bypass_ai_check;
         $this->settingsExpiresAt = $key->expires_at?->format('Y-m-d\TH:i');
         $this->showingSettingsModal = true;
         $this->resetValidation();
@@ -177,17 +193,24 @@ class ApiKeyManager extends Component
         ]);
 
         $key = auth()->user()->apiKeys()->findOrFail($this->settingsKeyId);
-        $key->update([
+        $updateData = [
             'name' => $this->settingsName,
             'api_version' => $this->settingsApiVersion,
             'show_on_dashboard' => $this->settingsShowOnDashboard,
             'expires_at' => $this->settingsExpiresAt ? Carbon::parse($this->settingsExpiresAt) : null,
-        ]);
+        ];
+
+        if (auth()->user()?->isAdmin()) {
+            $updateData['bypass_ai_check'] = $this->settingsBypassAi;
+        }
+
+        $key->update($updateData);
 
         Activity::record(ActivityLog::API_KEY_UPDATED, auth()->user(), $key->fresh(), [
             'name' => $key->fresh()->name,
             'key_prefix' => $key->key_prefix,
             'show_on_dashboard' => $key->fresh()->show_on_dashboard,
+            'bypass_ai_check' => $key->fresh()->bypass_ai_check,
             'api_version' => $key->fresh()->api_version,
             'expires_at' => $key->fresh()->expires_at?->toIso8601String(),
         ]);

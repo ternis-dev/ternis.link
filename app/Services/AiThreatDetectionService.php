@@ -92,6 +92,14 @@ class AiThreatDetectionService
             return false;
         }
 
+        // Admin API keys explicitly flagged to bypass AI evaluation are never checked
+        if ($link->api_key_id !== null) {
+            $apiKey = $link->relationLoaded('apiKey') ? $link->apiKey : $link->apiKey()->with('user')->first();
+            if ($apiKey?->shouldBypassAi()) {
+                return false;
+            }
+        }
+
         // Suspicious binaries, exploits, or scam domain patterns are always evaluated
         if ($this->isSuspiciousUrl((string) $link->destination_url)) {
             return true;
@@ -126,6 +134,13 @@ class AiThreatDetectionService
     {
         if (! $this->isEnabled()) {
             return null;
+        }
+
+        if ($link->api_key_id !== null) {
+            $apiKey = $link->relationLoaded('apiKey') ? $link->apiKey : $link->apiKey()->with('user')->first();
+            if ($apiKey?->shouldBypassAi()) {
+                return null;
+            }
         }
 
         $destinationUrl = (string) $link->destination_url;

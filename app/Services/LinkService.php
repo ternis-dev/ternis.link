@@ -405,7 +405,7 @@ class LinkService
             RateLimiter::hit($this->rateLimitKey($user), 60);
         }
 
-        if ($this->threatDetection->shouldEvaluateLink($link)) {
+        if (! $apiKey?->shouldBypassAi() && $this->threatDetection->shouldEvaluateLink($link)) {
             EvaluateLinkThreatJob::dispatch($link->id, [
                 'creator_ip_hash' => $creatorIpHash,
                 'user_agent' => request()?->userAgent(),

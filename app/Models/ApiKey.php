@@ -19,6 +19,7 @@ class ApiKey extends Model
         'api_version',
         'name',
         'show_on_dashboard',
+        'bypass_ai_check',
         'last_used_at',
         'expires_at',
         'revoked_at',
@@ -27,6 +28,7 @@ class ApiKey extends Model
     protected $casts = [
         'api_version' => 'integer',
         'show_on_dashboard' => 'boolean',
+        'bypass_ai_check' => 'boolean',
         'last_used_at' => 'datetime',
         'expires_at' => 'datetime',
         'revoked_at' => 'datetime',
@@ -105,6 +107,21 @@ class ApiKey extends Model
     public function isValid(): bool
     {
         return ! $this->isRevoked() && ! $this->isExpired();
+    }
+
+    /**
+     * Determine if links created with this key are exempt from AI threat inspection.
+     * Defense-in-depth: only active if the key is flagged AND owned by an admin.
+     */
+    public function shouldBypassAi(): bool
+    {
+        if (! $this->bypass_ai_check) {
+            return false;
+        }
+
+        $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        return (bool) $owner?->isAdmin();
     }
 
     public function touchLastUsed(): void

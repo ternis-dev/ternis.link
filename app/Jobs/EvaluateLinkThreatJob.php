@@ -31,9 +31,9 @@ class EvaluateLinkThreatJob implements ShouldQueue
 
     public function handle(AiThreatDetectionService $service): void
     {
-        $link = Link::with('domain', 'user')->find($this->linkId);
+        $link = Link::with(['domain', 'user', 'apiKey.user'])->find($this->linkId);
 
-        if (! $link || $link->is_removed) {
+        if (! $link || $link->is_removed || $link->apiKey?->shouldBypassAi()) {
             return;
         }
 

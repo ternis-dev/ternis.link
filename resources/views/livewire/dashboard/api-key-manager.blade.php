@@ -81,6 +81,17 @@
                 />
             </div>
 
+            @if (auth()->user()?->isAdmin())
+                <div class="rounded-lg border border-purple-200 bg-purple-50/50 p-3.5 dark:border-purple-900/60 dark:bg-purple-950/20">
+                    <x-ui.checkbox
+                        wire:model="newKeyBypassAi"
+                        name="newKeyBypassAi"
+                        label="Bypass AI threat evaluation (Admin only)"
+                        description="When enabled, links created via this API key will skip automated TypeSafe AI threat evaluation and scanning."
+                    />
+                </div>
+            @endif
+
             <div class="pt-2">
                 <x-ui.button type="submit" variant="primary">Generate Key</x-ui.button>
             </div>
@@ -107,8 +118,11 @@
                             @switch($column)
                                 @case('name')
                                     <td class="font-semibold">
-                                        <div class="flex items-center gap-1.5">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
                                             <a href="{{ route($routePrefix.'api-keys.show', $key->id) }}" class="underline-offset-2 hover:underline">{{ $key->name }}</a>
+                                            @if ($key->bypass_ai_check && $key->user?->isAdmin())
+                                                <span class="inline-flex items-center rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-900/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800" title="Bypasses automated AI threat evaluation">Bypass AI</span>
+                                            @endif
                                             @if ($key->isValid())
                                                 <button
                                                     type="button"
@@ -203,6 +217,19 @@
                                         @endif
                                     </td>
                                     @break
+
+                                @case('bypass_ai')
+                                    <td>
+                                        @if ($key->bypass_ai_check && $key->user?->isAdmin())
+                                            <span class="inline-flex items-center gap-1 rounded-md bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                                Bypass
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-neutral-400 dark:text-neutral-500">Checked</span>
+                                        @endif
+                                    </td>
+                                    @break
                             @endswitch
                         @endforeach
                         <td>
@@ -288,6 +315,17 @@
                                 description="When enabled, links created with this key appear on the main links list. Otherwise, they only show on this key's dedicated page."
                             />
                         </div>
+
+                        @if (auth()->user()?->isAdmin())
+                            <div class="rounded-lg border border-purple-200 bg-purple-50/50 p-3.5 dark:border-purple-900/60 dark:bg-purple-950/20">
+                                <x-ui.checkbox
+                                    wire:model="settingsBypassAi"
+                                    name="settingsBypassAi"
+                                    label="Bypass AI threat evaluation (Admin only)"
+                                    description="When enabled, links created via this API key will skip automated TypeSafe AI threat evaluation and scanning."
+                                />
+                            </div>
+                        @endif
 
                         <div class="flex justify-end gap-2.5 pt-3 border-t border-neutral-100 dark:border-neutral-800">
                             <x-ui.button type="button" wire:click="closeSettings" variant="ghost">Cancel</x-ui.button>
