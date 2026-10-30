@@ -23,19 +23,20 @@
 
     <x-stats.nav />
 
+    <div data-stats-page="index">
     <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <x-ui.stat :value="number_format($stats['total_links'])" label="Links Created (All Time)" />
-        <x-ui.stat :value="number_format($stats['active_links'])" label="Active Links" />
-        <x-ui.stat :value="number_format($stats['removed_links'])" label="Removed Links" />
-        <x-ui.stat :value="number_format($stats['total_clicks'])" label="Total Clicks (All Time)" />
-        <x-ui.stat :value="number_format($stats['links_today'])" label="Links Today" />
-        <x-ui.stat :value="number_format($stats['clicks_today'])" label="Clicks Today" />
-        <x-ui.stat :value="number_format($stats['direct_url_clicks'])" label="Direct-URL Redirects (All Time)" />
-        <x-ui.stat :value="number_format($stats['direct_url_clicks_today'])" label="Direct-URL Redirects Today" />
-        <x-ui.stat :value="number_format($stats['qr_codes'])" label="QR Codes Generated (All Time)" />
-        <x-ui.stat :value="number_format($stats['qr_codes_today'])" label="QR Codes Today" />
-        <x-ui.stat :value="number_format($stats['threat_evaluations'])" label="AI Security Threat Scans" />
-        <x-ui.stat :value="number_format($stats['threats_quarantined'])" label="Threats Quarantined" />
+        <x-ui.stat :value="number_format($stats['total_links'])" label="Links Created (All Time)" :key="'total_links'" />
+        <x-ui.stat :value="number_format($stats['active_links'])" label="Active Links" :key="'active_links'" />
+        <x-ui.stat :value="number_format($stats['removed_links'])" label="Removed Links" :key="'removed_links'" />
+        <x-ui.stat :value="number_format($stats['total_clicks'])" label="Total Clicks (All Time)" :key="'total_clicks'" />
+        <x-ui.stat :value="number_format($stats['links_today'])" label="Links Today" :key="'links_today'" />
+        <x-ui.stat :value="number_format($stats['clicks_today'])" label="Clicks Today" :key="'clicks_today'" />
+        <x-ui.stat :value="number_format($stats['direct_url_clicks'])" label="Direct-URL Redirects (All Time)" :key="'direct_url_clicks'" />
+        <x-ui.stat :value="number_format($stats['direct_url_clicks_today'])" label="Direct-URL Redirects Today" :key="'direct_url_clicks_today'" />
+        <x-ui.stat :value="number_format($stats['qr_codes'])" label="QR Codes Generated (All Time)" :key="'qr_codes'" />
+        <x-ui.stat :value="number_format($stats['qr_codes_today'])" label="QR Codes Today" :key="'qr_codes_today'" />
+        <x-ui.stat :value="number_format($stats['threat_evaluations'])" label="AI Security Threat Scans" :key="'threat_evaluations'" />
+        <x-ui.stat :value="number_format($stats['threats_quarantined'])" label="Threats Quarantined" :key="'threats_quarantined'" />
     </div>
 
     {{-- Link Protection & Threat Prevention Stats --}}
@@ -45,10 +46,10 @@
         class="mb-6"
     >
         <div class="grid gap-3 sm:grid-cols-2">
-            <x-ui.stat :value="number_format($stats['threat_evaluations'])" label="AI Security Scans" description="Recorded evaluations, including repeat scans" />
-            <x-ui.stat :value="number_format($stats['threats_quarantined'])" label="Quarantined Threats" description="Recorded quarantine actions plus legacy tagged links" />
-            <x-ui.stat :value="number_format($stats['threats_bot_protected'])" label="Bot Protection Enabled" description="Protection actions, not visitor challenges" />
-            <x-ui.stat :value="number_format($stats['threat_evaluations_today'])" label="Scans Today" description="Since midnight, application timezone" />
+            <x-ui.stat :value="number_format($stats['threat_evaluations'])" label="AI Security Scans" description="Recorded evaluations, including repeat scans" :key="'threat_evaluations'" />
+            <x-ui.stat :value="number_format($stats['threats_quarantined'])" label="Quarantined Threats" description="Recorded quarantine actions plus legacy tagged links" :key="'threats_quarantined'" />
+            <x-ui.stat :value="number_format($stats['threats_bot_protected'])" label="Bot Protection Enabled" description="Protection actions, not visitor challenges" :key="'threats_bot_protected'" />
+            <x-ui.stat :value="number_format($stats['threat_evaluations_today'])" label="Scans Today" description="Since midnight, application timezone" :key="'threat_evaluations_today'" />
         </div>
         <a href="{{ route('pages.stats.security') }}" class="mt-4 inline-block text-sm font-semibold underline underline-offset-4">Explore security stats &amp; counting methodology →</a>
     </x-ui.card>
@@ -68,6 +69,7 @@
         <div class="relative h-64" role="img" aria-label="Links created per day by domain for the last 30 days">
             <canvas
                 data-chart="multi"
+                data-chart-name="creations"
                 data-chart-type="bar"
                 data-chart-stacked="true"
                 data-chart-show-legend="true"
@@ -93,6 +95,7 @@
         <div class="relative h-64" role="img" aria-label="Clicks per day by domain for the last 30 days">
             <canvas
                 data-chart="multi"
+                data-chart-name="clicks"
                 data-chart-type="bar"
                 data-chart-stacked="true"
                 data-chart-show-legend="true"
@@ -117,6 +120,7 @@
         <div class="relative h-64" role="img" aria-label="On-demand QR codes rendered per day across short links, qr.href.nz, and /v1/qr for the last 30 days">
             <canvas
                 data-chart="multi"
+                data-chart-name="qr"
                 data-chart-type="bar"
                 data-chart-stacked="true"
                 data-chart-show-legend="true"
@@ -269,7 +273,7 @@
                     >
                         <span class="h-2 w-2 rounded-full {{ $cfg['dot'] }}"></span>
                         <span>{{ $cfg['label'] }}</span>
-                        <span class="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-neutral-600 dark:bg-neutral-950/70 dark:text-neutral-300">
+                        <span class="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] font-medium text-neutral-600 dark:bg-neutral-950/70 dark:text-neutral-300" data-heatmap-tab-total="{{ $mKey }}">
                             {{ number_format($heatmapSummaries[$mKey]['calendarTotal']) }}
                         </span>
                     </button>
@@ -395,4 +399,5 @@
             </div>
         @endforeach
     </section>
+    </div>
 </x-layouts.app>

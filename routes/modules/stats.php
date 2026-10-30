@@ -13,6 +13,7 @@ Route::middleware(['ensure.domain:ternis'])->prefix('pages/stats')->name('pages.
     Route::get('/activity', [StatsController::class, 'activity'])->name('activity');
     Route::get('/security', [StatsController::class, 'security'])->name('security');
     Route::get('/domains', [StatsController::class, 'domains'])->name('domains');
+    Route::get('/data/{section?}', [StatsController::class, 'data'])->name('data');
 });
 
 // Markdown twins of stats pages

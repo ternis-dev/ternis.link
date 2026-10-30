@@ -21,6 +21,7 @@
 
     <x-stats.nav />
 
+    <div data-stats-page="domains">
     <p class="mb-6 text-sm text-neutral-500 dark:text-neutral-400">Platform domains are listed for everyone; your own custom domains appear here once you're signed in. Other users' hostnames are never shown. System traffic is included in the totals on the overview.</p>
 
     @if ($domains->isNotEmpty())
@@ -70,6 +71,7 @@
             <div x-show="metric === 'links'" class="relative h-64" role="img" aria-label="Links per domain">
                 <canvas
                     data-chart="clicks"
+                    data-chart-name="domain-links"
                     data-chart-type="bar"
                     data-chart-unit="link"
                     data-chart-labels='@json($domainLabels)'
@@ -82,6 +84,7 @@
             <div x-show="metric === 'clicks'" x-cloak class="relative h-64" role="img" aria-label="Clicks per domain">
                 <canvas
                     data-chart="clicks"
+                    data-chart-name="domain-clicks"
                     data-chart-type="bar"
                     data-chart-unit="click"
                     data-chart-labels='@json($domainLabels)'
@@ -102,20 +105,20 @@
                     <th>Clicks</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-stats-domains-table>
                 @forelse ($domains as $domain)
                     @php
                         $swatchColor = $domainColors[$domain->hostname]['light'] ?? '#2563eb';
                     @endphp
-                    <tr>
+                    <tr data-domain="{{ $domain->hostname }}">
                         <td>
                             <span class="inline-flex items-center gap-2">
                                 <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background-color: {{ $swatchColor }}"></span>
                                 <code>{{ $domain->hostname }}</code>
                             </span>
                         </td>
-                        <td class="font-bold">{{ number_format($domain->links_count) }}</td>
-                        <td class="font-bold">{{ number_format($domain->links_sum_click_count ?? 0) }}</td>
+                        <td class="font-bold" data-col="links">{{ number_format($domain->links_count) }}</td>
+                        <td class="font-bold" data-col="clicks">{{ number_format($domain->links_sum_click_count ?? 0) }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -125,4 +128,5 @@
             </tbody>
         </x-ui.table>
     </x-ui.card>
+    </div>
 </x-layouts.app>

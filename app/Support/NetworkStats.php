@@ -94,7 +94,7 @@ class NetworkStats
      */
     public static function overview(): array
     {
-        return Cache::remember('stats:overview:v2', 600, function () {
+        return Cache::remember('stats:overview:v2', (int) config('stats.overview_ttl', 45), function () {
             $today = now()->startOfDay()->format('Y-m-d');
 
             return [
@@ -146,7 +146,7 @@ class NetworkStats
      */
     public static function creationsByDay(int $days = 30): array
     {
-        $counts = Cache::remember('stats:creations-30d', 600, function () {
+        $counts = Cache::remember('stats:creations-30d', (int) config('stats.charts_ttl', 60), function () {
             $live = Link::selectRaw('DATE(created_at) as date, COUNT(*) as count')
                 ->where('created_at', '>=', now()->subDays(29)->startOfDay())
                 ->groupByRaw('DATE(created_at)')
@@ -187,7 +187,7 @@ class NetworkStats
      */
     public static function creationsByDomain(int $days = 30): array
     {
-        $byDomain = Cache::remember('stats:creations-domains-30d', 600, function () use ($days) {
+        $byDomain = Cache::remember('stats:creations-domains-30d', (int) config('stats.charts_ttl', 60), function () use ($days) {
             $cutoff = now()->subDays($days - 1)->startOfDay();
             $platformById = Domain::whereNull('user_id')->pluck('hostname', 'id')->all();
             $platformHostnames = array_flip(array_values($platformById));
@@ -234,7 +234,7 @@ class NetworkStats
      */
     public static function clicksByDay(int $days = 30): array
     {
-        $counts = Cache::remember('stats:clicks-30d', 600, function () {
+        $counts = Cache::remember('stats:clicks-30d', (int) config('stats.charts_ttl', 60), function () {
             $live = Click::selectRaw('DATE(created_at) as date, COUNT(*) as count')
                 ->where('created_at', '>=', now()->subDays(29)->startOfDay())
                 ->groupByRaw('DATE(created_at)')
@@ -268,7 +268,7 @@ class NetworkStats
      */
     public static function clicksByDomain(int $days = 30): array
     {
-        $byDomain = Cache::remember('stats:clicks-domains-30d', 600, function () use ($days) {
+        $byDomain = Cache::remember('stats:clicks-domains-30d', (int) config('stats.charts_ttl', 60), function () use ($days) {
             $cutoff = now()->subDays($days - 1)->startOfDay();
             $cutoffDate = $cutoff->format('Y-m-d');
             $platformById = Domain::whereNull('user_id')->pluck('hostname', 'id')->all();
@@ -319,7 +319,7 @@ class NetworkStats
      */
     public static function qrByDay(int $days = 30): array
     {
-        $counts = Cache::remember('stats:qr-30d', 600, function () {
+        $counts = Cache::remember('stats:qr-30d', (int) config('stats.charts_ttl', 60), function () {
             return QrGeneration::selectRaw('DATE(created_at) as date, COUNT(*) as count')
                 ->where('created_at', '>=', now()->subDays(29)->startOfDay())
                 ->groupByRaw('DATE(created_at)')
@@ -347,7 +347,7 @@ class NetworkStats
      */
     public static function qrByDomain(int $days = 30): array
     {
-        $byDomain = Cache::remember('stats:qr-domains-30d', 600, function () use ($days) {
+        $byDomain = Cache::remember('stats:qr-domains-30d', (int) config('stats.charts_ttl', 60), function () use ($days) {
             $cutoff = now()->subDays($days - 1)->startOfDay();
             $platformById = Domain::whereNull('user_id')->pluck('hostname', 'id')->all();
 
@@ -467,7 +467,7 @@ class NetworkStats
      */
     public static function heatmaps(int $calendarDays = 364, int $hourlyDays = 90): array
     {
-        return Cache::remember("stats:heatmaps:{$calendarDays}:{$hourlyDays}", 600, function () use ($calendarDays, $hourlyDays) {
+        return Cache::remember("stats:heatmaps:{$calendarDays}:{$hourlyDays}", (int) config('stats.heatmaps_ttl', 600), function () use ($calendarDays, $hourlyDays) {
             $insights = app(LinkInsights::class);
             $hourlyCutoff = now()->subDays($hourlyDays - 1)->startOfDay();
             $calendarCutoff = now()->subDays($calendarDays - 1)->startOfDay();
@@ -546,6 +546,88 @@ class NetworkStats
     }
 
     /**
+     * Compute aggregated weekday, peak hour, and daypart rhythm summaries for heatmaps.
+     *
+     * @param  array{hourly?: array<string, array<int, array<int, int>>>, calendar?: array<string, array<string, int>>}|null  $heatmaps
+     * @return array<string, array<string, mixed>>
+     */
+    public static function heatmapSummaries(?array $heatmaps = null): array
+    {
+        $heatmaps ??= self::heatmaps();
+        $weekdayNamesFull = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        $daypartBlocks = [
+            ['label' => 'Night', 'range' => '00–05', 'offset' => 0],
+            ['label' => 'Morning', 'range' => '06–11', 'offset' => 6],
+            ['label' => 'Afternoon', 'range' => '12–17', 'offset' => 12],
+            ['label' => 'Evening', 'range' => '18–23', 'offset' => 18],
+        ];
+
+        $summaries = [];
+        foreach (['clicks', 'links', 'qr'] as $mKey) {
+            $calData = $heatmaps['calendar'][$mKey] ?? [];
+            $hrGrid = $heatmaps['hourly'][$mKey] ?? [];
+
+            $calSum = array_sum($calData);
+            $rowSums = array_fill(0, 7, 0);
+            $hourSums = array_fill(0, 24, 0);
+            $dpCounts = [0, 0, 0, 0];
+            $total90 = 0;
+
+            for ($w = 0; $w < 7; $w++) {
+                for ($h = 0; $h < 24; $h++) {
+                    $v = (int) ($hrGrid[$w][$h] ?? 0);
+                    $rowSums[$w] += $v;
+                    $hourSums[$h] += $v;
+                    $dpCounts[(int) intdiv($h, 6)] += $v;
+                    $total90 += $v;
+                }
+            }
+
+            $bestDayVal = max($rowSums);
+            $bestDayIdx = $bestDayVal > 0 ? (int) array_search($bestDayVal, $rowSums, true) : null;
+
+            $bestHrVal = max($hourSums);
+            $bestHrIdx = $bestHrVal > 0 ? (int) array_search($bestHrVal, $hourSums, true) : null;
+
+            $workweekSum = array_sum(array_slice($rowSums, 0, 5));
+            $weekendSum = $rowSums[5] + $rowSums[6];
+            $workweekPct = $total90 > 0 ? (int) round(($workweekSum / $total90) * 100) : 0;
+            $weekendPct = $total90 > 0 ? max(0, 100 - $workweekPct) : 0;
+
+            $maxDp = max(1, max($dpCounts));
+            $dayparts = [];
+            foreach ($daypartBlocks as $dpIdx => $dpMeta) {
+                $c = $dpCounts[$dpIdx];
+                $dayparts[] = [
+                    'label' => $dpMeta['label'],
+                    'range' => $dpMeta['range'],
+                    'count' => $c,
+                    'sharePct' => $total90 > 0 ? (int) round(($c / $total90) * 100) : 0,
+                    'barPct' => $c > 0 ? max(8, (int) round(($c / $maxDp) * 100)) : 0,
+                ];
+            }
+
+            $summaries[$mKey] = [
+                'calendarTotal' => $calSum,
+                'total90' => $total90,
+                'bestDayLabel' => $bestDayIdx !== null ? $weekdayNamesFull[$bestDayIdx] : '—',
+                'bestDayCount' => $bestDayVal,
+                'bestDayShare' => $total90 > 0 ? (int) round(($bestDayVal / $total90) * 100) : 0,
+                'bestHourLabel' => $bestHrIdx !== null ? str_pad((string) $bestHrIdx, 2, '0', STR_PAD_LEFT).':00 UTC' : '—',
+                'bestHourCount' => $bestHrVal,
+                'bestHourShare' => $total90 > 0 ? (int) round(($bestHrVal / $total90) * 100) : 0,
+                'workweekSum' => $workweekSum,
+                'weekendSum' => $weekendSum,
+                'workweekPct' => $workweekPct,
+                'weekendPct' => $weekendPct,
+                'dayparts' => $dayparts,
+            ];
+        }
+
+        return $summaries;
+    }
+
+    /**
      * Links + clicks per domain, most links first (cached 10 minutes).
      * Tombstoned links stay counted against their original hostname.
      * Visibility (platform vs. own domains) is decided per request in
@@ -564,7 +646,7 @@ class NetworkStats
         if (! is_array($rows)) {
             Cache::forget('stats:domains:v2');
             $rows = self::buildDomainRows();
-            Cache::put('stats:domains:v2', $rows, 600);
+            Cache::put('stats:domains:v2', $rows, (int) config('stats.domains_ttl', 600));
         }
 
         return Domain::hydrate($rows);
