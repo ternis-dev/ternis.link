@@ -14,6 +14,7 @@
         <a class="brand" href="{{ route('meinlink-dashboard.index') }}">meinlink<span>.at</span><small>MEIN BEREICH</small></a>
         <nav aria-label="Hauptnavigation">
             <a href="{{ route('meinlink-dashboard.index') }}" @if(request()->routeIs('meinlink-dashboard.index', 'meinlink-dashboard.links', 'meinlink-dashboard.show', 'meinlink-dashboard.edit')) aria-current="page" @endif>Meine Links</a>
+            @auth<a href="{{ route('meinlink-dashboard.statistics') }}" @if(request()->routeIs('meinlink-dashboard.statistics')) aria-current="page" @endif>Statistiken</a>@endauth
             <a href="{{ route('meinlink-dashboard.help') }}" @if(request()->routeIs('meinlink-dashboard.help')) aria-current="page" @endif>Hilfe</a>
             @auth<form method="post" action="/logout">@csrf<button class="text-button" type="submit">Abmelden</button></form>@endauth
         </nav>

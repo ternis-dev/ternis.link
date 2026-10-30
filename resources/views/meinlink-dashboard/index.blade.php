@@ -11,12 +11,13 @@
         <form method="get" class="filters" role="search">
             <div class="search-field"><label for="q">Links durchsuchen</label><input id="q" name="q" value="{{ $search }}" maxlength="150" placeholder="Kürzel, Zieladresse oder Beschreibung"></div>
             <div><label for="status">Status</label><select id="status" name="status"><option value="all">Alle Links</option><option value="active" @selected($status === 'active')>Aktiv</option><option value="inactive" @selected($status === 'inactive')>Inaktiv / abgelaufen</option></select></div>
-            <button class="button" type="submit">Suchen</button>@if($search !== '' || $status !== 'all')<a href="{{ route('meinlink-dashboard.index') }}">Zurücksetzen</a>@endif
+            <div><label for="sort">Sortieren</label><select id="sort" name="sort"><option value="newest" @selected($sort === 'newest')>Neueste zuerst</option><option value="oldest" @selected($sort === 'oldest')>Älteste zuerst</option><option value="clicks" @selected($sort === 'clicks')>Meiste Klicks</option></select></div>
+            <button class="button" type="submit">Suchen</button>@if($search !== '' || $status !== 'all' || $sort !== 'newest')<a href="{{ route('meinlink-dashboard.index') }}">Zurücksetzen</a>@endif
         </form>
         <div class="link-list">
         @forelse($links as $link)
             <article class="link-row">
-                <div class="link-main"><div class="link-title"><a href="{{ route('meinlink-dashboard.show', $link->id) }}">meinlink.at/{{ $link->slug }}</a><span class="status">{{ in_array('quarantine', $link->tags ?? [], true) ? 'Gesperrt' : ($link->isExpired() ? 'Abgelaufen' : ($link->is_active ? 'Aktiv' : 'Pausiert')) }}</span></div><p class="destination">{{ $link->destination_url }}</p>@if($link->description)<p>{{ $link->description }}</p>@endif<small class="muted">{{ number_format($link->click_count, 0, ',', '.') }} Klicks · Erstellt am {{ $link->created_at->format('d.m.Y') }}</small></div>
+                <div class="link-main"><div class="link-title"><a href="{{ route('meinlink-dashboard.show', $link->id) }}">meinlink.at/{{ $link->slug }}</a><span class="status">{{ \App\Support\MeinlinkLinkState::label($link) }}</span></div><p class="destination">{{ $link->destination_url }}</p>@if($link->description)<p>{{ $link->description }}</p>@endif<small class="muted">{{ number_format($link->click_count, 0, ',', '.') }} Klicks · Erstellt am {{ $link->created_at->format('d.m.Y') }}</small></div>
                 <div class="row-actions"><button class="button" type="button" data-copy="{{ $link->short_url }}" aria-label="Link {{ $link->slug }} kopieren">Kopieren</button><a class="button" href="{{ route('meinlink-dashboard.show', $link->id) }}">Details →</a></div>
             </article>
         @empty

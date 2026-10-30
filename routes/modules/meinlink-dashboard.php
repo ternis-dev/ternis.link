@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 Route::domain(config('domains.meinlink_dashboard_host'))->name('meinlink-dashboard.')->middleware(['ensure.domain:public-dashboard', 'auth', 'refresh.sso', 'enforce.domain'])->group(function () {
     Route::get('/', [MeinlinkDashboardController::class, 'index'])->name('index');
     Route::get('/links', [MeinlinkDashboardController::class, 'index'])->name('links');
+    Route::get('/statistics', [MeinlinkDashboardController::class, 'statistics'])->name('statistics');
+    Route::get('/statistics/export', [MeinlinkDashboardController::class, 'exportStatistics'])->middleware('throttle:20,1')->name('statistics.export');
     Route::get('/new', [MeinlinkDashboardController::class, 'create'])->name('create');
     Route::post('/links', [MeinlinkDashboardController::class, 'store'])->middleware('throttle:20,1')->name('store');
     Route::get('/links/{link}', [MeinlinkDashboardController::class, 'show'])->name('show');

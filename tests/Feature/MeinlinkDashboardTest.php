@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Click;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\ThreatEvaluation;
 use App\Models\User;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
@@ -100,6 +102,96 @@ class MeinlinkDashboardTest extends TestCase
             $this->put('http://dash.meinlink.at/links/'.$link->id, ['destination_url' => 'https://example.com/other'])->assertNotFound();
             $this->post('http://dash.meinlink.at/links/'.$link->id.'/toggle')->assertNotFound();
         }
+    }
+
+    public function test_statistics_and_csv_only_include_owned_meinlink_clicks_in_range(): void
+    {
+        $this->travelTo(now()->setDate(2026, 10, 30)->setTime(12, 0));
+        $own = $this->link($this->user);
+        $other = $this->link(User::factory()->create());
+        $otherDomain = $this->link($this->user, 'href.nz');
+        $removed = $this->link($this->user, extra: ['is_removed' => true]);
+        foreach ([$own, $other, $otherDomain, $removed] as $link) {
+            Click::create(['link_id' => $link->id, 'created_at' => now()]);
+        }
+        Click::create(['link_id' => $own->id, 'created_at' => now()->subDays(6)->startOfDay()]);
+        Click::create(['link_id' => $own->id, 'created_at' => now()->subDays(7)->endOfDay()]);
+        Click::create(['link_id' => $own->id, 'created_at' => now()->addDay()]);
+        Click::create(['link_id' => $own->id, 'is_direct_url' => true, 'created_at' => now()]);
+        $this->actingAs($this->user)->get('http://dash.meinlink.at/statistics?days=7')
+            ->assertOk()->assertSee('Jeder Klick zählt.')
+            ->assertViewHas('total', 2)->assertViewHas('activeDays', 2)
+            ->assertViewHas('daily', fn ($daily) => $daily->count() === 7 && $daily->where('count', 0)->count() === 5)
+            ->assertViewHas('topLinks', fn ($links) => $links->count() === 1 && $links->first()->id === $own->id && $links->first()->period_clicks === 2)
+            ->assertDontSee($other->slug)->assertDontSee($otherDomain->slug)->assertDontSee($removed->slug);
+        $csv = $this->get('http://dash.meinlink.at/statistics/export?days=7')->assertOk()->streamedContent();
+        $this->assertStringContainsString('Datum;Klicks', $csv);
+        $this->assertStringContainsString('2026-10-24;1', $csv);
+        $this->assertStringContainsString('2026-10-30;1', $csv);
+        $this->assertStringNotContainsString('2026-10-23', $csv);
+        $this->assertStringNotContainsString('example.com', $csv);
+    }
+
+    public function test_statistics_have_empty_states_and_validate_ranges_and_search(): void
+    {
+        $this->get('http://dash.meinlink.at/statistics')->assertRedirect();
+        $this->get('http://dash.meinlink.at/statistics/export')->assertRedirect();
+        $this->actingAs($this->user)->get('http://dash.meinlink.at/statistics')->assertOk()
+            ->assertSee('noch keine Klicks erfasst')->assertViewHas('total', 0);
+        $this->get('http://dash.meinlink.at/statistics?days=365')->assertSessionHasErrors('days');
+        $this->get('http://dash.meinlink.at/?q[]=invalid')->assertSessionHasErrors('q');
+        $this->get('http://dash.meinlink.at/?sort=unknown')->assertSessionHasErrors('sort');
+    }
+
+    public function test_link_list_can_be_sorted_without_exposing_other_users(): void
+    {
+        $old = $this->link($this->user, extra: ['created_at' => now()->subDays(3), 'click_count' => 20]);
+        $old->forceFill(['created_at' => now()->subDays(3)])->save();
+        $new = $this->link($this->user, extra: ['click_count' => 3]);
+        $foreign = $this->link(User::factory()->create(), extra: ['click_count' => 100]);
+        $this->actingAs($this->user)->get('http://dash.meinlink.at/?sort=clicks')->assertOk()
+            ->assertSeeInOrder([$old->slug, $new->slug])->assertDontSee($foreign->slug);
+        $this->get('http://dash.meinlink.at/?sort=oldest')->assertOk()->assertSeeInOrder([$old->slug, $new->slug]);
+        $this->get('http://dash.meinlink.at/?sort=newest')->assertOk()->assertSeeInOrder([$new->slug, $old->slug]);
+    }
+
+    public function test_expired_paused_link_must_have_its_expiry_changed_before_activation(): void
+    {
+        $link = $this->link($this->user, extra: ['is_active' => false, 'expires_at' => now()->subDay()]);
+        $this->actingAs($this->user)->post('http://dash.meinlink.at/links/'.$link->id.'/toggle')->assertSessionHasErrors('link');
+        $this->assertFalse($link->fresh()->is_active);
+        $this->put('http://dash.meinlink.at/links/'.$link->id, [
+            'destination_url' => $link->destination_url, 'expires_at' => '',
+        ])->assertRedirect();
+        $this->post('http://dash.meinlink.at/links/'.$link->id.'/toggle')->assertRedirect();
+        $this->assertTrue($link->fresh()->is_active);
+        $this->assertNull($link->fresh()->expires_at);
+    }
+
+    public function test_burst_quarantine_has_consistent_status_and_hidden_mutation_controls(): void
+    {
+        $link = $this->link($this->user, extra: ['is_active' => false]);
+        ThreatEvaluation::create([
+            'link_id' => $link->id, 'creator_ip_hash' => '', 'destination_url' => $link->destination_url,
+            'destination_host' => 'example.com', 'evaluation_type' => 'spam_burst', 'verdict' => 'spam',
+            'threat_score' => 95, 'confidence' => .99, 'action_taken' => 'quarantined',
+        ]);
+        $this->actingAs($this->user)->get('http://dash.meinlink.at/links/'.$link->id)->assertOk()
+            ->assertSee('Dieser Link ist gesperrt.')->assertDontSee('Link aktivieren')->assertDontSee('>Bearbeiten</a>', false);
+        $this->get('http://dash.meinlink.at/links/'.$link->id.'/edit')->assertRedirect()->assertSessionHasErrors('link');
+        $this->post('http://dash.meinlink.at/links/'.$link->id.'/toggle')->assertSessionHasErrors('link');
+    }
+
+    public function test_duplicate_slug_error_is_attached_to_the_slug_field(): void
+    {
+        $link = $this->link($this->user);
+        $this->actingAs($this->user)->from('http://dash.meinlink.at/new')->post('http://dash.meinlink.at/links', [
+            'destination_url' => 'https://example.com/new', 'slug' => $link->slug,
+        ])->assertRedirect('http://dash.meinlink.at/new')->assertSessionHasErrors('slug');
+        // Preserve the browser's session cookie across the redirect. JSON
+        // error bags cannot be reused from a different in-memory session ID.
+        $this->withCookie(config('session.cookie'), session()->getId())
+            ->get('http://dash.meinlink.at/new')->assertOk()->assertSee('id="slug-error"', false);
     }
 
     public function test_quarantined_links_cannot_be_edited_or_reactivated(): void

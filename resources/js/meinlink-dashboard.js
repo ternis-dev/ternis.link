@@ -1,19 +1,27 @@
+const copyTimers = new WeakMap();
 document.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-copy]');
     if (!button) return;
-    const original = button.textContent;
+    const original = button.dataset.copyLabel ??= button.textContent;
+    clearTimeout(copyTimers.get(button));
     try {
         await navigator.clipboard.writeText(button.dataset.copy);
         button.textContent = 'Kopiert ✓';
         button.setAttribute('aria-live', 'polite');
-        setTimeout(() => { button.textContent = original; }, 2200);
+        button.parentElement.querySelector('[data-copy-fallback]')?.remove();
+        copyTimers.set(button, setTimeout(() => { button.textContent = original; }, 2200));
     } catch {
         button.textContent = 'Bitte manuell kopieren';
-        const input = document.createElement('input');
+        let input = button.parentElement.querySelector('[data-copy-fallback]');
+        if (!input) {
+            input = document.createElement('input');
+            input.dataset.copyFallback = '';
+            input.className = 'copy-fallback';
+            input.readOnly = true;
+            input.setAttribute('aria-label', 'Kurzlink zum Kopieren');
+            button.after(input);
+        }
         input.value = button.dataset.copy;
-        input.readOnly = true;
-        input.setAttribute('aria-label', 'Kurzlink zum Kopieren');
-        button.after(input);
         input.focus();
         input.select();
     }

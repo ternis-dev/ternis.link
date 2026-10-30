@@ -4,6 +4,8 @@ Status: initial dashboard implemented in this repository for `dash.meinlink.at`;
 
 Implemented: an independent German Blade UI and dedicated CSS/JavaScript; own meinlink.at link list, search/status filters, creation/editing, pause/reactivation, per-link seven-day click counts, PNG QR downloads, help and login. Ownership and hostname restrictions apply to every link endpoint. Quarantined links cannot be edited or reactivated. Existing cross-domain SSO is reused. Account-level settings remain an explicitly labelled link to the existing public dashboard.
 
+The next iteration adds a German statistics page with 7/30/90-day ranges, zero-filled daily totals, top links and CSV export. The link list supports newest/oldest/most-clicked sorting. Creation shows the shared daily quota and field-specific errors. Quarantine states are consistent for tagged links and burst detections; expired paused links require an expiry change before activation. Clipboard fallback fields are reused instead of duplicated.
+
 The remaining items below describe future extensions and deployment checks, rather than features all included in this first version.
 
 ## Recommendation
