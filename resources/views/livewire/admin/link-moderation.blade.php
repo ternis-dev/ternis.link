@@ -45,6 +45,7 @@
             <x-ui.select name="moderation-status" wire:model.live="status" class="w-auto" aria-label="Filter by status">
                 <option value="all">All statuses</option>
                 <option value="active">Active</option>
+                <option value="quarantined">Quarantined (AI)</option>
                 <option value="disabled">Disabled</option>
                 <option value="removed">Removed</option>
                 <option value="expired">Expired</option>
@@ -87,6 +88,8 @@
                         </th>
                     @elseif ($column === 'status')
                         <th>Status</th>
+                    @elseif ($column === 'security')
+                        <th>Security / AI</th>
                     @endif
                 @endforeach
                 <th>Actions</th>
@@ -129,12 +132,34 @@
                             <td>
                                 @if ($link->is_removed)
                                     <x-ui.status state="removed" />
+                                @elseif (in_array('quarantine', $link->tags ?? []))
+                                    <x-ui.status state="quarantined" />
                                 @elseif ($link->is_active && !$link->isExpired())
                                     <x-ui.status state="active" />
                                 @elseif ($link->isExpired())
                                     <x-ui.status state="expired" />
                                 @else
                                     <x-ui.status state="disabled" />
+                                @endif
+                            </td>
+                        @elseif ($column === 'security')
+                            <td class="text-xs">
+                                @if ($link->apiKey?->shouldBypassAi())
+                                    <span class="inline-flex items-center gap-1 rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-bold text-violet-800 dark:bg-violet-950/50 dark:text-violet-300">
+                                        Admin Key Bypass
+                                    </span>
+                                @elseif ($eval = $link->threatEvaluations?->sortByDesc('id')->first())
+                                    <span @class([
+                                        'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase',
+                                        'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' => in_array($eval->verdict, ['malware', 'phishing']),
+                                        'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' => $eval->verdict === 'spam',
+                                        'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' => $eval->verdict === 'safe',
+                                        'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400' => ! in_array($eval->verdict, ['malware', 'phishing', 'spam', 'safe']),
+                                    ]) title="{{ $eval->reasoning }}">
+                                        {{ $eval->verdict }} ({{ $eval->threat_score }})
+                                    </span>
+                                @else
+                                    <span class="text-[11px] text-neutral-400">Not scanned</span>
                                 @endif
                             </td>
                         @endif
@@ -145,6 +170,9 @@
                             <x-ui.button wire:click="restore('{{ $link->id }}')" size="sm">Restore</x-ui.button>
                             <x-ui.button wire:click="delete('{{ $link->id }}')" wire:confirm="Permanently delete this link? The row and its click details are destroyed — only anonymized aggregates survive in stats." size="sm" variant="danger">Delete</x-ui.button>
                         @else
+                            @if (in_array('quarantine', $link->tags ?? []))
+                                <x-ui.button wire:click="unquarantine('{{ $link->id }}')" size="sm" class="bg-emerald-600 text-white hover:bg-emerald-500">Unquarantine</x-ui.button>
+                            @endif
                             @if ($link->is_active)
                                 <x-ui.button wire:click="deactivate('{{ $link->id }}')" wire:confirm="Deactivate this link?" size="sm" variant="danger">Deactivate</x-ui.button>
                             @else

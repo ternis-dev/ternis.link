@@ -143,6 +143,45 @@ class LinkModeration extends Component
         }
     }
 
+    public function unquarantine(string $linkId): void
+    {
+        $this->ensureAdmin();
+
+        $link = Link::findOrFail($linkId);
+        $tags = is_array($link->tags) ? $link->tags : [];
+        $tags = array_values(array_diff($tags, ['quarantine', 'malware', 'phishing', 'spam']));
+        if (! in_array('admin_cleared', $tags, true)) {
+            $tags[] = 'admin_cleared';
+        }
+
+        $link->update([
+            'is_active' => true,
+            'tags' => $tags,
+        ]);
+
+        Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+
+        Activity::record(ActivityLog::ADMIN_LINK_REACTIVATED, auth()->user(), $link, [
+            'slug' => $link->slug,
+            'reason' => 'Threat quarantine cleared via link moderation',
+        ]);
+
+        if ($link->user) {
+            Notifier::security(
+                $link->user,
+                'Security Status Updated: Link Restored',
+                [
+                    "Your link \"/{$link->slug}\" pointing to \"{$link->destination_url}\" was reviewed by an administrator and restored.",
+                    'The quarantine status has been removed and the link is active again.',
+                ],
+                DomainUrls::dashboard('/links/'.$link->id),
+                'View Link'
+            );
+        }
+
+        $this->dispatch('notify', message: "Link {$link->slug} unquarantined and reactivated.", type: 'success');
+    }
+
     /**
      * Remove a link from every surface (redirects, dashboards, API).
      * The row — and its analytics — are preserved for stats and audit.
@@ -239,7 +278,7 @@ class LinkModeration extends Component
     {
         $this->ensureAdmin();
 
-        $links = Link::with(['domain', 'user'])
+        $links = Link::with(['domain', 'user', 'apiKey.user', 'threatEvaluations'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('slug', 'like', "%{$this->search}%")
@@ -251,6 +290,7 @@ class LinkModeration extends Component
             })
             ->when($this->status === 'active', fn ($q) => $q->where('is_active', true)->where(fn ($s) => $s->whereNull('expires_at')->orWhere('expires_at', '>', now())))
             ->when($this->status === 'disabled', fn ($q) => $q->where('is_active', false)->where('is_removed', false))
+            ->when($this->status === 'quarantined', fn ($q) => $q->where('tags', 'like', '%quarantine%'))
             ->when($this->status === 'removed', fn ($q) => $q->where('is_removed', true))
             ->when($this->status === 'expired', fn ($q) => $q->whereNotNull('expires_at')->where('expires_at', '<=', now()))
             ->when($this->domainFilter !== '', fn ($q) => $q->whereHas('domain', fn ($d) => $d->where('hostname', $this->domainFilter)))
@@ -283,6 +323,7 @@ class LinkModeration extends Component
             'owner' => 'Owner',
             'clicks' => 'Clicks',
             'status' => 'Status',
+            'security' => 'Security / AI',
         ];
     }
 

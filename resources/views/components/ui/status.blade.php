@@ -8,6 +8,7 @@ $labels = [
     'expired' => 'Expired',
     'disabled' => 'Disabled',
     'removed' => 'Removed',
+    'quarantined' => 'Quarantined',
     'system' => 'System',
 ];
 @endphp
@@ -16,6 +17,9 @@ $labels = [
     @if (in_array($state, ['active', 'verified'], true))
         <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-neutral-900 dark:bg-white"></span>
         <span>{{ $labels[$state] }}</span>
+    @elseif ($state === 'quarantined')
+        <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+        <span class="font-semibold text-rose-700 dark:text-rose-400">{{ $labels[$state] }}</span>
     @elseif ($state === 'pending')
         <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full border border-neutral-500"></span>
         <span class="text-neutral-600 dark:text-neutral-400">{{ $labels[$state] }}</span>

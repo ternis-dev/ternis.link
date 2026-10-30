@@ -309,6 +309,40 @@ class AdminDashboardTest extends TestCase
         $this->assertDatabaseHas('links', ['id' => $link->id]);
     }
 
+    public function test_link_moderation_can_filter_quarantined_links_and_unquarantine(): void
+    {
+        $activeLink = Link::create([
+            'slug' => 'normal-active',
+            'destination_url' => 'https://example.com/normal',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => true,
+        ]);
+
+        $quarantinedLink = Link::create([
+            'slug' => 'quarantined-trojan',
+            'destination_url' => 'https://example.com/trojan.exe',
+            'domain_id' => $this->domain->id,
+            'user_id' => $this->user->id,
+            'is_active' => false,
+            'tags' => ['quarantine', 'malware'],
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(LinkModeration::class)
+            ->set('status', 'quarantined')
+            ->assertSee('quarantined-trojan')
+            ->assertDontSee('normal-active')
+            ->call('unquarantine', $quarantinedLink->id)
+            ->assertDispatched('notify');
+
+        $quarantinedLink->refresh();
+        $this->assertTrue($quarantinedLink->is_active);
+        $this->assertNotContains('quarantine', $quarantinedLink->tags);
+        $this->assertNotContains('malware', $quarantinedLink->tags);
+        $this->assertContains('admin_cleared', $quarantinedLink->tags);
+    }
+
     public function test_user_table_can_change_role_and_plan(): void
     {
         $pro = Plan::where('name', 'pro')->first();

@@ -52,6 +52,17 @@
                                     <a href="{{ $appeal->link->destination_url }}" target="_blank" rel="noopener noreferrer" class="mt-1 block max-w-xs truncate text-xs text-neutral-500 hover:underline dark:text-neutral-400">
                                         {{ $appeal->link->destination_url }}
                                     </a>
+                                    @if ($eval = $appeal->link->threatEvaluations?->sortByDesc('id')->first())
+                                        <div class="mt-2 rounded border border-rose-200 bg-rose-50/70 p-2 text-[11px] text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
+                                            <div class="font-bold flex items-center gap-1.5">
+                                                <span class="h-1.5 w-1.5 rounded-full bg-rose-500"></span>
+                                                <span>AI Flag: <span class="uppercase">{{ $eval->verdict }}</span> (Threat: {{ $eval->threat_score }}/100)</span>
+                                            </div>
+                                            @if ($eval->reasoning)
+                                                <p class="mt-0.5 text-rose-700 dark:text-rose-400 font-normal truncate" title="{{ $eval->reasoning }}">{{ $eval->reasoning }}</p>
+                                            @endif
+                                        </div>
+                                    @endif
                                 @else
                                     <span class="text-xs text-neutral-400">Deleted Link</span>
                                 @endif

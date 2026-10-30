@@ -233,6 +233,13 @@ class SpamAppealAndBotConfigTest extends TestCase
         $this->assertNotContains('quarantine', $link->tags);
         $this->assertContains('appeal_approved', $link->tags);
 
+        $this->assertDatabaseHas('threat_evaluations', [
+            'link_id' => $link->id,
+            'evaluation_type' => 'appeal_resolution',
+            'action_taken' => 'cleared',
+            'verdict' => 'safe',
+        ]);
+
         Notification::assertSentTo(
             $this->user,
             SecurityAlert::class,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Link;
 use App\Models\SpamAppeal;
+use App\Models\ThreatEvaluation;
 use App\Support\DomainUrls;
 use App\Support\Notifier;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class AdminAppealController extends Controller
     {
         $status = $request->query('status', 'pending');
 
-        $query = SpamAppeal::with(['link.domain', 'user', 'reviewer']);
+        $query = SpamAppeal::with(['link.domain', 'link.threatEvaluations', 'user', 'reviewer']);
 
         if ($status !== 'all') {
             $query->where('status', $status);
@@ -66,6 +67,25 @@ class AdminAppealController extends Controller
             ]);
 
             Link::forgetCachedSlug((string) $link->domain_id, (string) $link->slug);
+
+            ThreatEvaluation::create([
+                'link_id' => $link->id,
+                'user_id' => $link->user_id,
+                'creator_ip_hash' => $link->creator_ip_hash ?? '',
+                'destination_url' => $link->destination_url,
+                'destination_host' => (string) parse_url($link->destination_url, PHP_URL_HOST),
+                'evaluation_type' => 'appeal_resolution',
+                'verdict' => 'safe',
+                'threat_score' => 0,
+                'confidence' => 1.0,
+                'action_taken' => 'cleared',
+                'reasoning' => 'Spam appeal #'.$appeal->id.' approved by admin #'.$request->user()->id.($request->input('admin_notes') ? ': '.$request->input('admin_notes') : ''),
+                'metadata' => [
+                    'appeal_id' => $appeal->id,
+                    'approved_by' => $request->user()->id,
+                    'approved_at' => now()->toIso8601String(),
+                ],
+            ]);
         }
 
         // Notify link owner
