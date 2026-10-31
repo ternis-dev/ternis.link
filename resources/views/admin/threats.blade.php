@@ -79,6 +79,16 @@
                             ])>
                                 {{ $test['verdict'] }} ({{ round($test['confidence'] * 100) }}% confidence)
                             </span>
+                            @if (!empty($test['recommended_action']))
+                                <span @class([
+                                    'rounded-lg px-2.5 py-1 text-xs font-bold uppercase tracking-wide',
+                                    'bg-rose-700 text-white' => $test['recommended_action'] === 'quarantine',
+                                    'bg-amber-600 text-white' => $test['recommended_action'] === 'bot_protect',
+                                    'bg-emerald-700 text-white' => $test['recommended_action'] === 'allow',
+                                ])>
+                                    Action: {{ $test['recommended_action'] }}
+                                </span>
+                            @endif
                             <span class="rounded-lg bg-neutral-900 px-2.5 py-1 text-xs font-bold text-white dark:bg-white dark:text-neutral-900">
                                 Score: {{ $test['threat_score'] }}/100
                             </span>
@@ -222,6 +232,7 @@
                                 <div class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900 space-y-3">
                                     <div class="flex items-center justify-between text-xs font-bold border-b border-neutral-100 pb-2 dark:border-neutral-800">
                                         <span>Evaluation ID: <code class="font-mono text-violet-600 dark:text-violet-400">{{ $eval->id }}</code></span>
+                                        <span>Confidence: <code class="font-mono text-neutral-900 dark:text-white">{{ round($eval->confidence * 100) }}%</code></span>
                                         <span>Model: <code class="font-mono">{{ $eval->metadata['model'] ?? 'jev-latest' }}</code></span>
                                     </div>
                                     <p class="text-xs text-neutral-600 dark:text-neutral-300"><strong>Reasoning:</strong> {{ $eval->reasoning }}</p>

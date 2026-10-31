@@ -39,6 +39,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | AI Confidence Thresholds (0.00 - 1.00)
+    |--------------------------------------------------------------------------
+    | TypeSafe AI API responses return a confidence probability for verdicts
+    | and scores. We use these thresholds to avoid false-positive disruptions:
+    |
+    | - min_confidence_quarantine: Requires high confidence (default 0.75) to
+    |   deactivate and quarantine links. Threats below this (e.g. 0.40) are
+    |   downgraded to bot protection instead of taking the link offline.
+    |
+    | - min_confidence_bot_protect: Minimum confidence required (default 0.35)
+    |   to challenge visitors with Turnstile/bot protection. Scores below this
+    |   are treated as statistical noise in multi-class output and cleared.
+    */
+    'min_confidence_quarantine' => (float) env('AI_SECURITY_MIN_CONFIDENCE_QUARANTINE', 0.75),
+    'min_confidence_bot_protect' => (float) env('AI_SECURITY_MIN_CONFIDENCE_BOT_PROTECT', 0.35),
+
+    /*
+    |--------------------------------------------------------------------------
     | Burst Attack Velocity Limits
     |--------------------------------------------------------------------------
     */

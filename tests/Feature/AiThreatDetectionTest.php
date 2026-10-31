@@ -376,4 +376,104 @@ class AiThreatDetectionTest extends TestCase
         $link->refresh();
         $this->assertTrue($link->is_active);
     }
+
+    public function test_moderate_confidence_threat_downgrades_quarantine_to_bot_protection(): void
+    {
+        $link = $this->createLink([
+            'domain_id' => $this->domain->id,
+            'destination_url' => 'https://suspected-login.example/auth',
+            'is_active' => true,
+            'bot_protection' => false,
+            'tags' => ['marketing'],
+        ]);
+
+        // API response includes confidence: 0.4 with high threat score (95/100)
+        $mockClient = $this->makeMockClient(verdict: 'phishing', score: 3.8, confidence: 0.4);
+        $service = new AiThreatDetectionService($mockClient);
+
+        $evaluation = $service->evaluateLink($link);
+
+        $this->assertNotNull($evaluation);
+        // Because confidence (0.4) < 0.75 quarantine threshold, it MUST NOT quarantine.
+        // Instead, it wisely escalates to bot_protected.
+        $this->assertEquals('bot_protected', $evaluation->action_taken);
+        $this->assertEquals('phishing', $evaluation->verdict);
+        $this->assertEquals(95, $evaluation->threat_score);
+        $this->assertEquals(0.4, $evaluation->confidence);
+        $this->assertTrue($evaluation->metadata['quarantine_downgraded']);
+
+        $link->refresh();
+        $this->assertTrue($link->is_active);
+        $this->assertTrue((bool) $link->bot_protection);
+        $this->assertNotContains('quarantine', $link->tags ?? []);
+    }
+
+    public function test_malware_with_moderate_confidence_downgrades_to_bot_protection(): void
+    {
+        $link = $this->createLink([
+            'domain_id' => $this->domain->id,
+            'destination_url' => 'https://suspicious-file.example/installer',
+            'is_active' => true,
+            'bot_protection' => false,
+        ]);
+
+        // API response includes confidence: 0.4 with malware verdict
+        $mockClient = $this->makeMockClient(verdict: 'malware', score: 4.0, confidence: 0.4);
+        $service = new AiThreatDetectionService($mockClient);
+
+        $evaluation = $service->evaluateLink($link);
+
+        $this->assertNotNull($evaluation);
+        $this->assertEquals('bot_protected', $evaluation->action_taken);
+        $this->assertEquals(0.4, $evaluation->confidence);
+        $this->assertTrue($evaluation->metadata['quarantine_downgraded']);
+
+        $link->refresh();
+        $this->assertTrue($link->is_active);
+        $this->assertTrue((bool) $link->bot_protection);
+    }
+
+    public function test_very_low_confidence_threat_is_cleared_as_noise(): void
+    {
+        $link = $this->createLink([
+            'domain_id' => $this->domain->id,
+            'destination_url' => 'https://uncertain-content.example/page',
+            'is_active' => true,
+            'bot_protection' => false,
+        ]);
+
+        // API response has confidence 0.2 (below min_confidence_bot_protect: 0.35)
+        $mockClient = $this->makeMockClient(verdict: 'phishing', score: 3.8, confidence: 0.2);
+        $service = new AiThreatDetectionService($mockClient);
+
+        $evaluation = $service->evaluateLink($link);
+
+        $this->assertNotNull($evaluation);
+        $this->assertEquals('cleared', $evaluation->action_taken);
+
+        $link->refresh();
+        $this->assertTrue($link->is_active);
+        $this->assertFalse((bool) $link->bot_protection);
+    }
+
+    public function test_scan_url_uses_confidence_wisely_in_recommended_actions(): void
+    {
+        // 1. High confidence (0.95) -> quarantine
+        $highConfClient = $this->makeMockClient(verdict: 'phishing', score: 3.8, confidence: 0.95);
+        $highConfResult = (new AiThreatDetectionService($highConfClient))->scanUrl('https://example.com/high-conf', ['fresh' => true]);
+        $this->assertSame('quarantine', $highConfResult['action_recommended']);
+        $this->assertFalse($highConfResult['is_safe']);
+
+        // 2. Moderate confidence 0.4 -> bot_protect (downgraded from quarantine)
+        $modConfClient = $this->makeMockClient(verdict: 'phishing', score: 3.8, confidence: 0.4);
+        $modConfResult = (new AiThreatDetectionService($modConfClient))->scanUrl('https://example.com/mod-conf', ['fresh' => true]);
+        $this->assertSame('bot_protect', $modConfResult['action_recommended']);
+        $this->assertFalse($modConfResult['is_safe']);
+        $this->assertStringContainsString('quarantine downgraded due to low confidence', $modConfResult['reasoning']);
+
+        // 3. Very low confidence 0.20 -> allow
+        $lowConfClient = $this->makeMockClient(verdict: 'phishing', score: 3.8, confidence: 0.20);
+        $lowConfResult = (new AiThreatDetectionService($lowConfClient))->scanUrl('https://example.com/low-conf', ['fresh' => true]);
+        $this->assertSame('allow', $lowConfResult['action_recommended']);
+    }
 }

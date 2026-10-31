@@ -209,7 +209,18 @@ class AiThreatDetectionService
             $scoreAnswer = $result->score('threat_score');
 
             $verdict = $verdictAnswer->choice ?? 'safe';
-            $confidence = $verdictAnswer->confidence ?? 1.0;
+
+            $verdictConfidence = isset($verdictAnswer->confidence) ? (float) $verdictAnswer->confidence : null;
+            $scoreConfidence = isset($scoreAnswer->confidence) ? (float) $scoreAnswer->confidence : null;
+
+            // Use the minimum confidence when both are present, reflecting the dimension of highest uncertainty
+            $confidence = match (true) {
+                $verdictConfidence !== null && $scoreConfidence !== null => min($verdictConfidence, $scoreConfidence),
+                $verdictConfidence !== null => $verdictConfidence,
+                $scoreConfidence !== null => $scoreConfidence,
+                default => 1.0,
+            };
+            $confidence = max(0.0, min(1.0, $confidence));
 
             // ScoreAnswer::score is 0.0 .. (count(legend) - 1). Normalize to 0 .. 100.
             $maxLevel = max(1, count($scoreAnswer->legend ?? []) - 1);
@@ -218,16 +229,42 @@ class AiThreatDetectionService
 
             $quarantineThreshold = (int) config('ai_security.quarantine_threshold', 80);
             $botProtectThreshold = (int) config('ai_security.bot_protect_threshold', 60);
+            $minConfidenceQuarantine = (float) config('ai_security.min_confidence_quarantine', 0.75);
+            $minConfidenceBotProtect = (float) config('ai_security.min_confidence_bot_protect', 0.35);
 
             $actionTaken = 'cleared';
+            $quarantineDowngraded = false;
 
             $isMalwareVerdict = $verdict === 'malware';
             $isHighThreatPhishing = $verdict === 'phishing' && $threatScore >= 65;
             $isSuspiciousPayload = $this->isSuspiciousUrl($destinationUrl) && in_array($verdict, ['malware', 'phishing', 'spam'], true);
             $isOverQuarantineScore = $threatScore >= $quarantineThreshold && in_array($verdict, ['phishing', 'malware'], true);
 
-            if ($isMalwareVerdict || $isHighThreatPhishing || $isSuspiciousPayload || $isOverQuarantineScore) {
-                $actionTaken = 'quarantined';
+            $meetsQuarantineThreat = $isMalwareVerdict || $isHighThreatPhishing || $isSuspiciousPayload || $isOverQuarantineScore;
+            $meetsBotProtectThreat = $threatScore >= $botProtectThreshold && in_array($verdict, ['spam', 'phishing', 'malware'], true);
+
+            // Wise confidence gating:
+            // High-impact quarantine requires high confidence (>= 0.75).
+            // Threats with moderate/low confidence (e.g. 0.40) are downgraded to bot_protected to prevent false-positive lockouts.
+            // Threats below the bot confidence threshold (< 0.35) are treated as random statistical noise and cleared.
+            if ($meetsQuarantineThreat) {
+                if ($confidence >= $minConfidenceQuarantine) {
+                    $actionTaken = 'quarantined';
+                } elseif ($confidence >= $minConfidenceBotProtect) {
+                    $actionTaken = 'bot_protected';
+                    $quarantineDowngraded = true;
+                } else {
+                    $actionTaken = 'cleared';
+                }
+            } elseif ($meetsBotProtectThreat) {
+                if ($confidence >= $minConfidenceBotProtect) {
+                    $actionTaken = 'bot_protected';
+                } else {
+                    $actionTaken = 'cleared';
+                }
+            }
+
+            if ($actionTaken === 'quarantined') {
                 if (! $dryRun) {
                     $tags = is_array($link->tags) ? $link->tags : [];
                     if (! in_array('quarantine', $tags, true)) {
@@ -249,11 +286,12 @@ class AiThreatDetectionService
                                 ? DomainUrls::publicDashboard('/appeals/create?link='.$link->id)
                                 : DomainUrls::dashboard('/appeals/create?link='.$link->id);
 
+                            $confidencePct = (int) round($confidence * 100);
                             Notifier::security(
                                 $owner,
                                 '⚠️ Security Alert: Link Quarantined as '.ucfirst($verdict),
                                 [
-                                    "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as {$verdict} (threat score: {$threatScore}/100).",
+                                    "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as {$verdict} (threat score: {$threatScore}/100, confidence: {$confidencePct}%).",
                                     'To protect visitors, this link has been automatically quarantined and deactivated.',
                                     'If you believe this is a false positive, you can submit a spam appeal for review.',
                                 ],
@@ -263,8 +301,7 @@ class AiThreatDetectionService
                         }
                     }
                 }
-            } elseif ($threatScore >= $botProtectThreshold && in_array($verdict, ['spam', 'phishing', 'malware'])) {
-                $actionTaken = 'bot_protected';
+            } elseif ($actionTaken === 'bot_protected') {
                 if (! $dryRun) {
                     if (! $link->bot_protection) {
                         $link->update(['bot_protection' => true]);
@@ -278,12 +315,16 @@ class AiThreatDetectionService
                                 ? DomainUrls::publicDashboard('/appeals/create?link='.$link->id)
                                 : DomainUrls::dashboard('/appeals/create?link='.$link->id);
 
+                            $confidencePct = (int) round($confidence * 100);
+                            $reasonText = $quarantineDowngraded
+                                ? "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" triggered threat alerts as suspected {$verdict} (threat score: {$threatScore}/100, confidence: {$confidencePct}%). Because AI confidence was moderate/low, automated bot protection was enabled to challenge visitors while keeping your link active."
+                                : "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as suspected {$verdict} (threat score: {$threatScore}/100, confidence: {$confidencePct}%). Automated bot protection was enabled to challenge suspicious visitors.";
+
                             Notifier::security(
                                 $owner,
                                 '⚠️ Security Warning: AI Spam Triage Triggered',
                                 [
-                                    "Your short link \"/{$link->slug}\" pointing to \"{$destinationUrl}\" was flagged by AI as suspected {$verdict} (threat score: {$threatScore}/100).",
-                                    'Automated bot protection was enabled to challenge suspicious visitors.',
+                                    $reasonText,
                                     'You can adjust link protection settings or submit a spam appeal if this is a false positive.',
                                 ],
                                 $appealUrl,
@@ -293,6 +334,14 @@ class AiThreatDetectionService
                     }
                 }
             }
+
+            $confidencePct = (int) round($confidence * 100);
+            $reasoningDetail = match (true) {
+                $quarantineDowngraded => sprintf(' (confidence %d%% < %d%%: downgraded from quarantine to bot_protected)', $confidencePct, (int) round($minConfidenceQuarantine * 100)),
+                $meetsQuarantineThreat && $actionTaken === 'cleared' => sprintf(' (confidence %d%% < %d%%: cleared due to low confidence)', $confidencePct, (int) round($minConfidenceBotProtect * 100)),
+                $meetsBotProtectThreat && $actionTaken === 'cleared' => sprintf(' (confidence %d%% < %d%%: cleared due to low confidence)', $confidencePct, (int) round($minConfidenceBotProtect * 100)),
+                default => sprintf(' (%d%% confidence)', $confidencePct),
+            };
 
             $evalAttributes = [
                 'link_id' => $link->id,
@@ -306,12 +355,16 @@ class AiThreatDetectionService
                 'threat_score' => $threatScore,
                 'confidence' => $confidence,
                 'action_taken' => $actionTaken,
-                'reasoning' => sprintf('Verdict %s with score %d/100 (action: %s)%s', $verdict, $threatScore, $actionTaken, $dryRun ? ' [DRY RUN]' : ''),
+                'reasoning' => sprintf('Verdict %s with score %d/100 (action: %s)%s%s', $verdict, $threatScore, $actionTaken, $reasoningDetail, $dryRun ? ' [DRY RUN]' : ''),
                 'metadata' => [
                     'model' => $model,
                     'probabilities' => $verdictAnswer->probabilities ?? [],
                     'score_probabilities' => $scoreAnswer->probabilities ?? [],
                     'raw_score' => $rawScore,
+                    'confidence' => $confidence,
+                    'verdict_confidence' => $verdictConfidence,
+                    'score_confidence' => $scoreConfidence,
+                    'quarantine_downgraded' => $quarantineDowngraded,
                     'prompt_state' => $state,
                     'dry_run' => $dryRun,
                     'evaluated_at' => now()->toIso8601String(),
@@ -428,10 +481,20 @@ class AiThreatDetectionService
             $maxLevel = max(1, count($score->legend ?? []) - 1);
             $botScore = (int) round(min(100, max(0, (($score->score ?? 0.0) / $maxLevel) * 100)));
 
+            $choiceConfidence = isset($choice->confidence) ? (float) $choice->confidence : null;
+            $scoreConfidence = isset($score->confidence) ? (float) $score->confidence : null;
+            $confidence = match (true) {
+                $choiceConfidence !== null && $scoreConfidence !== null => min($choiceConfidence, $scoreConfidence),
+                $choiceConfidence !== null => $choiceConfidence,
+                $scoreConfidence !== null => $scoreConfidence,
+                default => 1.0,
+            };
+            $confidence = max(0.0, min(1.0, $confidence));
+
             return [
                 'verdict' => $choice->choice ?? 'legitimate_browser',
                 'score' => $botScore,
-                'confidence' => $choice->confidence ?? 1.0,
+                'confidence' => $confidence,
                 'probabilities' => $choice->probabilities ?? [],
             ];
         } catch (\Throwable $e) {
@@ -598,18 +661,60 @@ class AiThreatDetectionService
             $score = $response->score('threat_score');
 
             $category = $choice->choice ?? 'safe';
-            $confidence = $choice->confidence ?? 1.0;
+
+            $categoryConfidence = isset($choice->confidence) ? (float) $choice->confidence : null;
+            $scoreConfidence = isset($score->confidence) ? (float) $score->confidence : null;
+            $confidence = match (true) {
+                $categoryConfidence !== null && $scoreConfidence !== null => min($categoryConfidence, $scoreConfidence),
+                $categoryConfidence !== null => $categoryConfidence,
+                $scoreConfidence !== null => $scoreConfidence,
+                default => 1.0,
+            };
+            $confidence = max(0.0, min(1.0, $confidence));
+
             $maxLevel = max(1, count($score->legend ?? []) - 1);
             $threatScore = (int) round(min(100, max(0, (($score->score ?? 0.0) / $maxLevel) * 100)));
 
             $quarantineThreshold = (int) config('ai_security.quarantine_threshold', 80);
             $botProtectThreshold = (int) config('ai_security.bot_protect_threshold', 60);
+            $minConfidenceQuarantine = (float) config('ai_security.min_confidence_quarantine', 0.75);
+            $minConfidenceBotProtect = (float) config('ai_security.min_confidence_bot_protect', 0.35);
 
-            $isSafe = $threatScore < $botProtectThreshold && $category === 'safe';
+            $meetsQuarantine = $threatScore >= $quarantineThreshold && in_array($category, ['phishing', 'malware'], true);
+            $meetsBotProtect = $threatScore >= $botProtectThreshold || in_array($category, ['spam', 'phishing', 'malware'], true);
+
+            // Wise confidence gating: quarantine requires high confidence (>= 0.75).
+            // Threats with moderate/low confidence (e.g. 0.40) downgrade to bot protection recommendation.
             $action = match (true) {
-                $threatScore >= $quarantineThreshold && in_array($category, ['phishing', 'malware']) => 'quarantine',
-                $threatScore >= $botProtectThreshold => 'bot_protect',
+                $meetsQuarantine && $confidence >= $minConfidenceQuarantine => 'quarantine',
+                ($meetsQuarantine || $meetsBotProtect) && $confidence >= $minConfidenceBotProtect => 'bot_protect',
                 default => 'allow',
+            };
+
+            $isSafe = $action === 'allow' && $category === 'safe';
+            $confidencePct = (int) round($confidence * 100);
+            $downgraded = $meetsQuarantine && $action === 'bot_protect';
+
+            $reasoning = match (true) {
+                $downgraded => sprintf(
+                    'Category %s with threat score %d/100 and %d%% confidence (action: bot_protect; quarantine downgraded due to low confidence)',
+                    $category,
+                    $threatScore,
+                    $confidencePct
+                ),
+                $meetsBotProtect && $action === 'allow' => sprintf(
+                    'Category %s with threat score %d/100 and %d%% confidence (action: allow; threat unconfirmed due to low confidence)',
+                    $category,
+                    $threatScore,
+                    $confidencePct
+                ),
+                default => sprintf(
+                    'Category %s with threat score %d/100 and %d%% confidence (recommended action: %s)',
+                    $category,
+                    $threatScore,
+                    $confidencePct,
+                    $action
+                ),
             };
 
             $result = [
@@ -621,7 +726,7 @@ class AiThreatDetectionService
                 'threat_score' => $threatScore,
                 'confidence' => $confidence,
                 'action_recommended' => $action,
-                'reasoning' => sprintf('Category %s with threat score %d/100 (recommended action: %s)', $category, $threatScore, $action),
+                'reasoning' => $reasoning,
                 'cached' => false,
                 'scanned_at' => now()->toIso8601String(),
             ];

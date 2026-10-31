@@ -354,10 +354,36 @@ class AdminController extends Controller
             $rawScore = $scoreAnswer->score ?? 0.0;
             $threatScore = (int) round(min(100, max(0, ($rawScore / $maxLevel) * 100)));
 
+            $verdict = $verdictAnswer->choice ?? 'safe';
+            $verdictConfidence = isset($verdictAnswer->confidence) ? (float) $verdictAnswer->confidence : null;
+            $scoreConfidence = isset($scoreAnswer->confidence) ? (float) $scoreAnswer->confidence : null;
+            $confidence = match (true) {
+                $verdictConfidence !== null && $scoreConfidence !== null => min($verdictConfidence, $scoreConfidence),
+                $verdictConfidence !== null => $verdictConfidence,
+                $scoreConfidence !== null => $scoreConfidence,
+                default => 1.0,
+            };
+            $confidence = max(0.0, min(1.0, $confidence));
+
+            $quarantineThreshold = (int) config('ai_security.quarantine_threshold', 80);
+            $botProtectThreshold = (int) config('ai_security.bot_protect_threshold', 60);
+            $minConfidenceQuarantine = (float) config('ai_security.min_confidence_quarantine', 0.75);
+            $minConfidenceBotProtect = (float) config('ai_security.min_confidence_bot_protect', 0.35);
+
+            $meetsQuarantine = $threatScore >= $quarantineThreshold && in_array($verdict, ['phishing', 'malware'], true);
+            $meetsBotProtect = $threatScore >= $botProtectThreshold || in_array($verdict, ['spam', 'phishing', 'malware'], true);
+
+            $recommendedAction = match (true) {
+                $meetsQuarantine && $confidence >= $minConfidenceQuarantine => 'quarantine',
+                ($meetsQuarantine || $meetsBotProtect) && $confidence >= $minConfidenceBotProtect => 'bot_protect',
+                default => 'allow',
+            };
+
             $audit = array_merge($audit, [
-                'category' => $verdictAnswer->choice ?? 'safe',
+                'category' => $verdict,
                 'threat_score' => $threatScore,
-                'confidence' => $verdictAnswer->confidence ?? 1.0,
+                'confidence' => $confidence,
+                'action_recommended' => $recommendedAction,
                 'reasoning' => 'Manual admin URL threat inspection.',
             ]);
 
@@ -365,8 +391,9 @@ class AdminController extends Controller
                 'url' => $url,
                 'host' => $host,
                 'model' => $model,
-                'verdict' => $verdictAnswer->choice ?? 'safe',
-                'confidence' => $verdictAnswer->confidence ?? 1.0,
+                'verdict' => $verdict,
+                'confidence' => $confidence,
+                'recommended_action' => $recommendedAction,
                 'probabilities' => $verdictAnswer->probabilities ?? [],
                 'threat_score' => $threatScore,
                 'raw_score' => $rawScore,
