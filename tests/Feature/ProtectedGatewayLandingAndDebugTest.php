@@ -35,6 +35,17 @@ class ProtectedGatewayLandingAndDebugTest extends TestCase
 
     public function test_landing_page_renders_with_zero_trust_and_no_brand_icon(): void
     {
+        \App\Models\ThreatEvaluation::create([
+            'creator_ip_hash' => hash('sha256', '127.0.0.1'),
+            'destination_url' => 'https://malicious.example.com',
+            'destination_host' => 'malicious.example.com',
+            'evaluation_type' => 'link_creation',
+            'verdict' => 'malware',
+            'threat_score' => 95,
+            'confidence' => 0.99,
+            'action_taken' => 'quarantined',
+        ]);
+
         $response = $this->get('http://protected.ternis.link/');
         $response->assertStatus(200);
         $response->assertSee('protected.ternis.link', escape: false);

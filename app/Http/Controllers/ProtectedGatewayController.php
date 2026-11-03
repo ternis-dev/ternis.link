@@ -55,7 +55,7 @@ class ProtectedGatewayController extends Controller
             'visitor_ip' => $request->ip() ?? 'Unknown',
             'visitor_ua' => $request->userAgent() ?: 'Unknown Browser',
             'total_evaluations' => ThreatEvaluation::count(),
-            'quarantined_threats' => ThreatEvaluation::where('action', 'quarantine')->count(),
+            'quarantined_threats' => ThreatEvaluation::where('action_taken', 'quarantined')->count(),
         ];
 
         return view('protected.landing', [
