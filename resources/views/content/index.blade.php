@@ -26,7 +26,7 @@
                 @foreach ($collections as $key => $item)
                     <a
                         href="{{ url('/pages/'.$key) }}"
-                        class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-all {{ $key === $collection ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-sm' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800/80 dark:text-neutral-400 dark:hover:bg-neutral-700/80' }}"
+                        class="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-all {{ $key === $collection ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800/80 dark:text-neutral-400 dark:hover:bg-neutral-700/80' }}"
                     >
                         {{ $item['title'] }}
                     </a>
@@ -80,7 +80,7 @@
 
             {{-- Featured Hero Article (shown when not searching) --}}
             <div x-show="!search" class="mb-10">
-                <article class="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8 transition-all hover:border-neutral-400 hover:shadow-lg dark:border-neutral-800 dark:bg-neutral-900/80 dark:hover:border-neutral-700">
+                <article class="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8 transition-all hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-900/80 dark:hover:border-neutral-700">
                     <div class="flex flex-wrap items-center gap-2">
                         <x-ui.badge tone="solid">Latest {{ $meta['item'] }}</x-ui.badge>
                         <span class="text-xs text-neutral-400 dark:text-neutral-500">·</span>
@@ -113,7 +113,7 @@
                 @foreach ($entries as $index => $entry)
                     <article
                         x-show="!search || '{{ strtolower(addslashes($entry['title'].' '.$entry['description'].' '.$entry['slug'])) }}'.includes(search.toLowerCase())"
-                        class="group flex flex-col justify-between rounded-2xl border border-neutral-200/90 bg-white p-6 transition-all hover:border-neutral-400 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/50 dark:hover:border-neutral-700"
+                        class="group flex flex-col justify-between rounded-2xl border border-neutral-200/90 bg-white p-6 transition-all hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-900/50 dark:hover:border-neutral-700"
                     >
                         <div>
                             <div class="flex items-center justify-between gap-2">

@@ -1,0 +1,11 @@
+{
+    "name": "PublicDashboard",
+    "alias": "publicdashboard",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PublicDashboard\\Providers\\PublicDashboardServiceProvider"
+    ],
+    "files": []
+}

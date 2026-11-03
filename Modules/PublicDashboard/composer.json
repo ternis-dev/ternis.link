@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/publicdashboard",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\PublicDashboard\\": "app/",
+            "Modules\\PublicDashboard\\Database\\Factories\\": "database/factories/",
+            "Modules\\PublicDashboard\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\PublicDashboard\\Tests\\": "tests/"
+        }
+    }
+}

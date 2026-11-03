@@ -12,6 +12,7 @@
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.35",
         "livewire/livewire": "^4.4",
+        "nwidart/laravel-modules": "^13.3",
         "sanmai/typesafe-ai-php": "^0.2.4",
         "spatie/laravel-backup": "^10.3"
     },
@@ -27,6 +28,8 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
+            "Modules\\PublicDashboard\\": "Modules/PublicDashboard/app/",
+            "Modules\\PublicDashboard\\Database\\Seeders\\": "Modules/PublicDashboard/database/seeders/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }
@@ -86,7 +89,8 @@
         },
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "wikimedia/composer-merge-plugin": true
         }
     },
     "minimum-stability": "stable",
