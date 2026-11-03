@@ -20,17 +20,26 @@ class LegalTest extends TestCase
 
     public function test_legal_pages_render_publicly(): void
     {
-        foreach (['privacy' => 'Privacy Policy', 'terms' => 'Terms of Service'] as $slug => $title) {
+        foreach (['privacy' => 'Privacy Policy', 'terms' => 'Terms of Service', 'cookies' => 'Cookie Policy'] as $slug => $title) {
             $this->get("http://ternis.link/pages/legal/{$slug}")
                 ->assertStatus(200)
                 ->assertSee($title, escape: false)
                 ->assertSee('Privacy Policy', escape: false)
                 ->assertSee('Terms of Service', escape: false)
+                ->assertSee('Cookie Policy', escape: false)
                 ->assertSee('legal@ternis.dev', escape: false)
                 ->assertSee('platforms@ternis.dev', escape: false)
                 ->assertSee('abuse@ternis.dev', escape: false)
                 ->assertSee('https://ternis.dev/en/legal/imprint', escape: false);
         }
+
+        $this->get('http://ternis.link/legal/cookies')
+            ->assertRedirect('http://ternis.link/pages/legal/cookies');
+
+        $this->get('http://ternis.link/pages/legal/cookies.md')
+            ->assertOk()
+            ->assertSee('tl_human_verified', escape: false)
+            ->assertSee('120 minutes', escape: false);
 
         $this->get('http://ternis.link/pages/legal/terms')
             ->assertStatus(200)

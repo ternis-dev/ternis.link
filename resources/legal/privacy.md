@@ -57,7 +57,15 @@ Application IP-capture fields store hashes or encrypted addresses rather than re
 
 ## Cookies
 
-We use strictly necessary cookies only: the login session and framework security tokens (CSRF). Protected-link checks can also set an encrypted, necessary human-verification cookie, normally valid for two hours. Browser storage can remember interface preferences such as color theme. We do not use advertising cookies or cookies for cross-site audience profiling. The external Turnstile widget is also subject to Cloudflare's [Turnstile Privacy Addendum](https://www.cloudflare.com/turnstile-privacy-policy/).
+We use strictly necessary and functional preference cookies only. We do not use advertising, marketing, or cross-site profiling cookies. Link resolution and redirect analytics operate completely cookie-free.
+
+A comprehensive inventory of all cookies, their domain, purpose, security flags, and exact maximum retention lifetimes is provided in our dedicated **[Cookie Policy](cookies)** (`/pages/legal/cookies`). Summary of active cookies:
+- **Session authentication (`{app}_session`):** Strictly necessary session identifier for authenticated dashboard access (`HttpOnly`, `Secure`, `SameSite=Lax`, max lifetime: session / 120 minutes of inactivity, up to 30 days if "Remember Me" is chosen).
+- **CSRF Defense (`XSRF-TOKEN`):** Strictly necessary cryptographic token protecting forms against Cross-Site Request Forgery (`Secure`, `SameSite=Lax`, max lifetime: 2 hours).
+- **Human Verification (`tl_human_verified`):** Strictly necessary human-verification cookie issued by `protected.ternis.link` remembering human verification across the network (`HttpOnly`, `Secure`, `SameSite=Lax`, max lifetime: 2 hours).
+- **Language Preference (`clicked_locale`):** Functional preference cookie on clicked.at (`SameSite=Lax`, max lifetime: 1 year).
+- **Interface Preferences (`tl-theme`):** Stored locally in browser `localStorage` on client devices only.
+- **Third-Party Anti-Bot Cookies (`cf_clearance`, `__cf_bm`):** Only set when a link or gateway is explicitly configured with Cloudflare Turnstile, subject to Cloudflare's [Turnstile Privacy Addendum](https://www.cloudflare.com/turnstile-privacy-policy/). When our in-house Custom Privacy CAPTCHA is selected, zero third-party cookies are set.
 
 ## Legal basis (GDPR)
 

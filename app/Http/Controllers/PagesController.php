@@ -22,6 +22,7 @@ class PagesController extends Controller
     public const PAGES = [
         'privacy' => 'Privacy Policy',
         'terms' => 'Terms of Service',
+        'cookies' => 'Cookie Policy',
     ];
 
     /**
