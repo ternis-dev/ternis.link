@@ -44,7 +44,7 @@ class LegalTest extends TestCase
             foreach (array_keys(config('domains.map')) as $host) {
                 $response->assertSee($host, escape: false);
             }
-            $response->assertSee('TypeSafe AI', escape: false)
+            $response->assertSee('AI', escape: false)
                 ->assertSee('2026-10-30', escape: false);
         }
         $this->get('http://ternis.link/pages/legal/privacy.md')

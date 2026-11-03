@@ -1,7 +1,7 @@
 <x-layouts.admin title="AI Threat Inspector & Security — Admin">
     <x-ui.page-header
         title="AI Threat Inspector"
-        subtitle="Real-time TypeSafe AI model triage for malware, phishing, scam payloads, and automated burst link attacks."
+        subtitle="Real-time AI model triage for malware, phishing, scam payloads, and automated burst link attacks."
     >
         <x-slot:actions>
             <span class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold dark:border-neutral-800 dark:bg-neutral-900">
@@ -36,7 +36,7 @@
     </div>
 
     {{-- Live Testing Sandbox --}}
-    <x-ui.card class="mb-8" title="TypeSafe AI Sandbox" description="Test any URL directly against the TypeSafe AI model to inspect the live verdict, probabilities, and scores.">
+    <x-ui.card class="mb-8" title="AI Sandbox" description="Test any URL directly against the AI model to inspect the live verdict, probabilities, and scores.">
         <form method="POST" action="{{ route('admin.threats.test') }}" class="space-y-4">
             @csrf
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -55,7 +55,7 @@
                     class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-violet-500 transition-colors"
                 >
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    <span>Inspect with TypeSafe AI</span>
+                    <span>Inspect with AI</span>
                 </button>
             </div>
         </form>

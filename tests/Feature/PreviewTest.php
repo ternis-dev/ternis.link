@@ -140,7 +140,7 @@ class PreviewTest extends TestCase
         $response = $this->get('http://href.nz/preview/safe-link')
             ->assertStatus(200);
 
-        $response->assertSee('TypeSafe AI Verified');
+        $response->assertSee('AI Verified');
         $response->assertSee('0/100');
         $response->assertSee('Visit link');
     }

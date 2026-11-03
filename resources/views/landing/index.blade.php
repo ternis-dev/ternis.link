@@ -18,7 +18,7 @@ $faqs = [
     ],
     [
         'q' => 'How does the AI Spam and Threat Protection work?',
-        'a' => 'Every new link is evaluated asynchronously by TypeSafe AI against phishing deception, spam campaigns, and malware payloads. High-confidence threats are quarantined instantly, while suspicious traffic is challenged via Cloudflare Turnstile on <a href="https://protected.ternis.link" class="underline underline-offset-2">protected.ternis.link</a> — with zero latency added to clean redirects.',
+        'a' => 'Every new link is evaluated asynchronously by AI against phishing deception, spam campaigns, and malware payloads. High-confidence threats are quarantined instantly, while suspicious traffic is challenged via Cloudflare Turnstile on <a href="https://protected.ternis.link" class="underline underline-offset-2">protected.ternis.link</a> — with zero latency added to clean redirects.',
     ],
     [
         'q' => 'What happens when I deactivate a link?',
@@ -182,7 +182,7 @@ $faqJsonLd = array_map(fn ($faq) => [
                     </div>
                     <div class="font-display text-lg font-bold">AI spam &amp; threat shield</div>
                 </div>
-                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Powered by TypeSafe AI. Destination URLs are screened for phishing deception and malicious payloads, quarantining threats before harm occurs.</p>
+                <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">Powered by AI. Destination URLs are screened for phishing deception and malicious payloads, quarantining threats before harm occurs.</p>
             </x-ui.card>
 
             <x-ui.card class="group transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md dark:hover:border-neutral-700">

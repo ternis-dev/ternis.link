@@ -40,7 +40,7 @@ We may deactivate or delete links, throttle or block accounts/IP ranges, and rep
 
 ## Automated protection and appeals
 
-We use automated rules, traffic-rate checks and, where enabled, TypeSafe AI to assess link destinations and browser signatures. These checks can quarantine or deactivate links, enable bot protection or require a Cloudflare Turnstile check through protected.ternis.link. Results can be incorrect. You can request human review through the signed-in spam-appeal form or contact [abuse@ternis.dev](mailto:abuse@ternis.dev); include the affected short URL and relevant context. Security checks and verification do not guarantee that a destination is safe.
+We use automated rules, traffic-rate checks and, where enabled, AI to assess link destinations and browser signatures. These checks can quarantine or deactivate links, enable bot protection or require a Cloudflare Turnstile check through protected.ternis.link. Results can be incorrect. You can request human review through the signed-in spam-appeal form or contact [abuse@ternis.dev](mailto:abuse@ternis.dev); include the affected short URL and relevant context. Security checks and verification do not guarantee that a destination is safe.
 
 ## Shared links and analytics
 

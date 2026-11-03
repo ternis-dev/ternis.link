@@ -5,15 +5,15 @@ return [
     |--------------------------------------------------------------------------
     | AI Threat Detection Master Switch
     |--------------------------------------------------------------------------
-    | Enables or disables TypeSafe AI-powered threat analysis and moderation.
+    | Enables or disables AI-powered threat analysis and moderation.
     */
     'enabled' => (bool) env('AI_SECURITY_ENABLED', true),
 
     /*
     |--------------------------------------------------------------------------
-    | TypeSafe AI Provider Credentials
+    | AI Provider Credentials
     |--------------------------------------------------------------------------
-    | API Key and optional custom base URL for the TypeSafe/Jev model client.
+    | API Key and optional custom base URL for the AI model client.
     */
     'api_key' => env('TYPESAFE_API_KEY'),
     'base_url' => env('TYPESAFE_BASE_URL'),
@@ -41,7 +41,7 @@ return [
     |--------------------------------------------------------------------------
     | AI Confidence Thresholds (0.00 - 1.00)
     |--------------------------------------------------------------------------
-    | TypeSafe AI API responses return a confidence probability for verdicts
+    | AI API responses return a confidence probability for verdicts
     | and scores. We use these thresholds to avoid false-positive disruptions:
     |
     | - min_confidence_quarantine: Requires high confidence (default 0.75) to

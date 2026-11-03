@@ -42,7 +42,7 @@
     {{-- Link Protection & Threat Prevention Stats --}}
     <x-ui.card
         title="AI Link Protection & Threat Prevention"
-        description="Continuous, real-time threat detection powered by TypeSafe AI. Malicious binaries, phishing portals, and high-velocity spam attacks are isolated before redirecting."
+        description="Continuous, real-time threat detection powered by AI. Malicious binaries, phishing portals, and high-velocity spam attacks are isolated before redirecting."
         class="mb-6"
     >
         <div class="grid gap-3 sm:grid-cols-2">

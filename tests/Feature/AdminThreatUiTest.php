@@ -82,7 +82,7 @@ class AdminThreatUiTest extends TestCase
             ->assertOk();
 
         $response->assertSee('AI Threat Inspector');
-        $response->assertSee('TypeSafe AI Sandbox');
+        $response->assertSee('AI Sandbox');
         $response->assertSee('https://malicious-test-bundle.com/trojan.exe');
         $response->assertSee('quarantined');
         $response->assertSee('95/100');

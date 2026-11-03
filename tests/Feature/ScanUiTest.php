@@ -37,7 +37,7 @@ class ScanUiTest extends TestCase
         // 3. ternis.link (Platform)
         $this->get('http://ternis.link/scan')
             ->assertOk()
-            ->assertSee('TypeSafe AI SystemOne', escape: false)
+            ->assertSee('AI Threat Defense', escape: false)
             ->assertSee('Inspect URL', escape: false);
     }
 

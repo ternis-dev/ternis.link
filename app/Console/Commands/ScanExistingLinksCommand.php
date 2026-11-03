@@ -27,7 +27,7 @@ class ScanExistingLinksCommand extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Audit and scan existing links with TypeSafe AI threat detection in rate-limited batches.';
+    protected $description = 'Audit and scan existing links with AI threat detection in rate-limited batches.';
 
     public function handle(AiThreatDetectionService $threatService): int
     {

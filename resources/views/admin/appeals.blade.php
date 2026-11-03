@@ -1,7 +1,7 @@
 <x-layouts.admin title="Spam & Threat Appeals — Admin">
     <x-ui.page-header
         title="Spam & Threat Appeals"
-        subtitle="Review appeals submitted by users or guests for links flagged or quarantined by TypeSafe AI."
+        subtitle="Review appeals submitted by users or guests for links flagged or quarantined by AI."
     />
 
     {{-- Overview Stats --}}

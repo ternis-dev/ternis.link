@@ -102,7 +102,7 @@ class AdminController extends Controller
     }
 
     /**
-     * TypeSafe AI Threat Inspections & Sandbox (Admin).
+     * AI Threat Inspections & Sandbox (Admin).
      */
     public function threats(Request $request, AiThreatDetectionService $threatService)
     {
@@ -275,7 +275,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Re-evaluate a link on demand through TypeSafe AI.
+     * Re-evaluate a link on demand through AI.
      */
     public function rescanLink(Link $link, AiThreatDetectionService $threatService)
     {
@@ -293,7 +293,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Live manual inspection sandbox for testing any URL against TypeSafe AI.
+     * Live manual inspection sandbox for testing any URL against AI.
      */
     public function testThreatAi(Request $request, AiThreatDetectionService $threatService)
     {
@@ -307,7 +307,7 @@ class AdminController extends Controller
         $audit = [
             'url' => $url, 'host' => $host, 'category' => 'unverified',
             'threat_score' => 0, 'confidence' => 0,
-            'reasoning' => 'TypeSafe AI client unavailable.',
+            'reasoning' => 'AI client unavailable.',
         ];
         $client = $threatService->getClient();
 
@@ -315,7 +315,7 @@ class AdminController extends Controller
             $threatService->recordUrlScan($audit, 'admin_url_scan');
 
             return back()->with('test_result', [
-                'error' => 'TypeSafe AI client is not configured or disabled.',
+                'error' => 'AI client is not configured or disabled.',
             ]);
         }
 
@@ -402,10 +402,10 @@ class AdminController extends Controller
                 'prompt_state' => $state,
             ]);
         } catch (\Throwable $e) {
-            $audit['reasoning'] = 'TypeSafe AI scanner error.';
+            $audit['reasoning'] = 'AI scanner error.';
 
             return back()->with('test_result', [
-                'error' => 'TypeSafe AI error: '.$e->getMessage(),
+                'error' => 'AI error: '.$e->getMessage(),
             ]);
         } finally {
             $threatService->recordUrlScan($audit, 'admin_url_scan');

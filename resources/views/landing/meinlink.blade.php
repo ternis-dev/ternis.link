@@ -65,7 +65,7 @@
                     'Individuelle Link-Länge (5 bis 9 Zeichen)',
                     'Wählbare Domain (meinlink.at, href.nz oder href.yt)',
                     'Frei einstellbares Ablaufdatum',
-                    'KI-gestützte Spam- und Phishing-Prüfung (TypeSafe AI)',
+                    'KI-gestützte Spam- und Phishing-Prüfung (AI)',
                     'DSGVO-konform ohne Tracking-Cookies',
                 ],
             ],
@@ -94,7 +94,7 @@
                         'name' => 'Wie schützt meinlink.at vor Phishing und Spam-Attacken?',
                         'acceptedAnswer' => [
                             '@type' => 'Answer',
-                            'text' => 'TypeSafe AI prüft neu erstellte Kurzlinks asynchron im Hintergrund auf betrügerische Phishing-Muster und Malware. Bösartige Links werden automatisch unter Quarantäne gestellt, ohne die Weiterleitungsgeschwindigkeit legitimer Links zu beeinträchtigen.',
+                            'text' => 'AI prüft neu erstellte Kurzlinks asynchron im Hintergrund auf betrügerische Phishing-Muster und Malware. Bösartige Links werden automatisch unter Quarantäne gestellt, ohne die Weiterleitungsgeschwindigkeit legitimer Links zu beeinträchtigen.',
                         ],
                     ],
                     [
@@ -322,7 +322,7 @@
                             <h3 class="font-semibold text-zinc-900 dark:text-zinc-100">KI-Spam- &amp; Phishingschutz</h3>
                         </div>
                         <p class="mt-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                            Powered by TypeSafe AI. Destinationen werden automatisch auf Phishing und Schadcode analysiert.
+                            Powered by AI. Destinationen werden automatisch auf Phishing und Schadcode analysiert.
                         </p>
                     </div>
 
@@ -503,7 +503,7 @@
                         </button>
                         <div x-show="active === 6" x-transition x-cloak>
                             <p class="mt-4 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                                TypeSafe AI prüft neu erstellte Kurzlinks asynchron im Hintergrund auf betrügerische Phishing-Muster und Malware. Bösartige Links werden automatisch unter Quarantäne gestellt und verdächtige Bots mit Cloudflare Turnstile blockiert — ohne die Weiterleitungsgeschwindigkeit legitimer Links zu beeinträchtigen.
+                                AI prüft neu erstellte Kurzlinks asynchron im Hintergrund auf betrügerische Phishing-Muster und Malware. Bösartige Links werden automatisch unter Quarantäne gestellt und verdächtige Bots mit Cloudflare Turnstile blockiert — ohne die Weiterleitungsgeschwindigkeit legitimer Links zu beeinträchtigen.
                             </p>
                         </div>
                     </div>

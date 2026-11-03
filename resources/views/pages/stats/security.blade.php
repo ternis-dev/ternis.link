@@ -13,7 +13,7 @@
     </div>
 
     @if (!empty($breakdown['categories']))
-        <x-ui.card title="AI Threat Triage Distribution" description="Classification breakdown across inspected destinations via TypeSafe AI." class="mb-6">
+        <x-ui.card title="AI Threat Triage Distribution" description="Classification breakdown across inspected destinations via AI." class="mb-6">
             {{-- Multi-segment distribution bar --}}
             <div class="mb-5 flex h-3 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800" data-stats-security-bar>
                 @foreach ($breakdown['categories'] as $catKey => $cat)

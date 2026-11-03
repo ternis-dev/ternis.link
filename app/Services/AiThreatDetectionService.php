@@ -161,7 +161,7 @@ class AiThreatDetectionService
         $client = $this->getClient();
 
         if ($client === null) {
-            Log::debug('TypeSafe AI evaluation skipped: No API key or client available.');
+            Log::debug('AI evaluation skipped: No API key or client available.');
             $this->recordLinkScanFailure($link, $context, 'unavailable');
 
             return null;
@@ -378,7 +378,7 @@ class AiThreatDetectionService
             return ThreatEvaluation::create($evalAttributes);
         } catch (\Throwable $e) {
             $this->recordLinkScanFailure($link, $context, 'error');
-            Log::warning('TypeSafe AI threat evaluation failed: '.$e->getMessage(), [
+            Log::warning('AI threat evaluation failed: '.$e->getMessage(), [
                 'link_id' => $link->id,
                 'exception' => $e,
             ]);
@@ -498,7 +498,7 @@ class AiThreatDetectionService
                 'probabilities' => $choice->probabilities ?? [],
             ];
         } catch (\Throwable $e) {
-            Log::warning('TypeSafe AI UA evaluation error: '.$e->getMessage());
+            Log::warning('AI UA evaluation error: '.$e->getMessage());
 
             return [
                 'verdict' => 'error',
@@ -632,7 +632,7 @@ class AiThreatDetectionService
                 'threat_score' => 0,
                 'confidence' => 0.0,
                 'action_recommended' => 'allow',
-                'reasoning' => 'TypeSafe AI scanner unavailable (operating in fail-open mode).',
+                'reasoning' => 'AI scanner unavailable (operating in fail-open mode).',
                 'cached' => false,
                 'scanned_at' => now()->toIso8601String(),
             ];
@@ -735,7 +735,7 @@ class AiThreatDetectionService
 
             return $result;
         } catch (\Throwable $e) {
-            Log::warning('TypeSafe AI scanUrl failed: '.$e->getMessage(), ['url' => $url]);
+            Log::warning('AI scanUrl failed: '.$e->getMessage(), ['url' => $url]);
 
             return [
                 'url' => $url,
@@ -746,7 +746,7 @@ class AiThreatDetectionService
                 'threat_score' => 0,
                 'confidence' => 0.0,
                 'action_recommended' => 'allow',
-                'reasoning' => 'TypeSafe AI scanner error (failing open).',
+                'reasoning' => 'AI scanner error (failing open).',
                 'cached' => false,
                 'scanned_at' => now()->toIso8601String(),
             ];

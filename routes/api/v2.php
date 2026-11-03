@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['ensure.domain:api', ApiV2Response::class, 'ensure.api-version:2', LogApiRequest::class])->name('api.v2.')->group(function () {
     Route::get('/', [DiscoveryController::class, 'show'])->middleware('throttle:api');
 
-    // Public link security & threat inspection (TypeSafe AI evaluation).
+    // Public link security & threat inspection (AI evaluation).
     Route::match(['get', 'post'], 'scan', [SecurityScanController::class, 'scan'])->middleware('throttle:api');
 
     // Public aggregate network stats (no personal data).

@@ -235,7 +235,7 @@ class ContentTest extends TestCase
 
         $this->get('http://ternis.link/pages/blog/2026-10-29-ai-powered-spam-and-phishing-protection')
             ->assertStatus(200)
-            ->assertSee('TypeSafe AI', escape: false)
+            ->assertSee('AI', escape: false)
             ->assertSee('SystemOne', escape: false)
             ->assertSee('Quarantine', escape: false);
 

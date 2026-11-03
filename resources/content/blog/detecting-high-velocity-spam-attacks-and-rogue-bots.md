@@ -1,7 +1,7 @@
 ---
 title: Defending Against High-Velocity Link Attacks and Rogue User-Agents
 date: 2026-10-29
-description: How sliding-window velocity tracking, edge bot gating on protected.ternis.link, and TypeSafe AI client signature triage protect your short links and click metrics from automated abuse.
+description: How sliding-window velocity tracking, edge bot gating on protected.ternis.link, and AI client signature triage protect your short links and click metrics from automated abuse.
 ---
 
 When malicious actors attempt to overwhelm a short link network, they rarely operate manually. Instead, they deploy automated bot syndicates: script swarms designed to generate hundreds of redirect links in seconds, fuzz random slugs, or scrape target sites through link hops.
@@ -28,11 +28,11 @@ By catching high-velocity generation at the network edge, automated link floodin
 
 ---
 
-## 2. Behavioral User-Agent Triage with TypeSafe AI
+## 2. Behavioral User-Agent Triage with AI
 
 Rogue crawlers, scrapers, and exploit scripts frequently disguise their activity behind modified User-Agent headers, or conversely, forget to conceal their automation libraries (`sqlmap`, `python-requests`, `Go-http-client`, custom crawler binaries).
 
-Using TypeSafe AI SystemOne, we classify client signatures into distinct behavioral classes:
+Using AI client classification, we classify client signatures into distinct behavioral classes:
 
 - **`legitimate_browser`**: Verified consumer desktop and mobile browsers.
 - **`verified_crawler`**: Benign search engine unfurlers (Googlebot, Bingbot, Slackbot, Twitterbot).

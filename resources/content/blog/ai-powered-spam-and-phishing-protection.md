@@ -1,14 +1,14 @@
 ---
-title: Inside Our AI Spam & Phishing Shield: Real-Time Threat Defense with TypeSafe AI
+title: Inside Our AI Spam & Phishing Shield: Real-Time Threat Defense with AI
 date: 2026-10-29
-description: How ternis.link uses TypeSafe AI SystemOne continuous probabilistic scoring to neutralize phishing, spam links, and malicious payloads with zero latency on redirect hot paths.
+description: How ternis.link uses AI SystemOne continuous probabilistic scoring to neutralize phishing, spam links, and malicious payloads with zero latency on redirect hot paths.
 ---
 
 URL shorteners are among the most heavily targeted internet utilities. Because short URLs conceal their true endpoints behind a compact slug, malicious actors frequently attempt to exploit them for credential harvesting (phishing), affiliate search-engine spam, and malicious drive-by download distribution.
 
 At ternis.link, our philosophy has always been clear: **frictionless for legitimate users, impassable for bad actors**.
 
-Today, we are unveiling our **AI-Powered Spam & Phishing Detection Pipeline**, engineered in partnership with TypeSafe AI. It combines machine-learning threat triage, automated mitigation actions, and strict privacy boundaries — without adding a single millisecond of latency to your short link redirects.
+Today, we are unveiling our **AI-Powered Spam & Phishing Detection Pipeline**, engineered with advanced probabilistic AI. It combines machine-learning threat triage, automated mitigation actions, and strict privacy boundaries — without adding a single millisecond of latency to your short link redirects.
 
 ---
 
@@ -22,9 +22,9 @@ To catch zero-day phishing operations before human victims fall for them, securi
 
 ---
 
-## The TypeSafe AI Architecture
+## The AI Threat Detection Architecture
 
-Our security pipeline integrates `sanmai/typesafe-ai-php`, leveraging TypeSafe AI's **SystemOne** probabilistic evaluation framework.
+Our security pipeline integrates a high-performance evaluation framework, leveraging continuous probabilistic AI scoring.
 
 When a link is created anonymously by a guest or by a recently registered account, the system assembles a structured threat profile containing:
 - Destination URL structure, host, and domain TLD.
@@ -49,7 +49,7 @@ $request = SystemOneRequest::build($state, 'jev-latest')
     ]);
 ```
 
-Unlike basic keyword regexes, TypeSafe AI analyzes semantic deception — detecting subtle homoglyph impersonations, fake banking verification redirects, and social engineering patterns that evade simple heuristic rules.
+Unlike basic keyword regexes, AI analyzes semantic deception — detecting subtle homoglyph impersonations, fake banking verification redirects, and social engineering patterns that evade simple heuristic rules.
 
 ---
 
@@ -89,4 +89,4 @@ Consistent with our privacy commitment across the entire ternis network:
 - The threat audit log (`threat_evaluations`) stores only one-way **SHA-256 IP hashes** (`creator_ip_hash`).
 - Aggregated threat statistics are visible publicly on [`/pages/stats`](/pages/stats) without leaking any personal user data.
 
-With TypeSafe AI integrated into our infrastructure, ternis.link delivers enterprise-grade phishing protection while preserving the open, frictionless experience our users depend on.
+With AI integrated into our infrastructure, ternis.link delivers enterprise-grade phishing protection while preserving the open, frictionless experience our users depend on.

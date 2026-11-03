@@ -5,16 +5,16 @@
 <x-layouts.app :title="$title">
     <x-slot:head>
         <link rel="canonical" href="{{ url('/scan') }}">
-        <meta name="description" content="{{ $isDe ? 'Kostenlose Sicherheitsanalyse für beliebige Webadressen. Prüfe Phishing-Risiken, Spam-Muster und Malware-Gefahren mit TypeSafe AI.' : 'Inspect any web destination URL for phishing risks, malware payloads, and spam reputation using TypeSafe AI.' }}">
+        <meta name="description" content="{{ $isDe ? 'Kostenlose Sicherheitsanalyse für beliebige Webadressen. Prüfe Phishing-Risiken, Spam-Muster und Malware-Gefahren mit AI.' : 'Inspect any web destination URL for phishing risks, malware payloads, and spam reputation using AI.' }}">
         <meta property="og:title" content="{{ $title }}">
-        <meta property="og:description" content="{{ $isDe ? 'Kostenlose Sicherheitsanalyse für Webadressen mit TypeSafe AI.' : 'Free link threat and security inspection with TypeSafe AI.' }}">
+        <meta property="og:description" content="{{ $isDe ? 'Kostenlose Sicherheitsanalyse für Webadressen mit AI.' : 'Free link threat and security inspection with AI.' }}">
     </x-slot:head>
 
     <div class="relative mx-auto flex max-w-4xl flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-16">
         {{-- Header Badge --}}
         <x-ui.badge tone="solid" class="mb-4 inline-flex items-center gap-2">
             <svg class="h-3.5 w-3.5 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-            <span>TypeSafe AI SystemOne</span>
+            <span>AI Threat Defense</span>
         </x-ui.badge>
 
         {{-- Headline --}}

@@ -71,7 +71,7 @@
                 <div class="home-section-heading"><p class="home-eyebrow">a few things worth knowing</p><h2 id="good-title">Small link. Thoughtfully made.</h2></div>
                 <div class="home-note-grid">
                     <article class="home-note"><span class="home-note-icon" aria-hidden="true">♡</span><h3>No account. Really.</h3><p>Just paste and shorten. Guests can create up to 50 links a day, with automatic codes.</p><a href="#shorten">make your first link ↗</a></article>
-                    <article class="home-note"><span class="home-note-icon" aria-hidden="true">⌁</span><h3>A little peace of mind.</h3><p>TypeSafe AI screens destinations for phishing, spam and malicious content. IP addresses are stored as hashes.</p><a href="https://ternis.link/pages/legal/privacy">the privacy details ↗</a></article>
+                    <article class="home-note"><span class="home-note-icon" aria-hidden="true">⌁</span><h3>A little peace of mind.</h3><p>AI screens destinations for phishing, spam and malicious content. IP addresses are stored as hashes.</p><a href="https://ternis.link/pages/legal/privacy">the privacy details ↗</a></article>
                     <article class="home-note"><span class="home-note-icon" aria-hidden="true">✳</span><h3>Make it your own.</h3><p>Sign in for custom slugs, shorter links and click stats. Your links, with a little more possibility.</p><a href="{{ url('/login') }}">meet the member perks ↗</a></article>
                 </div>
             </section>

@@ -241,7 +241,7 @@ curl https://links.t-api.de/v1/api-keys -H "Authorization: Bearer tl_your_key_he
 # show_on_dashboard=false hides the key's links from the main
 # dashboard list (they stay on the key's own page)
 # expires_at is optional; the key stops working after that timestamp
-# bypass_ai_check=true (admin only) exempts links created with this key from automated TypeSafe AI security checks
+# bypass_ai_check=true (admin only) exempts links created with this key from automated AI security checks
 curl -X POST https://links.t-api.de/v1/api-keys \
   -H "Authorization: Bearer tl_your_key_here" \
   -H "Content-Type: application/json" \

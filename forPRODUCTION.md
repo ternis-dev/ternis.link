@@ -39,7 +39,7 @@ Two additive, zero-downtime migrations must be applied (`php artisan migrate --f
 
 1. **`2026_10_30_000001_add_bypass_ai_check_to_api_keys_table.php`**:
    - Adds indexed boolean column `bypass_ai_check` (default `false`) to `api_keys`.
-   - Allows administrators to grant selected API keys an exemption from automated TypeSafe AI threat scanning.
+   - Allows administrators to grant selected API keys an exemption from automated AI threat scanning.
 
 2. **`2026_10_30_000002_add_health_check_fields_to_links_table.php`**:
    - Adds health monitoring fields to `links`:
@@ -63,7 +63,7 @@ Ensure the system cron daemon is actively invoking the Laravel scheduler every m
 
 The scheduler now manages:
 - **`security:scan-existing --unscanned-only --limit=25 --delay-ms=500`** (*Hourly*):
-  - Audits pre-existing links in small, rate-limited chunks against TypeSafe AI. Automatically activates when `config('ai_security.enabled')` is `true`.
+  - Audits pre-existing links in small, rate-limited chunks against AI threat detection. Automatically activates when `config('ai_security.enabled')` is `true`.
 - **`links:check-health --limit=100 --delay-ms=100`** (*Every 6 hours*):
   - Probes opted-in link destination URLs (`health_check_enabled = true`) to detect broken destinations and high latency.
 - Existing daily jobs: `links:deactivate-expired`, `bio:deactivate-expired`, `privacy:prune-ips`, `privacy:prune-session-tokens`, and Spatie database backups.
@@ -105,7 +105,7 @@ The scheduler now manages:
 Verify the following environment variables in `.env`:
 
 ```env
-# AI Security & Threat Detection (TypeSafe AI)
+# AI Security & Threat Detection
 AI_SECURITY_ENABLED=true
 TYPESAFE_API_KEY=your_typesafe_api_key
 TYPESAFE_MODEL=jev-latest

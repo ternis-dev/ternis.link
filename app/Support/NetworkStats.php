@@ -125,7 +125,7 @@ class NetworkStats
     }
 
     /**
-     * Triage categories and distribution across TypeSafe AI evaluations.
+     * Triage categories and distribution across AI evaluations.
      *
      * @return array{total: int, avg_score: int, categories: array<string, array{count: int, percent: float, label: string}>}
      */

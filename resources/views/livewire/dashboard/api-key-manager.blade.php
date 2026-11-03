@@ -87,7 +87,7 @@
                         wire:model="newKeyBypassAi"
                         name="newKeyBypassAi"
                         label="Bypass AI threat evaluation (Admin only)"
-                        description="When enabled, links created via this API key will skip automated TypeSafe AI threat evaluation and scanning."
+                        description="When enabled, links created via this API key will skip automated AI threat evaluation and scanning."
                     />
                 </div>
             @endif
@@ -322,7 +322,7 @@
                                     wire:model="settingsBypassAi"
                                     name="settingsBypassAi"
                                     label="Bypass AI threat evaluation (Admin only)"
-                                    description="When enabled, links created via this API key will skip automated TypeSafe AI threat evaluation and scanning."
+                                    description="When enabled, links created via this API key will skip automated AI threat evaluation and scanning."
                                 />
                             </div>
                         @endif
