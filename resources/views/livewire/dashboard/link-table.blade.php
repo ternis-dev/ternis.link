@@ -9,7 +9,7 @@
                 name="table-search"
                 type="text"
                 wire:model.live.debounce.300ms="search"
-                placeholder="{{ $isAdmin && ($adminScope ?? '') === 'all' ? 'Search all platform links by slug, URL, tag, owner...' : 'Search by slug, URL, description or tag...' }}"
+                placeholder="{{ $isAdmin && ($adminScope ?? '') === 'all' ? 'Search all platform links by short link, destination URL, tag, owner...' : 'Search by short link, destination URL, description or tag...' }}"
                 autocomplete="off"
                 class="max-w-md flex-1 min-w-[200px]"
             />
@@ -161,9 +161,9 @@
                         @if ($column === 'slug')
                             <td>
                                 <a href="{{ $linkShowUrl }}" class="font-semibold underline-offset-2 hover:underline">
-                                    {{ $link->slug }}
+                                    {{ $link->domain->hostname }}/{{ $link->slug }}
                                 </a>
-                                <button type="button" data-copy="{{ $link->short_url }}" title="Copy short link" aria-label="Copy short link {{ $link->slug }} to clipboard" class="ml-1 inline-flex cursor-pointer items-center rounded-full border border-neutral-300 px-1.5 py-px text-[11px] font-medium text-neutral-600 transition-colors hover:border-neutral-900 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white">Copy</button>
+                                <button type="button" data-copy="{{ $link->short_url }}" title="Copy short link" aria-label="Copy short link {{ $link->domain->hostname }}/{{ $link->slug }} to clipboard" class="ml-1 inline-flex cursor-pointer items-center rounded-full border border-neutral-300 px-1.5 py-px text-[11px] font-medium text-neutral-600 transition-colors hover:border-neutral-900 hover:text-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:hover:border-white dark:hover:text-white">Copy</button>
                                 @if ($link->bot_protection)
                                     <span class="inline-flex items-center gap-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300" title="Bot protection active">
                                         <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>

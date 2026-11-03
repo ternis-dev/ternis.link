@@ -13,6 +13,7 @@ use App\Services\CustomCaptchaService;
 use App\Services\LinkService;
 use App\Services\TargetSelector;
 use App\Services\TurnstileService;
+use App\Support\DebugLinkReference;
 use App\Support\DomainUrls;
 use App\Support\RedirectResilience;
 use App\Support\UserTracking;
@@ -298,15 +299,7 @@ class ProtectedGatewayController extends Controller
 
         // Optional test link
         $testSlug = (string) ($request->query('slug') ?: $request->query('link') ?: '');
-        $testLink = null;
-        if ($testSlug !== '') {
-            $testLink = Link::with('domain')
-                ->where('is_removed', false)
-                ->where(function ($q) use ($testSlug) {
-                    $q->where('id', $testSlug)->orWhere('slug', $testSlug);
-                })
-                ->first();
-        }
+        $testLink = DebugLinkReference::resolve($testSlug);
 
         $decisionExplanation = $this->botProtection->explainProtectionDecision($testLink, $request);
 
@@ -401,20 +394,12 @@ class ProtectedGatewayController extends Controller
         $hasCookieInput = $request->input('has_cookie');
         $overrideCookie = $hasCookieInput === 'yes' ? true : ($hasCookieInput === 'no' ? false : null);
 
-        $link = null;
-        if ($slugOrId !== '') {
-            $link = Link::with('domain')
-                ->where('is_removed', false)
-                ->where(function ($q) use ($slugOrId) {
-                    $q->where('id', $slugOrId)->orWhere('slug', $slugOrId);
-                })
-                ->first();
-        }
+        $link = DebugLinkReference::resolve($slugOrId);
 
         $result = $this->botProtection->explainProtectionDecision($link, $request, $userAgent, $overrideCookie);
 
         return response()->json([
-            'link' => $link ? ['id' => $link->id, 'slug' => $link->slug, 'bot_protection' => $link->hasBotProtection(), 'allows_bots' => $link->allowsBots()] : null,
+            'link' => $link ? ['id' => $link->id, 'slug' => $link->slug, 'short_url' => $link->short_url, 'bot_protection' => $link->hasBotProtection(), 'allows_bots' => $link->allowsBots()] : null,
             'user_agent' => $userAgent,
             'result' => $result,
         ]);

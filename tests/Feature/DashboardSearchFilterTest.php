@@ -33,6 +33,22 @@ class DashboardSearchFilterTest extends TestCase
         $this->domain = Domain::where('hostname', 'href.nz')->first();
     }
 
+    public function test_dashboard_searches_full_short_links(): void
+    {
+        $otherDomain = Domain::where('id', '!=', $this->domain->id)->firstOrFail();
+        foreach ([$this->domain, $otherDomain] as $domain) {
+            Link::create([
+                'slug' => 'shared-path',
+                'domain_id' => $domain->id,
+                'destination_url' => 'https://example.com/'.$domain->hostname,
+                'user_id' => $this->user->id,
+            ]);
+        }
+        Livewire::actingAs($this->user)->test(LinkTable::class)
+            ->set('search', 'https://'.$this->domain->hostname.'/shared-path')
+            ->assertViewHas('links', fn ($links) => $links->count() === 1 && $links->first()->domain_id === $this->domain->id);
+    }
+
     public function test_user_can_filter_and_sort_by_most_clicks_on_dashboard(): void
     {
         $linkLow = Link::create([

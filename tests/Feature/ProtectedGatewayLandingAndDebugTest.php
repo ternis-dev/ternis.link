@@ -187,6 +187,25 @@ class ProtectedGatewayLandingAndDebugTest extends TestCase
         $resUa->assertJsonPath('result.decision', 'CHALLENGE_USER_AGENT');
     }
 
+    public function test_simulation_resolves_domain_and_rejects_ambiguous_slugs(): void
+    {
+        $domains = Domain::take(2)->get();
+        foreach ($domains as $domain) {
+            Link::create([
+                'domain_id' => $domain->id,
+                'slug' => 'shared-debug',
+                'destination_url' => 'https://example.com',
+                'user_id' => $this->admin->id,
+            ]);
+        }
+        $this->actingAs($this->admin)
+            ->postJson('http://protected.ternis.link/debug/simulate', ['link_slug_or_id' => 'shared-debug'])
+            ->assertUnprocessable();
+        $this->postJson('http://protected.ternis.link/debug/simulate', [
+            'link_slug_or_id' => 'https://'.$domains[1]->hostname.'/shared-debug',
+        ])->assertOk()->assertJsonPath('link.short_url', 'https://'.$domains[1]->hostname.'/shared-debug');
+    }
+
     public function test_admin_can_toggle_human_verification_cookie(): void
     {
         // 1. Issue cookie

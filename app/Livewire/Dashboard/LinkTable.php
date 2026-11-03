@@ -6,6 +6,7 @@ use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Services\LinkHealthService;
 use App\Services\LinkService;
 use App\Support\Activity;
 use App\Support\DomainUrls;
@@ -265,7 +266,7 @@ class LinkTable extends Component
         $this->dispatch('notify', message: "Deactivated {$link->slug}.", type: 'info');
     }
 
-    public function checkHealth(string $linkId, \App\Services\LinkHealthService $healthService): void
+    public function checkHealth(string $linkId, LinkHealthService $healthService): void
     {
         $user = auth()->user();
         $link = ($user && $user->isAdmin() && $this->adminScope === 'all')
@@ -367,7 +368,13 @@ class LinkTable extends Component
             })
             ->when($this->search, function ($query) use ($isAllPlatform) {
                 $query->where(function ($q) use ($isAllPlatform) {
-                    $q->where('slug', 'like', "%{$this->search}%")
+                    $reference = preg_replace('~^https?://~i', '', trim($this->search));
+                    if (str_contains($reference, '/')) {
+                        [$hostname, $path] = explode('/', $reference, 2);
+                        $q->where(fn ($link) => $link->whereHas('domain', fn ($domain) => $domain->where('hostname', $hostname))->where('slug', 'like', rtrim($path, '/').'%'));
+                    }
+                    $q->orWhere('slug', 'like', "%{$this->search}%")
+                        ->orWhereHas('domain', fn ($domain) => $domain->where('hostname', 'like', "%{$this->search}%"))
                         ->orWhere('destination_url', 'like', "%{$this->search}%")
                         ->orWhere('description', 'like', "%{$this->search}%")
                         ->orWhere('tags', 'like', "%{$this->search}%");

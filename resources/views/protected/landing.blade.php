@@ -30,10 +30,7 @@
                 <a href="{{ route('protected.index') }}" class="font-display text-base font-bold tracking-tight text-neutral-900 dark:text-white sm:text-lg">
                     protected<span class="text-neutral-400 dark:text-neutral-500">.ternis.link</span>
                 </a>
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Gateway Active
-                </span>
+
             </div>
 
             <div class="flex items-center gap-3">

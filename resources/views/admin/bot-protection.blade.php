@@ -29,7 +29,7 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                     <label for="link_slug_or_id" class="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-400">
-                        Link Slug or ID (Optional)
+                        Short Link or ID (Optional)
                     </label>
                     <input
                         type="text"

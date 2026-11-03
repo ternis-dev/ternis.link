@@ -16,6 +16,7 @@ use App\Services\AiThreatDetectionService;
 use App\Services\BotProtectionService;
 use App\Services\LinkInsights;
 use App\Support\Activity;
+use App\Support\DebugLinkReference;
 use App\Support\DomainUrls;
 use App\Support\Notifier;
 use Illuminate\Http\Request;
@@ -528,15 +529,7 @@ class AdminController extends Controller
         $hasCookieInput = $request->input('has_cookie');
         $overrideCookie = $hasCookieInput === 'yes' ? true : ($hasCookieInput === 'no' ? false : null);
 
-        $link = null;
-        if ($slugOrId !== '') {
-            $link = Link::with('domain')
-                ->where('is_removed', false)
-                ->where(function ($q) use ($slugOrId) {
-                    $q->where('id', $slugOrId)->orWhere('slug', $slugOrId);
-                })
-                ->first();
-        }
+        $link = DebugLinkReference::resolve($slugOrId);
 
         $result = $botProtection->explainProtectionDecision($link, $request, $userAgent, $overrideCookie);
 
