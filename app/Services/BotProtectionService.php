@@ -242,23 +242,27 @@ class BotProtectionService
             ];
         }
 
-        // Step 4: Link-Level Bot Protection toggle
+        // Step 4: Link & Group-Level Bot Protection
         $linkHasBotProtection = $link ? $link->hasBotProtection() : false;
+        $protectionLevel = $link ? $link->getBotProtectionLevel() : 'off';
         $trace[] = [
             'step' => 4,
-            'rule' => 'Link-Level Bot Protection Flag',
+            'rule' => 'Link & Group Protection Level',
             'passed' => $linkHasBotProtection,
             'detail' => $linkHasBotProtection
-                ? 'Link has bot_protection = true enabled by owner.'
-                : 'Link does not have explicit bot_protection toggle enabled.',
+                ? "Protection active at level '{$protectionLevel}' (explicitly configured or inherited from link group)."
+                : 'Link has no active bot protection policy.',
         ];
 
         if ($linkHasBotProtection) {
+            $isCustom = $protectionLevel === 'custom_captcha';
+
             return [
-                'decision' => 'CHALLENGE_TURNSTILE',
+                'decision' => $isCustom ? 'CHALLENGE_CUSTOM_CAPTCHA' : 'CHALLENGE_TURNSTILE',
                 'action' => 'Redirect to protected.ternis.link/challenge',
-                'reason' => 'Link owner enabled mandatory Bot Protection for this URL.',
+                'reason' => "Link/group protection policy enforced (level: {$protectionLevel}).",
                 'matched_rule' => 'link_bot_protection_flag',
+                'protection_level' => $protectionLevel,
                 'cookie' => $cookieInspection,
                 'trace' => $trace,
             ];

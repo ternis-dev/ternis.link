@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\BotProtectionService;
 use App\Support\DomainUrls;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
@@ -30,10 +32,10 @@ class PagesController extends Controller
         'imprint' => 'https://ternis.dev/en/legal/imprint',
     ];
 
-    public function legal(string $slug)
+    public function legal(string $slug, Request $request, BotProtectionService $botProtection)
     {
         if ($slug === 'imprint' || $slug === 'impressum') {
-            return DomainUrls::handleImpressumRedirect(request());
+            return DomainUrls::handleImpressumRedirect($request);
         }
 
         if (isset(self::REDIRECTS[$slug])) {
@@ -42,6 +44,27 @@ class PagesController extends Controller
 
         if (! isset(self::PAGES[$slug])) {
             abort(404);
+        }
+
+        // Automated scraper protection: screen suspicious scraper UAs against protected gateway
+        $ua = $request->userAgent();
+        if ($botProtection->isEnabled()
+            && $botProtection->shouldFilterUserAgents()
+            && $ua !== null
+            && $botProtection->isSuspiciousUserAgent($ua)
+            && ! $botProtection->isHumanVerified($request)) {
+
+            $dest = '/pages/legal/'.$slug;
+            $rid = $botProtection->generateRequestId();
+            $ts = time();
+            $sig = $botProtection->signChallenge('dest:'.$dest, $rid, $ts);
+
+            return redirect()->away(DomainUrls::protected('/user-agent?'.http_build_query([
+                'dest' => $dest,
+                'rid' => $rid,
+                'ts' => $ts,
+                'sig' => $sig,
+            ])));
         }
 
         $path = resource_path("legal/{$slug}.md");
@@ -64,7 +87,7 @@ class PagesController extends Controller
      * text/markdown) — serves the source file verbatim so agents and
      * llms-full.txt consumers get exactly what the HTML renders.
      */
-    public function legalMd(string $slug)
+    public function legalMd(string $slug, Request $request, BotProtectionService $botProtection)
     {
         if (isset(self::REDIRECTS[$slug])) {
             return redirect()->away(self::REDIRECTS[$slug], 302);
@@ -72,6 +95,27 @@ class PagesController extends Controller
 
         if (! isset(self::PAGES[$slug])) {
             abort(404);
+        }
+
+        // Automated scraper protection for markdown source
+        $ua = $request->userAgent();
+        if ($botProtection->isEnabled()
+            && $botProtection->shouldFilterUserAgents()
+            && $ua !== null
+            && $botProtection->isSuspiciousUserAgent($ua)
+            && ! $botProtection->isHumanVerified($request)) {
+
+            $dest = '/pages/legal/'.$slug.'.md';
+            $rid = $botProtection->generateRequestId();
+            $ts = time();
+            $sig = $botProtection->signChallenge('dest:'.$dest, $rid, $ts);
+
+            return redirect()->away(DomainUrls::protected('/user-agent?'.http_build_query([
+                'dest' => $dest,
+                'rid' => $rid,
+                'ts' => $ts,
+                'sig' => $sig,
+            ])));
         }
 
         $path = resource_path("legal/{$slug}.md");

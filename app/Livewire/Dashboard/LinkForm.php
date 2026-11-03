@@ -58,6 +58,7 @@ class LinkForm extends Component
         $this->utm_campaign = null;
         $this->tags = null;
         $this->bot_protection = false;
+        $this->bot_protection_level = 'off';
         $this->allow_bots = false;
         $this->health_check_enabled = false;
         $this->expires_at = null;
@@ -97,6 +98,22 @@ class LinkForm extends Component
     public ?string $tags = null;
 
     public bool $bot_protection = false;
+
+    public string $bot_protection_level = 'off';
+
+    public function updatedBotProtection(bool $value): void
+    {
+        if (! $value) {
+            $this->bot_protection_level = 'off';
+        } elseif ($this->bot_protection_level === 'off') {
+            $this->bot_protection_level = 'standard';
+        }
+    }
+
+    public function updatedBotProtectionLevel(string $value): void
+    {
+        $this->bot_protection = ($value !== 'off');
+    }
 
     public bool $allow_bots = false;
 
@@ -149,6 +166,7 @@ class LinkForm extends Component
             'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'string', 'max:255'],
             'bot_protection' => ['boolean'],
+            'bot_protection_level' => ['nullable', 'string', 'in:off,standard,strict,custom_captcha'],
             'allow_bots' => ['boolean'],
             'health_check_enabled' => ['boolean'],
             'user_tracking_enabled' => ['boolean'],
@@ -272,6 +290,12 @@ class LinkForm extends Component
             return;
         }
 
+        $isProtected = $this->bot_protection && $this->bot_protection_level !== 'off';
+        if ($this->bot_protection && $this->bot_protection_level === 'off') {
+            $this->bot_protection_level = 'standard';
+            $isProtected = true;
+        }
+
         try {
             $link = $linkService->create(
                 destinationUrl: $this->destination_url,
@@ -292,7 +316,8 @@ class LinkForm extends Component
                     'utm_campaign' => $this->utm_campaign,
                 ],
                 userTrackingEnabled: $this->user_tracking_enabled,
-                botProtection: $this->bot_protection,
+                botProtection: $isProtected,
+                botProtectionLevel: $isProtected ? $this->bot_protection_level : 'off',
                 allowBots: $this->allow_bots,
                 healthCheckEnabled: $this->health_check_enabled,
             );

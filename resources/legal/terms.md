@@ -1,6 +1,6 @@
 # Terms of Service
 
-> Last updated: 2026-10-30
+> Last updated: 2026-11-03
 
 These terms govern use of the Ternis link services described below. By creating links, managing an account or using our APIs, you agree to these terms. Mandatory rights remain unaffected.
 
@@ -38,9 +38,14 @@ You may not use the service for:
 
 We may deactivate or delete links, throttle or block accounts/IP ranges, and report severe abuse — without prior notice where delay would cause harm. Deactivated links keep their analytics; deleted data follows the [Privacy Policy](privacy).
 
-## Automated protection and appeals
+## Automated protection, bot mitigation and appeals
 
-We use automated rules, traffic-rate checks and, where enabled, AI to assess link destinations and browser signatures. These checks can quarantine or deactivate links, enable bot protection or require a Cloudflare Turnstile check through protected.ternis.link. Results can be incorrect. You can request human review through the signed-in spam-appeal form or contact [abuse@ternis.dev](mailto:abuse@ternis.dev); include the affected short URL and relevant context. Security checks and verification do not guarantee that a destination is safe.
+We use automated rules, traffic-rate screening, bot mitigation systems, and, where enabled, AI to assess link destinations, request velocity, and client signatures. These checks can quarantine or deactivate links, enable bot protection, or require a verification challenge (via Cloudflare Turnstile or our self-hosted, privacy-preserving arithmetic CAPTCHA) through protected.ternis.link.
+
+- **Link and Group Protection Policies:** Link creators and group owners can configure protection strength (`off`, `standard`, `strict`, or `custom_captcha`). Child links inherit group protection settings unless specifically overridden.
+- **Automated Scraping and Client Screening:** Automated scraping tools, headless browsers, and command-line clients (e.g. cURL, Python requests, Scrapy) attempting to harvest short links or public resources (such as legal and policy documentation) are screened by verification gates.
+- **Automated Bot Exemption (`allow_bots`):** Legitimate automated integrators (e.g. RSS readers, webhooks, uptime monitors, API consumers) can be exempted by setting `allow_bots = true` on the target link.
+- **Appeals and False Positives:** Security classifications can be incorrect. You can request human review through the signed-in spam-appeal form or contact [abuse@ternis.dev](mailto:abuse@ternis.dev) with the affected URL and context. Security checks and verification confirm client integrity only and do not certify a destination as safe.
 
 ## Shared links and analytics
 

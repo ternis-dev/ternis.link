@@ -39,6 +39,23 @@
                 </div>
             </div>
 
+            <div class="rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-4 space-y-3 dark:border-neutral-800 dark:bg-neutral-900/40">
+                <div class="flex items-center gap-2">
+                    <svg class="h-4 w-4 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">Group Protection Policy (optional)</span>
+                </div>
+                <p class="text-xs text-neutral-500 dark:text-neutral-400">Links inside this group inherit this protection strength unless explicitly overridden on the link.</p>
+                <div>
+                    <label for="bot_protection_level" class="mb-1 block text-sm font-medium">Protection Level</label>
+                    <select id="bot_protection_level" name="bot_protection_level" class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-800 dark:bg-neutral-900">
+                        <option value="off" @selected(old('bot_protection_level', $group->bot_protection_level ?? 'off') === 'off')>Off — Direct redirect</option>
+                        <option value="standard" @selected(old('bot_protection_level', $group->bot_protection_level ?? '') === 'standard')>Standard — Smart verification challenge</option>
+                        <option value="strict" @selected(old('bot_protection_level', $group->bot_protection_level ?? '') === 'strict')>Strict — Mandatory verification before redirect</option>
+                        <option value="custom_captcha" @selected(old('bot_protection_level', $group->bot_protection_level ?? '') === 'custom_captcha')>Custom Privacy CAPTCHA — Self-hosted check (0 external trackers)</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="pt-1">
                 <x-ui.checkbox
                     name="is_active"

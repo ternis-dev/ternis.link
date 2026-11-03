@@ -37,6 +37,22 @@ class LinkEditForm extends Component
 
     public bool $bot_protection = false;
 
+    public string $bot_protection_level = 'off';
+
+    public function updatedBotProtection(bool $value): void
+    {
+        if (! $value) {
+            $this->bot_protection_level = 'off';
+        } elseif ($this->bot_protection_level === 'off') {
+            $this->bot_protection_level = 'standard';
+        }
+    }
+
+    public function updatedBotProtectionLevel(string $value): void
+    {
+        $this->bot_protection = ($value !== 'off');
+    }
+
     public bool $allow_bots = false;
 
     public bool $health_check_enabled = false;
@@ -80,6 +96,7 @@ class LinkEditForm extends Component
             'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
             'tags' => ['nullable', 'string', 'max:255'],
             'bot_protection' => ['boolean'],
+            'bot_protection_level' => ['nullable', 'string', 'in:off,standard,strict,custom_captcha'],
             'allow_bots' => ['boolean'],
             'health_check_enabled' => ['boolean'],
             'user_tracking_enabled' => ['boolean'],
@@ -114,6 +131,12 @@ class LinkEditForm extends Component
             return;
         }
 
+        $isProtected = $this->bot_protection && $this->bot_protection_level !== 'off';
+        if ($this->bot_protection && $this->bot_protection_level === 'off') {
+            $this->bot_protection_level = 'standard';
+            $isProtected = true;
+        }
+
         try {
             $this->link = $linkService->update($link, [
                 'destination_url' => trim($this->destination_url),
@@ -127,7 +150,8 @@ class LinkEditForm extends Component
                 'utm_campaign' => $this->utm_campaign,
                 'tags' => $this->tags !== null && trim($this->tags) !== '' ? LinkService::normalizeTags($this->tags) : null,
                 'user_tracking_enabled' => $this->user_tracking_enabled,
-                'bot_protection' => $this->bot_protection,
+                'bot_protection' => $isProtected,
+                'bot_protection_level' => $isProtected ? $this->bot_protection_level : 'off',
                 'allow_bots' => $this->allow_bots,
                 'health_check_enabled' => $this->health_check_enabled,
                 'expires_at' => $this->expires_at ? new \DateTime($this->expires_at) : null,
@@ -192,6 +216,7 @@ class LinkEditForm extends Component
         $this->utm_campaign = $this->link->utm_campaign;
         $this->tags = $this->link->tags ? implode(', ', $this->link->tags) : null;
         $this->bot_protection = (bool) $this->link->bot_protection;
+        $this->bot_protection_level = $this->link->bot_protection_level ?: ($this->link->bot_protection ? 'standard' : 'off');
         $this->allow_bots = (bool) $this->link->allow_bots;
         $this->health_check_enabled = (bool) $this->link->health_check_enabled;
         $this->user_tracking_enabled = (bool) $this->link->user_tracking_enabled;

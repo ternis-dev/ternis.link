@@ -9,6 +9,7 @@ use App\Models\ThreatEvaluation;
 use App\Services\AiThreatDetectionService;
 use App\Services\BotProtectionService;
 use App\Services\ClickTrackerService;
+use App\Services\CustomCaptchaService;
 use App\Services\LinkService;
 use App\Services\TargetSelector;
 use App\Services\TurnstileService;
@@ -27,6 +28,7 @@ class ProtectedGatewayController extends Controller
         private ClickTrackerService $clickTracker,
         private TargetSelector $targets,
         private AiThreatDetectionService $aiThreat,
+        private CustomCaptchaService $customCaptcha,
     ) {}
 
     /**
@@ -69,28 +71,49 @@ class ProtectedGatewayController extends Controller
     public function challenge(Request $request)
     {
         $linkId = (string) $request->query('link', '');
+        $dest = (string) $request->query('dest', '');
         $rid = (string) $request->query('rid', '');
         $ts = (int) $request->query('ts', 0);
         $sig = (string) $request->query('sig', '');
 
-        if (! $this->botProtection->verifyChallenge($linkId, $rid, $ts, $sig)) {
+        $targetKey = $linkId !== '' ? $linkId : 'dest:'.$dest;
+
+        if (! $this->botProtection->verifyChallenge($targetKey, $rid, $ts, $sig)) {
             abort(403, 'Invalid or expired security challenge signature.');
         }
 
-        $link = Link::with('domain')->where('is_removed', false)->findOrFail($linkId);
+        $link = null;
+        if ($linkId !== '') {
+            $link = Link::with('domain')->where('is_removed', false)->findOrFail($linkId);
 
-        // If visitor is already verified human and link is not password protected, redirect immediately.
-        if ($this->botProtection->isHumanVerified($request) && $link->password_hash === null) {
-            return $this->resolveAndRedirect($link, $request);
+            // If visitor is already verified human and link is not password protected, redirect immediately.
+            if ($this->botProtection->isHumanVerified($request) && $link->password_hash === null) {
+                return $this->resolveAndRedirect($link, $request);
+            }
+        } elseif ($dest !== '' && $this->botProtection->isHumanVerified($request)) {
+            $targetUrl = str_starts_with($dest, 'http') ? $dest : url($dest);
+
+            return redirect()->away($targetUrl);
         }
+
+        $protectionLevel = $link ? $link->getBotProtectionLevel() : 'standard';
+        $useCustomCaptcha = $protectionLevel === 'custom_captcha'
+            || empty(config('services.turnstile.key'))
+            || $request->query('mode') === 'captcha';
+
+        $captcha = $this->customCaptcha->generate();
 
         return response()->view('protected.challenge', [
             'link' => $link,
+            'dest' => $dest,
             'rid' => $rid,
             'ts' => $ts,
             'sig' => $sig,
             'turnstileKey' => config('services.turnstile.key'),
-            'requiresPassword' => $link->password_hash !== null,
+            'requiresPassword' => $link && $link->password_hash !== null,
+            'useCustomCaptcha' => $useCustomCaptcha,
+            'captcha' => $captcha,
+            'protectionLevel' => $protectionLevel,
         ], 200, ['Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
     }
 
@@ -100,24 +123,41 @@ class ProtectedGatewayController extends Controller
     public function userAgent(Request $request)
     {
         $linkId = (string) $request->query('link', '');
+        $dest = (string) $request->query('dest', '');
         $rid = (string) $request->query('rid', '');
         $ts = (int) $request->query('ts', 0);
         $sig = (string) $request->query('sig', '');
 
-        if (! $this->botProtection->verifyChallenge($linkId, $rid, $ts, $sig)) {
+        $targetKey = $linkId !== '' ? $linkId : 'dest:'.$dest;
+
+        if (! $this->botProtection->verifyChallenge($targetKey, $rid, $ts, $sig)) {
             abort(403, 'Invalid or expired security challenge signature.');
         }
 
-        $link = Link::with('domain')->where('is_removed', false)->findOrFail($linkId);
+        $link = null;
+        if ($linkId !== '') {
+            $link = Link::with('domain')->where('is_removed', false)->findOrFail($linkId);
+        }
+
+        $protectionLevel = $link ? $link->getBotProtectionLevel() : 'standard';
+        $useCustomCaptcha = $protectionLevel === 'custom_captcha'
+            || empty(config('services.turnstile.key'))
+            || $request->query('mode') === 'captcha';
+
+        $captcha = $this->customCaptcha->generate();
 
         return response()->view('protected.user-agent', [
             'link' => $link,
+            'dest' => $dest,
             'rid' => $rid,
             'ts' => $ts,
             'sig' => $sig,
             'detectedUa' => $request->userAgent() ?: 'Unknown / Empty Client String',
             'turnstileKey' => config('services.turnstile.key'),
-            'requiresPassword' => $link->password_hash !== null,
+            'requiresPassword' => $link && $link->password_hash !== null,
+            'useCustomCaptcha' => $useCustomCaptcha,
+            'captcha' => $captcha,
+            'protectionLevel' => $protectionLevel,
         ], 200, ['Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
     }
 
@@ -141,18 +181,37 @@ class ProtectedGatewayController extends Controller
         RateLimiter::hit($rateLimitKey, 60);
 
         $linkId = (string) $request->input('link', '');
+        $dest = (string) $request->input('dest', '');
         $rid = (string) $request->input('rid', '');
         $ts = (int) $request->input('ts', 0);
         $sig = (string) $request->input('sig', '');
 
-        if (! $this->botProtection->verifyChallenge($linkId, $rid, $ts, $sig)) {
-            return back()->withErrors(['challenge' => 'Security challenge signature expired or invalid. Please re-open the link.']);
+        $targetKey = $linkId !== '' ? $linkId : 'dest:'.$dest;
+
+        if (! $this->botProtection->verifyChallenge($targetKey, $rid, $ts, $sig)) {
+            return back()->withErrors(['challenge' => 'Security challenge signature expired or invalid. Please re-open the link.'])->withInput();
         }
 
-        $link = Link::with('domain')->where('is_removed', false)->findOrFail($linkId);
+        $link = null;
+        if ($linkId !== '') {
+            $link = Link::with('domain')->where('is_removed', false)->findOrFail($linkId);
+        } elseif ($dest !== '') {
+            if (! str_starts_with($dest, '/') || str_starts_with($dest, '//')) {
+                abort(400, 'Invalid destination path.');
+            }
+        } else {
+            abort(400, 'Missing link or destination parameter.');
+        }
 
-        // Verify Turnstile response token if Turnstile is enabled.
-        if ($this->turnstile->isEnabled()) {
+        // Custom CAPTCHA verification if token or answer was submitted
+        $captchaToken = (string) $request->input('custom_captcha_token', '');
+        $captchaAnswer = (string) $request->input('custom_captcha_answer', '');
+
+        if ($captchaToken !== '' || $captchaAnswer !== '') {
+            if (! $this->customCaptcha->verify($captchaToken, $captchaAnswer)) {
+                return back()->withErrors(['captcha' => 'The arithmetic verification answer was incorrect or expired. Please try again.'])->withInput();
+            }
+        } elseif ($this->turnstile->isEnabled()) {
             $turnstileToken = (string) $request->input('cf-turnstile-response', '');
             $verified = $this->turnstile->verify(
                 $turnstileToken,
@@ -167,7 +226,7 @@ class ProtectedGatewayController extends Controller
         }
 
         // Verify password if the link is password-protected.
-        if ($link->password_hash !== null) {
+        if ($link && $link->password_hash !== null) {
             $password = (string) $request->input('password', '');
             if (! Hash::check($password, $link->password_hash)) {
                 return back()->withErrors(['password' => 'Wrong password — please try again.']);
@@ -181,7 +240,13 @@ class ProtectedGatewayController extends Controller
 
         $cookie = $this->botProtection->makeHumanVerificationCookie($request->getHost());
 
-        return $this->resolveAndRedirect($link, $request)->withCookie($cookie);
+        if ($link) {
+            return $this->resolveAndRedirect($link, $request)->withCookie($cookie);
+        }
+
+        $targetUrl = str_starts_with($dest, 'http') ? $dest : url($dest);
+
+        return redirect()->away($targetUrl)->withCookie($cookie);
     }
 
     /**

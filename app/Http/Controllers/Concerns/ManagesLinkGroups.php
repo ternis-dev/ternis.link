@@ -81,6 +81,8 @@ trait ManagesLinkGroups
             'description' => ['nullable', 'string', 'max:1000'],
             'color' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'parent_id' => ['nullable', 'string'],
+            'bot_protection' => ['nullable', 'boolean'],
+            'bot_protection_level' => ['nullable', 'string', 'in:off,standard,strict,custom_captcha'],
         ]);
 
         $parent = null;
@@ -89,11 +91,18 @@ trait ManagesLinkGroups
             $parent = $user->groups()->notRemoved()->findOrFail($validated['parent_id']);
         }
 
+        $botProtectionLevel = $validated['bot_protection_level'] ?? null;
+        $botProtection = isset($validated['bot_protection'])
+            ? (bool) $validated['bot_protection']
+            : ($botProtectionLevel !== null && $botProtectionLevel !== 'off');
+
         $group = $user->groups()->create([
             'parent_id' => $parent?->id,
             'name' => trim($validated['name']),
             'description' => $validated['description'] ?? null,
             'color' => $validated['color'] ?? null,
+            'bot_protection' => $botProtection,
+            'bot_protection_level' => $botProtectionLevel,
             'sort_order' => ($parent
                 ? $parent->children()->max('sort_order') ?? -1
                 : $user->groups()->root()->max('sort_order') ?? -1) + 1,
@@ -232,6 +241,8 @@ trait ManagesLinkGroups
             'color' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'parent_id' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
+            'bot_protection' => ['nullable', 'boolean'],
+            'bot_protection_level' => ['nullable', 'string', 'in:off,standard,strict,custom_captcha'],
         ]);
 
         $parentId = $validated['parent_id'] ?? null;
@@ -244,12 +255,19 @@ trait ManagesLinkGroups
             $user->groups()->notRemoved()->findOrFail($parentId);
         }
 
+        $botProtectionLevel = $validated['bot_protection_level'] ?? null;
+        $botProtection = isset($validated['bot_protection'])
+            ? (bool) $validated['bot_protection']
+            : ($botProtectionLevel !== null && $botProtectionLevel !== 'off');
+
         $group->update([
             'name' => trim($validated['name']),
             'description' => $validated['description'] ?? null,
             'color' => $validated['color'] ?? null,
             'parent_id' => $parentId ?: null,
             'is_active' => (bool) ($validated['is_active'] ?? true),
+            'bot_protection' => $botProtection,
+            'bot_protection_level' => $botProtectionLevel,
         ]);
 
         Activity::record('group.updated', $user, $group);

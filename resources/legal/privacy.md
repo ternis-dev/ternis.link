@@ -1,6 +1,6 @@
 # Privacy Policy
 
-> Last updated: 2026-10-30
+> Last updated: 2026-11-03
 
 This policy explains what data ternis.link collects when you shorten links, open short links, or use the dashboard — and your rights over that data.
 
@@ -44,7 +44,12 @@ It also covers supported subdomains and customer-connected domains when they ser
 
 **Sessions and errors.** Login sessions and a minimal error log (no raw IPs — only hashes) to keep the service running and debuggable.
 
-**Bot protection.** Guest forms and protected-link verification can use Cloudflare Turnstile, including on protected.ternis.link. Cloudflare processes signals such as the visitor IP address, TLS fingerprint, user agent, site key, and page origin to distinguish people from bots. We validate Turnstile's short-lived, single-use token on the server; we do not retain that token.
+**Bot protection and CAPTCHA verification.** To prevent automated scraper abuse, credential stuffing, and bot flooding, certain requests are screened by our verification gateways (such as protected.ternis.link):
+- **Verification Modes:** Links and link groups can be configured with specific protection strengths: `off` (direct redirect), `standard` (smart challenge), `strict` (mandatory verification check on every visitor), or `custom_captcha` (zero third-party in-house challenge). Links can also be set to explicitly permit automated scrapers (`allow_bots`).
+- **Cloudflare Turnstile:** When enabled for standard/strict challenges, Turnstile evaluates visitor connection signals (IP address, TLS fingerprint, user-agent, headers) without tracking cookies. We validate the ephemeral single-use token on our server and do not store it.
+- **In-House Privacy CAPTCHA:** For privacy-first challenges and Turnstile-free setups, our server generates arithmetic SVG challenges directly in memory. Challenges use HMAC-encrypted, short-lived tokens (5-minute TTL, single-use nonce to prevent replay attacks). Zero third-party scripts, external CDNs, or external tracking telemetry are involved.
+- **Protection of Legal Pages and Public Routes:** Automated scrapers matching suspicious signatures (e.g. headless browsers, command-line harvesting tools) attempting to bulk-scrape public resources—including legal notices—are screened and redirected to the verification gateway before access is granted. Clean browser visitors access pages directly with zero latency.
+- **Verification Session Cookie:** Once verified as human, an encrypted, signed session cookie (`tl_human_verified`) is set for the `.ternis.link` domain (lifetime: 2 hours). It stores an encrypted timestamp and random salt to prevent repeated challenges across the network without profiling or cross-site tracking.
 
 ## What we never store in plain text
 

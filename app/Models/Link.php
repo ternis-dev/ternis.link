@@ -30,6 +30,7 @@ class Link extends Model
         'creator_ip_encrypted',
         'password_hash',
         'bot_protection',
+        'bot_protection_level',
         'allow_bots',
         'utm_source',
         'utm_medium',
@@ -98,8 +99,7 @@ class Link extends Model
     public function groups(): BelongsToMany
     {
         return $this->belongsToMany(LinkGroup::class, 'link_group_items')
-            ->withPivot('sort_order')
-            ->withTimestamps();
+            ->withPivot('sort_order');
     }
 
     public function hasTargeting(): bool
@@ -109,7 +109,59 @@ class Link extends Model
 
     public function hasBotProtection(): bool
     {
-        return (bool) $this->bot_protection;
+        if ((bool) $this->bot_protection) {
+            return true;
+        }
+
+        if (! empty($this->bot_protection_level) && $this->bot_protection_level !== 'off') {
+            return true;
+        }
+
+        // Inherit from attached groups
+        if ($this->relationLoaded('groups')) {
+            return $this->groups->contains(function ($group) {
+                return (bool) $group->bot_protection
+                    || (! empty($group->bot_protection_level) && $group->bot_protection_level !== 'off');
+            });
+        }
+
+        return $this->groups()
+            ->where(function ($q) {
+                $q->where('bot_protection', true)
+                    ->orWhere(function ($q2) {
+                        $q2->whereNotNull('bot_protection_level')
+                            ->where('bot_protection_level', '!=', 'off');
+                    });
+            })
+            ->exists();
+    }
+
+    public function getBotProtectionLevel(): string
+    {
+        if (! empty($this->bot_protection_level)) {
+            return $this->bot_protection_level;
+        }
+
+        $groupLevel = null;
+        if ($this->relationLoaded('groups')) {
+            $group = $this->groups->first(fn ($g) => ! empty($g->bot_protection_level) && $g->bot_protection_level !== 'off');
+            $groupLevel = $group?->bot_protection_level;
+        } else {
+            $groupLevel = $this->groups()
+                ->whereNotNull('bot_protection_level')
+                ->where('bot_protection_level', '!=', 'off')
+                ->value('bot_protection_level');
+        }
+
+        if ($groupLevel) {
+            return $groupLevel;
+        }
+
+        if ($this->hasBotProtection()) {
+            return 'standard';
+        }
+
+        return 'off';
     }
 
     public function allowsBots(): bool

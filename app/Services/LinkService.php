@@ -269,6 +269,7 @@ class LinkService
         ?array $utm = null,
         bool $userTrackingEnabled = false,
         bool $botProtection = false,
+        ?string $botProtectionLevel = null,
         bool $allowBots = false,
         bool $healthCheckEnabled = false,
     ): Link {
@@ -399,7 +400,8 @@ class LinkService
             'user_tracking_enabled' => $userTrackingEnabled,
             'expires_at' => $expiresAt,
             'password_hash' => $password !== null ? Hash::make($password) : null,
-            'bot_protection' => $botProtection,
+            'bot_protection' => $botProtectionLevel === 'off' ? false : ($botProtection || ($botProtectionLevel !== null)),
+            'bot_protection_level' => $botProtectionLevel ?? ($botProtection ? 'standard' : 'off'),
             'allow_bots' => $allowBots,
             'health_check_enabled' => $healthCheckEnabled,
         ]);
@@ -637,6 +639,17 @@ class LinkService
             if (array_key_exists($field, $data)) {
                 $data[$field] = self::normalizeUtm([$field => $data[$field]])[$field];
             }
+        }
+
+        if (array_key_exists('bot_protection_level', $data)) {
+            $level = $data['bot_protection_level'];
+            if ($level === 'off') {
+                $data['bot_protection'] = false;
+            } elseif ($level !== null) {
+                $data['bot_protection'] = true;
+            }
+        } elseif (array_key_exists('bot_protection', $data)) {
+            $data['bot_protection_level'] = $data['bot_protection'] ? 'standard' : 'off';
         }
 
         if (array_key_exists('password', $data) && $data['password'] !== null) {

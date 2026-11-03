@@ -207,18 +207,33 @@
                 label="Enable user tracking"
                 description="Captures user/subscriber identifiers passed in the URL (e.g. ?uid=, ?email=) following privacy best practices (raw emails are automatically pseudonymized with SHA-256). Respects Do Not Track."
             />
-            <x-ui.checkbox
-                wire:model="bot_protection"
-                name="bot_protection"
-                label="Enable bot protection"
-                description="Verify visitors with Cloudflare Turnstile before redirecting, shielding destinations from automated crawlers and scrapers."
-            />
-            <x-ui.checkbox
-                wire:model="allow_bots"
-                name="allow_bots"
-                label="Allow automated bots & crawlers (unrestricted)"
-                description="Let ANYONE click this link immediately without human verification challenges — including automated bots, scrapers, cURL, webhooks, and crawlers."
-            />
+
+            <div class="rounded-xl border border-neutral-200/80 bg-white p-4 space-y-3 dark:border-neutral-800 dark:bg-neutral-900/60">
+                <div class="flex items-center gap-2">
+                    <svg class="h-4 w-4 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span class="text-sm font-semibold text-neutral-800 dark:text-neutral-200">Bot Protection & Verification Policy</span>
+                </div>
+
+                <x-ui.select
+                    label="Protection Level"
+                    name="bot_protection_level"
+                    wire:model="bot_protection_level"
+                    hint="Configure challenge strength before visitors redirect to destination."
+                >
+                    <option value="off">Off — Direct redirect (clean browsers pass immediately)</option>
+                    <option value="standard">Standard — Smart verification challenge (shields against automated scrapers)</option>
+                    <option value="strict">Strict — Mandatory verification before every redirect</option>
+                    <option value="custom_captcha">Custom Privacy CAPTCHA — Self-hosted arithmetic check (0 external scripts)</option>
+                </x-ui.select>
+
+                <x-ui.checkbox
+                    wire:model="allow_bots"
+                    name="allow_bots"
+                    label="Exempt automated crawlers & webhooks (allow_bots)"
+                    description="Permit automated clients (cURL, webhooks, RSS feeds, monitoring) to access this destination directly without verification challenges."
+                />
+            </div>
+
             <x-ui.checkbox
                 wire:model="health_check_enabled"
                 name="health_check_enabled"

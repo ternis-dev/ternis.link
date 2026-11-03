@@ -22,16 +22,33 @@ class LinkGroup extends Model
         'name',
         'description',
         'color',
+        'bot_protection',
+        'bot_protection_level',
         'sort_order',
         'is_active',
         'is_removed',
     ];
 
     protected $casts = [
+        'bot_protection' => 'boolean',
         'sort_order' => 'integer',
         'is_active' => 'boolean',
         'is_removed' => 'boolean',
     ];
+
+    public function hasBotProtection(): bool
+    {
+        return (bool) $this->bot_protection || (! empty($this->bot_protection_level) && $this->bot_protection_level !== 'off');
+    }
+
+    public function getBotProtectionLevel(): string
+    {
+        if (! empty($this->bot_protection_level)) {
+            return $this->bot_protection_level;
+        }
+
+        return $this->hasBotProtection() ? 'standard' : 'off';
+    }
 
     public function user(): BelongsTo
     {
@@ -52,7 +69,6 @@ class LinkGroup extends Model
     {
         return $this->belongsToMany(Link::class, 'link_group_items')
             ->withPivot('sort_order')
-            ->withTimestamps()
             ->orderBy('link_group_items.sort_order');
     }
 

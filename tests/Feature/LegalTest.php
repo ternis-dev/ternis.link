@@ -45,7 +45,7 @@ class LegalTest extends TestCase
                 $response->assertSee($host, escape: false);
             }
             $response->assertSee('AI', escape: false)
-                ->assertSee('2026-10-30', escape: false);
+                ->assertSee('2026-11-03', escape: false);
         }
         $this->get('http://ternis.link/pages/legal/privacy.md')
             ->assertDontSee('not on individual request', escape: false)
