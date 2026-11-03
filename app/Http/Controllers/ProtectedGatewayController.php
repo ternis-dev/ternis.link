@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Link;
+use App\Models\ThreatEvaluation;
+use App\Services\AiThreatDetectionService;
 use App\Services\BotProtectionService;
 use App\Services\ClickTrackerService;
 use App\Services\LinkService;
 use App\Services\TargetSelector;
 use App\Services\TurnstileService;
+use App\Support\DomainUrls;
 use App\Support\RedirectResilience;
 use App\Support\UserTracking;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -23,14 +27,41 @@ class ProtectedGatewayController extends Controller
         private TurnstileService $turnstile,
         private ClickTrackerService $clickTracker,
         private TargetSelector $targets,
+        private AiThreatDetectionService $aiThreat,
     ) {}
+
+    /**
+     * Check if the authenticated user has administrative privileges.
+     */
+    private function isAdmin(): bool
+    {
+        return auth()->check() && (bool) auth()->user()?->isAdmin();
+    }
 
     /**
      * Landing page for protected.ternis.link.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('protected.landing');
+        $isAdmin = $this->isAdmin();
+
+        $stats = [
+            'turnstile_configured' => ! empty(config('services.turnstile.key')),
+            'ai_security_enabled' => (bool) config('ai_security.enabled', true),
+            'ai_model' => (string) config('ai_security.model', 'jev-latest'),
+            'rate_limit_max' => (int) config('bot_protection.rate_limit.max_attempts', 30),
+            'remember_minutes' => (int) config('bot_protection.remember_duration_minutes', 120),
+            'is_human_verified' => $this->botProtection->isHumanVerified($request),
+            'visitor_ip' => $request->ip() ?? 'Unknown',
+            'visitor_ua' => $request->userAgent() ?: 'Unknown Browser',
+            'total_evaluations' => ThreatEvaluation::count(),
+            'quarantined_threats' => ThreatEvaluation::where('action', 'quarantine')->count(),
+        ];
+
+        return view('protected.landing', [
+            'isAdmin' => $isAdmin,
+            'stats' => $stats,
+        ]);
     }
 
     /**
@@ -181,6 +212,354 @@ class ProtectedGatewayController extends Controller
         $request->session()->put(LinkService::sessionKey($link->id), true);
 
         return $this->resolveAndRedirect($link, $request);
+    }
+
+    /**
+     * Admin-only real-time diagnostic console and AI request inspector.
+     */
+    public function debug(Request $request)
+    {
+        if (! $this->isAdmin()) {
+            abort(403, 'Admin access required. Please sign in to an administrator account on ternis.link or dash.ternis.link.');
+        }
+
+        $ip = $request->ip() ?? 'unknown';
+        $rateLimitKey = 'bot_verify:'.$ip;
+        $maxAttempts = (int) config('bot_protection.rate_limit.max_attempts', 30);
+        $attempts = RateLimiter::attempts($rateLimitKey);
+        $remaining = max(0, $maxAttempts - $attempts);
+
+        // Analyze current verification cookie if present
+        $cookieName = (string) config('bot_protection.cookie_name', 'tl_human_verified');
+        $rawCookie = $request->cookie($cookieName);
+        $cookiePayload = null;
+        if (is_string($rawCookie) && trim($rawCookie) !== '') {
+            try {
+                $decrypted = Crypt::decryptString($rawCookie);
+                if (str_contains($decrypted, '|')) {
+                    [$verifiedAt, $token] = explode('|', $decrypted, 2);
+                    $verifiedAt = (int) $verifiedAt;
+                    $ageSeconds = time() - $verifiedAt;
+                    $ttlSeconds = max(0, ((int) config('bot_protection.remember_duration_minutes', 120) * 60) - $ageSeconds);
+                    $cookiePayload = [
+                        'valid' => $ttlSeconds > 0,
+                        'verified_at' => date('Y-m-d H:i:s', $verifiedAt),
+                        'age_seconds' => $ageSeconds,
+                        'ttl_remaining_seconds' => $ttlSeconds,
+                        'token_prefix' => substr($token, 0, 8).'...',
+                    ];
+                }
+            } catch (\Throwable) {
+                $cookiePayload = ['valid' => false, 'error' => 'Malformed or tampered signature'];
+            }
+        }
+
+        // Run live AI request triage on the current admin request
+        $liveAiAnalysis = $this->runAiAnalysis(
+            $request->userAgent() ?: '',
+            $request->path(),
+            $request->headers->all()
+        );
+
+        $diagnostics = [
+            'client' => [
+                'ip' => $ip,
+                'remote_addr' => $request->server('REMOTE_ADDR'),
+                'cf_connecting_ip' => $request->header('cf-connecting-ip'),
+                'x_forwarded_for' => $request->header('x-forwarded-for'),
+                'user_agent' => $request->userAgent() ?: 'Unknown',
+                'method' => $request->method(),
+                'scheme' => $request->getScheme(),
+                'is_secure' => $request->isSecure(),
+                'protocol' => $request->server('SERVER_PROTOCOL'),
+                'host' => $request->getHost(),
+            ],
+            'verification' => [
+                'is_human_verified' => $this->botProtection->isHumanVerified($request),
+                'session_verified_at' => $request->session()->get('tl_human_verified_at'),
+                'cookie_details' => $cookiePayload,
+            ],
+            'rate_limiting' => [
+                'key' => $rateLimitKey,
+                'attempts_used' => $attempts,
+                'max_attempts' => $maxAttempts,
+                'remaining' => $remaining,
+                'available_in_seconds' => RateLimiter::availableIn($rateLimitKey),
+            ],
+            'configuration' => [
+                'bot_protection_enabled' => $this->botProtection->isEnabled(),
+                'filter_suspicious_ua' => $this->botProtection->shouldFilterUserAgents(),
+                'turnstile_site_key_set' => ! empty(config('services.turnstile.key')),
+                'turnstile_secret_set' => ! empty(config('services.turnstile.secret')),
+                'ai_security_enabled' => $this->aiThreat->isEnabled(),
+                'ai_api_key_set' => ! empty(config('ai_security.api_key')),
+                'ai_model' => config('ai_security.model', 'jev-latest'),
+                'remember_duration_minutes' => config('bot_protection.remember_duration_minutes', 120),
+                'cookie_name' => config('bot_protection.cookie_name', 'tl_human_verified'),
+                'suspicious_ua_patterns_count' => count((array) config('bot_protection.suspicious_user_agents', [])),
+            ],
+            'headers' => $request->headers->all(),
+            'ai_analysis' => $liveAiAnalysis,
+        ];
+
+        return view('protected.debug', [
+            'diagnostics' => $diagnostics,
+        ]);
+    }
+
+    /**
+     * Admin on-demand AI request analysis endpoint.
+     */
+    public function analyzeRequest(Request $request)
+    {
+        if (! $this->isAdmin()) {
+            return response()->json(['error' => 'Admin access required.'], 403);
+        }
+
+        $userAgent = (string) ($request->input('user_agent') ?? $request->userAgent() ?? '');
+        $path = (string) ($request->input('path') ?? '/');
+        $customHeaders = (array) ($request->input('headers') ?? []);
+
+        $result = $this->runAiAnalysis($userAgent, $path, $customHeaders ?: $request->headers->all());
+
+        return response()->json($result);
+    }
+
+    /**
+     * Public interactive client signature classifier.
+     */
+    public function classifyClient(Request $request)
+    {
+        $ip = $request->ip() ?? 'unknown';
+        $rateLimitKey = 'bot_classify:'.$ip;
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 30)) {
+            return response()->json([
+                'error' => 'Rate limit exceeded. Please wait a minute before analyzing more signatures.',
+            ], 429);
+        }
+
+        RateLimiter::hit($rateLimitKey, 60);
+
+        $userAgent = (string) ($request->input('user_agent') ?? $request->userAgent() ?? '');
+        $path = (string) ($request->input('path') ?? '/');
+
+        $result = $this->runAiAnalysis($userAgent, $path);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Public verification / Request ID lookup utility.
+     */
+    public function lookupRequestId(Request $request)
+    {
+        $rid = trim((string) $request->input('rid', ''));
+
+        if ($rid === '') {
+            return response()->json(['error' => 'Please provide a Request ID (rid).'], 422);
+        }
+
+        if (! preg_match('/^rid_[0-9a-z]+$/i', $rid)) {
+            return response()->json([
+                'valid_format' => false,
+                'message' => 'Invalid Request ID format. Valid IDs begin with "rid_" followed by a cryptographic ULID string.',
+            ]);
+        }
+
+        return response()->json([
+            'valid_format' => true,
+            'request_id' => $rid,
+            'message' => 'Valid Request ID signature format.',
+            'generated_type' => 'Cryptographic ULID (time-ordered & collision-resistant)',
+            'time_window_seconds' => 900,
+        ]);
+    }
+
+    /**
+     * Admin challenge signature testing and generation utility.
+     */
+    public function testSignature(Request $request)
+    {
+        if (! $this->isAdmin()) {
+            return response()->json(['error' => 'Admin access required.'], 403);
+        }
+
+        $linkId = (string) $request->input('link_id', 'test_link_123');
+        $rid = (string) $request->input('rid', $this->botProtection->generateRequestId());
+        $ts = (int) ($request->input('ts') ?: time());
+
+        $signature = $this->botProtection->signChallenge($linkId, $rid, $ts);
+        $isValid = $this->botProtection->verifyChallenge($linkId, $rid, $ts, $signature);
+
+        $challengeUrl = DomainUrls::protected('/challenge?'.http_build_query([
+            'link' => $linkId,
+            'rid' => $rid,
+            'ts' => $ts,
+            'sig' => $signature,
+        ]));
+
+        $uaUrl = DomainUrls::protected('/user-agent?'.http_build_query([
+            'link' => $linkId,
+            'rid' => $rid,
+            'ts' => $ts,
+            'sig' => $signature,
+        ]));
+
+        return response()->json([
+            'link_id' => $linkId,
+            'request_id' => $rid,
+            'timestamp' => $ts,
+            'signature' => $signature,
+            'is_valid' => $isValid,
+            'challenge_url' => $challengeUrl,
+            'user_agent_url' => $uaUrl,
+        ]);
+    }
+
+    /**
+     * Admin utility to clear verification rate-limit attempts.
+     */
+    public function clearRateLimit(Request $request)
+    {
+        if (! $this->isAdmin()) {
+            return response()->json(['error' => 'Admin access required.'], 403);
+        }
+
+        $targetIp = (string) ($request->input('ip') ?: $request->ip() ?: 'unknown');
+        RateLimiter::clear('bot_verify:'.$targetIp);
+        RateLimiter::clear('bot_unlock:'.$targetIp);
+        RateLimiter::clear('bot_classify:'.$targetIp);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Cleared rate limit buckets for IP: {$targetIp}",
+        ]);
+    }
+
+    /**
+     * Run AI analysis and heuristic checks on a request signature.
+     */
+    private function runAiAnalysis(string $userAgent, string $path = '/', array $headers = []): array
+    {
+        $suspiciousPatternMatch = $this->botProtection->isSuspiciousUserAgent($userAgent);
+
+        // Try AI model client if available
+        $aiResult = $this->aiThreat->evaluateUserAgent($userAgent, $path);
+
+        // Fallback or heuristic enhancement if AI client is unconfigured or in unverified mode
+        if ($aiResult['verdict'] === 'unverified' || empty($aiResult['probabilities'])) {
+            $heuristic = $this->classifyUserAgentHeuristically($userAgent);
+            $aiResult['verdict'] = $heuristic['verdict'];
+            $aiResult['score'] = $heuristic['score'];
+            $aiResult['confidence'] = $heuristic['confidence'];
+            $aiResult['probabilities'] = $heuristic['probabilities'];
+            $aiResult['reasons'] = $heuristic['reasons'];
+            $aiResult['mode'] = 'heuristic';
+        } else {
+            $aiResult['mode'] = 'ai_live';
+            $aiResult['reasons'] = [
+                'Live probabilistic AI evaluation complete',
+                'SystemOne model classification verified',
+            ];
+        }
+
+        $score = (int) ($aiResult['score'] ?? 0);
+        $action = match (true) {
+            $score >= 80 || $aiResult['verdict'] === 'exploit_scanner' => 'CHALLENGE_UA',
+            $suspiciousPatternMatch || $score >= 50 || in_array($aiResult['verdict'], ['aggressive_scraper', 'benign_tool'], true) => 'CHALLENGE_TURNSTILE',
+            default => 'ALLOW',
+        };
+
+        return [
+            'user_agent' => $userAgent,
+            'path' => $path,
+            'verdict' => $aiResult['verdict'],
+            'score' => $score,
+            'confidence' => (float) ($aiResult['confidence'] ?? 0.8),
+            'probabilities' => $aiResult['probabilities'] ?? [],
+            'is_suspicious_ua' => $suspiciousPatternMatch,
+            'recommended_action' => $action,
+            'mode' => $aiResult['mode'] ?? 'ai_live',
+            'reasons' => $aiResult['reasons'] ?? [],
+            'analyzed_at' => now()->toIso8601String(),
+        ];
+    }
+
+    /**
+     * Heuristic classifier when AI client is unconfigured or offline.
+     */
+    private function classifyUserAgentHeuristically(string $userAgent): array
+    {
+        $ua = strtolower(trim($userAgent));
+
+        if ($ua === '') {
+            return [
+                'verdict' => 'aggressive_scraper',
+                'score' => 90,
+                'confidence' => 0.95,
+                'probabilities' => ['aggressive_scraper' => 0.85, 'exploit_scanner' => 0.15],
+                'reasons' => ['Blank or missing User-Agent header (classic scraper anomaly)'],
+            ];
+        }
+
+        if (preg_match('/(sqlmap|nikto|masscan|nmap|acunetix|nessus|dirbuster|gobuster)/i', $ua)) {
+            return [
+                'verdict' => 'exploit_scanner',
+                'score' => 99,
+                'confidence' => 0.99,
+                'probabilities' => ['exploit_scanner' => 0.95, 'aggressive_scraper' => 0.05],
+                'reasons' => ['Matches known automated exploit/security scanner signature'],
+            ];
+        }
+
+        if (preg_match('/(curl|wget|httpie|postman|insomnia)/i', $ua)) {
+            return [
+                'verdict' => 'benign_tool',
+                'score' => 45,
+                'confidence' => 0.92,
+                'probabilities' => ['benign_tool' => 0.70, 'aggressive_scraper' => 0.25, 'legitimate_browser' => 0.05],
+                'reasons' => ['Standard command-line or API developer tool signature'],
+            ];
+        }
+
+        if (preg_match('/(python-requests|aiohttp|urllib|go-http-client|scrapy|beautifulsoup|apache-httpclient|java\/)/i', $ua)) {
+            return [
+                'verdict' => 'aggressive_scraper',
+                'score' => 78,
+                'confidence' => 0.90,
+                'probabilities' => ['aggressive_scraper' => 0.80, 'benign_tool' => 0.15, 'exploit_scanner' => 0.05],
+                'reasons' => ['Automated HTTP client or scraping library header detected'],
+            ];
+        }
+
+        if (preg_match('/(googlebot|bingbot|yandexbot|duckduckbot|slurp|baiduspider|twitterbot|facebookexternalhit|slackbot|discordbot)/i', $ua)) {
+            return [
+                'verdict' => 'verified_crawler',
+                'score' => 10,
+                'confidence' => 0.95,
+                'probabilities' => ['verified_crawler' => 0.92, 'legitimate_browser' => 0.08],
+                'reasons' => ['Known search engine or social unfurler crawler signature'],
+            ];
+        }
+
+        if (preg_match('/(headlesschrome|puppeteer|playwright|phantomjs|selenium)/i', $ua)) {
+            return [
+                'verdict' => 'aggressive_scraper',
+                'score' => 88,
+                'confidence' => 0.94,
+                'probabilities' => ['aggressive_scraper' => 0.88, 'exploit_scanner' => 0.10],
+                'reasons' => ['Headless browser / browser automation framework detected'],
+            ];
+        }
+
+        return [
+            'verdict' => 'legitimate_browser',
+            'score' => 5,
+            'confidence' => 0.90,
+            'probabilities' => ['legitimate_browser' => 0.92, 'benign_tool' => 0.05, 'aggressive_scraper' => 0.03],
+            'reasons' => ['Matches standard interactive consumer browser signature'],
+        ];
     }
 
     /**

@@ -644,6 +644,16 @@ Route::domain((string) config('domains.protected_host', 'protected.ternis.link')
     Route::get('/user-agent', [ProtectedGatewayController::class, 'userAgent'])->name('protected.user-agent');
     Route::post('/verify', [ProtectedGatewayController::class, 'verify'])->name('protected.verify');
     Route::post('/unlock', [ProtectedGatewayController::class, 'unlock'])->name('protected.unlock');
+
+    // Interactive Public Gateway Functions
+    Route::post('/classify-client', [ProtectedGatewayController::class, 'classifyClient'])->name('protected.classify');
+    Route::post('/lookup-rid', [ProtectedGatewayController::class, 'lookupRequestId'])->name('protected.lookup-rid');
+
+    // Admin-Only Debugging Mode & AI Request Analyzer
+    Route::get('/debug', [ProtectedGatewayController::class, 'debug'])->name('protected.debug');
+    Route::post('/debug/analyze', [ProtectedGatewayController::class, 'analyzeRequest'])->name('protected.debug.analyze');
+    Route::post('/debug/test-signature', [ProtectedGatewayController::class, 'testSignature'])->name('protected.debug.signature');
+    Route::post('/debug/clear-ratelimit', [ProtectedGatewayController::class, 'clearRateLimit'])->name('protected.debug.clear-ratelimit');
 });
 
 Route::middleware(['ensure.domain:public,business,ternis,partner'])->group(function () {

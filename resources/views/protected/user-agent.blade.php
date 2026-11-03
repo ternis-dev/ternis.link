@@ -28,9 +28,6 @@
     <div class="w-full max-w-lg rounded-2xl border border-neutral-200/90 bg-white p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:bg-neutral-900">
         <div class="flex items-center justify-between flex-wrap gap-3 border-b border-neutral-100 pb-4 dark:border-neutral-800">
             <div class="flex items-center gap-2.5">
-                <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-neutral-900">
-                    <svg class="h-4.5 w-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                </span>
                 <span class="font-display text-sm font-bold tracking-tight sm:text-lg">protected<span>.ternis.link</span></span>
             </div>
             <x-ui.badge tone="solid">Client Filter</x-ui.badge>
