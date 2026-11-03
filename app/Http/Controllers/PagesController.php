@@ -31,6 +31,7 @@ class PagesController extends Controller
      */
     public const REDIRECTS = [
         'imprint' => 'https://ternis.dev/en/legal/imprint',
+        'abuse' => '/pages/abuse',
     ];
 
     public function legal(string $slug, Request $request, BotProtectionService $botProtection)

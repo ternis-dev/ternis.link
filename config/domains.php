@@ -47,6 +47,8 @@ return [
         'docs.ternis.link' => 'docs',
         // Protected link gateway & bot verification
         'protected.ternis.link' => 'protected',
+        // Abuse reporting intake
+        'abuse.ternis.link' => 'ternis',
     ],
 
     /*
@@ -132,6 +134,8 @@ return [
     'internal_host' => env('DOMAIN_INTERNAL', 'int.ternis.link'),
 
     'protected_host' => env('DOMAIN_PROTECTED', 'protected.ternis.link'),
+
+    'abuse_host' => env('DOMAIN_ABUSE', 'abuse.ternis.link'),
 
     /*
     |--------------------------------------------------------------------------

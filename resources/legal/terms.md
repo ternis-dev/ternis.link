@@ -16,7 +16,7 @@ This document applies to the Ternis link network, including:
 | Link management and administration | my.href.nz, dash.meinlink.at, dash.ternis.link, admin.ternis.link |
 | Legacy dashboard addresses | my.ternis.link, my.href.yt (redirect to the current public dashboard) |
 | QR generation and APIs | qr.href.nz, qr.t-api.de, links.t-api.de |
-| Documentation and security verification | docs.ternis.link, protected.ternis.link |
+| Documentation, abuse reporting and security verification | docs.ternis.link, protected.ternis.link, abuse.ternis.link |
 
 It also covers supported subdomains and customer-connected domains when they serve this application. Independent destination websites and other services linked from this application have their own policies. Account sign-in uses Ternis Auth at auth.ternis.net; its own notices also apply to authentication.
 
@@ -61,4 +61,4 @@ To the extent permitted by law, liability is limited to intent and gross neglige
 
 ## Changes and contact
 
-We may update these terms with 14 days notice on the service. Questions or legal inquiries: [legal@ternis.dev](mailto:legal@ternis.dev) or [platforms@ternis.dev](mailto:platforms@ternis.dev). Abuse reports: [abuse@ternis.dev](mailto:abuse@ternis.dev).
+We may update these terms without any notice on the service. Questions or legal inquiries: [legal@ternis.dev](mailto:legal@ternis.dev) or [platforms@ternis.dev](mailto:platforms@ternis.dev). Abuse reports: [abuse@ternis.dev](mailto:abuse@ternis.dev).

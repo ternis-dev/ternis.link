@@ -87,6 +87,14 @@ class DomainUrls
     }
 
     /**
+     * Absolute URL on the abuse host (abuse.ternis.link).
+     */
+    public static function abuse(string $path = '/'): string
+    {
+        return static::onHost(config('domains.abuse_host', 'abuse.ternis.link'), $path);
+    }
+
+    /**
      * Check if the given (or current) host is the protected gateway host.
      */
     public static function isProtected(?string $host = null): bool

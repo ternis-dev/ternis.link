@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AbuseReportController;
 use App\Http\Controllers\Api\V1\PublicQrCodeController;
 use App\Http\Controllers\Auth\AuthApiController;
 use App\Http\Controllers\Auth\SsoHandoffController;
@@ -310,6 +311,38 @@ Route::middleware(['ensure.domain:ternis'])->get('/pages/legal/{slug}', [PagesCo
 Route::middleware(['ensure.domain:ternis'])->get('/pages/legal/{slug}.md', [PagesController::class, 'legalMd'])
     ->where('slug', '[a-z-]+')
     ->name('pages.legal-md');
+
+/*
+|----------------------------------------------------------------------
+| Abuse reporting page (ternis.link/pages/abuse) —
+| public, no login, ternis host. HTML form + POST submission + Markdown twin.
+|----------------------------------------------------------------------
+*/
+Route::middleware(['ensure.domain:ternis'])->group(function () {
+    Route::get('/pages/abuse', [AbuseReportController::class, 'create'])->name('pages.abuse');
+    Route::post('/pages/abuse', [AbuseReportController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('pages.abuse.store');
+    Route::get('/pages/abuse.md', [AbuseReportController::class, 'createMd'])->name('pages.abuse-md');
+});
+
+/*
+|----------------------------------------------------------------------
+| Memorable /abuse shortcut —
+| 301 to the canonical /pages/abuse home (preserving query string).
+|----------------------------------------------------------------------
+*/
+Route::get('/abuse{any?}', function () {
+    $type = request()->attributes->get('domain_type');
+    $query = request()->getQueryString();
+    $qs = $query ? '?'.$query : '';
+
+    if ($type === 'ternis') {
+        return redirect('/pages/abuse'.$qs, 301);
+    }
+
+    return redirect()->away('https://ternis.link/pages/abuse'.$qs, 301);
+})->where('any', '.*');
 
 /*
 |--------------------------------------------------------------------------

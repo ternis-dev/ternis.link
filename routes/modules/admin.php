@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminAbuseReportController;
 use App\Http\Controllers\AdminAppealController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminStatsController;
@@ -28,6 +29,10 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
         Route::get('/appeals', [AdminAppealController::class, 'index'])->name('appeals');
         Route::post('/appeals/{appeal}/approve', [AdminAppealController::class, 'approve'])->name('appeals.approve');
         Route::post('/appeals/{appeal}/reject', [AdminAppealController::class, 'reject'])->name('appeals.reject');
+        Route::get('/abuse-reports', [AdminAbuseReportController::class, 'index'])->name('abuse-reports');
+        Route::post('/abuse-reports/{report}/investigate', [AdminAbuseReportController::class, 'investigate'])->name('abuse-reports.investigate');
+        Route::post('/abuse-reports/{report}/resolve', [AdminAbuseReportController::class, 'resolve'])->name('abuse-reports.resolve');
+        Route::post('/abuse-reports/{report}/dismiss', [AdminAbuseReportController::class, 'dismiss'])->name('abuse-reports.dismiss');
         Route::get('/links', [AdminController::class, 'links'])->name('links');
         Route::get('/bio', [AdminController::class, 'bio'])->name('bio');
         Route::get('/users', [AdminController::class, 'users'])->name('users');

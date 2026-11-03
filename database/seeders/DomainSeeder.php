@@ -23,6 +23,7 @@ class DomainSeeder extends Seeder
             ['hostname' => 'ternis.link',      'type' => DomainType::Ternis],
             ['hostname' => 'int.ternis.link',  'type' => DomainType::Ternis],
             ['hostname' => 'protected.ternis.link', 'type' => DomainType::Ternis],
+            ['hostname' => 'abuse.ternis.link', 'type' => DomainType::Ternis],
             ['hostname' => 'links.thosted.de', 'type' => DomainType::Ternis],
             ['hostname' => 'short.thosted.de', 'type' => DomainType::Ternis],
             ['hostname' => 'go.thosted.de',    'type' => DomainType::Ternis],

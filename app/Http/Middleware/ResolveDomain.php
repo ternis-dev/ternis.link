@@ -64,6 +64,15 @@ class ResolveDomain
             return $next($request);
         }
 
+        $abuseHost = (string) config('domains.abuse_host', 'abuse.ternis.link');
+        if ($hostname === $abuseHost) {
+            $qs = $request->getQueryString();
+            $path = $request->path();
+            $targetPath = ($path === '/' || $path === '') ? '/pages/abuse' : '/'.ltrim($path, '/');
+
+            return redirect()->away('https://ternis.link'.$targetPath.($qs ? '?'.$qs : ''), 301);
+        }
+
         // Redirect api.ternis.link to links.t-api.de
         if ($hostname === 'api.ternis.link') {
             return redirect()->away('https://links.t-api.de'.$request->getRequestUri(), 301);
