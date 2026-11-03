@@ -651,6 +651,8 @@ Route::domain((string) config('domains.protected_host', 'protected.ternis.link')
 
     // Admin-Only Debugging Mode & AI Request Analyzer
     Route::get('/debug', [ProtectedGatewayController::class, 'debug'])->name('protected.debug');
+    Route::post('/debug/simulate', [ProtectedGatewayController::class, 'debugSimulate'])->name('protected.debug.simulate');
+    Route::post('/debug/cookie', [ProtectedGatewayController::class, 'debugToggleCookie'])->name('protected.debug.cookie');
     Route::post('/debug/analyze', [ProtectedGatewayController::class, 'analyzeRequest'])->name('protected.debug.analyze');
     Route::post('/debug/test-signature', [ProtectedGatewayController::class, 'testSignature'])->name('protected.debug.signature');
     Route::post('/debug/clear-ratelimit', [ProtectedGatewayController::class, 'clearRateLimit'])->name('protected.debug.clear-ratelimit');

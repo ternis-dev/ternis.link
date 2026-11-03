@@ -3,6 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\UserRole;
+use App\Models\Domain;
+use App\Models\Link;
+use App\Models\ThreatEvaluation;
 use App\Models\User;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
@@ -35,7 +38,7 @@ class ProtectedGatewayLandingAndDebugTest extends TestCase
 
     public function test_landing_page_renders_with_zero_trust_and_no_brand_icon(): void
     {
-        \App\Models\ThreatEvaluation::create([
+        ThreatEvaluation::create([
             'creator_ip_hash' => hash('sha256', '127.0.0.1'),
             'destination_url' => 'https://malicious.example.com',
             'destination_host' => 'malicious.example.com',
@@ -58,12 +61,11 @@ class ProtectedGatewayLandingAndDebugTest extends TestCase
         $response->assertDontSee('ADMIN DEBUG MODE', escape: false);
     }
 
-    public function test_landing_page_shows_admin_debug_banner_for_authenticated_admin(): void
+    public function test_landing_page_shows_admin_debug_link_for_authenticated_admin(): void
     {
         $response = $this->actingAs($this->admin)->get('http://protected.ternis.link/');
         $response->assertStatus(200);
-        $response->assertSee('Admin Debug Mode', escape: false);
-        $response->assertSee('Admin Diagnostics Active', escape: false);
+        $response->assertSee('Admin Debug', escape: false);
     }
 
     public function test_public_can_classify_client_signatures(): void
@@ -134,34 +136,72 @@ class ProtectedGatewayLandingAndDebugTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('ADMIN DEBUG MODE', escape: false);
-        $response->assertSee('Live AI Request Analyzer', escape: false);
-        $response->assertSee('Client IP &amp; Transport', escape: false);
-        $response->assertSee('Human Verification State', escape: false);
-        $response->assertSee('Rate Limit Status', escape: false);
-        $response->assertSee('Challenge Signature Generator &amp; Sandbox', escape: false);
+        $response->assertSee('Protection Decision Sandbox', escape: false);
+        $response->assertSee('Human Verification Cookie Cockpit', escape: false);
+        $response->assertSee('Rate Limit &amp; IP Transport', escape: false);
+        $response->assertSee('Challenge Signature Generator &amp; Anti-Replay Validator', escape: false);
     }
 
-    public function test_admin_can_analyze_requests_with_ai(): void
+    public function test_admin_can_simulate_protection_decisions_step_by_step(): void
     {
+        $link = Link::create([
+            'slug' => 'debug-shielded',
+            'destination_url' => 'https://example.com/target',
+            'domain_id' => Domain::first()->id,
+            'user_id' => $this->admin->id,
+            'bot_protection' => true,
+        ]);
+
+        // 1. Without cookie -> should challenge Turnstile
         $response = $this->actingAs($this->admin)
-            ->postJson('http://protected.ternis.link/debug/analyze', [
-                'user_agent' => 'python-requests/2.31.0',
-                'path' => '/secret-target',
+            ->postJson('http://protected.ternis.link/debug/simulate', [
+                'link_slug_or_id' => $link->slug,
+                'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+                'has_cookie' => 'no',
             ]);
 
         $response->assertOk();
-        $response->assertJsonStructure([
-            'user_agent',
-            'path',
-            'verdict',
-            'score',
-            'confidence',
-            'probabilities',
-            'recommended_action',
-            'reasons',
-        ]);
-        $this->assertContains($response->json('verdict'), ['benign_tool', 'aggressive_scraper']);
-        $this->assertGreaterThan(0, $response->json('score'));
+        $response->assertJsonPath('result.decision', 'CHALLENGE_TURNSTILE');
+        $this->assertNotEmpty($response->json('result.trace'));
+
+        // 2. With cookie override -> should allow
+        $resWithCookie = $this->actingAs($this->admin)
+            ->postJson('http://protected.ternis.link/debug/simulate', [
+                'link_slug_or_id' => $link->slug,
+                'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+                'has_cookie' => 'yes',
+            ]);
+
+        $resWithCookie->assertOk();
+        $resWithCookie->assertJsonPath('result.decision', 'ALLOW');
+
+        // 3. Suspicious user-agent -> should challenge UA
+        $resUa = $this->actingAs($this->admin)
+            ->postJson('http://protected.ternis.link/debug/simulate', [
+                'link_slug_or_id' => '',
+                'user_agent' => 'curl/8.4.0',
+                'has_cookie' => 'no',
+            ]);
+
+        $resUa->assertOk();
+        $resUa->assertJsonPath('result.decision', 'CHALLENGE_USER_AGENT');
+    }
+
+    public function test_admin_can_toggle_human_verification_cookie(): void
+    {
+        // 1. Issue cookie
+        $issueResponse = $this->actingAs($this->admin)
+            ->post('http://protected.ternis.link/debug/cookie', ['action' => 'issue']);
+
+        $issueResponse->assertStatus(302);
+        $issueResponse->assertCookie('tl_human_verified');
+
+        // 2. Clear cookie
+        $clearResponse = $this->actingAs($this->admin)
+            ->post('http://protected.ternis.link/debug/cookie', ['action' => 'clear']);
+
+        $clearResponse->assertStatus(302);
+        $clearResponse->assertCookieExpired('tl_human_verified');
     }
 
     public function test_admin_can_generate_and_test_signatures(): void
@@ -192,5 +232,36 @@ class ProtectedGatewayLandingAndDebugTest extends TestCase
         $response->assertOk();
         $this->assertTrue($response->json('success'));
         $this->assertEquals(0, RateLimiter::attempts('bot_verify:'.$testIp));
+    }
+
+    public function test_admin_bot_protection_page_renders_in_admin_console(): void
+    {
+        // Regular user forbidden
+        $this->actingAs($this->regularUser)
+            ->get('http://admin.ternis.link/bot-protection')
+            ->assertForbidden();
+
+        // Admin user can view
+        $response = $this->actingAs($this->admin)
+            ->get('http://admin.ternis.link/bot-protection')
+            ->assertOk();
+
+        $response->assertSee('Bot Protection', escape: false);
+        $response->assertSee('Protection Decision Sandbox', escape: false);
+        $response->assertSee('Active Suspicious Client Signatures', escape: false);
+        $response->assertSee('Operational Parameters', escape: false);
+    }
+
+    public function test_admin_bot_protection_simulation_works(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->postJson('http://admin.ternis.link/bot-protection/simulate', [
+                'user_agent' => 'curl/8.4.0',
+                'has_cookie' => 'no',
+            ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('result.decision', 'CHALLENGE_USER_AGENT');
+        $this->assertNotEmpty($response->json('result.trace'));
     }
 }

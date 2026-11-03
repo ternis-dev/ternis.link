@@ -35,6 +35,8 @@ Route::middleware(['ensure.domain:admin', 'auth', RefreshSsoToken::class, Enforc
         Route::get('/activity', [AdminController::class, 'activity'])->name('activity');
         Route::get('/errors', [AdminController::class, 'errors'])->name('errors');
         Route::get('/allowed-clients', [AdminController::class, 'allowedClients'])->name('allowed-clients');
+        Route::get('/bot-protection', [AdminController::class, 'botProtection'])->name('bot-protection');
+        Route::post('/bot-protection/simulate', [AdminController::class, 'simulateBotProtection'])->name('bot-protection.simulate');
     });
 
 // Legacy /admin/* on the admin host → root equivalents (permanent).

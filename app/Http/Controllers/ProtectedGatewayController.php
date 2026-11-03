@@ -16,7 +16,6 @@ use App\Support\DomainUrls;
 use App\Support\RedirectResilience;
 use App\Support\UserTracking;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -230,29 +229,21 @@ class ProtectedGatewayController extends Controller
         $remaining = max(0, $maxAttempts - $attempts);
 
         // Analyze current verification cookie if present
-        $cookieName = (string) config('bot_protection.cookie_name', 'tl_human_verified');
-        $rawCookie = $request->cookie($cookieName);
-        $cookiePayload = null;
-        if (is_string($rawCookie) && trim($rawCookie) !== '') {
-            try {
-                $decrypted = Crypt::decryptString($rawCookie);
-                if (str_contains($decrypted, '|')) {
-                    [$verifiedAt, $token] = explode('|', $decrypted, 2);
-                    $verifiedAt = (int) $verifiedAt;
-                    $ageSeconds = time() - $verifiedAt;
-                    $ttlSeconds = max(0, ((int) config('bot_protection.remember_duration_minutes', 120) * 60) - $ageSeconds);
-                    $cookiePayload = [
-                        'valid' => $ttlSeconds > 0,
-                        'verified_at' => date('Y-m-d H:i:s', $verifiedAt),
-                        'age_seconds' => $ageSeconds,
-                        'ttl_remaining_seconds' => $ttlSeconds,
-                        'token_prefix' => substr($token, 0, 8).'...',
-                    ];
-                }
-            } catch (\Throwable) {
-                $cookiePayload = ['valid' => false, 'error' => 'Malformed or tampered signature'];
-            }
+        $cookiePayload = $this->botProtection->inspectHumanCookie($request);
+
+        // Optional test link
+        $testSlug = (string) ($request->query('slug') ?: $request->query('link') ?: '');
+        $testLink = null;
+        if ($testSlug !== '') {
+            $testLink = Link::with('domain')
+                ->where('is_removed', false)
+                ->where(function ($q) use ($testSlug) {
+                    $q->where('id', $testSlug)->orWhere('slug', $testSlug);
+                })
+                ->first();
         }
+
+        $decisionExplanation = $this->botProtection->explainProtectionDecision($testLink, $request);
 
         // Run live AI request triage on the current admin request
         $liveAiAnalysis = $this->runAiAnalysis(
@@ -300,10 +291,67 @@ class ProtectedGatewayController extends Controller
             ],
             'headers' => $request->headers->all(),
             'ai_analysis' => $liveAiAnalysis,
+            'decision_explanation' => $decisionExplanation,
+            'test_link' => $testLink,
         ];
 
         return view('protected.debug', [
             'diagnostics' => $diagnostics,
+        ]);
+    }
+
+    /**
+     * Admin toggle to simulate / set or clear the human verification cookie.
+     */
+    public function debugToggleCookie(Request $request)
+    {
+        if (! $this->isAdmin()) {
+            return response()->json(['error' => 'Admin access required.'], 403);
+        }
+
+        $action = (string) $request->input('action', 'issue');
+
+        if ($action === 'clear') {
+            $cookie = $this->botProtection->makeExpiredHumanVerificationCookie($request->getHost());
+
+            return back()->withCookie($cookie)->with('success', 'Human verification cookie cleared.');
+        }
+
+        $cookie = $this->botProtection->makeHumanVerificationCookie($request->getHost());
+
+        return back()->withCookie($cookie)->with('success', 'Issued fresh human verification cookie (120 minutes validity).');
+    }
+
+    /**
+     * Admin interactive simulation of the protection decision engine.
+     */
+    public function debugSimulate(Request $request)
+    {
+        if (! $this->isAdmin()) {
+            return response()->json(['error' => 'Admin access required.'], 403);
+        }
+
+        $slugOrId = trim((string) $request->input('link_slug_or_id', ''));
+        $userAgent = (string) $request->input('user_agent', $request->userAgent() ?: 'curl/8.4.0');
+        $hasCookieInput = $request->input('has_cookie');
+        $overrideCookie = $hasCookieInput === 'yes' ? true : ($hasCookieInput === 'no' ? false : null);
+
+        $link = null;
+        if ($slugOrId !== '') {
+            $link = Link::with('domain')
+                ->where('is_removed', false)
+                ->where(function ($q) use ($slugOrId) {
+                    $q->where('id', $slugOrId)->orWhere('slug', $slugOrId);
+                })
+                ->first();
+        }
+
+        $result = $this->botProtection->explainProtectionDecision($link, $request, $userAgent, $overrideCookie);
+
+        return response()->json([
+            'link' => $link ? ['id' => $link->id, 'slug' => $link->slug, 'bot_protection' => $link->hasBotProtection(), 'allows_bots' => $link->allowsBots()] : null,
+            'user_agent' => $userAgent,
+            'result' => $result,
         ]);
     }
 

@@ -13,6 +13,7 @@ use App\Models\ThreatEvaluation;
 use App\Models\User;
 use App\Services\AdminStatsService;
 use App\Services\AiThreatDetectionService;
+use App\Services\BotProtectionService;
 use App\Services\LinkInsights;
 use App\Support\Activity;
 use App\Support\DomainUrls;
@@ -482,5 +483,79 @@ class AdminController extends Controller
     public function allowedClients()
     {
         return view('admin.allowed-clients');
+    }
+
+    /**
+     * Bot Protection Gateway Dashboard & Sandbox.
+     */
+    public function botProtection(Request $request, BotProtectionService $botProtection)
+    {
+        $config = [
+            'enabled' => $botProtection->isEnabled(),
+            'filter_suspicious_ua' => $botProtection->shouldFilterUserAgents(),
+            'turnstile_key_present' => ! empty(config('services.turnstile.key')),
+            'turnstile_secret_present' => ! empty(config('services.turnstile.secret')),
+            'remember_duration_minutes' => (int) config('bot_protection.remember_duration_minutes', 120),
+            'rate_limit_max' => (int) config('bot_protection.rate_limit.max_attempts', 30),
+            'suspicious_user_agents' => (array) config('bot_protection.suspicious_user_agents', []),
+        ];
+
+        $metrics = [
+            'total_links' => Link::where('is_removed', false)->count(),
+            'bot_protected_links' => Link::where('is_removed', false)->where('bot_protection', true)->count(),
+            'bot_allowed_links' => Link::where('is_removed', false)->where('allows_bots', true)->count(),
+            'quarantined_threats' => ThreatEvaluation::where('action_taken', 'quarantined')->count(),
+            'bot_protected_threats' => ThreatEvaluation::where('action_taken', 'bot_protected')->count(),
+        ];
+
+        $recentProtectedLinks = Link::with('domain')
+            ->where('is_removed', false)
+            ->where('bot_protection', true)
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        return view('admin.bot-protection', compact('config', 'metrics', 'recentProtectedLinks'));
+    }
+
+    /**
+     * Live simulator for testing protection decision rules on any link or signature.
+     */
+    public function simulateBotProtection(Request $request, BotProtectionService $botProtection)
+    {
+        $slugOrId = trim((string) $request->input('link_slug_or_id', ''));
+        $userAgent = (string) $request->input('user_agent', $request->userAgent() ?: 'curl/8.4.0');
+        $hasCookieInput = $request->input('has_cookie');
+        $overrideCookie = $hasCookieInput === 'yes' ? true : ($hasCookieInput === 'no' ? false : null);
+
+        $link = null;
+        if ($slugOrId !== '') {
+            $link = Link::with('domain')
+                ->where('is_removed', false)
+                ->where(function ($q) use ($slugOrId) {
+                    $q->where('id', $slugOrId)->orWhere('slug', $slugOrId);
+                })
+                ->first();
+        }
+
+        $result = $botProtection->explainProtectionDecision($link, $request, $userAgent, $overrideCookie);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'link' => $link ? ['id' => $link->id, 'slug' => $link->slug, 'bot_protection' => $link->hasBotProtection(), 'allows_bots' => $link->allowsBots()] : null,
+                'user_agent' => $userAgent,
+                'result' => $result,
+            ]);
+        }
+
+        return back()->with('simulation_result', [
+            'input' => [
+                'link_slug_or_id' => $slugOrId,
+                'user_agent' => $userAgent,
+                'has_cookie' => $hasCookieInput,
+            ],
+            'link' => $link,
+            'result' => $result,
+        ]);
     }
 }
