@@ -4,6 +4,7 @@ namespace App\Livewire\Public;
 
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
+use App\Livewire\Concerns\ChecksCreatedLinkSafety;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
@@ -18,6 +19,8 @@ use Livewire\Component;
 
 class ShortenForm extends Component
 {
+    use ChecksCreatedLinkSafety;
+
     public bool $compact = false;
 
     /** Clean mode for /new: hides meter, previews, tray and doodles. */
@@ -209,6 +212,7 @@ class ShortenForm extends Component
             'de' => 'Fertig — dein Kurzlink ist bereit',
         ],
         'result.stamp' => ['en' => 'Approved', 'de' => 'Bewilligt'],
+        'oops.title.security' => ['en' => 'URL blocked by our security check', 'de' => 'URL durch Sicherheitsprüfung gesperrt'],
         'result.from' => ['en' => 'Shortened from', 'de' => 'Gekürzt aus'],
         'result.copy' => ['en' => 'Copy', 'de' => 'Kopieren'],
         'result.copy.aria' => ['en' => 'Copy short link to clipboard', 'de' => 'Kurzlink in Zwischenablage kopieren'],
@@ -595,15 +599,25 @@ class ShortenForm extends Component
 
         RateLimiter::hit($key, 60);
 
+        $this->securityCheckLinkId = (string) $link->id;
         $this->shortUrl = "https://{$domain->hostname}/{$link->slug}";
         $this->originalUrl = $this->destination_url;
 
         $this->destination_url = '';
         $this->urlState = 'idle';
+        $this->checkCreatedLinkSafety();
+    }
+
+    protected function securityBlockMessage(): string
+    {
+        return $this->locale === 'de'
+            ? 'Unsere KI-Sicherheitsprüfung hat diese URL als möglicherweise unsicher eingestuft und gesperrt. Der Kurzlink ist deaktiviert. Falls du einen Fehler vermutest, kontaktiere abuse@ternis.dev für eine Überprüfung.'
+            : 'Our AI security check blocked this URL because it may be unsafe. This short link is disabled. If you think this is a mistake, contact abuse@ternis.dev for a review.';
     }
 
     public function resetForm(): void
     {
+        $this->securityCheckLinkId = null;
         $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'turnstile_token']);
         $this->urlState = 'idle';
         $this->errorKind = 'idle';

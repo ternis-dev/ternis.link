@@ -11,6 +11,7 @@ use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
@@ -31,6 +32,71 @@ class PublicShorteningTest extends TestCase
 
         $this->publicDomain = Domain::where('hostname', 'href.nz')->firstOrFail();
         $this->ternisDomain = Domain::where('hostname', 'ternis.link')->firstOrFail();
+    }
+
+    public function test_public_forms_show_validation_when_ai_blocks_a_created_link(): void
+    {
+        Queue::fake();
+
+        foreach ([ShortenForm::class, \App\Livewire\Meinlink\ShortenForm::class] as $component) {
+            $form = Livewire::test($component)
+                ->set('selectedDomain', 'href.nz')
+                ->set('destination_url', 'https://example.com/security-'.Str::random(8))
+                ->call('create')
+                ->assertHasNoErrors();
+
+            $link = Link::findOrFail($form->get('securityCheckLinkId'));
+            $link->update(['is_active' => false, 'tags' => ['quarantine', 'phishing']]);
+
+            $form->call('checkCreatedLinkSafety')
+                ->assertSet('shortUrl', null)
+                ->assertSet('securityCheckLinkId', null)
+                ->assertSet('destination_url', $link->destination_url)
+                ->assertSet('errorKind', 'security')
+                ->assertHasErrors('destination_url')
+                ->assertSee('abuse@ternis.dev');
+
+            $form->call('resetForm')->assertHasNoErrors()->assertSet('securityCheckLinkId', null);
+        }
+    }
+
+    public function test_immediate_ai_block_does_not_show_a_success_result(): void
+    {
+        Queue::fake();
+        $link = app(LinkService::class)->create(
+            destinationUrl: 'https://example.com/security-immediate',
+            domain: $this->publicDomain,
+            user: null,
+        );
+        $link->update(['is_active' => false, 'tags' => ['quarantine']]);
+        $this->mock(LinkService::class)->shouldReceive('create')->once()->andReturn($link);
+
+        Livewire::test(ShortenForm::class)
+            ->set('destination_url', $link->destination_url)
+            ->call('create')
+            ->assertSet('shortUrl', null)
+            ->assertHasErrors('destination_url')
+            ->assertSee('URL blocked by our security check')
+            ->assertDontSee('Done — your short link is ready');
+    }
+
+    public function test_security_poll_keeps_an_active_link_available(): void
+    {
+        Queue::fake();
+
+        $form = Livewire::test(ShortenForm::class)
+            ->set('destination_url', 'https://example.com/security-active')
+            ->call('create');
+        $shortUrl = $form->get('shortUrl');
+
+        $form->call('checkCreatedLinkSafety')
+            ->assertSet('shortUrl', $shortUrl)
+            ->assertHasNoErrors();
+
+        $form->call('resetForm')
+            ->call('checkCreatedLinkSafety')
+            ->assertHasNoErrors()
+            ->assertSet('securityCheckLinkId', null);
     }
 
     public function test_guest_can_create_link_via_public_api_without_token(): void

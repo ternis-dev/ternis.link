@@ -5,6 +5,7 @@ namespace App\Livewire\Meinlink;
 use App\Enums\DomainType;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
+use App\Livewire\Concerns\ChecksCreatedLinkSafety;
 use App\Models\Domain;
 use App\Models\Link;
 use App\Services\LinkService;
@@ -19,6 +20,8 @@ use Livewire\Component;
 
 class ShortenForm extends Component
 {
+    use ChecksCreatedLinkSafety;
+
     public bool $compact = false;
 
     public bool $minimal = false;
@@ -305,15 +308,23 @@ class ShortenForm extends Component
             return;
         }
 
+        $this->securityCheckLinkId = (string) $link->id;
         $this->shortUrl = "https://{$domain->hostname}/{$link->slug}";
         $this->originalUrl = $this->destination_url;
         $this->linkExpiresAtFormatted = $link->expires_at?->format('d.m.Y H:i');
         $this->destination_url = '';
         $this->urlState = 'idle';
+        $this->checkCreatedLinkSafety();
+    }
+
+    protected function securityBlockMessage(): string
+    {
+        return 'Unsere KI-Sicherheitsprüfung hat diese URL als möglicherweise unsicher eingestuft und gesperrt. Der Kurzlink ist deaktiviert. Falls du einen Fehler vermutest, kontaktiere abuse@ternis.dev für eine Überprüfung.';
     }
 
     public function resetForm(): void
     {
+        $this->securityCheckLinkId = null;
         $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'turnstile_token', 'errorMessage', 'expiresAt', 'linkExpiresAtFormatted']);
         $this->urlState = 'idle';
         $this->errorKind = 'idle';

@@ -127,6 +127,10 @@
         }
     }
 }">
+    @if ($securityCheckLinkId)
+        <span wire:poll.2s="checkCreatedLinkSafety" aria-hidden="true"></span>
+    @endif
+
     @if ($shortUrl)
         {{-- Success State --}}
         <div class="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-white/80 p-6 shadow-xl backdrop-blur-xl transition-all sm:p-8 dark:border-emerald-500/30 dark:bg-zinc-900/80" role="status" aria-live="polite">

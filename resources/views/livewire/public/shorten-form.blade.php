@@ -22,6 +22,10 @@
     </div>
     <p class="sk-form-sub">{{ $minimal ? $this->t('form.sub.minimal') : $this->t('form.sub') }}</p>
 
+    @if ($securityCheckLinkId)
+        <span wire:poll.2s="checkCreatedLinkSafety" aria-hidden="true"></span>
+    @endif
+
     @if ($shortUrl)
         <div class="sk-ticket" role="status" aria-live="polite">
             @if (! $minimal)
@@ -246,6 +250,8 @@
                                 {{ $this->t('oops.title.throttle') }}
                             @elseif ($errorKind === 'empty')
                                 {{ $this->t('oops.title.empty') }}
+                            @elseif ($errorKind === 'security')
+                                {{ $this->t('oops.title.security') }}
                             @elseif ($errorKind === 'junk')
                                 {{ $this->t('oops.title.junk') }}
                             @else
