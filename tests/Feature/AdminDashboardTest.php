@@ -83,6 +83,26 @@ class AdminDashboardTest extends TestCase
                 && $stats['direct_url_clicks'] === 1);
     }
 
+    public function test_admin_can_view_bot_protection_and_count_only_non_removed_bot_allowed_links(): void
+    {
+        foreach ([[true, false], [false, false], [true, true]] as $index => [$allowBots, $isRemoved]) {
+            Link::create([
+                'slug' => 'bot-metrics-'.$index,
+                'destination_url' => 'https://example.com/bot-metrics',
+                'domain_id' => $this->domain->id,
+                'user_id' => $this->user->id,
+                'allow_bots' => $allowBots,
+                'is_removed' => $isRemoved,
+            ]);
+        }
+
+        $this->actingAs($this->admin)
+            ->get('http://admin.ternis.link/bot-protection')
+            ->assertOk()
+            ->assertViewHas('metrics', fn ($metrics) => $metrics['total_links'] === 2
+                && $metrics['bot_allowed_links'] === 1);
+    }
+
     public function test_admin_can_view_links_and_users_pages(): void
     {
         $link = Link::create([

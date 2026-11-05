@@ -504,7 +504,7 @@ class AdminController extends Controller
         $metrics = [
             'total_links' => Link::where('is_removed', false)->count(),
             'bot_protected_links' => Link::where('is_removed', false)->where('bot_protection', true)->count(),
-            'bot_allowed_links' => Link::where('is_removed', false)->where('allows_bots', true)->count(),
+            'bot_allowed_links' => Link::where('is_removed', false)->where('allow_bots', true)->count(),
             'quarantined_threats' => ThreatEvaluation::where('action_taken', 'quarantined')->count(),
             'bot_protected_threats' => ThreatEvaluation::where('action_taken', 'bot_protected')->count(),
         ];
