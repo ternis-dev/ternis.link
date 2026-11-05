@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\DemoUrlBlockedException;
+use App\Jobs\EvaluateLinkThreatJob;
 use App\Livewire\Public\ShortenForm;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Models\SpamAppeal;
 use App\Models\User;
+use App\Services\AiThreatDetectionService;
 use App\Services\LinkService;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
@@ -34,30 +38,90 @@ class PublicShorteningTest extends TestCase
         $this->ternisDomain = Domain::where('hostname', 'ternis.link')->firstOrFail();
     }
 
-    public function test_public_forms_show_validation_when_ai_blocks_a_created_link(): void
+    public function test_demo_url_always_shows_a_security_validation_message_without_creating_a_link(): void
     {
+        config(['ai_security.enabled' => false]);
         Queue::fake();
 
         foreach ([ShortenForm::class, \App\Livewire\Meinlink\ShortenForm::class] as $component) {
-            $form = Livewire::test($component)
+            Livewire::test($component)
                 ->set('selectedDomain', 'href.nz')
-                ->set('destination_url', 'https://example.com/security-'.Str::random(8))
+                ->set('destination_url', DemoUrlBlockedException::URL)
                 ->call('create')
-                ->assertHasNoErrors();
+                ->assertHasErrors('destination_url')
+                ->assertSet('errorKind', 'security')
+                ->assertSet('shortUrl', null)
+                ->assertSee('Demo:');
+        }
 
-            $link = Link::findOrFail($form->get('securityCheckLinkId'));
+        $this->assertDatabaseMissing('links', [
+            'destination_url' => DemoUrlBlockedException::URL,
+        ]);
+        Queue::assertNothingPushed();
+    }
+
+    public function test_public_api_rejects_the_demo_url_with_a_validation_error(): void
+    {
+        $this->postJson('http://links.t-api.de/v1/links/public', [
+            'destination_url' => DemoUrlBlockedException::URL,
+        ])->assertUnprocessable()->assertJsonValidationErrors('destination_url');
+    }
+
+    public function test_public_forms_show_an_immediate_block_and_allow_anonymous_appeals(): void
+    {
+        Queue::fake();
+        $scanner = $this->mock(AiThreatDetectionService::class);
+        $scanner->shouldReceive('shouldEvaluateLink')->andReturn(true);
+        $scanner->shouldReceive('evaluateLink')->twice()->andReturnUsing(function (Link $link) {
             $link->update(['is_active' => false, 'tags' => ['quarantine', 'phishing']]);
 
-            $form->call('checkCreatedLinkSafety')
+            return null;
+        });
+
+        foreach ([ShortenForm::class, \App\Livewire\Meinlink\ShortenForm::class] as $component) {
+            $url = 'https://example.com/security-'.Str::random(8);
+            $form = Livewire::test($component)
+                ->set('selectedDomain', 'href.nz')
+                ->set('destination_url', $url)
+                ->call('create')
                 ->assertSet('shortUrl', null)
                 ->assertSet('securityCheckLinkId', null)
-                ->assertSet('destination_url', $link->destination_url)
+                ->assertSet('destination_url', $url)
                 ->assertSet('errorKind', 'security')
                 ->assertHasErrors('destination_url')
                 ->assertSee('abuse@ternis.dev');
 
-            $form->call('resetForm')->assertHasNoErrors()->assertSet('securityCheckLinkId', null);
+            $link = Link::findOrFail($form->get('blockedLinkId'));
+            $form->call('submitSecurityAppeal')
+                ->assertHasErrors(['appealEmail', 'appealReason'])
+                ->assertSet('appealSubmitted', false);
+            $form->set('appealEmail', 'guest@example.com')
+                ->set('appealReason', 'This is my legitimate website. Please review it.')
+                ->call('submitSecurityAppeal')
+                ->assertSet('appealSubmitted', true);
+
+            $this->assertDatabaseHas('spam_appeals', [
+                'link_id' => $link->id,
+                'user_id' => null,
+                'contact_email' => 'guest@example.com',
+                'status' => 'pending',
+            ]);
+            $this->assertFalse($link->fresh()->is_active);
+            $form->call('submitSecurityAppeal');
+            $this->assertSame(1, $link->hasMany(SpamAppeal::class)->count());
+            $form->call('resetForm')->assertHasNoErrors()->assertSet('blockedLinkId', null);
         }
+        Queue::assertNotPushed(EvaluateLinkThreatJob::class);
+    }
+
+    public function test_anonymous_appeal_cannot_be_submitted_without_a_blocked_link(): void
+    {
+        Livewire::test(ShortenForm::class)
+            ->set('appealEmail', 'guest@example.com')
+            ->set('appealReason', 'Please unblock this website.')
+            ->call('submitSecurityAppeal')
+            ->assertSet('appealSubmitted', false);
+        $this->assertDatabaseCount('spam_appeals', 0);
     }
 
     public function test_immediate_ai_block_does_not_show_a_success_result(): void

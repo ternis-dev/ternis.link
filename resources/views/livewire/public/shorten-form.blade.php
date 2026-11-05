@@ -285,6 +285,7 @@
         </div>
     </div>
     @endif
+    @include('livewire.partials.security-appeal', ['appealLocale' => $locale])
 </div>
 
 @include('livewire.public.partials.form-scripts')

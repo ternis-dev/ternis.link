@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\DailyLinkLimitException;
+use App\Exceptions\DemoUrlBlockedException;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
 use App\Jobs\EvaluateLinkThreatJob;
@@ -281,6 +282,11 @@ class LinkService
             ]);
         }
 
+        // Deterministic demo: no AI credentials, queue worker, or link creation needed.
+        if ($destinationUrl === DemoUrlBlockedException::URL) {
+            throw DemoUrlBlockedException::blocked();
+        }
+
         // Guests additionally get structural safety checks (intranet /
         // non-public targets, embedded credentials) plus a max lifetime.
         // Safety runs before junk so intranet targets get the accurate
@@ -411,10 +417,18 @@ class LinkService
         }
 
         if (! $apiKey?->shouldBypassAi() && $this->threatDetection->shouldEvaluateLink($link)) {
-            EvaluateLinkThreatJob::dispatch($link->id, [
+            $context = [
                 'creator_ip_hash' => $creatorIpHash,
                 'user_agent' => request()?->userAgent(),
-            ]);
+            ];
+
+            if ($user === null) {
+                // Anonymous forms need the verdict before displaying success.
+                $this->threatDetection->evaluateLink($link, $context);
+                $link->refresh();
+            } else {
+                EvaluateLinkThreatJob::dispatch($link->id, $context);
+            }
         }
 
         return $link;

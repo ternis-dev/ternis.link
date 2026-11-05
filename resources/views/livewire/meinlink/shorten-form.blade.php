@@ -866,4 +866,5 @@
             </div>
         </div>
     @endif
+    @include('livewire.partials.security-appeal', ['appealLocale' => 'de'])
 </div>

@@ -3,6 +3,7 @@
 namespace App\Livewire\Meinlink;
 
 use App\Enums\DomainType;
+use App\Exceptions\DemoUrlBlockedException;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
 use App\Livewire\Concerns\ChecksCreatedLinkSafety;
@@ -170,6 +171,8 @@ class ShortenForm extends Component
 
     public function create(LinkService $linkService, TurnstileService $turnstile): void
     {
+        $this->resetSecurityAppeal();
+
         $key = 'meinlink-shorten:'.(request()->ip() ?? '127.0.0.1');
 
         if (RateLimiter::tooManyAttempts($key, 10)) {
@@ -268,6 +271,13 @@ class ShortenForm extends Component
             $this->turnstile_token = null;
             $this->dispatch('reset-turnstile');
 
+            if ($e instanceof DemoUrlBlockedException) {
+                $this->addError('destination_url', 'Demo: Unsere KI-Sicherheitsprüfung hat diese URL gesperrt. Es wurde kein Kurzlink erstellt.');
+                $this->errorKind = 'security';
+
+                return;
+            }
+
             if ($e instanceof JunkUrlException) {
                 $this->addError('destination_url', 'Diese URL sieht nach Test- oder Scanner-Daten aus und wird nicht gekürzt.');
                 $this->errorKind = 'junk';
@@ -324,6 +334,7 @@ class ShortenForm extends Component
 
     public function resetForm(): void
     {
+        $this->resetSecurityAppeal();
         $this->securityCheckLinkId = null;
         $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'turnstile_token', 'errorMessage', 'expiresAt', 'linkExpiresAtFormatted']);
         $this->urlState = 'idle';

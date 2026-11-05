@@ -194,10 +194,11 @@ class AiThreatDetectionTest extends TestCase
         $this->assertFalse($service->shouldEvaluateLink($veteranLink));
     }
 
-    public function test_link_creation_dispatches_evaluation_job_for_guests(): void
+    public function test_link_creation_evaluates_guests_immediately_without_a_queue_worker(): void
     {
         Queue::fake([EvaluateLinkThreatJob::class]);
 
+        $this->app->instance(AiThreatDetectionService::class, new AiThreatDetectionService($this->makeMockClient('phishing', 4)));
         $linkService = app(LinkService::class);
         $link = $linkService->create(
             destinationUrl: 'https://example.com/some-target',
@@ -206,9 +207,13 @@ class AiThreatDetectionTest extends TestCase
             creatorIp: '198.51.100.25',
         );
 
-        Queue::assertPushed(EvaluateLinkThreatJob::class, function ($job) use ($link) {
-            return $job->linkId === $link->id;
-        });
+        Queue::assertNotPushed(EvaluateLinkThreatJob::class);
+        $this->assertFalse($link->is_active);
+        $this->assertContains('quarantine', $link->tags);
+        $this->assertDatabaseHas('threat_evaluations', [
+            'link_id' => $link->id,
+            'action_taken' => 'quarantined',
+        ]);
     }
 
     public function test_phishing_verdict_triggers_quarantine_action(): void

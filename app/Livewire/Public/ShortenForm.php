@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Public;
 
+use App\Exceptions\DemoUrlBlockedException;
 use App\Exceptions\JunkUrlException;
 use App\Exceptions\UnsafeUrlException;
 use App\Livewire\Concerns\ChecksCreatedLinkSafety;
@@ -469,6 +470,8 @@ class ShortenForm extends Component
 
     public function create(LinkService $linkService, TurnstileService $turnstile): void
     {
+        $this->resetSecurityAppeal();
+
         $key = 'public-shorten:'.request()->ip();
 
         if (RateLimiter::tooManyAttempts($key, 10)) {
@@ -546,6 +549,15 @@ class ShortenForm extends Component
             $this->dispatch('reset-turnstile');
 
             // Scanner junk gets its own notice card, not the quota one.
+            if ($e instanceof DemoUrlBlockedException) {
+                $this->addError('destination_url', $this->locale === 'de'
+                    ? 'Demo: Unsere KI-Sicherheitsprüfung hat diese URL gesperrt. Es wurde kein Kurzlink erstellt.'
+                    : $e->errors()['destination_url'][0]);
+                $this->errorKind = 'security';
+
+                return;
+            }
+
             if ($e instanceof JunkUrlException) {
                 foreach ($e->errors() as $field => $messages) {
                     foreach ((array) $messages as $message) {
@@ -617,6 +629,7 @@ class ShortenForm extends Component
 
     public function resetForm(): void
     {
+        $this->resetSecurityAppeal();
         $this->securityCheckLinkId = null;
         $this->reset(['destination_url', 'shortUrl', 'originalUrl', 'urlState', 'quotaExceeded', 'errorKind', 'turnstile_token']);
         $this->urlState = 'idle';
