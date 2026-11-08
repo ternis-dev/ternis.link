@@ -25,7 +25,7 @@ class ApiKeyController extends Controller
         $user = $request->user();
 
         $query = ($user->isAdmin() ? ApiKey::query() : $user->apiKeys())
-            ->with($user->isAdmin() ? 'user:id,name,email' : [])
+            ->with($user->isAdmin() ? ['user:id,name,email', 'preferredDomain:id,hostname'] : ['preferredDomain:id,hostname'])
             ->orderByDesc('created_at');
 
         $keys = $request->boolean('all') ? $query->get() : $query->paginate(25);
@@ -40,11 +40,18 @@ class ApiKeyController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'preferred_domain_id' => ['sometimes', 'nullable', 'exists:domains,id'],
             'show_on_dashboard' => ['sometimes', 'boolean'],
             'bypass_ai_check' => ['sometimes', 'boolean'],
             'api_version' => ['sometimes', 'integer', 'exists:api_versions,version'],
             'expires_at' => ['sometimes', 'nullable', 'date'],
         ]);
+
+        if (! empty($validated['preferred_domain_id']) && ! $request->user()->isAdmin()) {
+            if (! $request->user()->availableDomains()->contains('id', (string) $validated['preferred_domain_id'])) {
+                abort(403, 'The selected preferred domain is not available on your account.');
+            }
+        }
 
         $bypassAi = $request->user()->isAdmin() && (bool) ($validated['bypass_ai_check'] ?? false);
         $rawKey = 'tl_'.Str::random(48);
@@ -54,6 +61,7 @@ class ApiKeyController extends Controller
             'key_hash' => ApiKey::hashToken($rawKey),
             'key_prefix' => substr($rawKey, 0, 8),
             'api_version' => $validated['api_version'] ?? ApiVersion::latestVersion(),
+            'preferred_domain_id' => $validated['preferred_domain_id'] ?? null,
             'name' => $validated['name'],
             'show_on_dashboard' => $validated['show_on_dashboard'] ?? true,
             'bypass_ai_check' => $bypassAi,
@@ -95,6 +103,8 @@ class ApiKeyController extends Controller
             abort(403, 'You do not own this API key.');
         }
 
+        $apiKey->load('preferredDomain:id,hostname');
+
         return response()->json($apiKey);
     }
 
@@ -110,11 +120,18 @@ class ApiKeyController extends Controller
 
         $validated = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'preferred_domain_id' => ['sometimes', 'nullable', 'exists:domains,id'],
             'show_on_dashboard' => ['sometimes', 'required', 'boolean'],
             'bypass_ai_check' => ['sometimes', 'required', 'boolean'],
             'api_version' => ['sometimes', 'required', 'integer', 'exists:api_versions,version'],
             'expires_at' => ['sometimes', 'nullable', 'date'],
         ]);
+
+        if (array_key_exists('preferred_domain_id', $validated) && ! empty($validated['preferred_domain_id']) && ! $request->user()->isAdmin()) {
+            if (! $request->user()->availableDomains()->contains('id', (string) $validated['preferred_domain_id'])) {
+                abort(403, 'The selected preferred domain is not available on your account.');
+            }
+        }
 
         if (array_key_exists('bypass_ai_check', $validated) && ! $request->user()->isAdmin()) {
             unset($validated['bypass_ai_check']);

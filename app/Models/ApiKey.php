@@ -17,6 +17,7 @@ class ApiKey extends Model
         'key_hash',
         'key_prefix',
         'api_version',
+        'preferred_domain_id',
         'name',
         'show_on_dashboard',
         'bypass_ai_check',
@@ -77,6 +78,32 @@ class ApiKey extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function preferredDomain(): BelongsTo
+    {
+        return $this->belongsTo(Domain::class, 'preferred_domain_id');
+    }
+
+    /**
+     * Resolve the effective domain for links created with this API key.
+     * Uses the preferred domain if configured and active, falling back to href.nz.
+     */
+    public function resolvedPreferredDomain(): ?Domain
+    {
+        if ($this->preferred_domain_id) {
+            $domain = $this->relationLoaded('preferredDomain')
+                ? $this->preferredDomain
+                : $this->preferredDomain()->first();
+
+            if ($domain && $domain->is_active) {
+                return $domain;
+            }
+        }
+
+        return Domain::where('hostname', config('domains.public_host', 'href.nz'))
+            ->where('is_active', true)
+            ->first();
     }
 
     public function links(): HasMany

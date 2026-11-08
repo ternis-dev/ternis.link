@@ -72,6 +72,20 @@
                 </div>
             @endif
 
+            <div>
+                <x-ui.select
+                    label="Preferred Domain (fallback to href.nz)"
+                    name="newKeyPreferredDomainId"
+                    wire:model="newKeyPreferredDomainId"
+                    hint="Links shortened with this API key will default to this domain unless specified."
+                >
+                    <option value="">Default (href.nz)</option>
+                    @foreach ($availableDomains as $dom)
+                        <option value="{{ $dom->id }}">{{ $dom->hostname }}</option>
+                    @endforeach
+                </x-ui.select>
+            </div>
+
             <div class="pt-1">
                 <x-ui.checkbox
                     wire:model="newKeyShowOnDashboard"
@@ -204,6 +218,16 @@
                                     </td>
                                     @break
 
+                                @case('preferred_domain')
+                                    <td class="text-xs">
+                                        @if ($key->preferredDomain)
+                                            <span class="font-medium text-neutral-800 dark:text-neutral-200">{{ $key->preferredDomain->hostname }}</span>
+                                        @else
+                                            <span class="text-neutral-400 dark:text-neutral-500">href.nz <small class="text-[10px]">(default)</small></span>
+                                        @endif
+                                    </td>
+                                    @break
+
                                 @case('status')
                                     <td>
                                         @if ($key->isRevoked())
@@ -306,6 +330,18 @@
                                 hint="Leave empty for no expiration"
                             />
                         </div>
+
+                        <x-ui.select
+                            label="Preferred Domain (fallback to href.nz)"
+                            name="settingsPreferredDomainId"
+                            wire:model="settingsPreferredDomainId"
+                            hint="Default domain for links shortened via this key."
+                        >
+                            <option value="">Default (href.nz)</option>
+                            @foreach ($availableDomains as $dom)
+                                <option value="{{ $dom->id }}">{{ $dom->hostname }}</option>
+                            @endforeach
+                        </x-ui.select>
 
                         <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-3.5 dark:border-neutral-800 dark:bg-neutral-950/50">
                             <x-ui.checkbox

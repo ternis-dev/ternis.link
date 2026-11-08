@@ -2,6 +2,7 @@
 
 use App\Exceptions\DailyLinkLimitException;
 use App\Http\Middleware\ApiV2Response;
+use App\Http\Middleware\ApiV3Response;
 use App\Http\Middleware\AuthenticateApi;
 use App\Http\Middleware\EnforceDomainAccess;
 use App\Http\Middleware\EnsureApiVersion;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('v1')
                 ->group(base_path('routes/api/v1.php'));
             Route::middleware('api')->prefix('v2')->group(base_path('routes/api/v2.php'));
+            Route::middleware('api')->prefix('v3')->group(base_path('routes/api/v3.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -51,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Keep host/version checks and response formatting outside auth,
         // throttling and route bindings, so errors use the same API contract.
         $before = ThrottleRequests::class;
-        foreach ([AuthenticateApi::class, LogApiRequest::class, EnsureApiVersion::class, ApiV2Response::class, EnsureDomainType::class] as $class) {
+        foreach ([AuthenticateApi::class, LogApiRequest::class, EnsureApiVersion::class, ApiV3Response::class, ApiV2Response::class, EnsureDomainType::class] as $class) {
             $middleware->prependToPriorityList(before: $before, prepend: $class);
             $before = $class;
         }

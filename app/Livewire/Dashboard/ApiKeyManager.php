@@ -40,6 +40,7 @@ class ApiKeyManager extends Component
             'expires' => 'Expires',
             'last_used' => 'Last Used',
             'dashboard' => 'Dashboard',
+            'preferred_domain' => 'Preferred Domain',
             'status' => 'Status',
         ];
 
@@ -62,6 +63,8 @@ class ApiKeyManager extends Component
 
     public bool $newKeyBypassAi = false;
 
+    public ?string $newKeyPreferredDomainId = null;
+
     public ?string $newlyCreatedKey = null;
 
     // Settings Modal state
@@ -76,6 +79,8 @@ class ApiKeyManager extends Component
     public bool $settingsShowOnDashboard = true;
 
     public bool $settingsBypassAi = false;
+
+    public ?string $settingsPreferredDomainId = null;
 
     public ?string $settingsExpiresAt = null;
 
@@ -121,6 +126,7 @@ class ApiKeyManager extends Component
             'key_hash' => ApiKey::hashToken($rawKey),
             'key_prefix' => substr($rawKey, 0, 8),
             'api_version' => $this->apiVersion ?: ApiVersion::latestVersion(),
+            'preferred_domain_id' => $this->newKeyPreferredDomainId ?: null,
             'name' => $this->keyName,
             'show_on_dashboard' => $this->newKeyShowOnDashboard,
             'bypass_ai_check' => $bypassAi,
@@ -167,6 +173,7 @@ class ApiKeyManager extends Component
         $this->settingsApiVersion = $key->api_version;
         $this->settingsShowOnDashboard = (bool) $key->show_on_dashboard;
         $this->settingsBypassAi = (bool) $key->bypass_ai_check;
+        $this->settingsPreferredDomainId = $key->preferred_domain_id;
         $this->settingsExpiresAt = $key->expires_at?->format('Y-m-d\TH:i');
         $this->showingSettingsModal = true;
         $this->resetValidation();
@@ -197,6 +204,7 @@ class ApiKeyManager extends Component
             'name' => $this->settingsName,
             'api_version' => $this->settingsApiVersion,
             'show_on_dashboard' => $this->settingsShowOnDashboard,
+            'preferred_domain_id' => $this->settingsPreferredDomainId ?: null,
             'expires_at' => $this->settingsExpiresAt ? Carbon::parse($this->settingsExpiresAt) : null,
         ];
 
@@ -345,11 +353,13 @@ class ApiKeyManager extends Component
     {
         $apiKeys = auth()->user()
             ->apiKeys()
+            ->with('preferredDomain:id,hostname')
             ->orderByDesc('created_at')
             ->get();
 
         $availableVersions = ApiVersion::orderByDesc('version')->get();
         $latestVersion = ApiVersion::latestVersion();
+        $availableDomains = auth()->user()->availableDomains();
 
         $visibleColumns = $this->visibleColumns();
 
@@ -357,6 +367,7 @@ class ApiKeyManager extends Component
             'apiKeys' => $apiKeys,
             'availableVersions' => $availableVersions,
             'latestVersion' => $latestVersion,
+            'availableDomains' => $availableDomains,
             'availableColumns' => $this->availableColumns(),
             'visibleColumns' => $visibleColumns,
             'routePrefix' => $this->routePrefix(),

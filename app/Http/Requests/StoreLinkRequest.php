@@ -16,10 +16,30 @@ class StoreLinkRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ((! $this->has('domain_id') || $this->input('domain_id') === null || $this->input('domain_id') === '') && $this->user()) {
-            $default = $this->user()->resolvedDefaultDomain();
-            if ($default) {
-                $this->merge(['domain_id' => $default->id]);
+        if ((! $this->has('domain_id') || $this->input('domain_id') === null || $this->input('domain_id') === '')) {
+            if ($this->filled('domain')) {
+                $matched = Domain::where('hostname', trim((string) $this->input('domain')))->first();
+                if ($matched) {
+                    $this->merge(['domain_id' => $matched->id]);
+                    return;
+                }
+            }
+
+            /** @var \App\Models\ApiKey|null $apiKey */
+            $apiKey = $this->attributes->get('api_key');
+            if ($apiKey instanceof \App\Models\ApiKey) {
+                $preferred = $apiKey->resolvedPreferredDomain();
+                if ($preferred) {
+                    $this->merge(['domain_id' => $preferred->id]);
+                    return;
+                }
+            }
+
+            if ($this->user()) {
+                $default = $this->user()->resolvedDefaultDomain();
+                if ($default) {
+                    $this->merge(['domain_id' => $default->id]);
+                }
             }
         }
     }
