@@ -15,6 +15,35 @@
         </div>
     </div>
 
+    {{-- Schnellkürzer-Leiste direkt auf der Startseite --}}
+    <section class="ml-quick-shorten-card ml-card" aria-label="Schnellkürzer">
+        <form method="post" action="{{ route('meinlink-dashboard.store') }}" class="ml-quick-shorten-form">
+            @csrf
+            <div class="ml-quick-shorten-body">
+                <div class="ml-quick-shorten-input-wrap">
+                    <span class="ml-input-icon" aria-hidden="true">
+                        <x-meinlink::icon name="external" size="16" />
+                    </span>
+                    <input name="destination_url"
+                           type="url"
+                           required
+                           placeholder="Lange Zieladresse eingeben (https://...)"
+                           aria-label="Lange Zieladresse">
+                </div>
+                <div class="ml-quick-shorten-prefix">
+                    <span class="ml-prefix-label">meinlink.at/</span>
+                    <input name="slug"
+                           placeholder="Wunschkürzel (optional)"
+                           aria-label="Wunschkürzel">
+                </div>
+                <button class="button primary ml-btn ml-btn-primary ml-quick-shorten-btn" type="submit">
+                    <x-meinlink::icon name="plus" size="15" />
+                    <span>Sofort kürzen</span>
+                </button>
+            </div>
+        </form>
+    </section>
+
     <section class="metrics ml-metrics" aria-label="Deine Statistik">
         <div class="ml-stat ml-stat-red">
             <div class="ml-stat-icon-wrap" aria-hidden="true">
@@ -51,6 +80,12 @@
                 <h2 class="ml-card-title">Meine Links</h2>
                 <span class="muted ml-card-subtitle">Nur deine meinlink.at-Links</span>
             </div>
+            <div class="ml-card-header-actions">
+                <a class="button ml-btn ml-btn-secondary ml-btn-sm" href="{{ route('meinlink-dashboard.links.export') }}" title="Alle deine Links als CSV-Tabelle herunterladen">
+                    <x-meinlink::icon name="download" size="14" />
+                    <span>CSV Export</span>
+                </a>
+            </div>
         </div>
 
         <form method="get" class="filters ml-filters" role="search">
@@ -84,11 +119,22 @@
                     <x-meinlink::icon name="filter" size="15" />
                     <span>Suchen</span>
                 </button>
-                @if($search !== '' || $status !== 'all' || $sort !== 'newest')
+                @if($search !== '' || $status !== 'all' || $sort !== 'newest' || !empty($tag))
                     <a class="ml-filter-reset" href="{{ route('meinlink-dashboard.index') }}">Zurücksetzen</a>
                 @endif
             </div>
         </form>
+
+        @if(!empty($tag))
+            <div class="ml-active-filter-bar">
+                <span class="ml-filter-label">Aktiver Tag-Filter:</span>
+                <span class="ml-tag ml-tag-active">
+                    <x-meinlink::icon name="tag" size="12" />
+                    <span>{{ $tag }}</span>
+                </span>
+                <a href="{{ route('meinlink-dashboard.index', array_filter(['q' => $search, 'status' => $status, 'sort' => $sort])) }}" class="ml-filter-reset">Filter aufheben</a>
+            </div>
+        @endif
 
         <div class="link-list ml-link-list">
         @forelse($links as $link)
@@ -97,6 +143,14 @@
                     <div class="link-title ml-link-title">
                         <a href="{{ route('meinlink-dashboard.show', $link->id) }}" class="ml-link-slug">meinlink.at/{{ $link->slug }}</a>
                         <x-meinlink::badge :status="\App\Support\MeinlinkLinkState::label($link)" />
+                        @if(!empty($link->tags) && is_array($link->tags))
+                            @foreach($link->tags as $t)
+                                <a href="{{ route('meinlink-dashboard.index', ['tag' => $t]) }}" class="ml-tag" title="Nach diesem Tag filtern">
+                                    <x-meinlink::icon name="tag" size="11" />
+                                    <span>{{ $t }}</span>
+                                </a>
+                            @endforeach
+                        @endif
                     </div>
                     <p class="destination ml-link-destination" title="{{ $link->destination_url }}">{{ $link->destination_url }}</p>
                     @if($link->description)

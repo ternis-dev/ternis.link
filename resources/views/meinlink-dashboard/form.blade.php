@@ -102,6 +102,16 @@
         </div>
 
         <div class="field ml-field">
+            <label for="tags">Tags <span class="muted">(optional, kommagetrennt)</span></label>
+            <input id="tags"
+                   name="tags"
+                   value="{{ old('tags', is_array($link?->tags) ? implode(', ', $link->tags) : '') }}"
+                   maxlength="150"
+                   placeholder="z.B. Marketing, Newsletter, Social">
+            <small class="ml-field-help">Hilft dir, Links in der Übersicht nach Themen zu filtern.</small>
+        </div>
+
+        <div class="field ml-field">
             <label for="expires_at">Gültig bis <span class="muted">(optional, {{ config('app.timezone') }})</span></label>
             <input id="expires_at"
                    name="expires_at"
@@ -117,6 +127,28 @@
                 </p>
             @enderror
         </div>
+
+        <fieldset class="protection-fields ml-protection-card">
+            <legend class="ml-protection-legend">
+                <x-meinlink::icon name="chart" size="16" />
+                <span>Kampagnen-Tracking / UTM (optional)</span>
+            </legend>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="field ml-field">
+                    <label for="utm_source">Quelle (utm_source)</label>
+                    <input id="utm_source" name="utm_source" value="{{ old('utm_source', $link?->utm_source) }}" maxlength="100" placeholder="newsletter, instagram">
+                </div>
+                <div class="field ml-field">
+                    <label for="utm_medium">Medium (utm_medium)</label>
+                    <input id="utm_medium" name="utm_medium" value="{{ old('utm_medium', $link?->utm_medium) }}" maxlength="100" placeholder="email, social, cpc">
+                </div>
+                <div class="field ml-field">
+                    <label for="utm_campaign">Kampagne (utm_campaign)</label>
+                    <input id="utm_campaign" name="utm_campaign" value="{{ old('utm_campaign', $link?->utm_campaign) }}" maxlength="100" placeholder="herbst2026, launch">
+                </div>
+            </div>
+            <small class="ml-field-help">Wird beim Weiterleiten automatisch an die Zieladresse angehängt.</small>
+        </fieldset>
 
         <fieldset class="protection-fields ml-protection-card">
             <legend class="ml-protection-legend">

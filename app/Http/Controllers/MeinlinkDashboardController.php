@@ -32,16 +32,21 @@ class MeinlinkDashboardController extends Controller
     {
         $request->validate([
             'q' => ['nullable', 'string', 'max:150'],
+            'tag' => ['nullable', 'string', 'max:50'],
             'status' => ['nullable', Rule::in(['all', 'active', 'inactive'])],
             'sort' => ['nullable', Rule::in(['newest', 'oldest', 'clicks'])],
         ], ['string' => 'Bitte gib einen Suchbegriff als Text ein.', 'max' => 'Der Suchbegriff darf höchstens :max Zeichen enthalten.', 'in' => 'Bitte wähle einen gültigen Filter.']);
         $base = $this->links($request);
         $search = mb_substr(trim((string) $request->query('q', '')), 0, 150);
+        $tag = mb_substr(strtolower(trim((string) $request->query('tag', ''))), 0, 50);
         $status = $request->query('status') ?: 'all';
         $sort = $request->query('sort') ?: 'newest';
         $filtered = clone $base;
         if ($search !== '') {
             $filtered->where(fn ($q) => $q->where('slug', 'like', '%'.$search.'%')->orWhere('destination_url', 'like', '%'.$search.'%')->orWhere('description', 'like', '%'.$search.'%'));
+        }
+        if ($tag !== '') {
+            $filtered->where('tags', 'like', '%"'.$tag.'"%');
         }
         if ($status === 'active') {
             $filtered->where('is_active', true)->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
@@ -58,7 +63,8 @@ class MeinlinkDashboardController extends Controller
             'total' => (clone $base)->count(),
             'clicks' => (int) (clone $base)->sum('click_count'),
             'today' => (clone $base)->whereDate('created_at', today())->count(),
-            'search' => $search, 'status' => $status, 'sort' => $sort,
+            'quota' => DailyLinkQuota::forUser($request->user()),
+            'search' => $search, 'status' => $status, 'sort' => $sort, 'tag' => $tag,
         ]);
     }
 
@@ -77,6 +83,10 @@ class MeinlinkDashboardController extends Controller
             'bot_protection' => ['sometimes', 'boolean'],
             'slug' => $create ? ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/'] : ['prohibited'],
             'expires_at' => ['nullable', 'date', 'after:now'],
+            'utm_source' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'utm_medium' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'utm_campaign' => ['nullable', 'string', 'max:100', 'regex:'.LinkService::UTM_PATTERN],
+            'tags' => ['nullable', 'string', 'max:150'],
         ], [
             'password.min' => 'Das Passwort muss mindestens 8 Zeichen enthalten.',
             'password.prohibits' => 'Bitte wähle entweder ein neues Passwort oder entferne das bestehende.',
@@ -94,6 +104,13 @@ class MeinlinkDashboardController extends Controller
     {
         $data = $this->data($request, true);
         $domain = Domain::where('hostname', config('domains.meinlink_host'))->where('is_active', true)->firstOrFail();
+        $parsedTags = ! empty($data['tags']) ? array_values(array_filter(array_map('trim', explode(',', (string) $data['tags'])))) : null;
+        $utm = array_filter([
+            'utm_source' => $data['utm_source'] ?? null,
+            'utm_medium' => $data['utm_medium'] ?? null,
+            'utm_campaign' => $data['utm_campaign'] ?? null,
+        ]);
+
         try {
             $link = $service->create(
                 destinationUrl: $data['destination_url'], domain: $domain, user: $request->user(),
@@ -101,6 +118,8 @@ class MeinlinkDashboardController extends Controller
                 expiresAt: empty($data['expires_at']) ? null : new \DateTimeImmutable($data['expires_at']),
                 description: $data['description'] ?? null,
                 password: $data['password'] ?? null,
+                utm: $utm ?: null,
+                tags: $parsedTags,
                 botProtection: (bool) ($data['bot_protection'] ?? false),
             );
         } catch (DailyLinkLimitException $e) {
@@ -144,6 +163,11 @@ class MeinlinkDashboardController extends Controller
         $link = $this->owned($request, $link);
         $data = $this->data($request, false);
         $this->ensureEditable($link);
+
+        if (array_key_exists('tags', $data)) {
+            $data['tags'] = ! empty($data['tags']) ? array_values(array_filter(array_map('trim', explode(',', (string) $data['tags'])))) : [];
+        }
+
         try {
             $service->update($link, $data, $request->user());
         } catch (ValidationException $e) {
@@ -221,11 +245,53 @@ class MeinlinkDashboardController extends Controller
         }, 'meinlink-statistik-'.$data['days'].'-tage.csv', ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'private, no-store']);
     }
 
+    public function exportLinks(Request $request)
+    {
+        $links = $this->links($request)->with('domain')->orderByDesc('created_at')->get();
+
+        return response()->streamDownload(function () use ($links) {
+            $output = fopen('php://output', 'w');
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['Kürzel', 'Kurzlink', 'Zieladresse', 'Status', 'Klicks', 'Erstellt am', 'Gültig bis', 'Beschreibung', 'Tags'], ';', '"', '');
+            foreach ($links as $link) {
+                fputcsv($output, [
+                    $link->slug,
+                    $link->short_url,
+                    $link->destination_url,
+                    MeinlinkLinkState::label($link),
+                    $link->click_count,
+                    $link->created_at->format('Y-m-d H:i:s'),
+                    $link->expires_at?->format('Y-m-d H:i:s') ?? '',
+                    $link->description ?? '',
+                    is_array($link->tags) ? implode(', ', $link->tags) : '',
+                ], ';', '"', '');
+            }
+            fclose($output);
+        }, 'meinlink-links-'.now()->format('Y-m-d').'.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
     public function qr(Request $request, string $link)
     {
         $link = $this->owned($request, $link);
+        $format = strtolower(trim((string) $request->query('format', 'png')));
+
+        if ($format === 'svg') {
+            QrGeneration::create(['link_id' => $link->id, 'format' => 'svg']);
+
+            return response(LinkQrCode::svg($link), 200, [
+                'Content-Type' => 'image/svg+xml; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="meinlink-'.$link->slug.'.svg"',
+            ]);
+        }
+
         QrGeneration::create(['link_id' => $link->id, 'format' => 'png']);
 
-        return response(LinkQrCode::png($link), 200, ['Content-Type' => 'image/png', 'Content-Disposition' => 'attachment; filename="meinlink-'.$link->slug.'.png"']);
+        return response(LinkQrCode::png($link), 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'attachment; filename="meinlink-'.$link->slug.'.png"',
+        ]);
     }
 }

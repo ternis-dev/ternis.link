@@ -227,4 +227,38 @@ class MeinlinkDashboardTest extends TestCase
         $this->assertFalse($link->fresh()->is_active);
         $this->assertSame('https://example.com/test', $link->fresh()->destination_url);
     }
+
+    public function test_user_can_export_links_as_csv_and_download_svg_qr(): void
+    {
+        $link = $this->link($this->user, extra: ['description' => 'Export Beschreibung']);
+
+        $svgRes = $this->actingAs($this->user)->get('http://dash.meinlink.at/links/'.$link->id.'/qr?format=svg');
+        $svgRes->assertOk();
+        $this->assertStringContainsString('image/svg+xml', $svgRes->headers->get('Content-Type'));
+        $this->assertStringContainsString('<svg', $svgRes->getContent());
+
+        $csvRes = $this->get('http://dash.meinlink.at/links/export');
+        $csvRes->assertOk();
+        $csv = $csvRes->streamedContent();
+        $this->assertStringContainsString('Kürzel;Kurzlink;Zieladresse', $csv);
+        $this->assertStringContainsString($link->slug, $csv);
+        $this->assertStringContainsString('Export Beschreibung', $csv);
+    }
+
+    public function test_user_can_filter_by_tags_and_set_utm_parameters(): void
+    {
+        $this->actingAs($this->user)->post('http://dash.meinlink.at/links', [
+            'destination_url' => 'https://example.com/austria-utm',
+            'tags' => 'wien, marketing',
+            'utm_source' => 'newsletter',
+            'utm_medium' => 'email',
+            'utm_campaign' => 'autumn2026',
+        ])->assertRedirect();
+
+        $link = $this->user->links()->where('destination_url', 'https://example.com/austria-utm')->firstOrFail();
+        $this->assertEquals(['wien', 'marketing'], $link->tags);
+        $this->assertEquals('newsletter', $link->utm_source);
+
+        $this->get('http://dash.meinlink.at/?tag=wien')->assertOk()->assertSee($link->slug);
+    }
 }

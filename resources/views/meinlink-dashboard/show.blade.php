@@ -63,6 +63,26 @@
                     <dt>Beschreibung</dt>
                     <dd>{{ $link->description ?: 'Keine Beschreibung' }}</dd>
                 </div>
+                @if(!empty($link->tags) && is_array($link->tags))
+                    <div class="ml-dl-row">
+                        <dt>Tags</dt>
+                        <dd>
+                            <div class="ml-tags-wrap">
+                                @foreach($link->tags as $t)
+                                    <span class="ml-tag"><x-meinlink::icon name="tag" size="11"/> {{ $t }}</span>
+                                @endforeach
+                            </div>
+                        </dd>
+                    </div>
+                @endif
+                @if($link->utm_source || $link->utm_medium || $link->utm_campaign)
+                    <div class="ml-dl-row">
+                        <dt>Kampagne / UTM</dt>
+                        <dd class="ml-text-muted">
+                            {{ implode(' · ', array_filter([$link->utm_source ? 'Quelle: '.$link->utm_source : null, $link->utm_medium ? 'Medium: '.$link->utm_medium : null, $link->utm_campaign ? 'Kampagne: '.$link->utm_campaign : null])) }}
+                        </dd>
+                    </div>
+                @endif
                 <div class="ml-dl-row">
                     <dt>Erstellt</dt>
                     <dd>{{ $link->created_at->format('d.m.Y, H:i') }}</dd>
@@ -84,6 +104,11 @@
                 <a class="button ml-btn ml-btn-secondary" href="{{ route('meinlink-dashboard.qr', $link->id) }}">
                     <x-meinlink::icon name="qr" size="15" />
                     <span>QR-Code herunterladen</span>
+                </a>
+
+                <a class="button ml-btn ml-btn-secondary" href="{{ route('meinlink-dashboard.qr', ['link' => $link->id, 'format' => 'svg']) }}" title="Vektor-Format für Druck und Flyer">
+                    <x-meinlink::icon name="download" size="15" />
+                    <span>Vektor-QR (SVG)</span>
                 </a>
             </div>
 
