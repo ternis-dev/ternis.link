@@ -26,6 +26,10 @@ Route::middleware(['ensure.domain:api', ApiV3Response::class, 'ensure.api-versio
             Route::get('me', [DiscoveryController::class, 'me']);
             Route::get('domains', [DiscoveryController::class, 'domains']);
 
+            Route::post('links/bulk', [LinkController::class, 'bulk'])->name('links.bulk');
+            Route::get('links/{link}/analytics', [LinkController::class, 'analytics'])->name('links.analytics');
+            Route::get('links/{link}/qr', [LinkController::class, 'qr'])->name('links.qr');
+
             Route::apiResource('links', LinkController::class);
             Route::get('links/{link}/clicks', [ClickController::class, 'index']);
             Route::get('links/{link}/clicks/summary', [ClickController::class, 'summary']);

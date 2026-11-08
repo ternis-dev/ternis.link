@@ -65,12 +65,16 @@
     if (apiKey) {
       let domainId = defaultDomainId;
       if (!domainId) {
-        const domains = await listDomains(apiBase, apiKey);
-        const first = domains.find((d) => d.hostname === 'href.nz') || domains[0];
-        if (!first) throw new Error('No domains available for this API key.');
-        domainId = first.id;
+        try {
+          const domains = await listDomains(apiBase, apiKey);
+          const preferred = domains.find((d) => d.is_preferred) || domains.find((d) => d.hostname === 'href.nz') || domains[0];
+          if (preferred) {
+            domainId = preferred.id;
+          }
+        } catch { /* proceed, API v3 will resolve preferred domain */ }
       }
-      const body = { destination_url: destinationUrl, domain_id: domainId };
+      const body = { destination_url: destinationUrl };
+      if (domainId) body.domain_id = domainId;
       if (s) body.slug = s;
       const link = await apiFetch(apiBase, apiKey, '/links', { method: 'POST', body: JSON.stringify(body) });
       const payload = link.data || link;

@@ -14,7 +14,9 @@
         <link rel="alternate" type="application/rss+xml" title="{{ $meta['title'] }} (RSS)" href="{{ url('/pages/'.$collection.'.xml') }}">
     </x-slot:head>
 
-    <div class="mx-auto max-w-5xl" x-data="{ search: '' }">
+    <div class="mx-auto max-w-5xl py-4" x-data="{ search: '' }">
+        @include('content.header', ['collection' => $collection, 'meta' => $meta, 'entry' => null, 'collections' => $collections])
+
         {{-- Hero Header --}}
         <header class="py-8 text-center sm:py-12">
             <x-ui.badge tone="solid" class="mb-3">{{ $meta['item'] }} Collection</x-ui.badge>

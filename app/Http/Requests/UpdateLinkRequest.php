@@ -12,6 +12,66 @@ class UpdateLinkRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('destination_url') && $this->filled('url')) {
+            $this->merge(['destination_url' => $this->input('url')]);
+        }
+
+        if ($this->has('utm') && is_array($this->input('utm'))) {
+            $utm = $this->input('utm');
+            $this->merge(array_filter([
+                'utm_source' => $utm['source'] ?? $utm['utm_source'] ?? null,
+                'utm_medium' => $utm['medium'] ?? $utm['utm_medium'] ?? null,
+                'utm_campaign' => $utm['campaign'] ?? $utm['utm_campaign'] ?? null,
+            ], fn ($v) => $v !== null));
+        }
+
+        if ($this->filled('tags') && is_string($this->input('tags'))) {
+            $tags = array_values(array_filter(array_map('trim', explode(',', $this->input('tags')))));
+            $this->merge(['tags' => $tags]);
+        }
+
+        if (! $this->has('expires_at') && $this->filled('expires_in')) {
+            $parsed = $this->parseDurationToDate($this->input('expires_in'));
+            if ($parsed) {
+                $this->merge(['expires_at' => $parsed]);
+            }
+        }
+    }
+
+    private function parseDurationToDate(mixed $val): ?string
+    {
+        if (is_numeric($val)) {
+            return now()->addSeconds((int) $val)->toIso8601String();
+        }
+        if (is_string($val)) {
+            $val = trim($val);
+            if (preg_match('/^(\d+)\s*(s|sec|seconds?|m|min|minutes?|h|hours?|d|days?|w|weeks?|mo|months?|y|years?)$/i', $val, $matches)) {
+                $num = (int) $matches[1];
+                $unit = strtolower($matches[2]);
+                $dt = match ($unit) {
+                    's', 'sec', 'second', 'seconds' => now()->addSeconds($num),
+                    'm', 'min', 'minute', 'minutes' => now()->addMinutes($num),
+                    'h', 'hour', 'hours' => now()->addHours($num),
+                    'd', 'day', 'days' => now()->addDays($num),
+                    'w', 'week', 'weeks' => now()->addWeeks($num),
+                    'mo', 'month', 'months' => now()->addMonths($num),
+                    'y', 'year', 'years' => now()->addYears($num),
+                    default => null,
+                };
+                return $dt?->toIso8601String();
+            }
+            try {
+                $carbon = \Carbon\Carbon::parse($val);
+                return $carbon->toIso8601String();
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     public function rules(): array
     {
         return [

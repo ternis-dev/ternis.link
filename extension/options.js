@@ -15,7 +15,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const domains = await globalThis.TernisLink.listDomains(
           apiBase || globalThis.TernisLink.DEFAULT_API_BASE, apiKey,
         );
-        status.textContent = `Saved ✓ — ${domains.length} domain(s) found.`;
+        const preferred = domains.find((d) => d.is_preferred);
+        if (preferred) {
+          await globalThis.TernisLink.setSettings({ defaultDomainId: preferred.id });
+        }
+        status.textContent = `Saved ✓ — ${domains.length} domain(s) found${preferred ? ` (preferred: ${preferred.hostname})` : ''}.`;
       } catch (e) {
         status.textContent = `Saved, but key check failed: ${globalThis.TernisLink.friendlyError(e)}`;
       }

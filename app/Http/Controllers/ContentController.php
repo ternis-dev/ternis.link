@@ -94,6 +94,7 @@ class ContentController extends Controller
             'readingTime' => max(1, (int) round(str_word_count(strip_tags($entry['body'])) / 200)),
             'newer' => $neighbors['newer'],
             'older' => $neighbors['older'],
+            'collections' => ContentCollection::COLLECTIONS,
         ]);
     }
 
