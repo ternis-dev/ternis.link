@@ -1,17 +1,19 @@
 const copyTimers = new WeakMap();
+
 document.addEventListener('click', async (event) => {
     const button = event.target.closest('[data-copy]');
     if (!button) return;
-    const original = button.dataset.copyLabel ??= button.textContent;
+    const textSpan = button.querySelector('span') || button;
+    const original = button.dataset.copyLabel ??= textSpan.textContent;
     clearTimeout(copyTimers.get(button));
     try {
         await navigator.clipboard.writeText(button.dataset.copy);
-        button.textContent = 'Kopiert ✓';
+        textSpan.textContent = 'Kopiert ✓';
         button.setAttribute('aria-live', 'polite');
         button.parentElement.querySelector('[data-copy-fallback]')?.remove();
-        copyTimers.set(button, setTimeout(() => { button.textContent = original; }, 2200));
+        copyTimers.set(button, setTimeout(() => { textSpan.textContent = original; }, 2200));
     } catch {
-        button.textContent = 'Bitte manuell kopieren';
+        textSpan.textContent = 'Bitte manuell kopieren';
         let input = button.parentElement.querySelector('[data-copy-fallback]');
         if (!input) {
             input = document.createElement('input');
@@ -31,6 +33,7 @@ for (const button of document.querySelectorAll('[data-password-toggle]')) {
     button.hidden = false;
     button.addEventListener('click', () => {
         const input = document.getElementById(button.dataset.passwordToggle);
+        if (!input) return;
         const visible = input.type === 'password';
         input.type = visible ? 'text' : 'password';
         button.setAttribute('aria-pressed', String(visible));

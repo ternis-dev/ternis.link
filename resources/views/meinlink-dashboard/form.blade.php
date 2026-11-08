@@ -1,24 +1,177 @@
 @extends('meinlink-dashboard.layout')
 @section('title', $link ? 'Link bearbeiten' : 'Link erstellen')
+
 @section('content')
-    <a class="back" href="{{ route('meinlink-dashboard.index') }}">← Meine Links</a>
-    <div class="page-heading"><div><p class="eyebrow">{{ $link ? 'DEIN LINK' : 'NEUER LINK' }}</p><h1>{{ $link ? 'Kleine Änderung.' : 'Mach es kurz.' }}</h1><p>{{ $link ? 'Die Kurzadresse bleibt gleich. Du bestimmst, wohin sie führt.' : 'Deine Zieladresse wird zu einem kurzen meinlink.at-Link.' }}</p></div></div>
+    <a class="back ml-back-link" href="{{ route('meinlink-dashboard.index') }}">
+        <x-meinlink::icon name="arrow-left" size="14" />
+        <span>← Meine Links</span>
+    </a>
+
+    <div class="page-heading ml-page-header">
+        <div class="ml-page-header-main">
+            <p class="eyebrow ml-eyebrow">{{ $link ? 'DEIN LINK' : 'NEUER LINK' }}</p>
+            <h1 class="ml-page-title">{{ $link ? 'Kleine Änderung.' : 'Mach es kurz.' }}</h1>
+            <p class="ml-page-desc">{{ $link ? 'Die Kurzadresse bleibt gleich. Du bestimmst, wohin sie führt.' : 'Deine Zieladresse wird zu einem kurzen meinlink.at-Link.' }}</p>
+        </div>
+    </div>
+
     @unless($link)
-        <p class="quota-note">@if($quota['remaining'] === null)Dein Tarif hat kein tägliches Link-Limit.@else<strong>{{ number_format($quota['remaining'], 0, ',', '.') }} von {{ number_format($quota['limit'], 0, ',', '.') }} Links</strong> heute noch verfügbar.@endif Das Kontingent gilt für dein gesamtes Konto, einschließlich API-Nutzung.</p>
+        <div class="quota-note ml-quota-card">
+            <div class="ml-quota-icon" aria-hidden="true">
+                <x-meinlink::icon name="info" size="20" />
+            </div>
+            <div class="ml-quota-content">
+                @if($quota['remaining'] === null)
+                    <p>Dein Tarif hat kein tägliches Link-Limit. Das Kontingent gilt für dein gesamtes Konto, einschließlich API-Nutzung.</p>
+                @else
+                    <p><strong>{{ number_format($quota['remaining'], 0, ',', '.') }} von {{ number_format($quota['limit'], 0, ',', '.') }} Links</strong> heute noch verfügbar. Das Kontingent gilt für dein gesamtes Konto, einschließlich API-Nutzung.</p>
+                @endif
+            </div>
+        </div>
     @endunless
-    <form class="panel form-panel" method="post" action="{{ $link ? route('meinlink-dashboard.update', $link->id) : route('meinlink-dashboard.store') }}">
-        @csrf @if($link) @method('PUT') @endif
-        <div class="field"><label for="destination_url">Zieladresse <span class="muted">(Pflichtfeld)</span></label><input id="destination_url" name="destination_url" type="url" required maxlength="1024" value="{{ old('destination_url', $link?->destination_url) }}" placeholder="https://beispiel.at/deine-lange-adresse" aria-describedby="url-help @error('destination_url') destination_url-error @enderror" @error('destination_url') aria-invalid="true" @enderror><small id="url-help">Die vollständige Adresse mit https:// oder http://.</small>@error('destination_url')<p id="destination_url-error" class="field-error">{{ $message }}</p>@enderror</div>
-        @unless($link)<div class="field"><label for="slug">Wunschkürzel <span class="muted">(optional)</span></label><div class="input-prefix"><span>meinlink.at/</span><input id="slug" name="slug" value="{{ old('slug') }}" maxlength="100" placeholder="mein-projekt" autocomplete="off" aria-describedby="slug-help @error('slug') slug-error @enderror" @error('slug') aria-invalid="true" @enderror></div><small id="slug-help">Leer lassen für ein automatisch erzeugtes Kürzel. Verfügbarkeit und Mindestlänge richten sich nach deinem Tarif.</small>@error('slug')<p id="slug-error" class="field-error">{{ $message }}</p>@enderror</div>@endunless
-        <div class="field"><label for="description">Beschreibung <span class="muted">(optional)</span></label><input id="description" name="description" value="{{ old('description', $link?->description) }}" maxlength="255" @error('description') aria-invalid="true" aria-describedby="description-error" @enderror placeholder="Damit du den Link später wiederfindest">@error('description')<p id="description-error" class="field-error">{{ $message }}</p>@enderror</div>
-        <div class="field"><label for="expires_at">Gültig bis <span class="muted">(optional, {{ config('app.timezone') }})</span></label><input id="expires_at" name="expires_at" type="datetime-local" aria-describedby="expiry-help @error('expires_at') expires_at-error @enderror" @error('expires_at') aria-invalid="true" @enderror value="{{ old('expires_at', $link?->expires_at?->format('Y-m-d\TH:i')) }}"><small id="expiry-help">Ohne Datum bleibt der Link aktiv, bis du ihn pausierst.</small>@error('expires_at')<p id="expires_at-error" class="field-error">{{ $message }}</p>@enderror</div>
-        <fieldset class="protection-fields"><legend>Link schützen</legend>
-            <div class="field"><label for="password">{{ $link?->password_hash ? 'Neues Passwort' : 'Passwort' }} <span class="muted">(optional)</span></label><input id="password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="password-help @error('password') password-error @enderror" @error('password') aria-invalid="true" @enderror><button class="text-button" type="button" data-password-toggle="password" aria-controls="password" aria-pressed="false" hidden>Passwort anzeigen</button><small id="password-help">Mindestens 8 Zeichen. {{ $link?->password_hash ? 'Leer lassen, um das bestehende Passwort zu behalten.' : 'Besucher müssen das Passwort vor dem Weiterleiten eingeben.' }}</small>@error('password')<p id="password-error" class="field-error">{{ $message }}</p>@enderror</div>
-            @if($link?->password_hash)<label class="check-label"><input name="remove_password" type="checkbox" value="1"> Bestehendes Passwort entfernen</label>@endif
+
+    <form class="panel form-panel ml-card ml-form-panel" method="post" action="{{ $link ? route('meinlink-dashboard.update', $link->id) : route('meinlink-dashboard.store') }}">
+        @csrf
+        @if($link)
+            @method('PUT')
+        @endif
+
+        <div class="field ml-field">
+            <label for="destination_url">Zieladresse <span class="muted">(Pflichtfeld)</span></label>
+            <div class="ml-input-icon-wrap">
+                <span class="ml-input-icon" aria-hidden="true">
+                    <x-meinlink::icon name="external" size="16" />
+                </span>
+                <input id="destination_url"
+                       name="destination_url"
+                       type="url"
+                       required
+                       maxlength="1024"
+                       value="{{ old('destination_url', $link?->destination_url) }}"
+                       placeholder="https://beispiel.at/deine-lange-adresse"
+                       aria-describedby="url-help @error('destination_url') destination_url-error @enderror"
+                       @error('destination_url') aria-invalid="true" @enderror>
+            </div>
+            <small id="url-help" class="ml-field-help">Die vollständige Adresse mit https:// oder http://.</small>
+            @error('destination_url')
+                <p id="destination_url-error" class="field-error ml-field-error">
+                    <x-meinlink::icon name="alert" size="14" />
+                    <span>{{ $message }}</span>
+                </p>
+            @enderror
+        </div>
+
+        @unless($link)
+            <div class="field ml-field">
+                <label for="slug">Wunschkürzel <span class="muted">(optional)</span></label>
+                <div class="input-prefix ml-input-prefix @error('slug') is-invalid @enderror">
+                    <span class="ml-prefix-label">meinlink.at/</span>
+                    <input id="slug"
+                           name="slug"
+                           value="{{ old('slug') }}"
+                           maxlength="100"
+                           placeholder="mein-projekt"
+                           autocomplete="off"
+                           aria-describedby="slug-help @error('slug') slug-error @enderror"
+                           @error('slug') aria-invalid="true" @enderror>
+                </div>
+                <small id="slug-help" class="ml-field-help">Leer lassen für ein automatisch erzeugtes Kürzel. Verfügbarkeit und Mindestlänge richten sich nach deinem Tarif.</small>
+                @error('slug')
+                    <p id="slug-error" class="field-error ml-field-error">
+                        <x-meinlink::icon name="alert" size="14" />
+                        <span>{{ $message }}</span>
+                    </p>
+                @enderror
+            </div>
+        @endunless
+
+        <div class="field ml-field">
+            <label for="description">Beschreibung <span class="muted">(optional)</span></label>
+            <input id="description"
+                   name="description"
+                   value="{{ old('description', $link?->description) }}"
+                   maxlength="255"
+                   @error('description') aria-invalid="true" aria-describedby="description-error" @enderror
+                   placeholder="Damit du den Link später wiederfindest">
+            @error('description')
+                <p id="description-error" class="field-error ml-field-error">
+                    <x-meinlink::icon name="alert" size="14" />
+                    <span>{{ $message }}</span>
+                </p>
+            @enderror
+        </div>
+
+        <div class="field ml-field">
+            <label for="expires_at">Gültig bis <span class="muted">(optional, {{ config('app.timezone') }})</span></label>
+            <input id="expires_at"
+                   name="expires_at"
+                   type="datetime-local"
+                   aria-describedby="expiry-help @error('expires_at') expires_at-error @enderror"
+                   @error('expires_at') aria-invalid="true" @enderror
+                   value="{{ old('expires_at', $link?->expires_at?->format('Y-m-d\TH:i')) }}">
+            <small id="expiry-help" class="ml-field-help">Ohne Datum bleibt der Link aktiv, bis du ihn pausierst.</small>
+            @error('expires_at')
+                <p id="expires_at-error" class="field-error ml-field-error">
+                    <x-meinlink::icon name="alert" size="14" />
+                    <span>{{ $message }}</span>
+                </p>
+            @enderror
+        </div>
+
+        <fieldset class="protection-fields ml-protection-card">
+            <legend class="ml-protection-legend">
+                <x-meinlink::icon name="shield" size="16" />
+                <span>Link schützen</span>
+            </legend>
+
+            <div class="field ml-field">
+                <label for="password">{{ $link?->password_hash ? 'Neues Passwort' : 'Passwort' }} <span class="muted">(optional)</span></label>
+                <div class="ml-password-wrap">
+                    <input id="password"
+                           name="password"
+                           type="password"
+                           autocomplete="new-password"
+                           minlength="8"
+                           maxlength="128"
+                           aria-describedby="password-help @error('password') password-error @enderror"
+                           @error('password') aria-invalid="true" @enderror>
+                    <button class="text-button ml-password-toggle-btn"
+                            type="button"
+                            data-password-toggle="password"
+                            aria-controls="password"
+                            aria-pressed="false"
+                            hidden>Passwort anzeigen</button>
+                </div>
+                <small id="password-help" class="ml-field-help">Mindestens 8 Zeichen. {{ $link?->password_hash ? 'Leer lassen, um das bestehende Passwort zu behalten.' : 'Besucher müssen das Passwort vor dem Weiterleiten eingeben.' }}</small>
+                @error('password')
+                    <p id="password-error" class="field-error ml-field-error">
+                        <x-meinlink::icon name="alert" size="14" />
+                        <span>{{ $message }}</span>
+                    </p>
+                @enderror
+            </div>
+
+            @if($link?->password_hash)
+                <label class="check-label ml-check-row">
+                    <input name="remove_password" type="checkbox" value="1">
+                    <span>Bestehendes Passwort entfernen</span>
+                </label>
+            @endif
+
             <input type="hidden" name="bot_protection" value="0">
-            <label class="check-label"><input name="bot_protection" type="checkbox" value="1" @checked(old('bot_protection', $link?->bot_protection))> Browser-Verifizierung aktivieren</label>
-            <p class="muted">Besucher durchlaufen vor dem Weiterleiten eine Sicherheitsprüfung gegen automatisierte Aufrufe.</p>
+            <label class="check-label ml-check-row">
+                <input name="bot_protection" type="checkbox" value="1" @checked(old('bot_protection', $link?->bot_protection))>
+                <span>Browser-Verifizierung aktivieren</span>
+            </label>
+            <p class="muted ml-protection-note">Besucher durchlaufen vor dem Weiterleiten eine Sicherheitsprüfung gegen automatisierte Aufrufe.</p>
         </fieldset>
-        <div class="form-actions"><button class="button primary" type="submit">{{ $link ? 'Änderungen speichern' : 'Kurzlink erstellen' }}</button><a href="{{ route('meinlink-dashboard.index') }}">Abbrechen</a></div>
+
+        <div class="form-actions ml-form-actions">
+            <button class="button primary ml-btn ml-btn-primary" type="submit">
+                <x-meinlink::icon name="check" size="16" />
+                <span>{{ $link ? 'Änderungen speichern' : 'Kurzlink erstellen' }}</span>
+            </button>
+            <a class="ml-btn ml-btn-subtle" href="{{ route('meinlink-dashboard.index') }}">Abbrechen</a>
+        </div>
     </form>
 @endsection

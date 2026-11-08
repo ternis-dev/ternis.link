@@ -74,6 +74,16 @@ class AppServiceProvider extends ServiceProvider
             'hnz-dashboard'
         );
 
+        // Dedicated component set for dash.meinlink.at dashboard
+        Blade::anonymousComponentPath(
+            resource_path('views/meinlink-dashboard/components'),
+            'meinlink'
+        );
+        Blade::anonymousComponentPath(
+            resource_path('views/meinlink-dashboard'),
+            'meinlink-dashboard'
+        );
+
         // Modularized view namespaces ('blog', 'stats', 'dash', 'admin', 'my')
         View::addNamespace('blog', resource_path('views/content'));
         View::addNamespace('stats', resource_path('views/pages/stats'));
