@@ -1037,7 +1037,8 @@ components:
             daily_link_quota:
               $ref: "#/components/schemas/DailyQuota"
             creation_rate_limit_per_minute:
-              type: "integer"
+              description: "Per-minute link creation limit; null means unlimited. API request throttles still apply."
+              type: ["integer", "null"]
             request_rate_limit_per_minute:
               type: "integer"
               const: 60

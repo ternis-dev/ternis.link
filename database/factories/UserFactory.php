@@ -29,7 +29,7 @@ class UserFactory extends Factory
             'avatar_url' => null,
             'sso_user_type' => 'general',
             'role' => UserRole::User,
-            'plan_id' => Plan::first()?->id,
+            'plan_id' => Plan::where('name', 'free')->first()?->id,
         ];
     }
 

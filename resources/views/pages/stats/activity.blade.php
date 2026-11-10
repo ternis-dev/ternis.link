@@ -8,6 +8,15 @@
         <x-ui.stat :value="number_format(array_sum($clicks['values']))" label="Redirect clicks" description="Last 30 days" :key="'activity_clicks'" />
         <x-ui.stat :value="number_format(array_sum($qr['values']))" label="QR codes generated" description="Last 30 days" :key="'activity_qr'" />
     </div>
+    <div class="mb-6 grid gap-6 lg:grid-cols-3">
+        @foreach (['links' => 'Links created', 'clicks' => 'Redirect clicks', 'qr' => 'QR codes generated'] as $key => $label)
+            <x-ui.card :title="$label" description="Daily counts over the last 30 days. Exact values are in the table below.">
+                <div class="relative h-48" role="img" aria-label="{{ $label }} per day">
+                    <canvas data-chart="clicks" data-chart-name="activity-{{ $key }}" data-chart-type="bar" data-chart-labels='@json(${$key}["labels"])' data-chart-values='@json(${$key}["values"])'></canvas>
+                </div>
+            </x-ui.card>
+        @endforeach
+    </div>
     <x-ui.card title="Daily activity" description="Newest dates first. Deleted links and their historical clicks remain included.">
         <div class="overflow-x-auto">
             <table class="w-full text-sm tabular-nums">

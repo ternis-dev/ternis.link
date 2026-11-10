@@ -48,6 +48,11 @@ class Plan extends Model
         return $this->name === 'free' ? 12 : 64;
     }
 
+    public function hasUnlimitedCreationRate(): bool
+    {
+        return $this->rate_limit_per_minute === null;
+    }
+
     public function hasUnlimitedLinks(): bool
     {
         return $this->max_links_per_day === null;

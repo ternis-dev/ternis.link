@@ -41,7 +41,7 @@ class DiscoveryController extends Controller
             'api_key' => $key ? ['id' => $key->id, 'name' => $key->name, 'prefix' => $key->key_prefix] : null,
             'default_domain_id' => $user->resolvedDefaultDomain()?->id,
             'daily_link_quota' => DailyLinkQuota::forUser($user),
-            'creation_rate_limit_per_minute' => $user->plan?->rate_limit_per_minute ?? 10,
+            'creation_rate_limit_per_minute' => $user->plan ? $user->plan->rate_limit_per_minute : 10,
             'request_rate_limit_per_minute' => 60,
         ]);
     }

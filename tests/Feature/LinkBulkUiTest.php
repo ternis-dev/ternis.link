@@ -103,6 +103,23 @@ class LinkBulkUiTest extends TestCase
             ->assertDispatched('notify', message: '1 link(s) deactivated.', type: 'success');
     }
 
+    public function test_single_link_toast_can_undo_deactivation(): void
+    {
+        $link = $this->makeLink('undo-toast');
+        $token = null;
+        $component = Livewire::actingAs($this->user)->test(LinkTable::class)
+            ->call('deactivate', $link->id)
+            ->assertDispatched('notify', function ($event, $payload) use (&$token) {
+                $token = $payload['undo']['token'] ?? null;
+
+                return $payload['undo']['method'] === 'undoDeactivation' && is_string($token);
+            });
+        $this->assertFalse($link->fresh()->is_active);
+        $component->call('undoDeactivation', $token)
+            ->assertDispatched('notify', message: 'Link reactivated.', type: 'success');
+        $this->assertTrue($link->fresh()->is_active);
+    }
+
     public function test_import_dispatches_notify_toast(): void
     {
         Livewire::actingAs($this->user)

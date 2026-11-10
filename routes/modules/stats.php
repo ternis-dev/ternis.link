@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware(['ensure.domain:ternis'])->prefix('pages/stats')->name('pages.stats.')->group(function () {
     Route::get('/', [StatsController::class, 'index'])->name('index');
+    Route::get('/trends', [StatsController::class, 'trends'])->name('trends');
     Route::get('/activity', [StatsController::class, 'activity'])->name('activity');
     Route::get('/security', [StatsController::class, 'security'])->name('security');
     Route::get('/domains', [StatsController::class, 'domains'])->name('domains');
@@ -18,6 +19,7 @@ Route::middleware(['ensure.domain:ternis'])->prefix('pages/stats')->name('pages.
 
 // Markdown twins of stats pages
 Route::middleware(['ensure.domain:ternis'])->group(function () {
+    Route::get('/pages/stats/trends.md', [StatsController::class, 'trendsMd'])->name('pages.stats.trends-md');
     Route::get('/pages/stats/activity.md', [StatsController::class, 'activityMd'])->name('pages.stats.activity-md');
     Route::get('/pages/stats/security.md', [StatsController::class, 'securityMd'])->name('pages.stats.security-md');
     Route::get('/pages/stats.md', [StatsController::class, 'indexMd'])->name('pages.stats.index-md');
