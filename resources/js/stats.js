@@ -3,7 +3,7 @@
  *
  * Features:
  * - Instant client-side tab navigation between Overview, Activity, Security, Domains
- * - Background pre-loading and in-memory/session caching of stats pages
+ * - Background pre-loading and in-memory caching of stats pages
  * - Periodic background polling via Web API (/pages/stats/data) every ~45s (tailored by user type)
  * - In-place DOM and Chart.js updates as soon as updates come in
  * - Smart visibility detection: pauses polling when tab is inactive, resumes immediately on focus
@@ -17,6 +17,7 @@ const STORAGE_TIME_KEY = 'tl_stats_time_v1';
 const STATS_PAGES = [
     '/pages/stats',
     '/pages/stats/activity',
+    '/pages/stats/trends',
     '/pages/stats/security',
     '/pages/stats/domains',
 ];
@@ -28,10 +29,12 @@ let lastPollTime = Date.now();
 let isFetching = false;
 let currentEtag = null;
 let liveData = null;
+let syncStatus = 'active';
+let renderedPath = normalizePath(window.location.pathname);
 
 function isStatsPage(pathname = window.location.pathname) {
     const clean = pathname.replace(/\/+$/, '') || '/';
-    return clean === '/pages/stats' || clean.startsWith('/pages/stats/');
+    return STATS_PAGES.includes(clean);
 }
 
 function normalizePath(url) {
@@ -57,7 +60,8 @@ function formatRelativeTime(timestamp) {
 /**
  * Update the live sync status indicator in the nav banner.
  */
-function updateStatusIndicator(status = 'active') {
+function updateStatusIndicator(status = syncStatus) {
+    syncStatus = status;
     const statusEl = document.querySelector('[data-stats-status]');
     if (!statusEl) return;
 
@@ -92,7 +96,7 @@ function updateStatusIndicator(status = 'active') {
 }
 
 /**
- * Pre-load a single stats page into memory and sessionStorage.
+ * Pre-load a single stats page into memory.
  */
 async function preloadPage(url) {
     const path = normalizePath(url);
@@ -119,11 +123,6 @@ async function preloadPage(url) {
                 pathname: path,
             };
             pageHtmlCache.set(path, pageData);
-            try {
-                sessionStorage.setItem(`tl_stats_page_${path}`, JSON.stringify(pageData));
-            } catch {
-                /* sessionStorage quota or private mode */
-            }
         }
     } catch {
         /* network error during background prefetch — ignore */
@@ -134,20 +133,6 @@ async function preloadPage(url) {
  * Pre-load all sibling stats pages in the background.
  */
 function preloadSiblingPages() {
-    // Check sessionStorage first to restore any preloaded pages
-    STATS_PAGES.forEach((path) => {
-        if (!pageHtmlCache.has(path)) {
-            try {
-                const stored = sessionStorage.getItem(`tl_stats_page_${path}`);
-                if (stored) {
-                    pageHtmlCache.set(path, JSON.parse(stored));
-                }
-            } catch {
-                /* ignore */
-            }
-        }
-    });
-
     // Cache current page if not already cached
     const currentPath = normalizePath(window.location.pathname);
     const content = document.getElementById('content');
@@ -180,21 +165,9 @@ function preloadSiblingPages() {
  */
 async function navigateToStatsPage(targetUrl, pushState = true) {
     const targetPath = normalizePath(targetUrl);
-    const currentPath = normalizePath(window.location.pathname);
-
-    if (targetPath === currentPath) return;
+    if (targetPath === renderedPath) return;
 
     let pageData = pageHtmlCache.get(targetPath);
-
-    if (!pageData) {
-        // Not in memory, try sessionStorage
-        try {
-            const stored = sessionStorage.getItem(`tl_stats_page_${targetPath}`);
-            if (stored) pageData = JSON.parse(stored);
-        } catch {
-            /* ignore */
-        }
-    }
 
     if (!pageData) {
         // Fetch immediately
@@ -230,7 +203,9 @@ async function navigateToStatsPage(targetUrl, pushState = true) {
         return;
     }
 
-    // Perform DOM transition
+    // Dispose charts before removing their canvases.
+    content.querySelectorAll('canvas').forEach((canvas) => canvas._tlChart?.destroy());
+    renderedPath = targetPath;
     content.innerHTML = pageData.html;
     document.title = pageData.title;
 
@@ -355,6 +330,44 @@ function applyStatsData(data) {
         }
     }
 
+    if (data.activity) {
+        for (const [key, series] of Object.entries(data.activity)) {
+            const canvas = document.querySelector(`canvas[data-chart-name="activity-${key}"]`);
+            if (canvas) {
+                canvas.dataset.chartLabels = JSON.stringify(series.labels);
+                canvas.dataset.chartValues = JSON.stringify(series.values);
+                window.tlInitCharts?.(canvas);
+            }
+        }
+    }
+    if (data.trends) {
+        // Refresh server-rendered rows when the complete-day window rolls over.
+        const period = document.querySelector('[data-trend-period="current_period"]');
+        if (period && period.textContent.trim() !== data.trends.current_period) {
+            window.location.reload();
+            return;
+        }
+        document.querySelectorAll('[data-trend-period]').forEach((el) => {
+            el.textContent = data.trends[el.dataset.trendPeriod];
+        });
+        for (const [key, metric] of Object.entries(data.trends.metrics)) {
+            for (const field of ['current', 'previous', 'change', 'daily_average']) {
+                const el = document.querySelector(`[data-trend="${key}.${field}"]`);
+                if (el) el.textContent = field === 'change' ? metric[field] : Number(metric[field]).toLocaleString(undefined, { minimumFractionDigits: field === 'daily_average' ? 1 : 0 });
+            }
+            metric.labels.forEach((day, i) => {
+                const el = document.querySelector(`[data-trend-day="${key}.${day}"]`);
+                if (el) el.textContent = Number(metric.values[i]).toLocaleString();
+            });
+            const canvas = document.querySelector(`canvas[data-chart-name="trend-${key}"]`);
+            if (canvas) {
+                canvas.dataset.chartLabels = JSON.stringify(metric.labels);
+                canvas.dataset.chartValues = JSON.stringify(metric.values);
+                window.tlInitCharts?.(canvas);
+            }
+        }
+    }
+
     // 3. Domains Page Table and Canvases
     if (data.domains && Array.isArray(data.domains)) {
         const tbody = document.querySelector('tbody[data-stats-domains-table]');
@@ -472,6 +485,7 @@ async function fetchLatestStats() {
             return;
         }
 
+        if (!response.ok) throw new Error('Stats refresh failed');
         if (response.ok) {
             const data = await response.json();
             liveData = data;
@@ -484,21 +498,12 @@ async function fetchLatestStats() {
                 currentPollInterval = Number(data.meta.poll_interval);
             }
 
-            // Save to localStorage cache
-            try {
-                localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(data));
-                if (currentEtag) localStorage.setItem(STORAGE_ETAG_KEY, currentEtag);
-                localStorage.setItem(STORAGE_TIME_KEY, String(lastPollTime));
-            } catch {
-                /* localStorage quota or private mode */
-            }
-
             // Apply updates to DOM in-place
             applyStatsData(data);
             updateStatusIndicator('active');
         }
     } catch {
-        /* Network error — will retry on next poll interval */
+        updateStatusIndicator('offline');
     } finally {
         isFetching = false;
         scheduleNextPoll();
@@ -520,31 +525,6 @@ function scheduleNextPoll(delayMs) {
 }
 
 /**
- * Restore cached stats from localStorage if available.
- */
-function restoreCachedStats() {
-    try {
-        const cachedRaw = localStorage.getItem(STORAGE_DATA_KEY);
-        const cachedEtag = localStorage.getItem(STORAGE_ETAG_KEY);
-        const cachedTime = localStorage.getItem(STORAGE_TIME_KEY);
-
-        if (cachedEtag) currentEtag = cachedEtag;
-        if (cachedTime) lastPollTime = Number(cachedTime);
-
-        if (cachedRaw) {
-            liveData = JSON.parse(cachedRaw);
-            if (liveData.meta?.poll_interval) {
-                currentPollInterval = Number(liveData.meta.poll_interval);
-            }
-            // Immediately apply cached stats to prevent layout shifts
-            applyStatsData(liveData);
-        }
-    } catch {
-        /* invalid JSON or storage disabled */
-    }
-}
-
-/**
  * Initialize event listeners for stats client.
  */
 let initialized = false;
@@ -555,7 +535,12 @@ export function initStats() {
         return;
     }
 
-    restoreCachedStats();
+    // Clear legacy persistent caches that could retain another session's domains.
+    try {
+        [STORAGE_DATA_KEY, STORAGE_ETAG_KEY, STORAGE_TIME_KEY].forEach((key) => localStorage.removeItem(key));
+        STATS_PAGES.forEach((path) => sessionStorage.removeItem(`tl_stats_page_${path}`));
+    } catch { /* storage unavailable */ }
+    renderedPath = normalizePath(window.location.pathname);
     preloadSiblingPages();
     updateStatusIndicator('active');
     scheduleNextPoll();
@@ -566,13 +551,13 @@ export function initStats() {
     // Relative time ticker (updates "Updated 15s ago" every 10 seconds)
     setInterval(() => {
         if (isStatsPage() && !document.hidden) {
-            updateStatusIndicator('active');
+            updateStatusIndicator();
         }
     }, 10000);
 
     // Hover-triggered prefetch on nav links
     document.addEventListener('pointerenter', (event) => {
-        const a = event.target.closest('a[data-stats-tab], a[href^="/pages/stats"]');
+        const a = event.target?.closest?.('a[data-stats-tab], a[href^="/pages/stats"]');
         if (!a) return;
         const href = a.getAttribute('href');
         if (href && isStatsPage(href)) {
@@ -582,10 +567,11 @@ export function initStats() {
 
     // Intercept clicks on stats navigation links for instant switching
     document.addEventListener('click', (event) => {
-        const a = event.target.closest('a[data-stats-tab], a[href^="/pages/stats"]');
+        const a = event.target?.closest?.('a[data-stats-tab], a[href^="/pages/stats"]');
         if (!a) return;
 
         // Skip modified clicks (Ctrl/Cmd/Shift/Alt/new tab)
+        if (event.defaultPrevented || event.button !== 0) return;
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
         if (a.target && a.target !== '_self') return;
 

@@ -11,10 +11,12 @@ use App\Models\QrGeneration;
 use App\Models\ThreatEvaluation;
 use App\Models\User;
 use App\Support\NetworkStats;
+use App\Support\StatsTrends;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -44,6 +46,45 @@ class StatsTest extends TestCase
             'click_count' => 5,
         ]);
         Click::create(['link_id' => $link->id, 'is_direct_url' => false, 'referrer' => 'https://secret.example/', 'user_agent' => 'SecretAgent/1.0']);
+    }
+
+    public function test_trends_compare_complete_weeks_and_exclude_today(): void
+    {
+        $this->travelTo(Carbon::parse('2026-01-05 12:00:00'));
+        $link = Link::where('slug', 'statlink1')->firstOrFail();
+        $link->forceFill(['created_at' => now()->subDays(2)])->save();
+        Link::create([
+            'slug' => 'previous-week', 'destination_url' => 'https://example.com/previous',
+            'domain_id' => $this->domain->id, 'user_id' => $this->user->id,
+        ])->forceFill(['created_at' => now()->subDays(9)])->save();
+        Link::create([
+            'slug' => 'today-excluded', 'destination_url' => 'https://example.com/today',
+            'domain_id' => $this->domain->id, 'user_id' => $this->user->id,
+        ]);
+        NetworkStats::flush();
+
+        $this->getJson('http://ternis.link/pages/stats/trends')
+            ->assertOk()
+            ->assertJsonPath('trends.current_period', '2025-12-29 – 2026-01-04')
+            ->assertJsonPath('trends.metrics.links.current', 1)
+            ->assertJsonPath('trends.metrics.links.previous', 1)
+            ->assertJsonPath('trends.metrics.links.change', '+0.0%');
+        foreach (['', '.md'] as $suffix) {
+            $this->get('http://ternis.link/pages/stats/trends'.$suffix)->assertOk()
+                ->assertSee('Network Trends')->assertDontSee($this->user->email);
+            $this->get('http://href.nz/pages/stats/trends'.$suffix)->assertNotFound();
+        }
+    }
+
+    public function test_empty_trends_do_not_invent_percentage_growth(): void
+    {
+        $empty = ['labels' => [], 'values' => []];
+        $trends = StatsTrends::summarize(['links' => $empty]);
+        $this->assertSame('No change', $trends['metrics']['links']['change']);
+        $this->assertCount(14, $trends['metrics']['links']['values']);
+        $series = ['labels' => [now()->subDay()->format('M j')], 'values' => [3]];
+        $trends = StatsTrends::summarize(['links' => $series]);
+        $this->assertSame('No previous activity', $trends['metrics']['links']['change']);
     }
 
     public function test_quarantine_total_includes_legacy_tags_without_counting_logged_links_twice(): void

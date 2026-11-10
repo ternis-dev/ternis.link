@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\NetworkStats;
+use App\Support\StatsTrends;
 use Illuminate\Http\Request;
 
 /**
@@ -123,6 +124,25 @@ class StatsController extends Controller
         return ['links' => NetworkStats::creationsByDay(), 'clicks' => NetworkStats::clicksByDay(), 'qr' => NetworkStats::qrByDay()];
     }
 
+    public function trends(Request $request)
+    {
+        if ($request->wantsJson() || $request->query('format') === 'json') {
+            return $this->data($request, 'trends');
+        }
+
+        return view('pages.stats.trends', ['trends' => $this->trendsData()]);
+    }
+
+    public function trendsMd()
+    {
+        return response()->view('pages.stats.trends-md', ['trends' => $this->trendsData()], 200, ['Content-Type' => self::MARKDOWN]);
+    }
+
+    private function trendsData(): array
+    {
+        return StatsTrends::summarize($this->activityData());
+    }
+
     public function security(Request $request)
     {
         if ($request->wantsJson() || $request->query('format') === 'json') {
@@ -191,6 +211,7 @@ class StatsController extends Controller
                     'summaries' => $heatmapSummaries,
                 ],
             ],
+            'trends' => ['trends' => $this->trendsData()],
             'activity' => [
                 'activity' => $activity,
                 'charts' => [
@@ -207,6 +228,7 @@ class StatsController extends Controller
                 'domains' => $domainList,
             ],
             default => [
+                'trends' => $this->trendsData(),
                 'overview' => $overview,
                 'security' => [
                     'overview' => $overview,
@@ -236,7 +258,9 @@ class StatsController extends Controller
         ];
 
         $json = json_encode($payload, JSON_UNESCAPED_SLASHES);
-        $etag = '"'.md5($json).'"';
+        $etagPayload = $payload;
+        unset($etagPayload['meta']['timestamp']);
+        $etag = '"'.md5(json_encode($etagPayload, JSON_UNESCAPED_SLASHES)).'"';
 
         if ($request->headers->get('If-None-Match') === $etag) {
             return response('', 304, [

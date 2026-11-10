@@ -43,6 +43,20 @@ class StatsWebApiTest extends TestCase
         NetworkStats::flush();
     }
 
+    public function test_etag_ignores_request_time_but_changes_when_stats_change(): void
+    {
+        $etag = $this->get('http://ternis.link/pages/stats/data')->headers->get('ETag');
+        $this->travel(2)->seconds();
+        $this->get('http://ternis.link/pages/stats/data', ['If-None-Match' => $etag])->assertStatus(304);
+        Link::create([
+            'slug' => 'etag-change', 'destination_url' => 'https://example.com/new',
+            'domain_id' => $this->domain->id, 'user_id' => $this->user->id,
+        ]);
+        NetworkStats::flush();
+        $response = $this->get('http://ternis.link/pages/stats/data', ['If-None-Match' => $etag])->assertOk();
+        $this->assertNotSame($etag, $response->headers->get('ETag'));
+    }
+
     public function test_stats_data_endpoint_returns_json_with_all_sections_and_meta(): void
     {
         $response = $this->get('http://ternis.link/pages/stats/data');
