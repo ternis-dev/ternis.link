@@ -122,7 +122,7 @@ function showToast(message, type = 'info', duration, options = {}) {
     }
 
     const kind = ['success', 'error', 'info'].includes(type) ? type : 'info';
-    const { title = null, duration: optDuration = null } = options;
+    const { title = null, duration: optDuration = null, action = null } = options;
     const ms = duration ?? optDuration ?? (kind === 'error' ? 6000 : 4000);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -140,6 +140,24 @@ function showToast(message, type = 'info', duration, options = {}) {
         `<button type="button" class="tl-toast-close" aria-label="Dismiss notification">×</button>`;
     el.querySelector('.tl-toast-message').textContent = String(message ?? '');
     if (title) el.querySelector('.tl-toast-title').textContent = String(title);
+    if (action && typeof action.run === 'function') {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'tl-toast-action';
+        button.textContent = action.label || 'Undo';
+        button.addEventListener('click', async () => {
+            button.disabled = true;
+            clearTimeout(timer);
+            try {
+                await action.run();
+                dismiss();
+            } catch {
+                button.disabled = false;
+                showToast('Could not undo. Please try again.', 'error');
+            }
+        });
+        el.querySelector('.tl-toast-close').before(button);
+    }
     stack.append(el);
 
     let timer = null;
@@ -154,16 +172,16 @@ function showToast(message, type = 'info', duration, options = {}) {
     };
     el.querySelector('.tl-toast-close').addEventListener('click', dismiss);
 
-    if (ms > 0 && !reduced) {
+    if (ms > 0) {
         const arm = () => {
             clearTimeout(timer);
             timer = setTimeout(dismiss, ms);
         };
         el.addEventListener('mouseenter', () => clearTimeout(timer));
-        el.addEventListener('mouseleave', arm);
+        el.addEventListener('mouseleave', () => { if (!el.contains(document.activeElement)) arm(); });
+        el.addEventListener('focusin', () => clearTimeout(timer));
+        el.addEventListener('focusout', (event) => { if (!el.contains(event.relatedTarget)) arm(); });
         arm();
-    } else if (ms > 0 && reduced) {
-        timer = setTimeout(dismiss, ms);
     }
 
     if (!reduced) {
@@ -186,7 +204,16 @@ window.showToast = showToast;
 document.addEventListener('livewire:init', () => {
     window.Livewire.on('notify', (data) => {
         const payload = Array.isArray(data) ? data[0] : data;
-        showToast(payload?.message ?? 'Done.', payload?.type ?? 'info');
+        const undo = payload?.undo;
+        const supported = undo && ['undoDeactivation', 'cancelDeletion'].includes(undo.method);
+        showToast(payload?.message ?? 'Done.', payload?.type ?? 'info', {
+            duration: supported ? 15000 : undefined,
+            action: supported ? { label: 'Undo', run: async () => {
+                const component = window.Livewire.find(undo.component);
+                if (!component) throw new Error('Component unavailable');
+                await component.$call(undo.method, ...(undo.token ? [undo.token] : []));
+            } } : null,
+        });
     });
     window.Livewire.on('link-created', () => showToast('Short link created.', 'success'));
 });

@@ -64,7 +64,8 @@ class PrivacySettings extends Component
         $erasure->schedule($user);
         $this->reset(['confirmText', 'acknowledged']);
 
-        $this->dispatch('notify', message: 'Account deletion scheduled.', type: 'error');
+        $this->dispatch('notify', message: 'Account deletion scheduled.', type: 'error',
+            undo: ['component' => $this->getId(), 'method' => 'cancelDeletion']);
     }
 
     public function cancelDeletion(AccountErasureService $erasure): void

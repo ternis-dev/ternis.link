@@ -346,7 +346,7 @@ class TernisAuthController extends Controller
 
         $profile = $roleMap[$roleParam] ?? $roleMap['admin'];
         $plan = Plan::where('name', $profile['plan'])->first()
-            ?? Plan::first();
+            ?? Plan::where('name', 'free')->first();
 
         $user = User::updateOrCreate(
             ['sso_sub' => $profile['sub']],

@@ -6,11 +6,13 @@ use App\Livewire\Concerns\WithTableColumns;
 use App\Models\ActivityLog;
 use App\Models\Domain;
 use App\Models\Link;
+use App\Services\LinkDeactivationUndo;
 use App\Services\LinkHealthService;
 use App\Services\LinkService;
 use App\Support\Activity;
 use App\Support\DomainUrls;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -256,14 +258,33 @@ class LinkTable extends Component
             ? Link::notRemoved()->findOrFail($linkId)
             : $user->links()->notRemoved()->findOrFail($linkId);
 
-        app(LinkService::class)->deactivate($link);
+        $token = DB::transaction(function () use ($link, $user) {
+            $locked = Link::query()->lockForUpdate()->findOrFail($link->id);
+            abort_unless($locked->user_id === $user->id || $user->isAdmin(), 403);
+            if (! $locked->is_active || $locked->is_removed) {
+                return null;
+            }
+            app(LinkService::class)->deactivate($locked);
+
+            return app(LinkDeactivationUndo::class)->remember($locked, $user);
+        });
+        if ($token === null) {
+            return;
+        }
 
         Activity::record(ActivityLog::LINK_DEACTIVATED, $user, $link, [
             'slug' => $link->slug,
             'via' => 'dashboard',
         ]);
 
-        $this->dispatch('notify', message: "Deactivated {$link->slug}.", type: 'info');
+        $this->dispatch('notify', message: "Deactivated {$link->slug}.", type: 'info',
+            undo: ['component' => $this->getId(), 'method' => 'undoDeactivation', 'token' => $token]);
+    }
+
+    public function undoDeactivation(string $token): void
+    {
+        $restored = app(LinkDeactivationUndo::class)->restore($token, auth()->user());
+        $this->dispatch('notify', message: $restored ? 'Link reactivated.' : 'Undo expired or the link has changed. Refresh and review its current state.', type: $restored ? 'success' : 'error');
     }
 
     public function checkHealth(string $linkId, LinkHealthService $healthService): void

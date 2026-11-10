@@ -100,3 +100,35 @@ Follow [HTTP semantics (RFC 9110)](https://www.rfc-editor.org/rfc/rfc9110.html) 
 6. Canary the revised contract, compare observed policy decisions with reported limits, and monitor error/429 rates and latency. Keep v2 and existing v3 behavior available through the documented migration window. Publish deprecation dates only after consumer inventory; rollback the preview on regressions without disabling existing keys.
 
 Migration examples: `default_domain_id` → `defaults.domain`; `auth_via` → `authentication.method`; `daily_link_quota` → `limits.daily_links`; separate per-minute integers → named limit objects. These are target mappings, not claims about currently deployed payloads.
+
+## Permission-based API keys from v3 onward
+
+Proposal: v1/v2 retain their current authorization behavior. V3 and later require explicit key permissions as well as account/resource authorization. Plan features, administrator role, and key permissions are independent constraints; `unlimited` grants no extra permissions.
+
+Start with a small, stable vocabulary:
+
+| Permission | Routes |
+|---|---|
+| `links:read` | GET links, link details |
+| `links:write` | POST links/bulk, PATCH/PUT links |
+| `links:delete` | DELETE links |
+| `analytics:read` | link analytics, clicks and click summaries |
+| `qr:read` | link QR rendering |
+| `domains:read` | available domains |
+| `keys:read` | list/details of owned keys |
+| `keys:write` | create/update/revoke keys |
+| `admin:links` | explicit cross-account link access, also requires admin role |
+
+Authenticated `/me` is always accessible for permission discovery; public service discovery requires no key. `/me` includes granted key permissions and effective permissions separately. A session/SSO credential receives its explicitly defined first-party permissions, never an accidental bypass of the policy middleware. Missing permission produces 403 with stable `insufficient_permission` code and required permission names. Resource ownership still applies even when a key has a matching permission.
+
+New v3 keys start with a selected preset (read-only, link creator, analytics, or custom); show the exact permission list before creation. The default link-creator preset grants `links:read`, `links:write`, `domains:read`, `qr:read`, with no key management, deletion or admin access. No implicit wildcard or inheritance from a newer preset. Empty permissions means discovery only; null must never silently mean unrestricted for new v3 keys.
+
+Persist permissions as a validated JSON string array on keys (with an explicit legacy policy marker for existing keys), audit permission changes, and enforce them on every v3+ route including bulk and inherited click/key controllers. Key management is a separate privilege: a child key's permissions cannot exceed the caller key's effective permissions, including on update. Prevent minting a v1/v2 key via a restricted v3 credential to bypass scopes. Prevent changing API version to escape permissions. Do not allow keys to assign plans, administrator roles or exemptions.
+
+Existing v1/v2 keys remain unchanged on v1/v2 routes. Inventory existing v3 keys and assign a frozen compatibility permission set matching their previous access, rather than silently breaking integrations. Migrating a key from v2 to v3 requires an explicit permission selection; switching back cannot become an escalation path. Publish a reviewed route-to-permission matrix and tests proving no v3+ route is unclassified. Unknown or new routes fail closed until assigned a policy.
+
+Acceptance tests must cover every route with missing/empty/valid permissions, owner versus foreign resources, admin keys without `admin:links`, downgraded roles, revocation, child key escalation, version switching, and limits shared across differently scoped keys. Introduce enforcement only with the compatibility rollout above; this section does not claim permission enforcement is already implemented.
+
+## Unlimited plan
+
+The `unlimited` plan removes daily link quotas and per-minute link creation limits (`null` for both), enables custom domains and slug-length selection, and permits one-character custom slugs. It does not exempt API request throttling, threat checks, authentication or permissions. Existing accounts are not reassigned automatically; administrators can assign it using the existing plan selector. V2 `/me` reports a null creation limit for this plan. Reflect the same semantics in future v3 effective-limit objects with reason `plan_unlimited`.

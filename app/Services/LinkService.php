@@ -412,7 +412,7 @@ class LinkService
             'health_check_enabled' => $healthCheckEnabled,
         ]);
 
-        if ($user) {
+        if ($user && ! $user->plan?->hasUnlimitedCreationRate()) {
             RateLimiter::hit($this->rateLimitKey($user), 60);
         }
 
@@ -469,6 +469,10 @@ class LinkService
      */
     public function ensureWithinRateLimit(User $user): void
     {
+        if ($user->plan?->hasUnlimitedCreationRate()) {
+            return;
+        }
+
         $limit = $user->plan?->rate_limit_per_minute ?? 10;
         $key = $this->rateLimitKey($user);
 

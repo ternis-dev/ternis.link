@@ -392,3 +392,18 @@ body,
         animation: tl-stat-pulse 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
 }
+
+@layer components {
+    .tl-toast-action {
+        flex-shrink: 0;
+        align-self: center;
+        padding: 0.375rem 0.625rem;
+        border: 1px solid currentColor;
+        border-radius: 0.5rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .tl-toast-action:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+    .tl-toast-action:disabled { opacity: 0.5; cursor: wait; }
+}

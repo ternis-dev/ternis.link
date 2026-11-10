@@ -48,3 +48,9 @@ No account and just scripting something quick? `POST /v1/links/public` creates g
 - The full contract is [OpenAPI 3.1](/api-v1-openapi.yaml).
 
 Click analytics for your own links live at `GET /v1/links/{link}/clicks` (rows) and `GET /v1/links/{link}/clicks/summary` (aggregates) — the same numbers the dashboard charts are drawn from.
+
+## Unlimited plan
+
+Administrators can assign the `unlimited` plan from the existing user plan selector. It has no daily link quota or per-minute creation limit, enables custom domains and slug-length selection, and allows one-character custom slugs. API request throttling and abuse checks still apply. A plan does not change an account's role or grant API permissions. Existing accounts keep their current plans.
+
+V3 permission scopes are described in the [API v3 proposal](./api-v3-plan.md); they are planned and are not currently enforced.

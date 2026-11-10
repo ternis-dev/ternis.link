@@ -15,6 +15,7 @@ class PlanSeeder extends Seeder
             ['name' => 'business', 'min_slug_length' => 3, 'custom_subdomain' => true,  'slug_length_choice' => true,  'rate_limit_per_minute' => 120, 'max_links_per_day' => null],
             ['name' => 'partner',  'min_slug_length' => 3, 'custom_subdomain' => true,  'slug_length_choice' => true,  'rate_limit_per_minute' => 120, 'max_links_per_day' => null],
             ['name' => 'family',   'min_slug_length' => 1, 'custom_subdomain' => true,  'slug_length_choice' => true,  'rate_limit_per_minute' => 300, 'max_links_per_day' => null],
+            ['name' => 'unlimited', 'min_slug_length' => 1, 'custom_subdomain' => true, 'slug_length_choice' => true, 'rate_limit_per_minute' => null, 'max_links_per_day' => null],
         ];
 
         foreach ($plans as $plan) {

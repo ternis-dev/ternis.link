@@ -8,10 +8,13 @@ use App\Models\Domain;
 use App\Models\Link;
 use App\Models\Plan;
 use App\Models\User;
+use App\Services\LinkService;
+use App\Support\DailyLinkQuota;
 use Database\Seeders\ApiVersionSeeder;
 use Database\Seeders\DomainSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -31,6 +34,33 @@ class PlanLimitsTest extends TestCase
 
         $this->domain = Domain::where('hostname', 'href.nz')->first();
         $this->secondDomain = Domain::where('hostname', 'ternis.link')->first();
+    }
+
+    public function test_new_users_do_not_default_to_unlimited(): void
+    {
+        $this->assertSame('free', User::factory()->create()->plan->name);
+    }
+
+    public function test_unlimited_plan_skips_plan_creation_limits(): void
+    {
+        $user = $this->userOnPlan('unlimited');
+        $this->assertTrue($user->plan->hasUnlimitedLinks());
+        $this->assertTrue($user->plan->hasUnlimitedCreationRate());
+        $this->assertTrue($user->plan->allowsCustomSubdomain());
+        RateLimiter::hit('create-link:'.$user->id, 60);
+        $service = app(LinkService::class);
+        $service->ensureWithinDailyQuota($user);
+        $service->ensureWithinRateLimit($user);
+        $quota = DailyLinkQuota::forUser($user);
+        $this->assertNull($quota['limit']);
+        $this->assertNull($quota['remaining']);
+        $this->assertSame(1, $user->plan->min_slug_length);
+        $headers = $this->headersFor($user);
+        $user->apiKeys()->update(['api_version' => 2]);
+        $this->getJson('http://links.t-api.de/v2/me', $headers)->assertOk()
+            ->assertJsonPath('data.creation_rate_limit_per_minute', null)
+            ->assertJsonPath('data.daily_link_quota.limit', null)
+            ->assertJsonPath('data.request_rate_limit_per_minute', 60);
     }
 
     private function headersFor(User $user): array
